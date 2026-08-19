@@ -1,0 +1,69 @@
+import Foundation
+
+enum MapScope {
+    /// v1 slice. To expand, add names here — URLs and filters follow.
+    static let marineAreaNames: Set<String> = ["13"]
+    static let countyNames: Set<String> = ["Thurston"]
+
+    /// WDFW layer 0 has no water-body-type field (field list verified 2026-08-18:
+    /// ObjectID, FacilityName, OpenDates, Camping, Directions, Restrooms, Launch,
+    /// LaunchType, ADAParking, ADARestroom, ADADock, ADABoatLaunch, PublicNotes,
+    /// CountyName, Shape), so this cannot go in the `where=` clause. Live Thurston
+    /// returns 17 launches and 15 of them are lakes; these two are the salt ramps.
+    /// Grow this when you add a county. Once several counties are in, replace it
+    /// with a point-in-polygon test against the drawn marine ring.
+    static let saltwaterFacilityNames: Set<String> = ["Boston Harbor", "Luhr's Landing"]
+
+    /// Derived, not hardcoded: widening the slice has to move the banner with it.
+    static var summary: String {
+        let counties = countyNames.sorted().joined(separator: ", ")
+        let areas = marineAreaNames.sorted().joined(separator: ", ")
+        return "\(counties) County · Marine Area \(areas)"
+    }
+
+    /// Verbatim per Global Constraints, and asserted in MapScopeTests so it stays that way.
+    static let disclaimer =
+        "Overlays are WDFW geography, not the rulebook. Check the Fish Washington app before you fish."
+
+    static let cameraCenter = LonLat(longitude: -122.8165, latitude: 47.1203)
+    static let cameraSpanDegrees: Double = 0.45
+
+    private static let mapServer = "https://geodataservices.wdfw.wa.gov/arcgis/rest/services/FP_Projects/MajorFishingArea/MapServer"
+
+    static var marineAreasURL: URL {
+        var components = URLComponents(string: "\(mapServer)/6/query")!
+        let names = marineAreaNames.sorted().map { "'\($0)'" }.joined(separator: ",")
+        components.queryItems = [
+            URLQueryItem(name: "where", value: "AreaName IN (\(names))"),
+            URLQueryItem(name: "outFields", value: "AreaName,AreaTitle,WAC"),
+            URLQueryItem(name: "f", value: "geojson"),
+            URLQueryItem(name: "outSR", value: "4326"),
+            URLQueryItem(name: "maxAllowableOffset", value: "0.002")
+        ]
+        return components.url!
+    }
+
+    static var accessSitesURL: URL {
+        var components = URLComponents(string: "\(mapServer)/0/query")!
+        let names = countyNames.sorted().map { "'\($0)'" }.joined(separator: ",")
+        components.queryItems = [
+            URLQueryItem(name: "where", value: "Launch=1 AND CountyName IN (\(names))"),
+            URLQueryItem(name: "outFields", value: "FacilityName,CountyName,Launch,LaunchType,Restrooms,Directions"),
+            URLQueryItem(name: "f", value: "geojson"),
+            URLQueryItem(name: "outSR", value: "4326")
+        ]
+        return components.url!
+    }
+
+    static func filter(marineAreas: [MarineArea]) -> [MarineArea] {
+        marineAreas.filter { marineAreaNames.contains($0.areaName) }
+    }
+
+    static func filter(accessSites: [AccessSite]) -> [AccessSite] {
+        accessSites.filter {
+            countyNames.contains($0.countyName)
+                && $0.hasLaunch
+                && saltwaterFacilityNames.contains($0.facilityName)
+        }
+    }
+}
