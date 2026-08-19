@@ -69,10 +69,11 @@ def main() -> int:
     if len(site_feats) < 2:
         failures.append(f"expected >=2 Thurston launches, got {len(site_feats)}")
 
+    luhrs = "Luhr's Landing"
     print(f"live marine area 13: {len(feats)} feature(s), {verts if feats else 0} outer verts")
     print(f"live Thurston launches: {len(site_feats)} sites")
     print(f"  includes Boston Harbor: {'Boston Harbor' in names}")
-    print(f"  includes Luhr's Landing: {\"Luhr's Landing\" in names}")
+    print(f"  includes Luhr's Landing: {luhrs in names}")
 
     if failures:
         print("FAIL:", "; ".join(failures), file=sys.stderr)
