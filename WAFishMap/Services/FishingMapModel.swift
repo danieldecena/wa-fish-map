@@ -46,8 +46,8 @@ final class FishingMapModel {
             // `where=` with no matches returns HTTP 200 + `features: []`, which
             // decodes cleanly and would otherwise render a blank map under a
             // success banner.
-            guard !areas.isEmpty else { throw WDFWLayerError.emptyResult("marine areas") }
-            guard !sites.isEmpty else { throw WDFWLayerError.emptyResult("access sites") }
+            guard !areas.isEmpty else { throw WDFWLayerError.emptyResult("marine areas in scope") }
+            guard !sites.isEmpty else { throw WDFWLayerError.emptyResult("access sites in scope") }
 
             marineAreas = areas
             accessSites = sites

@@ -78,7 +78,26 @@ struct FishingMapModelTests {
         let model = FishingMapModel()
         await model.load(client: Empty(), bundle: .main)
         #expect(!model.accessSites.isEmpty)
-        #expect(model.statusMessage.contains("no marine areas returned"))
+        #expect(model.statusMessage.contains("no marine areas in scope returned"))
+    }
+
+    /// A malformed/undecodable body (not a valid FeatureCollection, not the ArcGIS
+    /// error envelope) throws a `DecodingError`, which every existing stub above
+    /// never exercises — they all throw a typed `WDFWLayerError`. That leaves the
+    /// `catch`'s `default:` -> "offline" branch untested. Verified: `{"type":
+    /// "FeatureCollection"}` with no `features` key fails `ArcGISErrorEnvelope`
+    /// decoding (falls through via `try?`) and then fails `GeoJSONFeatureCollection`
+    /// decoding with `DecodingError.keyNotFound`.
+    @Test @MainActor func undecodableBodyIsReportedAsOffline() async throws {
+        struct Undecodable: HTTPGet {
+            func data(from url: URL) async throws -> Data {
+                Data(#"{"type":"FeatureCollection"}"#.utf8)
+            }
+        }
+        let model = FishingMapModel()
+        await model.load(client: Undecodable(), bundle: .main)
+        #expect(model.statusMessage.contains("offline"))
+        #expect(model.accessSites.map(\.facilityName).contains("Boston Harbor"))
     }
 
     /// The fallback can fail too. It must not still claim sample data is showing.
