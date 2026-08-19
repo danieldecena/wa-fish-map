@@ -37,6 +37,9 @@ struct FishingMapView: View {
                         Text(site.directions).font(.caption)
                     }
                 }
+                Text(model.statusMessage)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
                 Text(MapScope.disclaimer)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
