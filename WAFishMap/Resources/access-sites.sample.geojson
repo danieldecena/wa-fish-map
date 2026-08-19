@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-122.90550329432564, 47.13965712964172]
+      },
+      "properties": {
+        "FacilityName": "Boston Harbor",
+        "CountyName": "Thurston",
+        "Launch": 1,
+        "LaunchType": 1,
+        "Restrooms": 1,
+        "Directions": "Starting in Olympia at State St. & Eastbay Dr. Go N on Eastbay Drive 6.9 miles,(Eastbay turns into Boston Harbor at 1.7 mi.) turn right on Boston Harbor Rd. at stop, .2 miles, left on 73rd Ave. NE .2 miles site on left across from Boston Harbor Marina."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-122.72750155752296, 47.10093474591317]
+      },
+      "properties": {
+        "FacilityName": "Luhr's Landing",
+        "CountyName": "Thurston",
+        "Launch": 1,
+        "LaunchType": 1,
+        "Restrooms": 1,
+        "Directions": "I-5 exit 114 at Nisqually go west on Martin Wy NE 1.1 mi, north on Meridian Rd 2.7 mi, east on 46th Ave NE for .25 mi, east .2 mi to D'Milluhr Dr SE, north .5 mi to access area."
+      }
+    }
+  ]
+}
