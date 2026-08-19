@@ -6,6 +6,10 @@ final class FishingMapModel {
     var marineAreas: [MarineArea] = []
     var accessSites: [AccessSite] = []
     var statusMessage = "Loading…"
+    var selectedSiteID: AccessSite.ID?
+    var selectedSite: AccessSite? {
+        accessSites.first { $0.id == selectedSiteID }
+    }
 
     enum Resource: String {
         case marineAreas = "marine-areas.sample"
