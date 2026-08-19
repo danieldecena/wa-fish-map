@@ -46,7 +46,7 @@ struct FishingMapView: View {
             .background(.ultraThinMaterial)
         }
         .task {
-            try? model.loadFromBundle(bundle: .main)
+            await model.load()
         }
     }
 }

@@ -43,3 +43,16 @@ enum WDFWLayerLoader {
         return collection.features.compactMap(AccessSite.init(feature:))
     }
 }
+
+protocol HTTPGet: Sendable {
+    func data(from url: URL) async throws -> Data
+}
+
+struct URLSessionHTTPGet: HTTPGet {
+    func data(from url: URL) async throws -> Data {
+        let (data, response) = try await URLSession.shared.data(from: url)
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200...299).contains(status) else { throw WDFWLayerError.badHTTPStatus(status) }
+        return data
+    }
+}
