@@ -23,6 +23,33 @@ xcodebuild -scheme WAFishMap -destination 'platform=iOS Simulator,name=iPhone 16
 
 See [SETUP.md](SETUP.md) for signing and troubleshooting.
 
+## Troubleshooting empty Xcode navigator
+
+If Xcode shows **Failed to open ContentView.swift** and the project tree is empty:
+
+```zsh
+cd ~/developer/wa-fish-map
+zsh scripts/check_xcode_layout.sh
+```
+
+If sources are missing, restore from git:
+
+```zsh
+git checkout -- WAFishMap WAFishMapTests
+```
+
+If sources exist but Xcode is empty, quit Xcode and reset caches:
+
+```zsh
+rm -rf ~/Library/Developer/Xcode/DerivedData/WAFishMap-*
+open WAFishMap.xcodeproj
+```
+
+Still broken? Recreate the project shell in Xcode (File → New → Project → iOS App,
+name **WAFishMap**, save into this folder, SwiftUI + Swift Testing). Delete any
+duplicate `WAFishMapApp.swift` / `ContentView.swift` stubs Xcode generates — keep
+the ones already in `WAFishMap/`.
+
 ## What you get
 
 - Hybrid map centered on South Puget Sound (Area 13 polygon + Thurston launch pins)

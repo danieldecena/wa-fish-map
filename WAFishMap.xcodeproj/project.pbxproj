@@ -24,11 +24,17 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A10000000000000000000004 /* WAFishMap */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFileTypes = {};
+			explicitFolders = ();
+			name = WAFishMap;
 			path = WAFishMap;
 			sourceTree = "<group>";
 		};
 		A10000000000000000000005 /* WAFishMapTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFileTypes = {};
+			explicitFolders = ();
+			name = WAFishMapTests;
 			path = WAFishMapTests;
 			sourceTree = "<group>";
 		};
@@ -125,8 +131,8 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1600;
-				LastUpgradeCheck = 1600;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					A10000000000000000000008 = {
 						CreatedOnToolsVersion = 16.0;
