@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-122.91, 47.15],
+          [-122.72, 47.15],
+          [-122.72, 47.09],
+          [-122.91, 47.09],
+          [-122.91, 47.15]
+        ]]
+      },
+      "properties": {
+        "AreaName": "13",
+        "AreaTitle": "South Puget Sound",
+        "WAC": "220-311-010"
+      }
+    }
+  ]
+}
