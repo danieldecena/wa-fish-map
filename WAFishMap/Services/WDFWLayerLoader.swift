@@ -34,4 +34,12 @@ enum WDFWLayerLoader {
         )
         return collection.features.compactMap(MarineArea.init(feature:))
     }
+
+    static func accessSites(from data: Data) throws -> [AccessSite] {
+        let collection = try JSONDecoder().decode(
+            GeoJSONFeatureCollection<AccessSite.Properties>.self,
+            from: try rejectingServiceError(data)
+        )
+        return collection.features.compactMap(AccessSite.init(feature:))
+    }
 }
