@@ -1,27 +1,44 @@
-# WAFishMap — attach Xcode project on the Mac
+# WAFishMap — Mac setup
 
-The Cloud Agent cannot create or compile `.xcodeproj` files. All Swift sources
-are already in this repo; you only need an empty Xcode shell.
+The repo ships a complete `WAFishMap.xcodeproj` (Xcode 16 file-system synchronized
+groups). Open and build — no manual project creation needed.
 
-## Steps
+## Clone and build
 
-1. Open Xcode → File → New → Project → iOS → App
-2. Product Name: `WAFishMap`
-3. Organization Identifier: `com.danieldecena`
-4. Bundle Identifier: `com.danieldecena.WAFishMap`
-5. Interface: SwiftUI, Language: Swift, Storage: None
-6. Testing: Swift Testing (include tests, no UI tests)
-7. Save into **this directory** (`~/developer/wa-fish-map`)
+```zsh
+mkdir -p ~/developer
+cd ~/developer
+git clone git@github.com:danieldecena/wa-fish-map.git
+cd wa-fish-map
+open WAFishMap.xcodeproj
+```
 
-If Xcode generated duplicate `WAFishMapApp.swift` / `ContentView.swift`, delete
-the Xcode stubs and keep the versions already in `WAFishMap/`.
+In Xcode: select the **WAFishMap** scheme, pick an iPhone simulator (or your USB
+device), press Run.
 
-8. Confirm the scheme builds:
+Or from Terminal:
 
 ```zsh
 cd ~/developer/wa-fish-map
-xcodebuild -scheme WAFishMap -destination 'platform=iOS Simulator,name=iPhone 16' build
+xcodebuild -scheme WAFishMap -destination 'platform=iOS Simulator,name=iPhone 16' test
 ```
 
-Modern Xcode folder synchronization picks up every file under `WAFishMap/` and
-`WAFishMapTests/` automatically — do not hand-edit `project.pbxproj`.
+## Signing (device only)
+
+Set **Signing & Capabilities → Team** on the WAFishMap target. Simulator builds
+need no team.
+
+## Broken scratch project?
+
+If you have an empty bundle at `~/Tools/scratch-WAFishMap-discard/WAFishMap.xcodeproj`,
+delete it and use this repo instead:
+
+```zsh
+rm -rf ~/Tools/scratch-WAFishMap-discard
+```
+
+## Verify WDFW live data (optional)
+
+```zsh
+python3 scripts/verify_wdfw_live.py
+```

@@ -7,15 +7,24 @@ Widen the slice by editing `WAFishMap/Models/MapScope.swift` only.
 
 Overlays are geography, not the rulebook. Check Fish Washington before you fish.
 
-## Mac setup (required once)
-
-This repo ships Swift sources only. Xcode must create the project on your Mac:
-
-1. Clone to `~/developer/wa-fish-map`
-2. Follow [SETUP.md](SETUP.md) to attach `WAFishMap.xcodeproj`
-3. Build and run on the iOS Simulator
+## Quick start (Mac)
 
 ```zsh
+git clone git@github.com:danieldecena/wa-fish-map.git ~/developer/wa-fish-map
 cd ~/developer/wa-fish-map
+open WAFishMap.xcodeproj
+```
+
+Build and run on the iOS Simulator, or test from Terminal:
+
+```zsh
 xcodebuild -scheme WAFishMap -destination 'platform=iOS Simulator,name=iPhone 16' test
 ```
+
+See [SETUP.md](SETUP.md) for signing and troubleshooting.
+
+## What you get
+
+- Hybrid map centered on South Puget Sound (Area 13 polygon + Thurston launch pins)
+- Live WDFW ArcGIS fetch with offline GeoJSON fallback
+- Swift Testing unit tests for parsers, scope filters, and model loading
