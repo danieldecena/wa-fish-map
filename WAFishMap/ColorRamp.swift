@@ -15,10 +15,16 @@ enum ColorRamp {
     /// Fill for a density band. Cells tile without overlapping, so these alphas
     /// are what actually renders — nothing accumulates on top. That is why the
     /// range can be this wide and still leave the basemap readable.
+    ///
+    /// The coldest band draws nothing. Tinting every cell dimmed the whole map
+    /// into a scrim, and a scrim says "something is on top of the map" rather
+    /// than "this water is better than that water". Violet because the rating
+    /// ramp gave it up when it moved to blue/amber/orange/red, so the overlay
+    /// cannot be mistaken for a rating.
     static func densityFill(band: Int) -> Color {
-        let alphas = [0.10, 0.19, 0.28, 0.38]
+        let alphas = [0.0, 0.15, 0.27, 0.40]
         let clamped = min(max(band, 0), alphas.count - 1)
-        return Color(red: 0.16, green: 0.13, blue: 0.22).opacity(alphas[clamped])
+        return Color(red: 0.42, green: 0.16, blue: 0.62).opacity(alphas[clamped])
     }
 
     /// Fill for a zone, straight from its intensity.
