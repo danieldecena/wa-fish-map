@@ -1,5 +1,10 @@
 ## Tasks
 
+- [ ] Rewrite verify_wdfw_live script for statewide contract
+- [ ] Add GitHub Actions CI
+- [ ] Guard ArcGIS truncation in app load
+- [ ] Surface load failure in statusMessage
+
 ## Completed
 
 - [x] Research coastal marine areas 1, 2, 2-1, 2-2, 3, 4

@@ -3,6 +3,9 @@ import Foundation
 enum WDFWLayerError: Error, Equatable {
     case badHTTPStatus(Int)
     case missingBundleResource(String)
+    /// The server hit its transfer limit and silently dropped features; treating the
+    /// partial layer as complete would be worse than falling back.
+    case truncatedResponse
 }
 
 protocol HTTPGet: Sendable {
@@ -20,26 +23,27 @@ struct URLSessionHTTPGet: HTTPGet {
 
 enum WDFWLayerLoader {
     static func marineAreas(from data: Data) throws -> [MarineArea] {
-        let collection = try JSONDecoder().decode(
-            GeoJSONFeatureCollection<MarineArea.Properties>.self,
-            from: data
-        )
-        return collection.features.compactMap(MarineArea.init(feature:))
+        try collection(MarineArea.Properties.self, from: data)
+            .features.compactMap(MarineArea.init(feature:))
     }
 
     static func accessSites(from data: Data) throws -> [AccessSite] {
-        let collection = try JSONDecoder().decode(
-            GeoJSONFeatureCollection<AccessSite.Properties>.self,
-            from: data
-        )
-        return collection.features.compactMap(AccessSite.init(feature:))
+        try collection(AccessSite.Properties.self, from: data)
+            .features.compactMap(AccessSite.init(feature:))
     }
 
     static func piers(from data: Data) throws -> [FishingPier] {
-        let collection = try JSONDecoder().decode(
-            GeoJSONFeatureCollection<FishingPier.Properties>.self,
-            from: data
-        )
-        return collection.features.compactMap(FishingPier.init(feature:))
+        try collection(FishingPier.Properties.self, from: data)
+            .features.compactMap(FishingPier.init(feature:))
+    }
+
+    /// Decodes a layer response, refusing truncated ones — a silently partial layer
+    /// would render as complete.
+    private static func collection<P: Decodable>(
+        _ properties: P.Type, from data: Data
+    ) throws -> GeoJSONFeatureCollection<P> {
+        let collection = try JSONDecoder().decode(GeoJSONFeatureCollection<P>.self, from: data)
+        guard !collection.isTruncated else { throw WDFWLayerError.truncatedResponse }
+        return collection
     }
 }

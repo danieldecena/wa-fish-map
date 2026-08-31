@@ -1,5 +1,19 @@
 struct GeoJSONFeatureCollection<Props: Decodable>: Decodable {
     let features: [GeoJSONFeature<Props>]
+
+    /// ArcGIS sets this when the response hit the server's transfer limit and is
+    /// missing features. Emitted both at the top level and under `properties`,
+    /// depending on server version — accept either.
+    let exceededTransferLimit: Bool?
+    private let properties: CollectionProperties?
+
+    var isTruncated: Bool {
+        exceededTransferLimit == true || properties?.exceededTransferLimit == true
+    }
+
+    private struct CollectionProperties: Decodable {
+        let exceededTransferLimit: Bool?
+    }
 }
 
 struct GeoJSONFeature<Props: Decodable>: Decodable {
