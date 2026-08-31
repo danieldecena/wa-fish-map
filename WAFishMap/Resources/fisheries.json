@@ -1,6 +1,6 @@
 {
   "updated": "2026-08-30",
-  "disclaimer": "Seasonal guidance only — NOT official regulations. Runs, open seasons, areas, and limits change year to year and can close with little notice. First-pass data for the central/south Sound; other areas show no rating until seeded. Bait/gear are general suggestions. Always confirm current rules in the WDFW Fish Washington app before you fish.",
+  "disclaimer": "Seasonal guidance only — NOT official regulations. Runs, open seasons, areas, and limits change year to year and can close with little notice. Statewide first-pass data; inland areas without an entry show a neutral rating. Bait/gear are general suggestions. Always confirm current rules in the WDFW Fish Washington app before you fish.",
   "wdfwURL": "https://wdfw.wa.gov/fishing/regulations",
   "areas": [
     {
@@ -63,6 +63,127 @@
         { "species": "Dungeness Crab", "bestMonths": [7, 8], "goodMonths": [9], "bait": "Baited crab pot" },
         { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4], "bait": "Heavy jigs near structure" }
       ]
+    },
+    {
+      "areaName": "1",
+      "species": [
+        { "species": "Chinook Salmon (ocean)", "bestMonths": [7, 8], "goodMonths": [6, 9], "bait": "Trolled herring behind a flasher", "note": "Ocean season opens ~mid-June by quota; Chinook can close in-season. Confirm dates with WDFW." },
+        { "species": "Coho Salmon (ocean)", "bestMonths": [8, 9], "goodMonths": [7], "bait": "Trolled hoochies or herring" },
+        { "species": "Buoy 10 Salmon (Columbia mouth)", "bestMonths": [8, 9], "goodMonths": [7], "bait": "Trolled spinners, herring, or wobblers", "note": "Buoy 10 fishery peaks Aug into early Sep." },
+        { "species": "Albacore Tuna", "bestMonths": [8, 9], "goodMonths": [7, 10], "bait": "Trolled cedar plugs/skirts, then live-bait stops", "note": "Offshore 30-60+ miles; weather-dependent." },
+        { "species": "Lingcod", "bestMonths": [5, 6, 7], "goodMonths": [4, 8, 9, 10], "bait": "Jigs near reefs/structure", "note": "Coastal bottomfish season ~mid-Mar to mid-Oct." },
+        { "species": "Razor Clams", "bestMonths": [11, 12, 1, 2, 3], "goodMonths": [10, 4], "bait": "Clam gun or shovel on a low tide", "note": "Long Beach; digs announced by WDFW after marine-toxin testing." },
+        { "species": "Surfperch", "bestMonths": [5, 6], "goodMonths": [4, 7, 8], "bait": "Sand shrimp or Gulp on a high-low rig from the surf" }
+      ]
+    },
+    {
+      "areaName": "2",
+      "species": [
+        { "species": "Chinook Salmon (ocean)", "bestMonths": [7, 8], "goodMonths": [6, 9], "bait": "Trolled herring behind a flasher", "note": "Season opens ~mid-June by quota; Chinook often closes mid-Aug. Confirm with WDFW." },
+        { "species": "Coho Salmon (ocean)", "bestMonths": [8, 9], "goodMonths": [7], "bait": "Trolled hoochies or herring" },
+        { "species": "Albacore Tuna", "bestMonths": [8, 9], "goodMonths": [7, 10], "bait": "Trolled cedar plugs/skirts, then live-bait stops", "note": "Westport is the main tuna port; offshore, weather-dependent." },
+        { "species": "Lingcod", "bestMonths": [5, 6, 7], "goodMonths": [4, 8, 9, 10], "bait": "Jigs near reefs/structure", "note": "Coastal bottomfish season ~mid-Mar to mid-Oct." },
+        { "species": "Black Rockfish", "bestMonths": [5, 6, 7], "goodMonths": [4, 8, 9], "bait": "Jigs or bait near structure", "note": "Some rockfish species closed May-Jul; check rules." },
+        { "species": "Razor Clams", "bestMonths": [11, 12, 1, 2, 3], "goodMonths": [10, 4], "bait": "Clam gun or shovel on a low tide", "note": "Twin Harbors/Copalis/Mocrocks; digs announced after toxin testing." },
+        { "species": "Halibut", "bestMonths": [5], "goodMonths": [6], "bait": "Large jigs or bait on the bottom in 100-300 ft", "note": "Few announced days May-Jun; quota-driven." }
+      ]
+    },
+    {
+      "areaName": "2-1",
+      "species": [
+        { "species": "Fall Chinook", "bestMonths": [9], "goodMonths": [8, 10], "bait": "Trolled spinners or herring in the bay", "note": "Willapa Bay terminal fall run." },
+        { "species": "Coho Salmon", "bestMonths": [9, 10, 11], "goodMonths": [8, 12], "bait": "Spinners or twitching jigs", "note": "Early A-run late Aug-Nov; late run into winter." },
+        { "species": "Sea-run Cutthroat", "bestMonths": [9, 10], "goodMonths": [11], "bait": "Small spoons, spinners, flies in the estuary" },
+        { "species": "Dungeness Crab", "bestMonths": [7, 8, 9], "goodMonths": [10], "bait": "Baited crab pot", "note": "Coastal crab seasons differ from Puget Sound." }
+      ]
+    },
+    {
+      "areaName": "2-2",
+      "species": [
+        { "species": "Fall Chinook", "bestMonths": [9, 10], "goodMonths": [8], "bait": "Trolled spinners or herring", "note": "Grays Harbor terminal run; marine area is often Chinook-release, best in the rivers." },
+        { "species": "Coho Salmon", "bestMonths": [9, 10, 11], "goodMonths": [8, 12], "bait": "Spinners or twitching jigs", "note": "A-run late Aug-Nov; late B-run into winter." },
+        { "species": "Dungeness Crab", "bestMonths": [7, 8, 9], "goodMonths": [10], "bait": "Baited crab pot" },
+        { "species": "Razor Clams", "bestMonths": [11, 12, 1, 2, 3], "goodMonths": [10, 4], "bait": "Clam gun or shovel on a low tide", "note": "Twin Harbors; digs announced after toxin testing." },
+        { "species": "Sea-run Cutthroat", "bestMonths": [9, 10], "goodMonths": [11], "bait": "Small spoons, spinners, flies" }
+      ]
+    },
+    {
+      "areaName": "3",
+      "species": [
+        { "species": "Chinook Salmon (ocean)", "bestMonths": [7, 8], "goodMonths": [6, 9], "bait": "Trolled herring behind a flasher", "note": "Ocean season opens ~mid-June by quota. Confirm with WDFW." },
+        { "species": "Coho Salmon (ocean)", "bestMonths": [8, 9], "goodMonths": [7], "bait": "Trolled hoochies or herring" },
+        { "species": "Lingcod", "bestMonths": [5, 6, 7], "goodMonths": [4, 8, 9, 10], "bait": "Heavy jigs near reefs/kelp", "note": "Coastal bottomfish ~mid-Mar to mid-Oct; depth limits Jun-Jul." },
+        { "species": "Black Rockfish", "bestMonths": [5, 6, 7], "goodMonths": [4, 8, 9], "bait": "Jigs or bait near structure", "note": "Some rockfish closed May-Jul; yelloweye release-only." },
+        { "species": "Halibut", "bestMonths": [5], "goodMonths": [6], "bait": "Bottom bait or jigs on offshore banks", "note": "Few announced days; quota-driven." }
+      ]
+    },
+    {
+      "areaName": "4",
+      "species": [
+        { "species": "Chinook Salmon (ocean)", "bestMonths": [7, 8], "goodMonths": [6, 9], "bait": "Trolled herring behind a flasher", "note": "Ocean season opens ~mid-June by quota. Confirm with WDFW." },
+        { "species": "Coho Salmon (ocean)", "bestMonths": [8, 9], "goodMonths": [7], "bait": "Trolled hoochies or herring" },
+        { "species": "Lingcod", "bestMonths": [5, 6, 7], "goodMonths": [4, 8, 9, 10], "bait": "Heavy jigs near reefs/kelp", "note": "Coastal bottomfish ~mid-Mar to mid-Oct; depth limits Jun-Jul." },
+        { "species": "Black Rockfish", "bestMonths": [5, 6, 7], "goodMonths": [4, 8, 9], "bait": "Jigs or bait near structure", "note": "Some rockfish closed May-Jul; yelloweye release-only." },
+        { "species": "Halibut", "bestMonths": [5], "goodMonths": [6], "bait": "Bottom bait or jigs on the banks", "note": "Popular halibut port; few announced days." },
+        { "species": "Albacore Tuna", "bestMonths": [8, 9], "goodMonths": [7], "bait": "Trolled skirts, then live-bait stops", "note": "Offshore when weather allows." }
+      ]
+    },
+    {
+      "areaName": "5",
+      "species": [
+        { "species": "Chinook Salmon", "bestMonths": [7], "goodMonths": [8], "bait": "Trolled herring or spoons", "note": "Summer opener ~July, often odd days only; quota-driven." },
+        { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8], "bait": "Trolled hoochies or herring", "note": "Late-season migrating coho can be outstanding." },
+        { "species": "Pink Salmon", "bestMonths": [8], "goodMonths": [7, 9], "bait": "Small pink hoochies and jigs", "note": "Odd-numbered years." },
+        { "species": "Halibut", "bestMonths": [5, 6], "goodMonths": [7, 8], "bait": "Bottom bait/jigs off Kydaka/Pillar Point in 200-400 ft", "note": "Open days set by quota." },
+        { "species": "Resident Chinook (Blackmouth)", "bestMonths": [3, 4], "goodMonths": [2], "bait": "Trolled herring, flasher + hoochie", "note": "Winter/spring blackmouth (~Mar-Apr in recent years); quota-driven." },
+        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4], "bait": "Jigs near rocky structure", "note": "Strait lingcod ~May 1-Jun 15." },
+        { "species": "Dungeness Crab", "bestMonths": [7, 8], "goodMonths": [9], "bait": "Baited crab pot" }
+      ]
+    },
+    {
+      "areaName": "6",
+      "species": [
+        { "species": "Chinook Salmon", "bestMonths": [7, 8], "goodMonths": [9], "bait": "Trolled herring or spoons", "note": "Summer hatchery Chinook; quota-driven." },
+        { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8], "bait": "Trolled hoochies or herring" },
+        { "species": "Halibut", "bestMonths": [5, 6], "goodMonths": [7, 8], "bait": "Bottom bait or jigs", "note": "Open days set by quota." },
+        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4], "bait": "Jigs near rocky structure", "note": "~May 1-Jun 15." },
+        { "species": "Pink Salmon", "bestMonths": [8], "goodMonths": [7, 9], "bait": "Pink hoochies and jigs", "note": "Odd-numbered years." },
+        { "species": "Dungeness Crab", "bestMonths": [7, 8], "goodMonths": [9], "bait": "Baited crab pot" }
+      ]
+    },
+    {
+      "areaName": "7",
+      "species": [
+        { "species": "Resident Chinook (Blackmouth)", "bestMonths": [12, 1, 2, 3, 4], "goodMonths": [11], "bait": "Trolled herring, flasher + hoochie", "note": "San Juans winter blackmouth ~Dec-Apr; opening dates vary by year and sub-area." },
+        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4], "bait": "Large jigs near rocky structure", "note": "~May 1-Jun 15." },
+        { "species": "Coho Salmon", "bestMonths": [8, 9], "goodMonths": [10], "bait": "Trolled hoochies or herring" },
+        { "species": "Pink Salmon", "bestMonths": [8, 9], "goodMonths": [7], "bait": "Pink hoochies and jigs", "note": "Odd-numbered years." },
+        { "species": "Halibut", "bestMonths": [5, 6], "goodMonths": [4], "bait": "Bottom bait or jigs on the banks", "note": "Open days set by quota." },
+        { "species": "Dungeness Crab", "bestMonths": [7, 8], "goodMonths": [9], "bait": "Baited crab pot" }
+      ]
+    },
+    {
+      "areaName": "8-1",
+      "species": [
+        { "species": "Coho Salmon", "bestMonths": [8, 9], "goodMonths": [10], "bait": "Trolled hoochies or herring" },
+        { "species": "Pink Salmon", "bestMonths": [8, 9], "goodMonths": [7], "bait": "Pink hoochies and jigs", "note": "Odd years; Skagit-bound schools." },
+        { "species": "Sea-run Cutthroat", "bestMonths": [9, 10], "goodMonths": [1, 2, 7, 8, 11], "bait": "Small spoons, spinners, clouser flies", "note": "Beaches and estuaries; catch-and-release ethic." },
+        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4], "bait": "Jigs near structure at Deception Pass", "note": "~May 1-Jun 15." },
+        { "species": "Dungeness Crab", "bestMonths": [7, 8], "goodMonths": [9], "bait": "Baited crab pot" },
+        { "species": "Crab Snaring (shore)", "bestMonths": [7, 8, 9], "goodMonths": [6, 10], "bait": "Rod + crab snare baited with chicken/fish, from beach or pier", "note": "Check crab season and areas." }
+      ]
+    },
+    {
+      "areaName": "8-2",
+      "species": [
+        { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8], "bait": "Trolled hoochies or herring", "note": "Everett coho staging for the Snohomish." },
+        { "species": "Pink Salmon", "bestMonths": [8, 9], "goodMonths": [7], "bait": "Pink hoochies and jigs", "note": "Odd years; retention is sometimes restricted here." },
+        { "species": "Chinook Salmon (Tulalip)", "bestMonths": [6, 7], "goodMonths": [5, 8], "bait": "Trolled herring near the Tulalip 'bubble'", "note": "Terminal-area rules differ from MA 8-2." },
+        { "species": "Market Squid", "bestMonths": [10, 11, 12, 1], "goodMonths": [2], "bait": "Glow squid jigs under a light", "note": "Everett pier jigging after dark." },
+        { "species": "Dungeness Crab", "bestMonths": [7, 8], "goodMonths": [9], "bait": "Baited crab pot" },
+        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4], "bait": "Jigs near Hat Island reefs", "note": "~May 1-Jun 15." },
+        { "species": "Sea-run Cutthroat", "bestMonths": [9, 10], "goodMonths": [11], "bait": "Spoons, spinners, flies" }
+      ]
     }
   ],
   "freshwater": {
@@ -87,6 +208,44 @@
         { "species": "Rainbow Trout", "bestMonths": [4, 5, 6], "goodMonths": [3, 9, 10], "bait": "PowerBait, worms, spoons" },
         { "species": "Kokanee", "bestMonths": [5, 6, 7], "goodMonths": [4, 8], "bait": "Trolled dodger + hoochie with corn" },
         { "species": "Smallmouth Bass", "bestMonths": [5, 6, 7], "goodMonths": [8, 9], "bait": "Tube jigs, crankbaits" }
+      ],
+      "King": [
+        { "species": "Yellow Perch", "bestMonths": [8, 9, 10], "goodMonths": [7, 11, 12], "bait": "Worm or small perch jig on the bottom", "note": "Lake Washington; huge population, schools deep in fall/winter." },
+        { "species": "Coho Salmon", "bestMonths": [10], "goodMonths": [9, 11], "bait": "Cut-plug herring or spinners, north end", "note": "Lake Washington fall coho only in years with a healthy run; sockeye has been closed for years." }
+      ],
+      "Snohomish": [
+        { "species": "Kokanee", "bestMonths": [5, 6, 7], "goodMonths": [4, 8], "bait": "Trolled dodger + pink hoochie tipped with corn", "note": "Lake Stevens; best in spring before fish go deep." },
+        { "species": "Smallmouth Bass", "bestMonths": [5, 6, 7], "goodMonths": [8, 9], "bait": "Tube jigs, crankbaits, drop-shot", "note": "Lake Stevens and lowland lakes." }
+      ],
+      "Spokane": [
+        { "species": "Redband Trout", "bestMonths": [6, 7, 8, 9, 10], "goodMonths": [11], "bait": "Nymphs, dry flies, small spinners", "note": "Spokane River native redband; season ~late May-Mar 15, catch-and-release. Wild fishery, tread lightly." },
+        { "species": "Rainbow Trout", "bestMonths": [4, 5, 6], "goodMonths": [3, 9, 10], "bait": "PowerBait, worms, spoons", "note": "Liberty, Newman, and other lowland lakes." }
+      ],
+      "Stevens": [
+        { "species": "Kokanee", "bestMonths": [1, 2, 3, 11, 12], "goodMonths": [4, 5, 6, 10], "bait": "Trolled dodger + hoochie tipped with corn near the dam", "note": "Lake Roosevelt; trophy kokanee, best in winter/spring." },
+        { "species": "Walleye", "bestMonths": [4, 5, 6], "goodMonths": [7, 8], "bait": "Bottom-walker + worm harness, crankbaits", "note": "Lake Roosevelt; mercury advisory - limit consumption." },
+        { "species": "Rainbow Trout", "bestMonths": [3, 4, 10, 11], "goodMonths": [1, 2, 12], "bait": "Trolled Wedding Rings or spoons", "note": "Lake Roosevelt net-pen triploids; best in cool months." }
+      ],
+      "Ferry": [
+        { "species": "Kokanee", "bestMonths": [1, 2, 3, 11, 12], "goodMonths": [4, 5, 6, 10], "bait": "Trolled dodger + hoochie tipped with corn", "note": "Lake Roosevelt; trophy kokanee, best in winter/spring." },
+        { "species": "Walleye", "bestMonths": [4, 5, 6], "goodMonths": [7, 8], "bait": "Bottom-walker + worm harness, crankbaits", "note": "Lake Roosevelt; mercury advisory - limit consumption." },
+        { "species": "Rainbow Trout", "bestMonths": [3, 4, 10, 11], "goodMonths": [1, 2, 12], "bait": "Trolled Wedding Rings or spoons", "note": "Lake Roosevelt net-pen triploids; best in cool months." }
+      ],
+      "Douglas": [
+        { "species": "Rainbow Trout (triploid)", "bestMonths": [11, 12, 1, 2], "goodMonths": [3, 10], "bait": "Trout dough bait or nightcrawlers near the net pens", "note": "Rufus Woods; trophy triploids, a cold-weather fishery - spring is poor." },
+        { "species": "Walleye", "bestMonths": [11, 12, 1, 2], "goodMonths": [3, 10], "bait": "Bottom bouncers + spinners near the net pens", "note": "Rufus Woods; good winter walleye." }
+      ],
+      "Yakima": [
+        { "species": "Smallmouth Bass", "bestMonths": [5, 6], "goodMonths": [7, 8, 9, 10], "bait": "Tubes, crankbaits, drop-shot", "note": "Lower Yakima River; peak at the May-Jun spawn, good into fall." },
+        { "species": "Channel Catfish", "bestMonths": [6, 7, 8], "goodMonths": [5, 9], "bait": "Cut bait or nightcrawlers on the bottom after dark" }
+      ],
+      "Kittitas": [
+        { "species": "Rainbow Trout (wild)", "bestMonths": [7, 8, 9], "goodMonths": [6, 10], "bait": "Dry flies, nymphs", "note": "Upper Yakima River; catch-and-release, selective gear." },
+        { "species": "Cutthroat Trout", "bestMonths": [7, 8], "goodMonths": [9], "bait": "Small spinners, flies", "note": "Alpine lakes; best after ice-out through summer." }
+      ],
+      "Whatcom": [
+        { "species": "Sockeye Salmon", "bestMonths": [7, 8], "goodMonths": [], "bait": "Trolled red hoochies/hooks tipped with corn behind a dodger, 30-60 ft", "note": "Baker Lake; season ~Jul-Aug, set by the return. Boat needed." },
+        { "species": "Kokanee", "bestMonths": [5, 6, 7], "goodMonths": [4, 8], "bait": "Trolled dodger + hoochie with corn", "note": "Lake Whatcom." }
       ]
     }
   }
