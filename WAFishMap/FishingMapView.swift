@@ -8,6 +8,7 @@ struct FishingMapView: View {
     /// Date/time the user is planning for. Defaults to now; the month drives ratings.
     @State private var planDate = Date()
     @State private var showHeat = false
+    @State private var showDisclaimer = false
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     /// POIs worth showing an angler (instead of hiding all landmarks).
@@ -153,19 +154,23 @@ struct FishingMapView: View {
             Spacer(minLength: 4)
             VStack(alignment: .trailing, spacing: 1) {
                 Text(timeOfDay.label).font(.caption2.weight(.semibold))
-                Text(timeOfDay.lightHint).font(.caption2).foregroundStyle(.secondary)
+                // The full light hint needs room; on compact the tinted icon carries it.
+                if sizeClass == .regular {
+                    Text(timeOfDay.lightHint).font(.caption2).foregroundStyle(.secondary)
+                }
             }
             Button("Now") { planDate = Date() }
                 .font(.caption2.weight(.semibold))
                 .buttonStyle(.bordered)
+                .fixedSize()
         }
         .font(.caption2)
         .controlSize(.small)
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .frame(maxWidth: sizeClass == .regular ? 560 : .infinity, alignment: .leading)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: sizeClass == .regular ? 14 : 0))
-        .padding(sizeClass == .regular ? 12 : 0)
+        .modifier(GlassCard())
+        .padding(sizeClass == .regular ? 12 : 8)
     }
 
     private var statusBar: some View {
@@ -182,17 +187,40 @@ struct FishingMapView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .tint(showHeat ? .orange : .secondary)
+                Button { showDisclaimer.toggle() } label: {
+                    Image(systemName: "info.circle")
+                        .font(.caption)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel("About this guidance")
+                .popover(isPresented: $showDisclaimer, arrowEdge: .bottom) {
+                    Text("Tap a launch for what's biting. Guidance only — verify seasons in the Fish Washington app.")
+                        .font(.caption)
+                        .padding()
+                        .frame(maxWidth: 280)
+                        .presentationCompactAdaptation(.popover)
+                }
             }
             RatingLegend()
-            Text("Tap a launch for what's biting. Guidance only — verify seasons in the Fish Washington app.")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
         .frame(maxWidth: sizeClass == .regular ? 460 : .infinity, alignment: .leading)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: sizeClass == .regular ? 14 : 0))
-        .padding(sizeClass == .regular ? 12 : 0)
+        .modifier(GlassCard())
+        .padding(sizeClass == .regular ? 12 : 8)
+    }
+}
+
+/// Floating chrome card: Liquid Glass where available, material fallback earlier.
+/// Rounded on both size classes so the bars float over the map instead of
+/// spanning edge-to-edge on iPhone.
+private struct GlassCard: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffect(.regular, in: .rect(cornerRadius: 14))
+        } else {
+            content.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+        }
     }
 }
 
