@@ -41,7 +41,7 @@ struct FishingMapView: View {
             }
             ForEach(model.piers) { pier in
                 Marker(pier.name, systemImage: "building.columns", coordinate: pier.mapCoordinate)
-                    .tint(.teal)
+                    .tint(model.rating(for: pier, month: currentMonth)?.color ?? .gray)
             }
             UserAnnotation()
         }

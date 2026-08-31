@@ -30,8 +30,18 @@ final class FishingMapModel {
         areaName(for: site) != nil
     }
 
-    /// Resolved guidance for a launch: its marine area if it's in one, otherwise the
-    /// freshwater table for its county. Nil only when no guidance applies at all.
+    /// Resolved guidance for any point: the marine area whose polygon contains it, else
+    /// the freshwater table for its county. Nil only when no guidance applies at all.
+    func fishery(atCoordinate coordinate: LonLat, county: String) -> AreaFishery? {
+        if let marine = marineAreas.first(where: { $0.contains(coordinate) }),
+           let f = guide?.area(named: marine.areaName) {
+            return f
+        }
+        return guide?.freshwater?.fishery(county: county)
+    }
+
+    /// Resolved guidance for a launch (uses the precomputed area index for its marine
+    /// lookup), otherwise the freshwater table for its county.
     func fishery(for site: AccessSite) -> AreaFishery? {
         if let area = areaName(for: site), let marine = guide?.area(named: area) {
             return marine
@@ -43,6 +53,12 @@ final class FishingMapModel {
     /// renders that neutral.
     func rating(for site: AccessSite, month: Int) -> FishingRating? {
         fishery(for: site)?.rating(inMonth: month)
+    }
+
+    /// A pier's current-month rating, resolved the same way as launches so piers are
+    /// color-coded too (marine by polygon, else freshwater by county).
+    func rating(for pier: FishingPier, month: Int) -> FishingRating? {
+        fishery(atCoordinate: pier.coordinate, county: pier.countyName)?.rating(inMonth: month)
     }
 
     enum Resource: String {
