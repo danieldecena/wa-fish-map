@@ -10,17 +10,75 @@
 - Dawn/dusk comes from real sun times: `SolarTimes` (NOAA equations, pure, no
   network) at the map's camera center, with the fixed hour buckets kept as the
   fallback. Full suite green: 35 tests, 8 suites, iPhone 17 sim.
+- Season/closure capping ships: a curated `seasonRisk` table in fisheries.json
+  is matched to species by case-insensitive substring at load, stamping
+  `riskMonths` that clamp a species to `.fair`, so a fishery whose season is set
+  annually can never render as Prime. Capped species carry a "Season varies —
+  verify" badge and their reason. 11 table rows cover the 42 entries whose notes
+  already described a closure. Full suite green: 65 tests, 11 suites.
+- Ratings run a thermal ramp — Slow azure, Fair amber, Good orange, Prime red —
+  as four explicit stops. Above 150km altitude a site draws as an 11pt dot
+  instead of a balloon pin.
+- The heat overlay draws each grid cell as a tiling MapPolygon, ranked against
+  the other cells rather than normalised to the densest one, in four violet
+  bands over a muted basemap. Cell size follows the camera.
+- The map opens on the user's location when a fix lands inside Washington and
+  they have not moved the camera; a denied permission now says so and links to
+  Settings.
 
 ## Known broken
+
+- The verify badge (Task 5) has not been seen on screen. Injected simulator taps
+  were unreliable all session, so it is proven by tests and by reading the diff,
+  not by observation.
+- The camera guard has a disclosed residual: a genuine user gesture made BEFORE
+  the WDFW load completes is misclassified as non-user, so a later location fix
+  would still recentre. Narrower than the bug it replaced, and documented in the
+  code.
 
 ## Next Up
 
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
-- Season/closure (open-window) modeling so ratings never show "best" during a
-  closure — separate feature, not started.
+- Marker clustering: 477 pins are unreadable statewide. Own implementation over
+  the existing HeatMap bucketing beats bridging to MKMapView, which would mean
+  rewriting the map as a UIViewRepresentable. Decide whether clusters replace
+  the heat overlay, since both answer "where is it good".
+- Species-first mode, tides (NOAA CO-OPS), WeatherKit — brainstormed as a queue
+  behind season/closure; WeatherKit is likely blocked on a paid-account
+  entitlement.
 
 ## Decision log
+
+### 2026-08-31 (season/closure + map design)
+- Decided: cap, do not hide. A closure-prone species keeps its card and its
+  place in "Biting now" but cannot reach Prime. Hiding it would cost the user
+  the information that sends them to WDFW.
+- Decided: cap only in flagged months, not blanket per species, so a fishery
+  reliably open at its peak still reaches Prime.
+- Decided: curate centrally by species name, not `verifyMonths` on all 134 rows.
+  Substring matching knowingly over-flags (Lingcod, Crab, Coho, Sockeye,
+  Chinook); over-flagging is the safe direction for a "verify" signal, and
+  `"seasonRisk": "none"` is the per-row escape hatch.
+- Decided: the rating ramp is thermal (blue → amber → orange → red) as four
+  explicit stops. Sampling a blue-to-red line ran the midtones through magenta,
+  which reads as a different scale and put Good and Prime adjacent in the
+  reddest stretch.
+- Decided: the heat overlay draws real grid cells, not circles. Circles 10-28km
+  across in an 11.3km cell had to overlap, and translucent overlap composites
+  rather than maxes, so two mediocre neighbours out-darkened one hot cell — the
+  layer encoded how many cells held data. Diagnosis came from a peer session and
+  its arithmetic was verified against the source here.
+- Decided: rank each cell against the others instead of normalising to the
+  densest. One outlier crushed every ordinary cell to the floor.
+- Decided: mute the basemap while heat is on. A translucent fill takes its
+  colour from what is under it, so one band read pink over city, brown over
+  forest, violet over water. Hue-shifting the bands compensated and looked
+  garish; draining the ground fixed the cause.
+- Decided: the Stop-hook auto-commit is off. It swept unreviewed work into
+  commits and pushed them three times in one session, each under a generic
+  fallback message. `~/bin/auto-commit.sh` stays on disk; `auto-push.sh` still
+  runs.
 
 ### 2026-08-30 (data-update review)
 - Reviewed how data updates: geo layers self-update per launch (live fetch,

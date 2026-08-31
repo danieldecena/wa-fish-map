@@ -3,6 +3,11 @@
 - [ ] Tide predictions in site detail (NOAA CO-OPS)
 - [ ] WeatherKit wind/precip at plan time
 - [ ] Species-first mode: picker, recolor, month scrubber
+- [ ] Marker clustering at low zoom (477 pins unreadable statewide)
+
+- [x] Season/closure rating cap + verify badge — d78377b
+- [x] Thermal rating ramp, range dots, heat as tiling ranked cells — 3eb5a43
+- [x] Open the map on the user's location; location-denied hint — 07f4460
 
 - [x] Real dawn/dusk: solar times drive TimeOfDay — PENDING
 - [x] Fix rating color ramp + marker a11y + Dynamic Type fonts — 9045cc2
