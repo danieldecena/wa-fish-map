@@ -17,7 +17,7 @@
 - Season/closure (open-window) modeling so ratings never show "best" during a
   closure — separate feature, not started.
 
-## Decisions
+## Decision log
 
 ### 2026-08-30
 - Verified `fisheries.json` seasonal facts against WDFW via parallel research.
