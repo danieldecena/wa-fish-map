@@ -41,8 +41,8 @@ struct FishingMapView: View {
         Map(position: $position, selection: $model.selectedSiteID) {
             ForEach(model.marineAreas) { area in
                 MapPolygon(coordinates: area.mapCoordinates)
-                    .foregroundStyle(color(forArea: area).opacity(0.18))
-                    .stroke(color(forArea: area), lineWidth: 1)
+                    .foregroundStyle(color(forArea: area).opacity(0.12))
+                    .stroke(color(forArea: area).opacity(0.35), lineWidth: 0.75)
                 if cameraDistance < Self.areaLabelMaxDistance {
                     Annotation("Area \(area.areaName)", coordinate: area.center) {
                         Text("MA \(area.areaName)")
@@ -54,7 +54,8 @@ struct FishingMapView: View {
                 }
             }
             ForEach(heatZones) { zone in
-                MapCircle(center: zone.center.clLocationCoordinate, radius: 9000)
+                MapCircle(center: zone.center.clLocationCoordinate,
+                          radius: ColorRamp.densityRadius(zone.intensity))
                     .foregroundStyle(ColorRamp.density(zone.intensity))
             }
             ForEach(model.accessSites) { site in
