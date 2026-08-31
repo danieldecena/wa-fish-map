@@ -1,9 +1,9 @@
 ## Tasks
 
-- [ ] Tide predictions in site detail (NOAA CO-OPS)
+- [x] Tide predictions in site detail (NOAA CO-OPS)
 - [ ] WeatherKit wind/precip at plan time
 - [ ] Species-first mode: picker, recolor, month scrubber
-- [ ] Marker clustering at low zoom (477 pins unreadable statewide)
+- [x] Marker clustering at low zoom (477 pins unreadable statewide)
 
 - [x] Season/closure rating cap + verify badge — d78377b
 - [x] Thermal rating ramp, range dots, heat as tiling ranked cells — 3eb5a43

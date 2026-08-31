@@ -116,8 +116,9 @@ struct SiteDetailSheet: View {
     let fishery: AreaFishery?
     let isMarine: Bool
     let guide: FisheryGuide?
-    let month: Int
+    let planDate: Date
 
+    private var month: Int { Calendar.current.component(.month, from: planDate) }
     private var rating: FishingRating? { fishery?.rating(inMonth: month) }
     private var inSeason: [SpeciesSeason] { fishery?.inSeason(month: month) ?? [] }
 
@@ -128,6 +129,11 @@ struct SiteDetailSheet: View {
                     header
                     facilitySection
                     amenitiesSection
+                    TidePredictionsView(
+                        coordinate: site.coordinate,
+                        planDate: planDate,
+                        isMarine: isMarine
+                    )
                     BitingNowView(fishery: fishery, month: month)
                     GuidanceFooter(guide: guide)
                     if !site.directions.isEmpty { directionsSection }
@@ -217,8 +223,9 @@ struct PierDetailSheet: View {
     let fishery: AreaFishery?
     let isMarine: Bool
     let guide: FisheryGuide?
-    let month: Int
+    let planDate: Date
 
+    private var month: Int { Calendar.current.component(.month, from: planDate) }
     private var rating: FishingRating? { fishery?.rating(inMonth: month) }
 
     var body: some View {
@@ -240,6 +247,11 @@ struct PierDetailSheet: View {
                         }
                     }
                     .font(.subheadline)
+                    TidePredictionsView(
+                        coordinate: pier.coordinate,
+                        planDate: planDate,
+                        isMarine: isMarine
+                    )
                     BitingNowView(fishery: fishery, month: month)
                     GuidanceFooter(guide: guide)
                 }

@@ -103,29 +103,19 @@ struct FishingMapView: View {
                 MapPolygon(coordinates: zone.corners.map(\.clLocationCoordinate))
                     .foregroundStyle(ColorRamp.densityFill(zone.intensity))
             }
-            ForEach(model.accessSites) { site in
-                if cameraDistance > Self.pinDetailMaxDistance {
-                    Annotation(site.facilityName, coordinate: site.mapCoordinate) {
-                        RatingDot(color: color(forSite: site))
-                    }
-                    .annotationTitles(.hidden)
-                    .tag(site.id)
-                } else {
+            if cameraDistance > Self.pinDetailMaxDistance {
+                ForEach(pinClusters) { cluster in
+                    clusterAnnotation(cluster)
+                }
+            } else {
+                ForEach(model.accessSites) { site in
                     Marker(site.facilityName,
                            systemImage: site.hasLaunch ? "anchor.fill" : "figure.fishing",
                            coordinate: site.mapCoordinate)
                         .tint(color(forSite: site))
                         .tag(site.id)
                 }
-            }
-            ForEach(model.piers) { pier in
-                if cameraDistance > Self.pinDetailMaxDistance {
-                    Annotation(pier.name, coordinate: pier.mapCoordinate) {
-                        RatingDot(color: model.rating(for: pier, month: currentMonth)?.color ?? .gray)
-                    }
-                    .annotationTitles(.hidden)
-                    .tag(pier.id)
-                } else {
+                ForEach(model.piers) { pier in
                     Marker(pier.name, systemImage: "fish.fill", coordinate: pier.mapCoordinate)
                         .tint(model.rating(for: pier, month: currentMonth)?.color ?? .gray)
                         .tag(pier.id)
@@ -153,7 +143,7 @@ struct FishingMapView: View {
                 fishery: model.fishery(for: site),
                 isMarine: model.isMarine(site),
                 guide: model.guide,
-                month: currentMonth
+                planDate: planDate
             )
         })
         .modifier(AdaptiveDetail(item: selectedPierBinding) { pier in
@@ -162,7 +152,7 @@ struct FishingMapView: View {
                 fishery: model.fishery(for: pier),
                 isMarine: model.isMarine(pier),
                 guide: model.guide,
-                month: currentMonth
+                planDate: planDate
             )
         })
         .task {
@@ -202,6 +192,54 @@ struct FishingMapView: View {
 
     private func color(forSite site: AccessSite) -> Color {
         (model.rating(for: site, month: currentMonth)?.color) ?? .gray
+    }
+
+    /// Sites and piers bucketed on the same grid as the heat overlay.
+    private var pinClusters: [MapCluster] {
+        var points: [(id: String, coord: LonLat, rating: FishingRating?)] = []
+        points.reserveCapacity(model.accessSites.count + model.piers.count)
+        for site in model.accessSites {
+            points.append((site.id, site.coordinate, model.rating(for: site, month: currentMonth)))
+        }
+        for pier in model.piers {
+            points.append((pier.id, pier.coordinate, model.rating(for: pier, month: currentMonth)))
+        }
+        return HeatMap.clusters(points: points, cellDegrees: Self.heatCellDegrees(cameraDistance))
+    }
+
+    @MapContentBuilder
+    private func clusterAnnotation(_ cluster: MapCluster) -> some MapContent {
+        if cluster.count == 1, let site = model.accessSites.first(where: { $0.id == cluster.memberIDs[0] }) {
+            Annotation(site.facilityName, coordinate: site.mapCoordinate) {
+                RatingDot(color: color(forSite: site))
+            }
+            .annotationTitles(.hidden)
+            .tag(site.id)
+        } else if cluster.count == 1, let pier = model.piers.first(where: { $0.id == cluster.memberIDs[0] }) {
+            Annotation(pier.name, coordinate: pier.mapCoordinate) {
+                RatingDot(color: model.rating(for: pier, month: currentMonth)?.color ?? .gray)
+            }
+            .annotationTitles(.hidden)
+            .tag(pier.id)
+        } else {
+            Annotation("", coordinate: cluster.center.clLocationCoordinate) {
+                ClusterMark(count: cluster.count, color: cluster.bestRating?.color ?? .gray)
+                    .onTapGesture { zoomToCluster(cluster) }
+            }
+            .annotationTitles(.hidden)
+        }
+    }
+
+    private func zoomToCluster(_ cluster: MapCluster) {
+        userMovedCamera = true
+        cameraGuardPhase = .settled
+        let span = cluster.cellDegrees * 2.5
+        withAnimation(.easeInOut(duration: 0.4)) {
+            position = .region(MKCoordinateRegion(
+                center: cluster.center.clLocationCoordinate,
+                span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)
+            ))
+        }
     }
 
     // MARK: Heat zones (density of good-rated spots, cold→hot)

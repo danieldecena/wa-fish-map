@@ -25,8 +25,9 @@ their best/good months. It drives:
 - the blue→amber→orange→red marker/rating (`FishingRating`, computed by month in
   `Fishery.swift` — pure and unit-tested; the *view* injects `Calendar` month, the
   logic never reads the clock)
-- the tap-a-launch detail sheet (`SiteDetailSheet.swift`): what's biting now, best
-  months, and the "Before you go" alerts block.
+- the tap-a-launch detail sheet (`SiteDetailSheet.swift`): NOAA high/low tides
+  for the nearest station, what's biting now, best months, and the "Before you go"
+  alerts block.
 
 Editing rules:
 

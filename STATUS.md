@@ -25,6 +25,11 @@
 - The map opens on the user's location when a fix lands inside Washington and
   they have not moved the camera; a denied permission now says so and links to
   Settings.
+- Marine launch and pier sheets show that day's NOAA high/low tides for the
+  nearest bundled station (170 WA + Columbia-mouth). Follows the map date;
+  next extreme after the plan time is highlighted. Full suite: 73 tests, 12 suites.
+- Zoomed-out pins cluster on the same grid as the heat overlay. Count and best
+  rating; tap zooms into the cell. Heat stays a toggle. 78 tests, 13 suites.
 
 ## Known broken
 
@@ -40,15 +45,23 @@
 
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
-- Marker clustering: 477 pins are unreadable statewide. Own implementation over
-  the existing HeatMap bucketing beats bridging to MKMapView, which would mean
-  rewriting the map as a UIViewRepresentable. Decide whether clusters replace
-  the heat overlay, since both answer "where is it good".
-- Species-first mode, tides (NOAA CO-OPS), WeatherKit — brainstormed as a queue
-  behind season/closure; WeatherKit is likely blocked on a paid-account
-  entitlement.
+- Species-first mode, WeatherKit — brainstormed as a queue behind season/closure;
+  WeatherKit is likely blocked on a paid-account entitlement.
 
 ## Decision log
+
+### 2026-08-31 (marker clustering)
+- Decided: keep the heat toggle. Clusters replace overlapping pins, not the wash.
+- Decided: same lon/lat grid as heat, tap zooms into the cell, color is the
+  best rating in the cell. No MKMapView rewrite.
+
+### 2026-08-31 (tide predictions)
+- Decided: day's high/low table, not live stage. The map already has a plan date;
+  live height fights a future Saturday.
+- Decided: nearest bundled NOAA station (170 WA + Columbia-mouth), not a runtime
+  catalog (`state=WA` is ignored and returns 3,500 US stations) and not one
+  station per marine area (wrong at the edges).
+- Decided: marine only, fail open, same "not a tide book" posture as WDFW.
 
 ### 2026-08-31 (season/closure + map design)
 - Decided: cap, do not hide. A closure-prone species keeps its card and its
