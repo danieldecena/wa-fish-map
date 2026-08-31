@@ -24,9 +24,7 @@
     { "match": "Halibut", "months": [4,5,6,7,8],
       "reason": "A few announced days each year, quota-driven; confirm before you go" },
     { "match": "Razor Clam", "months": [1,2,3,4,10,11,12],
-      "reason": "Digs announced by WDFW only after marine-toxin testing" },
-    { "match": "Redband Trout", "months": [6],
-      "reason": "Wild fishery; season set annually, confirm before you go" }
+      "reason": "Digs announced by WDFW only after marine-toxin testing" }
   ],
   "areas": [
     {

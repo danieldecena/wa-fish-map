@@ -172,9 +172,24 @@ struct ShippedSeasonRiskTests {
     }
 
     @Test func freshwaterStaplesAreNotFlagged() throws {
+        // Categories, not four literal names: any species whose name contains one
+        // of these words is a year-round-ish freshwater staple and must never
+        // carry a risk clamp, wherever it appears in the shipped guide.
+        let staple = ["Trout", "Bass", "Walleye", "Kokanee", "Catfish"]
         let guide = try loadShipped()
-        for name in ["Rainbow Trout", "Smallmouth Bass", "Walleye", "Channel Catfish"] {
-            #expect(!guide.seasonRisk.contains { $0.matches(name) }, "\(name) should stay unflagged")
+
+        var allSpecies: [SpeciesSeason] = guide.areas.flatMap(\.species)
+        if let freshwater = guide.freshwater {
+            allSpecies += freshwater.species
+            let byCounty: [String: [SpeciesSeason]] = freshwater.byCounty ?? [:]
+            for overrides in byCounty.values {
+                allSpecies += overrides
+            }
+        }
+
+        for species in allSpecies {
+            guard staple.contains(where: { species.species.localizedCaseInsensitiveContains($0) }) else { continue }
+            #expect(species.riskMonths.isEmpty, "\(species.species) is a freshwater staple and should stay unflagged")
         }
     }
 
