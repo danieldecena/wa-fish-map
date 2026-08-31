@@ -18,6 +18,18 @@ struct FishingMapView: View {
     /// Where the user is looking; drives the sun-time math. Statewide the east-west
     /// sunrise spread is ~10 minutes, so camera-center precision is plenty.
     @State private var cameraCenter = MapScope.cameraCenter
+    /// Set once the user pans or zooms. A fix that lands afterwards must not yank
+    /// the camera out from under them.
+    @State private var userMovedCamera = false
+    /// Washington's bounding box. A fix outside it belongs to someone travelling,
+    /// and centring there would show an empty map — the data is statewide only.
+    private static let stateBounds = (
+        minLat: 45.5, maxLat: 49.1, minLon: -124.9, maxLon: -116.9
+    )
+    private static func isInWashington(_ c: CLLocationCoordinate2D) -> Bool {
+        (stateBounds.minLat...stateBounds.maxLat).contains(c.latitude)
+            && (stateBounds.minLon...stateBounds.maxLon).contains(c.longitude)
+    }
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     /// POIs worth showing an angler (instead of hiding all landmarks).
@@ -104,7 +116,9 @@ struct FishingMapView: View {
         }
         .onChange(of: showHeat) { recomputeHeatZones() }
         .onChange(of: currentMonth) { recomputeHeatZones() }
+        .onChange(of: location.fix?.latitude) { recenterOnFixIfAppropriate() }
         .onMapCameraChange(frequency: .onEnd) { context in
+            if cameraDistance != .greatestFiniteMagnitude { userMovedCamera = true }
             cameraDistance = context.camera.distance
             cameraCenter = LonLat(
                 longitude: context.camera.centerCoordinate.longitude,
@@ -149,6 +163,19 @@ struct FishingMapView: View {
         case .good: 1.6
         case .fair: 1.2
         default: 1.0
+        }
+    }
+
+    /// Ease to the user once, and only when it helps: a fix outside Washington
+    /// would frame an empty map, and a user who has already moved the camera has
+    /// said where they want to be.
+    private func recenterOnFixIfAppropriate() {
+        guard !userMovedCamera, let fix = location.fix, Self.isInWashington(fix) else { return }
+        withAnimation(.easeInOut(duration: 0.6)) {
+            position = .region(MKCoordinateRegion(
+                center: fix,
+                span: MKCoordinateSpan(latitudeDelta: 0.9, longitudeDelta: 0.9)
+            ))
         }
     }
 

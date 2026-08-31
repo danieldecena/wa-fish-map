@@ -8,6 +8,9 @@ import CoreLocation
 final class LocationProvider: NSObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     private(set) var authorization: CLAuthorizationStatus
+    /// One-shot fix used to place the opening camera. Nil until CoreLocation
+    /// answers, which is always after the map has drawn.
+    private(set) var fix: CLLocationCoordinate2D?
 
     override init() {
         authorization = manager.authorizationStatus
@@ -30,6 +33,28 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
 
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         let status = manager.authorizationStatus
-        Task { @MainActor in self.authorization = status }
+        Task { @MainActor in
+            self.authorization = status
+            self.requestFixIfAuthorized()
+        }
+    }
+
+    /// Ask for a single fix. `UserAnnotation` draws the blue dot on its own; this
+    /// exists only so the opening camera can start near the user.
+    func requestFixIfAuthorized() {
+        switch manager.authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways: manager.requestLocation()
+        default: return
+        }
+    }
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let coordinate = locations.last?.coordinate else { return }
+        Task { @MainActor in self.fix = coordinate }
+    }
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        // No fix is a normal outcome indoors or in the simulator. The map keeps
+        // its statewide framing; nothing to surface.
     }
 }
