@@ -143,3 +143,51 @@ struct SeasonRiskResolutionTests {
         }
     }
 }
+
+struct ShippedSeasonRiskTests {
+    func loadShipped() throws -> FisheryGuide {
+        let url = try #require(Bundle.main.url(forResource: "fisheries", withExtension: "json"))
+        return try FisheryLoader.guide(from: Data(contentsOf: url))
+    }
+
+    @Test func shippedGuideCarriesATable() throws {
+        #expect(try !loadShipped().seasonRisk.isEmpty)
+    }
+
+    @Test func everyRowHasMonthsAndAReason() throws {
+        for row in try loadShipped().seasonRisk {
+            #expect(!row.months.isEmpty, "\(row.match) has no months")
+            #expect(!row.reason.isEmpty, "\(row.match) has no reason")
+            #expect(row.months.allSatisfy { (1...12).contains($0) }, "\(row.match) month out of range")
+        }
+    }
+
+    @Test func noReasonStatesADate() throws {
+        // The reason explains why to verify; it must not read as a season date.
+        for row in try loadShipped().seasonRisk {
+            #expect(!row.reason.contains("–"), "\(row.match) reason looks like a date range")
+            #expect(row.reason.range(of: #"\b\d{1,2}/\d{1,2}\b"#, options: .regularExpression) == nil,
+                    "\(row.match) reason contains a date")
+        }
+    }
+
+    @Test func freshwaterStaplesAreNotFlagged() throws {
+        let guide = try loadShipped()
+        for name in ["Rainbow Trout", "Smallmouth Bass", "Walleye", "Channel Catfish"] {
+            #expect(!guide.seasonRisk.contains { $0.matches(name) }, "\(name) should stay unflagged")
+        }
+    }
+
+    @Test func salmonAndShellfishAreFlagged() throws {
+        let guide = try loadShipped()
+        for name in ["Chinook Salmon", "Coho Salmon (ocean)", "Dungeness Crab", "Lingcod"] {
+            #expect(guide.seasonRisk.contains { $0.matches(name) }, "\(name) should be flagged")
+        }
+    }
+
+    @Test func noRowFlagsEveryMonth() throws {
+        for row in try loadShipped().seasonRisk {
+            #expect(Set(row.months).count < 12, "\(row.match) flags every month — that is a blanket cap")
+        }
+    }
+}
