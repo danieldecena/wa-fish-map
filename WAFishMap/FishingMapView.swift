@@ -7,6 +7,11 @@ struct FishingMapView: View {
     @State private var position: MapCameraPosition = .automatic
     @Environment(\.horizontalSizeClass) private var sizeClass
 
+    /// POIs worth showing an angler (instead of hiding all landmarks).
+    private let landmarkCategories: [MKPointOfInterestCategory] = [
+        .marina, .park, .campground, .nationalPark, .parking, .publicTransport, .gasStation
+    ]
+
     /// Current calendar month drives the ratings. Injected here only; all rating logic
     /// lives in `AreaFishery` and is tested with an explicit month (no clock).
     private var currentMonth: Int {
@@ -19,15 +24,28 @@ struct FishingMapView: View {
                 MapPolygon(coordinates: area.mapCoordinates)
                     .foregroundStyle(color(forArea: area).opacity(0.18))
                     .stroke(color(forArea: area), lineWidth: 1)
+                Annotation("Area \(area.areaName)", coordinate: area.center) {
+                    Text("MA \(area.areaName)")
+                        .font(.caption2.weight(.semibold))
+                        .padding(.horizontal, 5).padding(.vertical, 2)
+                        .background(.ultraThinMaterial, in: Capsule())
+                }
+                .annotationTitles(.hidden)
             }
             ForEach(model.accessSites) { site in
-                Marker(site.facilityName, systemImage: "anchor.fill", coordinate: site.mapCoordinate)
+                Marker(site.facilityName,
+                       systemImage: site.hasLaunch ? "anchor.fill" : "figure.fishing",
+                       coordinate: site.mapCoordinate)
                     .tint(color(forSite: site))
                     .tag(site.id)
             }
+            ForEach(model.piers) { pier in
+                Marker(pier.name, systemImage: "building.columns", coordinate: pier.mapCoordinate)
+                    .tint(.teal)
+            }
             UserAnnotation()
         }
-        .mapStyle(.standard(pointsOfInterest: .excludingAll))
+        .mapStyle(.standard(pointsOfInterest: .including(landmarkCategories)))
         .mapControls {
             MapUserLocationButton()
             MapCompass()
@@ -36,7 +54,8 @@ struct FishingMapView: View {
         .modifier(AdaptiveDetail(item: selectedSiteBinding) { site in
             SiteDetailSheet(
                 site: site,
-                areaName: model.areaName(for: site),
+                fishery: model.fishery(for: site),
+                isMarine: model.isMarine(site),
                 guide: model.guide,
                 month: currentMonth
             )

@@ -21,14 +21,16 @@ struct FishingMapModelTests {
         #expect(model.areaName(for: boston) == "13")
         #expect(model.rating(for: boston, month: 8) != nil)
 
-        // A launch far outside every loaded area is unmapped → neutral (nil) rating.
+        // A launch far outside every marine area is inland → rated via freshwater
+        // guidance (by county), not neutral.
         let inland = AccessSite(
             facilityName: "Somewhere Inland", countyName: "Spokane", hasLaunch: true,
             launchSurface: .gravel, hasRestrooms: false, directions: "",
             coordinate: LonLat(longitude: -117.4, latitude: 47.66)
         )
         #expect(model.areaName(for: inland) == nil)
-        #expect(model.rating(for: inland, month: 8) == nil)
+        #expect(!model.isMarine(inland))
+        #expect(model.rating(for: inland, month: 8) != nil)
     }
 
     struct StubClient: HTTPGet {
@@ -55,7 +57,7 @@ struct FishingMapModelTests {
         #expect(model.marineAreas.count == 1)
         #expect(model.accessSites.count == 2)
         #expect(model.statusMessage.contains("live"))
-        #expect(model.statusMessage.contains("2 launches"))
+        #expect(model.statusMessage.contains("2 access sites"))
     }
 
     @Test @MainActor func liveFetchFallsBackToBundleOnFailure() async throws {

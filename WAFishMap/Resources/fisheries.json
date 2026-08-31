@@ -57,5 +57,30 @@
         { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4, 7] }
       ]
     }
-  ]
+  ],
+  "freshwater": {
+    "species": [
+      { "species": "Rainbow Trout", "bestMonths": [4, 5, 6], "goodMonths": [3, 7, 9, 10], "note": "Lowland lakes; many open year-round, spring plants peak the bite." },
+      { "species": "Largemouth Bass", "bestMonths": [5, 6, 7], "goodMonths": [4, 8, 9], "note": "Warm-water bite late spring through summer." },
+      { "species": "Kokanee", "bestMonths": [5, 6, 7], "goodMonths": [4, 8], "note": "Troll deeper as water warms." },
+      { "species": "Cutthroat Trout", "bestMonths": [4, 5, 9, 10], "goodMonths": [3, 6, 11] }
+    ],
+    "byCounty": {
+      "Chelan": [
+        { "species": "Kokanee", "bestMonths": [5, 6, 7], "goodMonths": [4, 8], "note": "Lake Chelan / Wenatchee." },
+        { "species": "Rainbow Trout", "bestMonths": [4, 5, 6], "goodMonths": [3, 9, 10] },
+        { "species": "Chinook Salmon", "bestMonths": [7, 8], "goodMonths": [6, 9], "note": "Upper Columbia summer runs." }
+      ],
+      "Grant": [
+        { "species": "Walleye", "bestMonths": [5, 6], "goodMonths": [4, 7, 8], "note": "Potholes / Columbia system." },
+        { "species": "Smallmouth Bass", "bestMonths": [5, 6, 7], "goodMonths": [4, 8, 9] },
+        { "species": "Rainbow Trout", "bestMonths": [4, 5], "goodMonths": [3, 6, 10] }
+      ],
+      "Okanogan": [
+        { "species": "Rainbow Trout", "bestMonths": [4, 5, 6], "goodMonths": [3, 9, 10] },
+        { "species": "Kokanee", "bestMonths": [5, 6, 7], "goodMonths": [4, 8] },
+        { "species": "Smallmouth Bass", "bestMonths": [5, 6, 7], "goodMonths": [8, 9] }
+      ]
+    }
+  }
 }

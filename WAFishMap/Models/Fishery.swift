@@ -97,12 +97,24 @@ struct AreaFishery: Decodable, Equatable, Sendable {
     }
 }
 
+/// Freshwater (lake/river) guidance for launches that fall outside every marine area.
+/// A statewide default plus optional per-county overrides, keyed by WDFW `CountyName`.
+struct FreshwaterGuide: Decodable, Sendable {
+    let species: [SpeciesSeason]
+    let byCounty: [String: [SpeciesSeason]]?
+
+    func fishery(county: String) -> AreaFishery {
+        AreaFishery(areaName: "freshwater", species: byCounty?[county] ?? species)
+    }
+}
+
 /// Top-level bundle of curated guidance. Static, offline, editorial — not a live feed.
 struct FisheryGuide: Decodable, Sendable {
     let updated: String
     let disclaimer: String
     let wdfwURL: String
     let areas: [AreaFishery]
+    let freshwater: FreshwaterGuide?
 
     func area(named name: String) -> AreaFishery? {
         areas.first { $0.areaName == name }

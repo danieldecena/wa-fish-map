@@ -34,11 +34,12 @@ struct RatingBadge: View {
 /// biting this month (if the launch's marine area has curated data), and alerts.
 struct SiteDetailSheet: View {
     let site: AccessSite
-    let areaName: String?
+    let fishery: AreaFishery?
+    let isMarine: Bool
     let guide: FisheryGuide?
     let month: Int
 
-    private var area: AreaFishery? { areaName.flatMap { guide?.area(named: $0) } }
+    private var area: AreaFishery? { fishery }
     private var rating: FishingRating? { area?.rating(inMonth: month) }
     private var inSeason: [SpeciesSeason] { area?.inSeason(month: month) ?? [] }
 
@@ -80,7 +81,10 @@ struct SiteDetailSheet: View {
     private var facilitySection: some View {
         VStack(alignment: .leading, spacing: 6) {
             Label("\(site.countyName) County", systemImage: "mappin.and.ellipse")
-            Label("\(site.launchSurface.label) launch", systemImage: "ferry")
+            Label(isMarine ? "Marine water" : "Freshwater",
+                  systemImage: isMarine ? "water.waves" : "drop")
+            Label(site.hasLaunch ? "\(site.launchSurface.label) boat launch" : "Shore / bank access",
+                  systemImage: site.hasLaunch ? "ferry" : "figure.fishing")
             Label(site.hasRestrooms ? "Restrooms on site" : "No restrooms",
                   systemImage: site.hasRestrooms ? "checkmark.circle" : "xmark.circle")
                 .foregroundStyle(site.hasRestrooms ? .primary : .secondary)

@@ -21,15 +21,28 @@ enum MapScope {
         return components.url!
     }
 
-    /// All statewide water-access launches, with the richer facility fields.
+    /// All statewide water-access sites — boat launches AND shore/bank access — with the
+    /// richer facility fields.
     static var accessSitesURL: URL {
         var components = URLComponents(string: "\(mapServer)/0/query")!
         components.queryItems = [
-            URLQueryItem(name: "where", value: "Launch=1"),
+            URLQueryItem(name: "where", value: "1=1"),
             URLQueryItem(
                 name: "outFields",
                 value: "FacilityName,CountyName,Launch,LaunchType,Restrooms,Directions,OpenDates,Camping,PublicNotes,ADAParking,ADARestroom,ADADock,ADABoatLaunch"
             ),
+            URLQueryItem(name: "f", value: "geojson"),
+            URLQueryItem(name: "outSR", value: "4326"),
+        ]
+        return components.url!
+    }
+
+    /// All statewide public fishing piers (layer 1, a joined view — needs `outFields=*`).
+    static var piersURL: URL {
+        var components = URLComponents(string: "\(mapServer)/1/query")!
+        components.queryItems = [
+            URLQueryItem(name: "where", value: "1=1"),
+            URLQueryItem(name: "outFields", value: "*"),
             URLQueryItem(name: "f", value: "geojson"),
             URLQueryItem(name: "outSR", value: "4326"),
         ]
@@ -41,8 +54,8 @@ enum MapScope {
         marineAreas
     }
 
-    /// Statewide: keep every site that actually has a launch.
+    /// Statewide: keep every water-access site (launches and shore access alike).
     static func filter(accessSites: [AccessSite]) -> [AccessSite] {
-        accessSites.filter(\.hasLaunch)
+        accessSites
     }
 }

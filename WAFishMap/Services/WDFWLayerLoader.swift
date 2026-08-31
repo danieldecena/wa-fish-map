@@ -34,4 +34,12 @@ enum WDFWLayerLoader {
         )
         return collection.features.compactMap(AccessSite.init(feature:))
     }
+
+    static func piers(from data: Data) throws -> [FishingPier] {
+        let collection = try JSONDecoder().decode(
+            GeoJSONFeatureCollection<FishingPier.Properties>.self,
+            from: data
+        )
+        return collection.features.compactMap(FishingPier.init(feature:))
+    }
 }

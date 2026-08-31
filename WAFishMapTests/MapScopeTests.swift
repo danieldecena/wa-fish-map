@@ -28,14 +28,14 @@ struct MapScopeTests {
             launchSurface: .concrete, hasRestrooms: false, directions: "",
             coordinate: LonLat(longitude: -122.51, latitude: 47.30)
         )
-        let noLaunch = AccessSite(
-            facilityName: "View Only", countyName: "Mason", hasLaunch: false,
+        let shore = AccessSite(
+            facilityName: "Shore Access", countyName: "Mason", hasLaunch: false,
             launchSurface: .unknown, hasRestrooms: false, directions: "",
             coordinate: LonLat(longitude: -123.0, latitude: 47.2)
         )
-        // Statewide: keep launches regardless of county, drop non-launch sites.
-        #expect(Set(MapScope.filter(accessSites: [boston, pierce, noLaunch]).map(\.facilityName))
-                == ["Boston Harbor", "Point Defiance"])
+        // Statewide: keep launches AND shore/bank access, any county.
+        #expect(Set(MapScope.filter(accessSites: [boston, pierce, shore]).map(\.facilityName))
+                == ["Boston Harbor", "Point Defiance", "Shore Access"])
     }
 
     @Test func statewideURLsHaveNoCountyOrAreaFilter() {
@@ -48,11 +48,16 @@ struct MapScopeTests {
 
         let sites = MapScope.accessSitesURL.absoluteString
         #expect(sites.contains("/0/query"))
-        #expect(sites.contains("Launch=1") || sites.contains("Launch%3D1"))
+        #expect(sites.contains("where=1%3D1") || sites.contains("where=1=1"))
         #expect(!sites.contains("Thurston"))
-        // Richer fields requested for the statewide launches.
+        // Richer fields requested for the statewide sites.
         #expect(sites.contains("Camping"))
         #expect(sites.contains("ADAParking"))
         #expect(sites.contains("f=geojson"))
+
+        let piers = MapScope.piersURL.absoluteString
+        #expect(piers.contains("/1/query"))
+        #expect(piers.contains("outFields=*") || piers.contains("outFields=%2A"))
+        #expect(piers.contains("f=geojson"))
     }
 }

@@ -5,6 +5,7 @@ import Foundation
 final class FishingMapModel {
     var marineAreas: [MarineArea] = []
     var accessSites: [AccessSite] = []
+    var piers: [FishingPier] = []
     var statusMessage = "Loading…"
     var selectedSiteID: AccessSite.ID?
 
@@ -24,12 +25,24 @@ final class FishingMapModel {
         siteAreaName[site.id]
     }
 
-    /// The launch's current-month rating, or nil when its area has no curated guidance
-    /// (inland launch, or a marine area not yet seeded) — the UI renders that neutral.
+    /// True when the launch sits inside a marine area (vs. inland freshwater).
+    func isMarine(_ site: AccessSite) -> Bool {
+        areaName(for: site) != nil
+    }
+
+    /// Resolved guidance for a launch: its marine area if it's in one, otherwise the
+    /// freshwater table for its county. Nil only when no guidance applies at all.
+    func fishery(for site: AccessSite) -> AreaFishery? {
+        if let area = areaName(for: site), let marine = guide?.area(named: area) {
+            return marine
+        }
+        return guide?.freshwater?.fishery(county: site.countyName)
+    }
+
+    /// The launch's current-month rating, or nil when no guidance applies — the UI
+    /// renders that neutral.
     func rating(for site: AccessSite, month: Int) -> FishingRating? {
-        guard let area = areaName(for: site),
-              let fishery = guide?.area(named: area) else { return nil }
-        return fishery.rating(inMonth: month)
+        fishery(for: site)?.rating(inMonth: month)
     }
 
     enum Resource: String {
@@ -57,9 +70,14 @@ final class FishingMapModel {
             marineAreas = MapScope.filter(marineAreas: try WDFWLayerLoader.marineAreas(from: marineData))
             accessSites = MapScope.filter(accessSites: try WDFWLayerLoader.accessSites(from: siteData))
             indexSitesToAreas()
-            statusMessage = "Washington · \(accessSites.count) launches · live WDFW data"
+            statusMessage = "Washington · \(accessSites.count) access sites · live WDFW data"
         } catch {
             try? loadFromBundle(bundle: bundle)
+        }
+        // Piers are a live-only enhancement; absence is non-fatal.
+        if let pierData = try? await client.data(from: MapScope.piersURL),
+           let loaded = try? WDFWLayerLoader.piers(from: pierData) {
+            piers = loaded
         }
     }
 

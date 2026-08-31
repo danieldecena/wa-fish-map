@@ -11,6 +11,16 @@ struct MarineArea: Identifiable, Equatable, Sendable {
         coordinates.map(\.clLocationCoordinate)
     }
 
+    /// Rough centroid (average of outer-ring vertices) — used to place the area label.
+    var center: CLLocationCoordinate2D {
+        guard !coordinates.isEmpty else { return CLLocationCoordinate2D() }
+        let n = Double(coordinates.count)
+        return CLLocationCoordinate2D(
+            latitude: coordinates.map(\.latitude).reduce(0, +) / n,
+            longitude: coordinates.map(\.longitude).reduce(0, +) / n
+        )
+    }
+
     /// Ray-casting point-in-polygon test against the outer ring. Used to match a
     /// launch (a bare point with no area code) to the marine area it sits in.
     func contains(_ point: LonLat) -> Bool {
