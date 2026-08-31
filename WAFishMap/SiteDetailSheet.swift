@@ -11,31 +11,35 @@ extension FishingRating {
     }
 }
 
-/// Small colored capsule showing the current rating (Slow / Fair / Good / Prime).
+/// Small colored capsule showing the rating. `nil` renders neutral gray — used for
+/// inland launches and marine areas with no curated season data yet.
 struct RatingBadge: View {
-    let rating: FishingRating
+    let rating: FishingRating?
+
+    private var color: Color { rating?.color ?? .gray }
+    private var label: String { rating?.label ?? "No data" }
 
     var body: some View {
-        Text(rating.label)
+        Text(label)
             .font(.caption.bold())
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(rating.color.opacity(0.2), in: Capsule())
-            .foregroundStyle(rating.color)
-            .overlay(Capsule().stroke(rating.color, lineWidth: 1))
+            .background(color.opacity(0.2), in: Capsule())
+            .foregroundStyle(color)
+            .overlay(Capsule().stroke(color, lineWidth: 1))
     }
 }
 
-/// Detail shown when a launch marker is tapped: facility info, what's biting this
-/// month, and the regulatory / freshness alerts.
+/// Detail shown when a launch marker is tapped: facility info + amenities, what's
+/// biting this month (if the launch's marine area has curated data), and alerts.
 struct SiteDetailSheet: View {
     let site: AccessSite
+    let areaName: String?
     let guide: FisheryGuide?
-    let areaName: String
     let month: Int
 
-    private var area: AreaFishery? { guide?.area(named: areaName) }
-    private var rating: FishingRating { area?.rating(inMonth: month) ?? .poor }
+    private var area: AreaFishery? { areaName.flatMap { guide?.area(named: $0) } }
+    private var rating: FishingRating? { area?.rating(inMonth: month) }
     private var inSeason: [SpeciesSeason] { area?.inSeason(month: month) ?? [] }
 
     var body: some View {
@@ -44,6 +48,7 @@ struct SiteDetailSheet: View {
                 VStack(alignment: .leading, spacing: 18) {
                     header
                     facilitySection
+                    amenitiesSection
                     bitingNowSection
                     alertsSection
                     if !site.directions.isEmpty { directionsSection }
@@ -58,12 +63,18 @@ struct SiteDetailSheet: View {
     private var header: some View {
         HStack(spacing: 10) {
             RatingBadge(rating: rating)
-            Text(inSeason.isEmpty
-                 ? "No standout species this month"
-                 : "Biting now: \(inSeason.prefix(2).map(\.species).joined(separator: ", "))")
+            Text(headerSummary)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    private var headerSummary: String {
+        if area == nil {
+            return site.countyName.isEmpty ? "Launch" : "\(site.countyName) County"
+        }
+        if inSeason.isEmpty { return "No standout species this month" }
+        return "Biting now: \(inSeason.prefix(2).map(\.species).joined(separator: ", "))"
     }
 
     private var facilitySection: some View {
@@ -77,10 +88,47 @@ struct SiteDetailSheet: View {
         .font(.subheadline)
     }
 
+    @ViewBuilder private var amenitiesSection: some View {
+        let hasAmenities = site.hasCamping || site.ada.any
+            || !site.openDates.isEmpty || !site.publicNotes.isEmpty
+        if hasAmenities {
+            VStack(alignment: .leading, spacing: 6) {
+                if site.hasCamping {
+                    Label("Camping", systemImage: "tent")
+                }
+                if site.ada.any {
+                    Label(adaSummary, systemImage: "figure.roll")
+                }
+                if !site.openDates.isEmpty {
+                    Label("Open: \(site.openDates)", systemImage: "calendar")
+                }
+                if !site.publicNotes.isEmpty {
+                    Text(site.publicNotes)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .font(.subheadline)
+        }
+    }
+
+    private var adaSummary: String {
+        var parts: [String] = []
+        if site.ada.parking { parts.append("parking") }
+        if site.ada.restroom { parts.append("restroom") }
+        if site.ada.dock { parts.append("dock") }
+        if site.ada.boatLaunch { parts.append("launch") }
+        return "ADA access: " + parts.joined(separator: ", ")
+    }
+
     private var bitingNowSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("What's biting").font(.headline)
-            if inSeason.isEmpty {
+            if area == nil {
+                Text("No seasonal guidance for this launch's area yet. Marker shown neutral.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else if inSeason.isEmpty {
                 Text("Nothing is peaking here this month. Check back closer to a run, and confirm openings with WDFW.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)

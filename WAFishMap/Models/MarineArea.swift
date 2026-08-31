@@ -11,6 +11,25 @@ struct MarineArea: Identifiable, Equatable, Sendable {
         coordinates.map(\.clLocationCoordinate)
     }
 
+    /// Ray-casting point-in-polygon test against the outer ring. Used to match a
+    /// launch (a bare point with no area code) to the marine area it sits in.
+    func contains(_ point: LonLat) -> Bool {
+        guard coordinates.count >= 3 else { return false }
+        var inside = false
+        var j = coordinates.count - 1
+        for i in 0..<coordinates.count {
+            let a = coordinates[i], b = coordinates[j]
+            if (a.latitude > point.latitude) != (b.latitude > point.latitude) {
+                let xCross = a.longitude
+                    + (point.latitude - a.latitude) / (b.latitude - a.latitude)
+                    * (b.longitude - a.longitude)
+                if point.longitude < xCross { inside.toggle() }
+            }
+            j = i
+        }
+        return inside
+    }
+
     struct Properties: Decodable {
         let areaName: String
         let areaTitle: String

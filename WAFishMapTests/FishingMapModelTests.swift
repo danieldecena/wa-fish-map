@@ -9,7 +9,26 @@ struct FishingMapModelTests {
         try model.loadFromBundle(bundle: bundle)
         #expect(model.marineAreas.map(\.areaName) == ["13"])
         #expect(Set(model.accessSites.map(\.facilityName)) == ["Boston Harbor", "Luhr's Landing"])
-        #expect(model.statusMessage == "Thurston County · Marine Area 13")
+        #expect(model.statusMessage == "Washington · offline sample")
+    }
+
+    @Test @MainActor func launchesAreMappedToTheirMarineAreaByPolygon() async throws {
+        let model = FishingMapModel()
+        let bundle = try #require(FixtureBundle.loader)
+        try model.loadFromBundle(bundle: bundle)
+        let boston = try #require(model.accessSites.first { $0.facilityName == "Boston Harbor" })
+        // Boston Harbor sits inside the Area 13 polygon → mapped + rated.
+        #expect(model.areaName(for: boston) == "13")
+        #expect(model.rating(for: boston, month: 8) != nil)
+
+        // A launch far outside every loaded area is unmapped → neutral (nil) rating.
+        let inland = AccessSite(
+            facilityName: "Somewhere Inland", countyName: "Spokane", hasLaunch: true,
+            launchSurface: .gravel, hasRestrooms: false, directions: "",
+            coordinate: LonLat(longitude: -117.4, latitude: 47.66)
+        )
+        #expect(model.areaName(for: inland) == nil)
+        #expect(model.rating(for: inland, month: 8) == nil)
     }
 
     struct StubClient: HTTPGet {
@@ -35,7 +54,8 @@ struct FishingMapModelTests {
         )
         #expect(model.marineAreas.count == 1)
         #expect(model.accessSites.count == 2)
-        #expect(model.statusMessage == "Thurston County · Marine Area 13")
+        #expect(model.statusMessage.contains("live"))
+        #expect(model.statusMessage.contains("2 launches"))
     }
 
     @Test @MainActor func liveFetchFallsBackToBundleOnFailure() async throws {

@@ -2,16 +2,17 @@
 
 Native MapKit app. Geography overlay + curated seasonal guidance.
 
-## Slice
+## Scope
 
-v1 is Marine Area 13 + Thurston County launches. Edit
-`WAFishMap/Models/MapScope.swift`:
+**Statewide, live.** `WAFishMap/Models/MapScope.swift` queries WDFW for *all* marine
+areas (`where=1=1`, layer 6) and *all* launches (`where=Launch=1`, layer 0) — no
+county/area filter. The camera auto-fits (`position = .automatic`); `cameraCenter`/
+`cameraSpanDegrees` are only a pre-load fallback. Do not paste `where=` strings into
+the view.
 
-- `marineAreaNames` — add `"11"`, `"10"`, `"12"` for Tacoma / Seattle / Hood Canal
-- `countyNames` — add `"Pierce"`, `"Mason"`
-- then widen `cameraSpanDegrees` or the camera will stay zoomed on Olympia
-
-Do not paste new `where=` strings into the view.
+Launches carry no marine-area code, so each is matched to its area by point-in-polygon
+(`MarineArea.contains(_:)`, indexed in `FishingMapModel.indexSitesToAreas`). Inland/lake
+launches match no area → **neutral (gray) rating**, by design.
 
 ## Seasonal guidance
 

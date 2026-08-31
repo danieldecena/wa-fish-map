@@ -11,15 +11,26 @@ final class FishingMapModel {
     /// Curated seasonal guidance (bundled, offline). See `Fishery.swift`.
     var guide: FisheryGuide?
 
+    /// Launch → containing marine area (by point-in-polygon). Absent for inland/lake
+    /// launches, which have no marine area and therefore a neutral rating.
+    private(set) var siteAreaName: [AccessSite.ID: String] = [:]
+
     var selectedSite: AccessSite? {
         accessSites.first { $0.id == selectedSiteID }
     }
 
-    /// The single marine area this build is scoped to.
-    var areaName: String { MapScope.marineAreaNames.sorted().first ?? "13" }
+    /// The marine area a launch sits in, if any.
+    func areaName(for site: AccessSite) -> String? {
+        siteAreaName[site.id]
+    }
 
-    /// Curated guidance for the scoped area, if loaded.
-    var fishery: AreaFishery? { guide?.area(named: areaName) }
+    /// The launch's current-month rating, or nil when its area has no curated guidance
+    /// (inland launch, or a marine area not yet seeded) — the UI renders that neutral.
+    func rating(for site: AccessSite, month: Int) -> FishingRating? {
+        guard let area = areaName(for: site),
+              let fishery = guide?.area(named: area) else { return nil }
+        return fishery.rating(inMonth: month)
+    }
 
     enum Resource: String {
         case marineAreas = "marine-areas.sample"
@@ -34,7 +45,8 @@ final class FishingMapModel {
             accessSites: try WDFWLayerLoader.accessSites(from: Self.data(.accessSites, in: bundle))
         )
         loadGuide(bundle: bundle)
-        statusMessage = "Thurston County · Marine Area 13"
+        indexSitesToAreas()
+        statusMessage = "Washington · offline sample"
     }
 
     func load(client: HTTPGet = URLSessionHTTPGet(), bundle: Bundle = .main) async {
@@ -44,11 +56,22 @@ final class FishingMapModel {
             let siteData = try await client.data(from: MapScope.accessSitesURL)
             marineAreas = MapScope.filter(marineAreas: try WDFWLayerLoader.marineAreas(from: marineData))
             accessSites = MapScope.filter(accessSites: try WDFWLayerLoader.accessSites(from: siteData))
-            statusMessage = "Thurston County · Marine Area 13"
+            indexSitesToAreas()
+            statusMessage = "Washington · \(accessSites.count) launches · live WDFW data"
         } catch {
             try? loadFromBundle(bundle: bundle)
-            statusMessage = "Thurston County · Marine Area 13 (offline sample)"
         }
+    }
+
+    /// Match every launch to the marine area whose polygon contains it (first wins).
+    private func indexSitesToAreas() {
+        var map: [AccessSite.ID: String] = [:]
+        for site in accessSites {
+            if let area = marineAreas.first(where: { $0.contains(site.coordinate) }) {
+                map[site.id] = area.areaName
+            }
+        }
+        siteAreaName = map
     }
 
     /// Loads the curated guide from the bundle. Absence is non-fatal — the map still

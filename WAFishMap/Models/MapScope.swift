@@ -1,20 +1,18 @@
 import Foundation
 
 enum MapScope {
-    /// v1 slice. To expand, add names here — URLs and filters follow.
-    static let marineAreaNames: Set<String> = ["13"]
-    static let countyNames: Set<String> = ["Thurston"]
-
-    static let cameraCenter = LonLat(longitude: -122.8165, latitude: 47.1203)
-    static let cameraSpanDegrees: Double = 0.45
+    /// Fallback camera used only until the live statewide data loads and the map
+    /// auto-fits to it (see `FishingMapView`). Roughly centered on Washington.
+    static let cameraCenter = LonLat(longitude: -120.7, latitude: 47.4)
+    static let cameraSpanDegrees: Double = 6.0
 
     private static let mapServer = "https://geodataservices.wdfw.wa.gov/arcgis/rest/services/FP_Projects/MajorFishingArea/MapServer"
 
+    /// All 17 marine-area polygons statewide.
     static var marineAreasURL: URL {
         var components = URLComponents(string: "\(mapServer)/6/query")!
-        let names = marineAreaNames.sorted().map { "'\($0)'" }.joined(separator: ",")
         components.queryItems = [
-            URLQueryItem(name: "where", value: "AreaName IN (\(names))"),
+            URLQueryItem(name: "where", value: "1=1"),
             URLQueryItem(name: "outFields", value: "AreaName,AreaTitle,WAC"),
             URLQueryItem(name: "f", value: "geojson"),
             URLQueryItem(name: "outSR", value: "4326"),
@@ -23,23 +21,28 @@ enum MapScope {
         return components.url!
     }
 
+    /// All statewide water-access launches, with the richer facility fields.
     static var accessSitesURL: URL {
         var components = URLComponents(string: "\(mapServer)/0/query")!
-        let names = countyNames.sorted().map { "'\($0)'" }.joined(separator: ",")
         components.queryItems = [
-            URLQueryItem(name: "where", value: "Launch=1 AND CountyName IN (\(names))"),
-            URLQueryItem(name: "outFields", value: "FacilityName,CountyName,Launch,LaunchType,Restrooms,Directions"),
+            URLQueryItem(name: "where", value: "Launch=1"),
+            URLQueryItem(
+                name: "outFields",
+                value: "FacilityName,CountyName,Launch,LaunchType,Restrooms,Directions,OpenDates,Camping,PublicNotes,ADAParking,ADARestroom,ADADock,ADABoatLaunch"
+            ),
             URLQueryItem(name: "f", value: "geojson"),
             URLQueryItem(name: "outSR", value: "4326"),
         ]
         return components.url!
     }
 
+    /// Statewide: keep every marine area.
     static func filter(marineAreas: [MarineArea]) -> [MarineArea] {
-        marineAreas.filter { marineAreaNames.contains($0.areaName) }
+        marineAreas
     }
 
+    /// Statewide: keep every site that actually has a launch.
     static func filter(accessSites: [AccessSite]) -> [AccessSite] {
-        accessSites.filter { countyNames.contains($0.countyName) && $0.hasLaunch }
+        accessSites.filter(\.hasLaunch)
     }
 }
