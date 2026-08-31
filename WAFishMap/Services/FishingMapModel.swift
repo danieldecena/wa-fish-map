@@ -30,6 +30,11 @@ final class FishingMapModel {
         areaName(for: site) != nil
     }
 
+    /// True when a coordinate falls inside any marine area.
+    func isMarine(coordinate: LonLat) -> Bool {
+        marineAreas.contains { $0.contains(coordinate) }
+    }
+
     /// Resolved guidance for any point: the marine area whose polygon contains it, else
     /// the freshwater table for its county. Nil only when no guidance applies at all.
     func fishery(atCoordinate coordinate: LonLat, county: String) -> AreaFishery? {

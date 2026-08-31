@@ -40,8 +40,9 @@ struct FishingMapView: View {
                     .tag(site.id)
             }
             ForEach(model.piers) { pier in
-                Marker(pier.name, systemImage: "building.columns", coordinate: pier.mapCoordinate)
+                Marker(pier.name, systemImage: "fish.fill", coordinate: pier.mapCoordinate)
                     .tint(model.rating(for: pier, month: currentMonth)?.color ?? .gray)
+                    .tag(pier.id)
             }
             UserAnnotation()
         }
@@ -60,6 +61,16 @@ struct FishingMapView: View {
                 month: currentMonth
             )
         })
+        .sheet(item: selectedPierBinding) { pier in
+            PierDetailSheet(
+                pier: pier,
+                fishery: model.fishery(atCoordinate: pier.coordinate, county: pier.countyName),
+                isMarine: model.isMarine(coordinate: pier.coordinate),
+                guide: model.guide,
+                month: currentMonth
+            )
+            .presentationDetents([.medium, .large])
+        }
         .task {
             location.requestIfNeeded()
             await model.load()
@@ -79,6 +90,15 @@ struct FishingMapView: View {
     private var selectedSiteBinding: Binding<AccessSite?> {
         Binding(
             get: { model.selectedSite },
+            set: { model.selectedSiteID = $0?.id }
+        )
+    }
+
+    /// Piers share the map's single selection; resolve it back to a pier when the
+    /// selected id is a pier's.
+    private var selectedPierBinding: Binding<FishingPier?> {
+        Binding(
+            get: { model.piers.first { $0.id == model.selectedSiteID } },
             set: { model.selectedSiteID = $0?.id }
         )
     }

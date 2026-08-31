@@ -1,85 +1,85 @@
 {
   "updated": "2026-08-30",
-  "disclaimer": "Seasonal guidance only — NOT official regulations. Runs, open seasons, areas, and limits change year to year and can close with little notice. First-pass data for the central/south Sound; other areas show no rating until seeded. Always confirm current rules in the WDFW Fish Washington app before you fish.",
+  "disclaimer": "Seasonal guidance only — NOT official regulations. Runs, open seasons, areas, and limits change year to year and can close with little notice. First-pass data for the central/south Sound; other areas show no rating until seeded. Bait/gear are general suggestions. Always confirm current rules in the WDFW Fish Washington app before you fish.",
   "wdfwURL": "https://wdfw.wa.gov/fishing/regulations",
   "areas": [
     {
       "areaName": "13",
       "species": [
-        { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11], "note": "Silver runs typically peak early fall in South Sound." },
-        { "species": "Resident Chinook (Blackmouth)", "bestMonths": [12, 1, 2], "goodMonths": [11, 3, 4], "note": "Winter resident kings; selective-fishery rules often apply." },
-        { "species": "Chum Salmon", "bestMonths": [10, 11], "goodMonths": [9, 12], "note": "Strong late-fall South Sound returns." },
-        { "species": "Sea-run Cutthroat", "bestMonths": [9, 10, 11], "goodMonths": [1, 2, 7, 8, 12], "note": "Beaches and estuaries; catch-and-release ethic." },
-        { "species": "Dungeness Crab", "bestMonths": [7, 8], "goodMonths": [9], "note": "Summer season dates are set annually by WDFW." },
-        { "species": "Market Squid", "bestMonths": [11, 12, 1], "goodMonths": [10, 2], "note": "Night jigging off lighted piers." },
-        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4, 7], "note": "Spring bottomfish opener; size and area limits apply." }
+        { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11], "bait": "Trolled hoochies, herring, or spinners", "note": "Silver runs typically peak early fall in South Sound." },
+        { "species": "Resident Chinook (Blackmouth)", "bestMonths": [12, 1, 2], "goodMonths": [11, 3, 4], "bait": "Trolled herring or flasher + hoochie", "note": "Winter resident kings; selective-fishery rules often apply." },
+        { "species": "Chum Salmon", "bestMonths": [10, 11], "goodMonths": [9, 12], "bait": "Green/chartreuse twitching jigs, cured eggs", "note": "Strong late-fall South Sound returns." },
+        { "species": "Sea-run Cutthroat", "bestMonths": [9, 10, 11], "goodMonths": [1, 2, 7, 8, 12], "bait": "Small spoons, clouser flies, spinners", "note": "Beaches and estuaries; catch-and-release ethic." },
+        { "species": "Dungeness Crab", "bestMonths": [7, 8], "goodMonths": [9], "bait": "Crab pot baited with fish carcasses/chicken", "note": "Summer season dates are set annually by WDFW." },
+        { "species": "Market Squid", "bestMonths": [11, 12, 1], "goodMonths": [10, 2], "bait": "Glow squid jigs under a light", "note": "Night jigging off lighted piers." },
+        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4, 7], "bait": "Large jigs or live bait near structure", "note": "Spring bottomfish opener; size and area limits apply." }
       ]
     },
     {
       "areaName": "11",
       "species": [
-        { "species": "Resident Chinook (Blackmouth)", "bestMonths": [11, 12, 1, 2], "goodMonths": [3, 4], "note": "Central Sound winter blackmouth." },
-        { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11], "note": "Fall silvers off Point Defiance / Dalco." },
-        { "species": "Chum Salmon", "bestMonths": [10, 11], "goodMonths": [9, 12] },
-        { "species": "Market Squid", "bestMonths": [10, 11, 12, 1], "goodMonths": [2], "note": "Pier jigging, Tacoma waterfront." },
-        { "species": "Dungeness Crab", "bestMonths": [7, 8], "goodMonths": [9] },
-        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4, 7] }
+        { "species": "Resident Chinook (Blackmouth)", "bestMonths": [11, 12, 1, 2], "goodMonths": [3, 4], "bait": "Trolled herring, flasher + hoochie", "note": "Central Sound winter blackmouth." },
+        { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11], "bait": "Trolled hoochies or herring", "note": "Fall silvers off Point Defiance / Dalco." },
+        { "species": "Chum Salmon", "bestMonths": [10, 11], "goodMonths": [9, 12], "bait": "Chartreuse twitching jigs" },
+        { "species": "Market Squid", "bestMonths": [10, 11, 12, 1], "goodMonths": [2], "bait": "Glow squid jigs under a light", "note": "Pier jigging, Tacoma waterfront." },
+        { "species": "Dungeness Crab", "bestMonths": [7, 8], "goodMonths": [9], "bait": "Baited crab pot" },
+        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4, 7], "bait": "Heavy jigs near rocky structure" }
       ]
     },
     {
       "areaName": "10",
       "species": [
-        { "species": "Resident Chinook (Blackmouth)", "bestMonths": [11, 12, 1, 2], "goodMonths": [3, 4], "note": "Elliott Bay / Central Sound." },
-        { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11] },
-        { "species": "Chum Salmon", "bestMonths": [10, 11], "goodMonths": [9, 12], "note": "Fall Elliott Bay chum." },
-        { "species": "Market Squid", "bestMonths": [10, 11, 12, 1], "goodMonths": [2], "note": "Classic Seattle pier squid run." },
-        { "species": "Dungeness Crab", "bestMonths": [7, 8], "goodMonths": [9] },
-        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4, 7] }
+        { "species": "Resident Chinook (Blackmouth)", "bestMonths": [11, 12, 1, 2], "goodMonths": [3, 4], "bait": "Trolled herring, flasher + hoochie", "note": "Elliott Bay / Central Sound." },
+        { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11], "bait": "Trolled hoochies or spinners" },
+        { "species": "Chum Salmon", "bestMonths": [10, 11], "goodMonths": [9, 12], "bait": "Chartreuse twitching jigs", "note": "Fall Elliott Bay chum." },
+        { "species": "Market Squid", "bestMonths": [10, 11, 12, 1], "goodMonths": [2], "bait": "Glow squid jigs under a light", "note": "Classic Seattle pier squid run." },
+        { "species": "Dungeness Crab", "bestMonths": [7, 8], "goodMonths": [9], "bait": "Baited crab pot" },
+        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4, 7], "bait": "Heavy jigs near structure" }
       ]
     },
     {
       "areaName": "12",
       "species": [
-        { "species": "Chum Salmon", "bestMonths": [10, 11], "goodMonths": [9, 12], "note": "Hood Canal is known for fall chum." },
-        { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11] },
-        { "species": "Spot Shrimp", "bestMonths": [5], "goodMonths": [6], "note": "Short spring season set annually by WDFW — check dates." },
-        { "species": "Sea-run Cutthroat", "bestMonths": [9, 10, 11], "goodMonths": [1, 2, 12] },
-        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4, 7] }
+        { "species": "Chum Salmon", "bestMonths": [10, 11], "goodMonths": [9, 12], "bait": "Chartreuse/green twitching jigs", "note": "Hood Canal is known for fall chum." },
+        { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11], "bait": "Trolled hoochies or spinners" },
+        { "species": "Spot Shrimp", "bestMonths": [5], "goodMonths": [6], "bait": "Shrimp pot with commercial bait", "note": "Short spring season set annually by WDFW — check dates." },
+        { "species": "Sea-run Cutthroat", "bestMonths": [9, 10, 11], "goodMonths": [1, 2, 12], "bait": "Small spoons, spinners, flies" },
+        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4, 7], "bait": "Jigs or live bait near structure" }
       ]
     },
     {
       "areaName": "9",
       "species": [
-        { "species": "Chinook Salmon", "bestMonths": [7, 8], "goodMonths": [6, 9], "note": "Summer kings through Admiralty Inlet." },
-        { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11] },
-        { "species": "Pink Salmon", "bestMonths": [8, 9], "goodMonths": [7], "note": "Strong on odd-numbered years." },
-        { "species": "Dungeness Crab", "bestMonths": [7, 8], "goodMonths": [9] },
-        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4, 7] }
+        { "species": "Chinook Salmon", "bestMonths": [7, 8], "goodMonths": [6, 9], "bait": "Trolled herring, spoons, flashers", "note": "Summer kings through Admiralty Inlet." },
+        { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11], "bait": "Trolled hoochies or herring" },
+        { "species": "Pink Salmon", "bestMonths": [8, 9], "goodMonths": [7], "bait": "Small pink hoochies and jigs", "note": "Strong on odd-numbered years." },
+        { "species": "Dungeness Crab", "bestMonths": [7, 8], "goodMonths": [9], "bait": "Baited crab pot" },
+        { "species": "Lingcod", "bestMonths": [5, 6], "goodMonths": [4, 7], "bait": "Heavy jigs near structure" }
       ]
     }
   ],
   "freshwater": {
     "species": [
-      { "species": "Rainbow Trout", "bestMonths": [4, 5, 6], "goodMonths": [3, 7, 9, 10], "note": "Lowland lakes; many open year-round, spring plants peak the bite." },
-      { "species": "Largemouth Bass", "bestMonths": [5, 6, 7], "goodMonths": [4, 8, 9], "note": "Warm-water bite late spring through summer." },
-      { "species": "Kokanee", "bestMonths": [5, 6, 7], "goodMonths": [4, 8], "note": "Troll deeper as water warms." },
-      { "species": "Cutthroat Trout", "bestMonths": [4, 5, 9, 10], "goodMonths": [3, 6, 11] }
+      { "species": "Rainbow Trout", "bestMonths": [4, 5, 6], "goodMonths": [3, 7, 9, 10], "bait": "PowerBait, worms, or small spoons", "note": "Lowland lakes; many open year-round, spring plants peak the bite." },
+      { "species": "Largemouth Bass", "bestMonths": [5, 6, 7], "goodMonths": [4, 8, 9], "bait": "Plastic worms, jigs, spinnerbaits", "note": "Warm-water bite late spring through summer." },
+      { "species": "Kokanee", "bestMonths": [5, 6, 7], "goodMonths": [4, 8], "bait": "Trolled pink hoochie/dodger tipped with corn", "note": "Troll deeper as water warms." },
+      { "species": "Cutthroat Trout", "bestMonths": [4, 5, 9, 10], "goodMonths": [3, 6, 11], "bait": "Spinners, worms, small spoons" }
     ],
     "byCounty": {
       "Chelan": [
-        { "species": "Kokanee", "bestMonths": [5, 6, 7], "goodMonths": [4, 8], "note": "Lake Chelan / Wenatchee." },
-        { "species": "Rainbow Trout", "bestMonths": [4, 5, 6], "goodMonths": [3, 9, 10] },
-        { "species": "Chinook Salmon", "bestMonths": [7, 8], "goodMonths": [6, 9], "note": "Upper Columbia summer runs." }
+        { "species": "Kokanee", "bestMonths": [5, 6, 7], "goodMonths": [4, 8], "bait": "Trolled dodger + hoochie tipped with corn", "note": "Lake Chelan / Wenatchee." },
+        { "species": "Rainbow Trout", "bestMonths": [4, 5, 6], "goodMonths": [3, 9, 10], "bait": "PowerBait, worms, spoons" },
+        { "species": "Chinook Salmon", "bestMonths": [7, 8], "goodMonths": [6, 9], "bait": "Trolled spoons or plugs", "note": "Upper Columbia summer runs." }
       ],
       "Grant": [
-        { "species": "Walleye", "bestMonths": [5, 6], "goodMonths": [4, 7, 8], "note": "Potholes / Columbia system." },
-        { "species": "Smallmouth Bass", "bestMonths": [5, 6, 7], "goodMonths": [4, 8, 9] },
-        { "species": "Rainbow Trout", "bestMonths": [4, 5], "goodMonths": [3, 6, 10] }
+        { "species": "Walleye", "bestMonths": [5, 6], "goodMonths": [4, 7, 8], "bait": "Bottom-walker + worm harness, crankbaits", "note": "Potholes / Columbia system." },
+        { "species": "Smallmouth Bass", "bestMonths": [5, 6, 7], "goodMonths": [4, 8, 9], "bait": "Tube jigs, crankbaits, drop-shot" },
+        { "species": "Rainbow Trout", "bestMonths": [4, 5], "goodMonths": [3, 6, 10], "bait": "PowerBait or trolled spoons" }
       ],
       "Okanogan": [
-        { "species": "Rainbow Trout", "bestMonths": [4, 5, 6], "goodMonths": [3, 9, 10] },
-        { "species": "Kokanee", "bestMonths": [5, 6, 7], "goodMonths": [4, 8] },
-        { "species": "Smallmouth Bass", "bestMonths": [5, 6, 7], "goodMonths": [8, 9] }
+        { "species": "Rainbow Trout", "bestMonths": [4, 5, 6], "goodMonths": [3, 9, 10], "bait": "PowerBait, worms, spoons" },
+        { "species": "Kokanee", "bestMonths": [5, 6, 7], "goodMonths": [4, 8], "bait": "Trolled dodger + hoochie with corn" },
+        { "species": "Smallmouth Bass", "bestMonths": [5, 6, 7], "goodMonths": [8, 9], "bait": "Tube jigs, crankbaits" }
       ]
     }
   }

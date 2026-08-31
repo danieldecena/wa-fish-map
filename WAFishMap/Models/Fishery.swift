@@ -30,17 +30,19 @@ struct SpeciesSeason: Decodable, Equatable, Sendable {
     let species: String
     let bestMonths: [Int]
     let goodMonths: [Int]
+    let bait: String?
     let note: String?
 
-    init(species: String, bestMonths: [Int], goodMonths: [Int] = [], note: String? = nil) {
+    init(species: String, bestMonths: [Int], goodMonths: [Int] = [], bait: String? = nil, note: String? = nil) {
         self.species = species
         self.bestMonths = bestMonths
         self.goodMonths = goodMonths
+        self.bait = bait
         self.note = note
     }
 
     private enum CodingKeys: String, CodingKey {
-        case species, bestMonths, goodMonths, note
+        case species, bestMonths, goodMonths, bait, note
     }
 
     init(from decoder: Decoder) throws {
@@ -48,6 +50,7 @@ struct SpeciesSeason: Decodable, Equatable, Sendable {
         species = try c.decode(String.self, forKey: .species)
         bestMonths = try c.decodeIfPresent([Int].self, forKey: .bestMonths) ?? []
         goodMonths = try c.decodeIfPresent([Int].self, forKey: .goodMonths) ?? []
+        bait = try c.decodeIfPresent(String.self, forKey: .bait)
         note = try c.decodeIfPresent(String.self, forKey: .note)
     }
 
