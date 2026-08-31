@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-30",
+  "updated": "2026-08-31",
   "disclaimer": "Seasonal guidance only — NOT official regulations. Runs, open seasons, areas, and limits change year to year and can close with little notice. Statewide first-pass data; inland areas without an entry show a neutral rating. Bait/gear are general suggestions. Always confirm current rules in the WDFW Fish Washington app before you fish.",
   "wdfwURL": "https://wdfw.wa.gov/fishing/regulations",
   "areas": [
@@ -79,7 +79,7 @@
             8,
             12
           ],
-          "bait": "Small spoons, clouser flies, spinners",
+          "bait": "Small spoons, Clouser flies, spinners",
           "note": "Beaches and estuaries; catch-and-release ethic.",
           "bestTime": "Dawn & dusk on a moving tide"
         },
@@ -1337,7 +1337,7 @@
             8,
             11
           ],
-          "bait": "Small spoons, spinners, clouser flies",
+          "bait": "Small spoons, spinners, Clouser flies",
           "note": "Beaches and estuaries; catch-and-release ethic.",
           "bestTime": "Dawn & dusk on a moving tide"
         },
