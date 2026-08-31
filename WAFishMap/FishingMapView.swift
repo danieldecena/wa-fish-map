@@ -15,6 +15,9 @@ struct FishingMapView: View {
     /// first camera event. Below the threshold the "MA n" capsules stop overlapping.
     @State private var cameraDistance: Double = .greatestFiniteMagnitude
     private static let areaLabelMaxDistance: Double = 600_000
+    /// Above this altitude a site is a bare colored dot. Balloon pins carry a
+    /// glyph and a shadow that are unreadable at range and mat together.
+    private static let pinDetailMaxDistance: Double = 150_000
     /// Where the user is looking; drives the sun-time math. Statewide the east-west
     /// sunrise spread is ~10 minutes, so camera-center precision is plenty.
     @State private var cameraCenter = MapScope.cameraCenter
@@ -70,17 +73,37 @@ struct FishingMapView: View {
                           radius: ColorRamp.densityRadius(zone.intensity))
                     .foregroundStyle(ColorRamp.density(zone.intensity))
             }
-            ForEach(model.accessSites) { site in
-                Marker(site.facilityName,
-                       systemImage: site.hasLaunch ? "anchor.fill" : "figure.fishing",
-                       coordinate: site.mapCoordinate)
-                    .tint(color(forSite: site))
-                    .tag(site.id)
-            }
-            ForEach(model.piers) { pier in
-                Marker(pier.name, systemImage: "fish.fill", coordinate: pier.mapCoordinate)
-                    .tint(model.rating(for: pier, month: currentMonth)?.color ?? .gray)
-                    .tag(pier.id)
+            // Heat is a mode: the density field gets the map to itself. Drawing
+            // pins over it put two answers to the same question on one screen.
+            if !showHeat {
+                ForEach(model.accessSites) { site in
+                    if cameraDistance > Self.pinDetailMaxDistance {
+                        Annotation(site.facilityName, coordinate: site.mapCoordinate) {
+                            RatingDot(color: color(forSite: site))
+                        }
+                        .annotationTitles(.hidden)
+                        .tag(site.id)
+                    } else {
+                        Marker(site.facilityName,
+                               systemImage: site.hasLaunch ? "anchor.fill" : "figure.fishing",
+                               coordinate: site.mapCoordinate)
+                            .tint(color(forSite: site))
+                            .tag(site.id)
+                    }
+                }
+                ForEach(model.piers) { pier in
+                    if cameraDistance > Self.pinDetailMaxDistance {
+                        Annotation(pier.name, coordinate: pier.mapCoordinate) {
+                            RatingDot(color: model.rating(for: pier, month: currentMonth)?.color ?? .gray)
+                        }
+                        .annotationTitles(.hidden)
+                        .tag(pier.id)
+                    } else {
+                        Marker(pier.name, systemImage: "fish.fill", coordinate: pier.mapCoordinate)
+                            .tint(model.rating(for: pier, month: currentMonth)?.color ?? .gray)
+                            .tag(pier.id)
+                    }
+                }
             }
             UserAnnotation()
         }

@@ -1,16 +1,7 @@
 import SwiftUI
 
-/// Cold (blue) → hot (red) through purple midtones.
-///
-/// Drives the marker rating and its legend from one function, so the two cannot
-/// drift apart, and avoids the red/green pairing the rating palette used to rely
-/// on. The heat overlay deliberately does NOT use this ramp — see `density`.
+/// Density wash for the heat overlay, and the thermal ramp the ratings sit on.
 enum ColorRamp {
-    /// `intensity` runs 0 (cold) → 1 (hot).
-    static func color(_ intensity: Double) -> Color {
-        Color(red: intensity, green: 0.1, blue: 1 - intensity)
-    }
-
     /// Density wash for the heat overlay, varying in weight rather than hue.
     /// The markers own the cold→hot hues; giving the overlay the same ones made
     /// red pins disappear into red zones.
@@ -26,16 +17,28 @@ enum ColorRamp {
 }
 
 extension FishingRating {
-    /// Slow → blue, Prime → red. Sampled unevenly on purpose: even quarters put
-    /// Good and Prime adjacent in the reddest stretch, where a dense cluster of
-    /// pins reads as one colour. Pulling Good back toward magenta leaves Prime
-    /// alone at pure red.
+    /// A thermal ramp, cold to hot: blue → amber → orange → red. Stated as four
+    /// explicit stops rather than sampled off a continuous function — sampling a
+    /// blue-to-red line runs through magenta, which reads as a different scale
+    /// rather than as heat.
     var color: Color {
         switch self {
-        case .poor: ColorRamp.color(0)
-        case .fair: ColorRamp.color(0.28)
-        case .good: ColorRamp.color(0.58)
-        case .excellent: ColorRamp.color(1)
+        case .poor: Color(red: 0.00, green: 0.45, blue: 1.00)
+        case .fair: Color(red: 1.00, green: 0.78, blue: 0.00)
+        case .good: Color(red: 1.00, green: 0.45, blue: 0.00)
+        case .excellent: Color(red: 0.94, green: 0.11, blue: 0.05)
         }
+    }
+}
+
+/// A site rendered at range: colour and position only, no glyph or balloon.
+struct RatingDot: View {
+    let color: Color
+
+    var body: some View {
+        Circle()
+            .fill(color)
+            .stroke(.white, lineWidth: 1.5)
+            .frame(width: 11, height: 11)
     }
 }
