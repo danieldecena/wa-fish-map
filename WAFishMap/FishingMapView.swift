@@ -179,17 +179,26 @@ struct FishingMapView: View {
             DatePicker("Plan for", selection: $planDate)
                 .labelsHidden()
             Spacer(minLength: 4)
-            VStack(alignment: .trailing, spacing: 1) {
-                Text(timeOfDay.label).font(.caption2.weight(.semibold))
-                // The full light hint needs room; on compact the tinted icon carries it.
-                if sizeClass == .regular {
-                    Text(timeOfDay.lightHint).font(.caption2).foregroundStyle(.secondary)
+            // Measured against actual width, not size class: narrow regular contexts
+            // (iPad split view, Mac windows) crushed the hint and wrapped the button.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 10) {
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text(timeOfDay.label).font(.caption2.weight(.semibold))
+                        Text(timeOfDay.lightHint)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    nowButton
+                }
+                HStack(spacing: 10) {
+                    Text(timeOfDay.label)
+                        .font(.caption2.weight(.semibold))
+                        .fixedSize()
+                    nowButton
                 }
             }
-            Button("Now") { planDate = Date() }
-                .font(.caption2.weight(.semibold))
-                .buttonStyle(.bordered)
-                .fixedSize()
         }
         .font(.caption2)
         .controlSize(.small)
@@ -198,6 +207,13 @@ struct FishingMapView: View {
         .frame(maxWidth: sizeClass == .regular ? 560 : .infinity, alignment: .leading)
         .modifier(GlassCard())
         .padding(sizeClass == .regular ? 12 : 8)
+    }
+
+    private var nowButton: some View {
+        Button("Now") { planDate = Date() }
+            .font(.caption2.weight(.semibold))
+            .buttonStyle(.bordered)
+            .fixedSize()
     }
 
     private var statusBar: some View {

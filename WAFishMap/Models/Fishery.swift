@@ -111,8 +111,16 @@ struct FreshwaterGuide: Decodable, Sendable {
     let species: [SpeciesSeason]
     let byCounty: [String: [SpeciesSeason]]?
 
+    /// County entries refine the statewide default, they don't erase it: overrides
+    /// come first (they carry the local note), then any statewide species the county
+    /// doesn't redefine. An empty override list falls back to the default outright.
     func fishery(county: String) -> AreaFishery {
-        AreaFishery(areaName: "freshwater", species: byCounty?[county] ?? species)
+        guard let overrides = byCounty?[county], !overrides.isEmpty else {
+            return AreaFishery(areaName: "freshwater", species: species)
+        }
+        let overridden = Set(overrides.map(\.species))
+        let inherited = species.filter { !overridden.contains($0.species) }
+        return AreaFishery(areaName: "freshwater", species: overrides + inherited)
     }
 }
 
