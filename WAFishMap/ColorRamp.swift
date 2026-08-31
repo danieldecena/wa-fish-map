@@ -2,17 +2,28 @@ import SwiftUI
 
 /// Density wash for the heat overlay, and the thermal ramp the ratings sit on.
 enum ColorRamp {
-    /// Density wash for the heat overlay, varying in weight rather than hue.
-    /// The markers own the cold→hot hues; giving the overlay the same ones made
-    /// red pins disappear into red zones.
-    static func density(_ intensity: Double) -> Color {
-        Color(red: 0.16, green: 0.13, blue: 0.22).opacity(0.05 + 0.10 * intensity)
+    /// How many bands the density scale is quantised into. Four is enough to
+    /// rank a cell without implying a precision the underlying data does not have.
+    static let densityBandCount = 4
+
+    /// Which band a rank-based intensity falls in, 0 (coldest) to 3.
+    static func densityBand(_ intensity: Double) -> Int {
+        let scaled = Int(intensity * Double(densityBandCount))
+        return min(max(scaled, 0), densityBandCount - 1)
     }
 
-    /// Metres of radius for a heat zone. A fixed radius made every zone the same
-    /// disc, so intensity was invisible and the overlapping edges read as rings.
-    static func densityRadius(_ intensity: Double) -> Double {
-        5000 + 9000 * intensity
+    /// Fill for a density band. Cells tile without overlapping, so these alphas
+    /// are what actually renders — nothing accumulates on top. That is why the
+    /// range can be this wide and still leave the basemap readable.
+    static func densityFill(band: Int) -> Color {
+        let alphas = [0.10, 0.19, 0.28, 0.38]
+        let clamped = min(max(band, 0), alphas.count - 1)
+        return Color(red: 0.16, green: 0.13, blue: 0.22).opacity(alphas[clamped])
+    }
+
+    /// Fill for a zone, straight from its intensity.
+    static func densityFill(_ intensity: Double) -> Color {
+        densityFill(band: densityBand(intensity))
     }
 }
 

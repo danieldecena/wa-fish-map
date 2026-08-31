@@ -69,9 +69,11 @@ struct FishingMapView: View {
                 }
             }
             ForEach(heatZones) { zone in
-                MapCircle(center: zone.center.clLocationCoordinate,
-                          radius: ColorRamp.densityRadius(zone.intensity))
-                    .foregroundStyle(ColorRamp.density(zone.intensity))
+                // The real grid cell, tiled. Circles wider than their own cell
+                // overlapped, and translucent overlap composites rather than
+                // maxes, so mediocre neighbours out-darkened a genuinely hot cell.
+                MapPolygon(coordinates: zone.corners.map(\.clLocationCoordinate))
+                    .foregroundStyle(ColorRamp.densityFill(zone.intensity))
             }
             // Heat is a mode: the density field gets the map to itself. Drawing
             // pins over it put two answers to the same question on one screen.
@@ -337,12 +339,17 @@ private struct HeatLegend: View {
     var body: some View {
         HStack(spacing: 6) {
             Text("Fewer").font(.caption2).foregroundStyle(.secondary)
-            LinearGradient(
-                colors: [ColorRamp.density(0), ColorRamp.density(0.5), ColorRamp.density(1)],
-                startPoint: .leading, endPoint: .trailing
-            )
-            .frame(width: 90, height: 8)
-            .clipShape(Capsule())
+            // Discrete swatches, one per band, because that is exactly what the
+            // map draws — a continuous gradient promised a precision the banded
+            // fills do not have.
+            HStack(spacing: 2) {
+                ForEach(0..<ColorRamp.densityBandCount, id: \.self) { band in
+                    Rectangle()
+                        .fill(ColorRamp.densityFill(band: band))
+                        .frame(width: 20, height: 8)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 2))
             Text("More").font(.caption2).foregroundStyle(.secondary)
             Text("· density of well-rated spots").font(.caption2).foregroundStyle(.tertiary)
         }
