@@ -12,19 +12,23 @@ enum ColorRamp {
         return min(max(scaled, 0), densityBandCount - 1)
     }
 
-    /// Fill for a density band. Cells tile without overlapping, so these alphas
-    /// are what actually renders — nothing accumulates on top. That is why the
-    /// range can be this wide and still leave the basemap readable.
+    /// Fill for a density band. Cells tile without overlapping, so these are
+    /// exactly what renders — nothing accumulates on top.
     ///
-    /// The coldest band draws nothing. Tinting every cell dimmed the whole map
-    /// into a scrim, and a scrim says "something is on top of the map" rather
-    /// than "this water is better than that water". Violet because the rating
-    /// ramp gave it up when it moved to blue/amber/orange/red, so the overlay
-    /// cannot be mistaken for a rating.
+    /// One hue at four opacities, which only works because the map is muted
+    /// while the overlay is on. Over the normal basemap a translucent fill takes
+    /// its apparent colour from whatever sits beneath it, so one band read pink
+    /// over city, brown over forest and violet over water — the same band
+    /// looking like three, and different bands looking alike. Shifting hue per
+    /// band papered over that and made it garish; draining the ground fixes it.
+    ///
+    /// The coldest band draws nothing, so the basemap stays clean where there is
+    /// nothing to say. Violet because the rating ramp gave it up when it moved
+    /// to blue/amber/orange/red, so the overlay cannot be misread as a rating.
     static func densityFill(band: Int) -> Color {
-        let alphas = [0.0, 0.15, 0.27, 0.40]
+        let alphas = [0.0, 0.14, 0.26, 0.40]
         let clamped = min(max(band, 0), alphas.count - 1)
-        return Color(red: 0.42, green: 0.16, blue: 0.62).opacity(alphas[clamped])
+        return Color(red: 0.48, green: 0.16, blue: 0.72).opacity(alphas[clamped])
     }
 
     /// Fill for a zone, straight from its intensity.

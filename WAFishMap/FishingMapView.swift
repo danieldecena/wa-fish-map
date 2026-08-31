@@ -18,6 +18,18 @@ struct FishingMapView: View {
     /// Above this altitude a site is a bare colored dot. Balloon pins carry a
     /// glyph and a shadow that are unreadable at range and mat together.
     private static let pinDetailMaxDistance: Double = 150_000
+
+    /// Grid cell size, in degrees, for the density overlay. A fixed size cannot
+    /// work at every zoom: 0.15 was a chessboard up close, and 0.06 was specks
+    /// from statewide. Coarser as the camera pulls back keeps the cell roughly
+    /// the same size on screen.
+    private static func heatCellDegrees(_ distance: Double) -> Double {
+        switch distance {
+        case ..<120_000: 0.05
+        case ..<400_000: 0.10
+        default: 0.20
+        }
+    }
     /// Where the user is looking; drives the sun-time math. Statewide the east-west
     /// sunrise spread is ~10 minutes, so camera-center precision is plenty.
     @State private var cameraCenter = MapScope.cameraCenter
@@ -105,7 +117,14 @@ struct FishingMapView: View {
             }
             UserAnnotation()
         }
-        .mapStyle(.standard(pointsOfInterest: .including(landmarkCategories)))
+        // Drain the basemap while the overlay is on. A translucent fill takes its
+        // apparent colour from what is under it, so over the full-colour map one
+        // density band read as three different colours depending on land, water
+        // or city. A neutral ground is what makes the bands mean one thing.
+        .mapStyle(.standard(
+            emphasis: showHeat ? .muted : .automatic,
+            pointsOfInterest: .including(landmarkCategories)
+        ))
         .mapControls {
             MapUserLocationButton()
             MapCompass()
@@ -136,6 +155,7 @@ struct FishingMapView: View {
             recomputeHeatZones()
         }
         .onChange(of: showHeat) { recomputeHeatZones() }
+        .onChange(of: Self.heatCellDegrees(cameraDistance)) { recomputeHeatZones() }
         .onChange(of: currentMonth) { recomputeHeatZones() }
         .onChange(of: location.fix?.latitude) { recenterOnFixIfAppropriate() }
         .onMapCameraChange(frequency: .onEnd) { context in
@@ -174,7 +194,7 @@ struct FishingMapView: View {
         for pier in model.piers {
             points.append((pier.coordinate, heatWeight(model.rating(for: pier, month: currentMonth))))
         }
-        heatZones = HeatMap.zones(points: points, cellDegrees: 0.15)
+        heatZones = HeatMap.zones(points: points, cellDegrees: Self.heatCellDegrees(cameraDistance))
     }
 
     /// Density counts every spot; better-rated spots weigh more so hot zones favor quality.
