@@ -178,7 +178,7 @@
             2
           ],
           "bait": "Trolled herring, flasher + hoochie",
-          "note": "Recent years: spring selective opener (Mar-Apr); central Sound often closed in mid-winter. Confirm season dates with WDFW.",
+          "note": "Spring selective opener, closed part of winter; dates set annually - confirm with WDFW.",
           "bestTime": "First light through mid-morning"
         },
         {
@@ -277,7 +277,7 @@
             2
           ],
           "bait": "Trolled herring, flasher + hoochie",
-          "note": "Elliott Bay / Central Sound: recent years open as a spring selective fishery (Mar-Apr); often closed mid-winter. Confirm dates with WDFW.",
+          "note": "Elliott Bay / Central Sound spring selective fishery, closed part of winter; dates set annually - confirm with WDFW.",
           "bestTime": "First light through mid-morning"
         },
         {
@@ -492,7 +492,7 @@
             9
           ],
           "bait": "Trolled herring, spoons, flashers",
-          "note": "Summer kings through Admiralty Inlet; quota-driven, June typically closed.",
+          "note": "Summer kings through Admiralty Inlet; quota-driven fishery - confirm open dates with WDFW.",
           "bestTime": "First light through mid-morning"
         },
         {
@@ -561,7 +561,7 @@
             9
           ],
           "bait": "Trolled herring behind a flasher",
-          "note": "Ocean season opens ~mid-June by quota; Chinook can close in-season. Confirm dates with WDFW.",
+          "note": "Ocean season opens by quota and Chinook can close in-season; dates set annually - confirm with WDFW.",
           "bestTime": "First light through mid-morning"
         },
         {
@@ -617,7 +617,7 @@
             10
           ],
           "bait": "Jigs near reefs/structure",
-          "note": "Coastal bottomfish season ~mid-Mar to mid-Oct.",
+          "note": "Coastal bottomfish season; dates set annually - confirm with WDFW.",
           "bestTime": "Daytime at slack current"
         },
         {
@@ -667,7 +667,7 @@
             9
           ],
           "bait": "Trolled herring behind a flasher",
-          "note": "Season opens ~mid-June by quota; Chinook often closes mid-Aug. Confirm with WDFW.",
+          "note": "Ocean season opens by quota and Chinook often closes early; dates set annually - confirm with WDFW.",
           "bestTime": "First light through mid-morning"
         },
         {
@@ -710,7 +710,7 @@
             10
           ],
           "bait": "Jigs near reefs/structure",
-          "note": "Coastal bottomfish season ~mid-Mar to mid-Oct.",
+          "note": "Coastal bottomfish season; dates set annually - confirm with WDFW.",
           "bestTime": "Daytime at slack current"
         },
         {
@@ -726,7 +726,7 @@
             9
           ],
           "bait": "Jigs or bait near structure",
-          "note": "Some rockfish species closed May-Jul; check rules.",
+          "note": "Some rockfish species closed part of the year; check current rules with WDFW.",
           "bestTime": "Morning & evening"
         },
         {
@@ -755,7 +755,7 @@
             6
           ],
           "bait": "Large jigs or bait on the bottom in 100-300 ft",
-          "note": "Few announced days May-Jun; quota-driven.",
+          "note": "Few announced days each year, quota-driven; confirm dates with WDFW.",
           "bestTime": "Daytime at slack current"
         }
       ]
@@ -788,7 +788,7 @@
             12
           ],
           "bait": "Spinners or twitching jigs",
-          "note": "Early A-run late Aug-Nov; late run into winter.",
+          "note": "Early A-run in fall, late run into winter.",
           "bestTime": "Dawn & dusk; first light is best"
         },
         {
@@ -847,7 +847,7 @@
             12
           ],
           "bait": "Spinners or twitching jigs",
-          "note": "A-run late Aug-Nov; late B-run into winter.",
+          "note": "A-run in fall, late B-run into winter.",
           "bestTime": "Dawn & dusk; first light is best"
         },
         {
@@ -908,7 +908,7 @@
             9
           ],
           "bait": "Trolled herring behind a flasher",
-          "note": "Ocean season opens ~mid-June by quota. Confirm with WDFW.",
+          "note": "Ocean season opens by quota; dates set annually - confirm with WDFW.",
           "bestTime": "First light through mid-morning"
         },
         {
@@ -937,7 +937,7 @@
             10
           ],
           "bait": "Heavy jigs near reefs/kelp",
-          "note": "Coastal bottomfish ~mid-Mar to mid-Oct; depth limits Jun-Jul.",
+          "note": "Coastal bottomfish season with summer depth limits; dates set annually - confirm with WDFW.",
           "bestTime": "Daytime at slack current"
         },
         {
@@ -953,7 +953,7 @@
             9
           ],
           "bait": "Jigs or bait near structure",
-          "note": "Some rockfish closed May-Jul; yelloweye release-only.",
+          "note": "Some rockfish closed part of the year; yelloweye always release-only - confirm with WDFW.",
           "bestTime": "Morning & evening"
         },
         {
@@ -984,7 +984,7 @@
             9
           ],
           "bait": "Trolled herring behind a flasher",
-          "note": "Ocean season opens ~mid-June by quota. Confirm with WDFW.",
+          "note": "Ocean season opens by quota; dates set annually - confirm with WDFW.",
           "bestTime": "First light through mid-morning"
         },
         {
@@ -1013,7 +1013,7 @@
             10
           ],
           "bait": "Heavy jigs near reefs/kelp",
-          "note": "Coastal bottomfish ~mid-Mar to mid-Oct; depth limits Jun-Jul.",
+          "note": "Coastal bottomfish season with summer depth limits; dates set annually - confirm with WDFW.",
           "bestTime": "Daytime at slack current"
         },
         {
@@ -1029,7 +1029,7 @@
             9
           ],
           "bait": "Jigs or bait near structure",
-          "note": "Some rockfish closed May-Jul; yelloweye release-only.",
+          "note": "Some rockfish closed part of the year; yelloweye always release-only - confirm with WDFW.",
           "bestTime": "Morning & evening"
         },
         {
@@ -1124,7 +1124,7 @@
             2
           ],
           "bait": "Trolled herring, flasher + hoochie",
-          "note": "Winter/spring blackmouth (~Mar-Apr in recent years); quota-driven.",
+          "note": "Winter/spring blackmouth fishery, quota-driven; dates set annually - confirm with WDFW.",
           "bestTime": "First light through mid-morning"
         },
         {
@@ -1137,7 +1137,7 @@
             4
           ],
           "bait": "Jigs near rocky structure",
-          "note": "Strait lingcod ~May 1-Jun 15.",
+          "note": "Strait lingcod short spring opener; dates set annually - confirm with WDFW.",
           "bestTime": "Daytime at slack current"
         },
         {
@@ -1206,7 +1206,7 @@
             4
           ],
           "bait": "Jigs near rocky structure",
-          "note": "~May 1-Jun 15.",
+          "note": "Short spring opener; dates set annually - confirm with WDFW.",
           "bestTime": "Daytime at slack current"
         },
         {
@@ -1252,7 +1252,7 @@
             11
           ],
           "bait": "Trolled herring, flasher + hoochie",
-          "note": "San Juans winter blackmouth ~Dec-Apr; opening dates vary by year and sub-area.",
+          "note": "San Juans winter blackmouth fishery; opening dates vary by year and sub-area - confirm with WDFW.",
           "bestTime": "First light through mid-morning"
         },
         {
@@ -1265,7 +1265,7 @@
             4
           ],
           "bait": "Large jigs near rocky structure",
-          "note": "~May 1-Jun 15.",
+          "note": "Short spring opener; dates set annually - confirm with WDFW.",
           "bestTime": "Daytime at slack current"
         },
         {
@@ -1375,7 +1375,7 @@
             4
           ],
           "bait": "Jigs near structure at Deception Pass",
-          "note": "~May 1-Jun 15.",
+          "note": "Short spring opener; dates set annually - confirm with WDFW.",
           "bestTime": "Daytime at slack current"
         },
         {
@@ -1487,7 +1487,7 @@
             4
           ],
           "bait": "Jigs near Hat Island reefs",
-          "note": "~May 1-Jun 15.",
+          "note": "Short spring opener; dates set annually - confirm with WDFW.",
           "bestTime": "Daytime at slack current"
         },
         {
@@ -1632,7 +1632,7 @@
             9
           ],
           "bait": "Bottom-walker + worm harness, crankbaits",
-          "note": "Potholes / Columbia system; best post-spawn in summer (spawn is Apr-May).",
+          "note": "Potholes / Columbia system; best post-spawn in summer.",
           "bestTime": "Dawn, dusk & after dark"
         },
         {
@@ -1773,7 +1773,7 @@
             11
           ],
           "bait": "Nymphs, dry flies, small spinners",
-          "note": "Spokane River native redband; season ~late May-Mar 15, catch-and-release. Wild fishery, tread lightly.",
+          "note": "Spokane River native redband, catch-and-release; season dates set annually - confirm with WDFW. Wild fishery, tread lightly.",
           "bestTime": "Morning & evening"
         },
         {
@@ -1947,7 +1947,7 @@
             10
           ],
           "bait": "Tubes, crankbaits, drop-shot",
-          "note": "Lower Yakima River; peak at the May-Jun spawn, good into fall.",
+          "note": "Lower Yakima River; peaks at the spawn, good into fall.",
           "bestTime": "Morning & evening"
         },
         {
@@ -2004,7 +2004,7 @@
           ],
           "goodMonths": [],
           "bait": "Trolled red hoochies/hooks tipped with corn behind a dodger, 30-60 ft",
-          "note": "Baker Lake; season ~Jul-Aug, set by the return. Boat needed.",
+          "note": "Baker Lake; season set by the return each year - confirm with WDFW. Boat needed.",
           "bestTime": "First light, early morning"
         },
         {

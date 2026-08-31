@@ -4,7 +4,6 @@ enum MapScope {
     /// Fallback camera used only until the live statewide data loads and the map
     /// auto-fits to it (see `FishingMapView`). Roughly centered on Washington.
     static let cameraCenter = LonLat(longitude: -120.7, latitude: 47.4)
-    static let cameraSpanDegrees: Double = 6.0
 
     private static let mapServer = "https://geodataservices.wdfw.wa.gov/arcgis/rest/services/FP_Projects/MajorFishingArea/MapServer"
 

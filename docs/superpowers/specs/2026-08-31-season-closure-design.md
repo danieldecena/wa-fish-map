@@ -136,6 +136,16 @@ A species may be genuinely open in one marine area and closed in the next. The
 central table cannot express that; the per-row `"seasonRisk": "none"` opt-out is
 the escape hatch, applied case by case as it is discovered.
 
+The table matches by substring against the species name, not by area, so a
+single row's months apply everywhere that species appears. The Lingcod row
+derived from a "mid-Mar to mid-Oct" note also clamps Lingcod in areas whose own
+note describes a much narrower "~May 1-Jun 15" window, and the same is true for
+Crab, Coho, Sockeye, and Chinook: one row's months are wider than what some
+individual areas actually experience. Over-flagging is the safe direction for a
+"verify this" signal, but a future data editor curating a new area's `note`
+should know the central table can silently clamp it to a window that does not
+match what they just wrote.
+
 ## Testing
 
 Pure logic, so all of it is unit-testable without a simulator.

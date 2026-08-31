@@ -111,6 +111,27 @@ struct SeasonRiskResolutionTests {
         #expect(guide.area(named: "13")?.rating(inMonth: 1) == .excellent)
     }
 
+    @Test func multipleMatchingRowsUnionMonthsAndJoinReasons() throws {
+        // "Chinook Salmon (ocean)" matches both the "Chinook Salmon (ocean)" row
+        // and the general "Chinook Salmon" row — live in shipped data — so
+        // resolvingSeasonRisk must union their months and join both reasons.
+        let twoRows = """
+        {
+          "updated": "2026-08-31", "disclaimer": "d", "wdfwURL": "u",
+          "seasonRisk": [
+            { "match": "Chinook Salmon (ocean)", "months": [6, 7, 8], "reason": "Ocean quota" },
+            { "match": "Chinook Salmon", "months": [7, 8, 9], "reason": "Summer quota" }
+          ],
+          "areas": [{ "areaName": "13",
+            "species": [{ "species": "Chinook Salmon (ocean)", "bestMonths": [7] }] }]
+        }
+        """.data(using: .utf8)!
+        let guide = try FisheryLoader.guide(from: twoRows)
+        let species = try #require(guide.area(named: "13")?.species.first)
+        #expect(species.riskMonths == [6, 7, 8, 9])
+        #expect(species.riskReason == "Ocean quota; Summer quota")
+    }
+
     @Test func byCountyFreshwaterSpeciesAreResolved() throws {
         let byCounty = """
         {
@@ -162,12 +183,51 @@ struct ShippedSeasonRiskTests {
         }
     }
 
+    /// Matches the date idioms the shipped prose actually uses: `Mon-Mon` (e.g.
+    /// "Mar-Apr"), `Month day` (e.g. "May 1"), and `mid-Month` (e.g. "mid-June").
+    /// An en dash or `\d{1,2}/\d{1,2}` catches neither — this file writes hyphenated
+    /// month ranges, never slash dates — so those idioms alone let every possible
+    /// reason string pass. Proven below against a known-bad and a known-good sample.
+    private static let monthNames = "Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|June|July|August|September|October|November|December"
+    private static let datePattern = try! Regex(
+        #"(\#(monthNames))\s*-\s*(\#(monthNames))|(\#(monthNames))\s+\d{1,2}|mid-(\#(monthNames))"#,
+        as: (Substring, Substring?, Substring?, Substring?, Substring?).self
+    ).ignoresCase()
+
+    @Test func dateDetectorFiresOnKnownBadSample() {
+        #expect(try "Open May 1-Jun 15".firstMatch(of: Self.datePattern) != nil)
+        #expect(try "mid-June closure".firstMatch(of: Self.datePattern) != nil)
+        #expect(try "Season runs Mar-Apr".firstMatch(of: Self.datePattern) != nil)
+    }
+
+    @Test func dateDetectorDoesNotFireOnKnownGoodSample() {
+        #expect(try "Season dates set annually".firstMatch(of: Self.datePattern) == nil)
+        #expect(try "Quota-driven summer fishery; confirm before you go".firstMatch(of: Self.datePattern) == nil)
+    }
+
     @Test func noReasonStatesADate() throws {
         // The reason explains why to verify; it must not read as a season date.
         for row in try loadShipped().seasonRisk {
-            #expect(!row.reason.contains("–"), "\(row.match) reason looks like a date range")
-            #expect(row.reason.range(of: #"\b\d{1,2}/\d{1,2}\b"#, options: .regularExpression) == nil,
+            #expect(try row.reason.firstMatch(of: Self.datePattern) == nil,
                     "\(row.match) reason contains a date")
+        }
+    }
+
+    @Test func noSpeciesNoteStatesADate() throws {
+        // SiteDetailSheet renders species.note on the same card as the risk
+        // badge; a note that states a closure window as fact undermines it.
+        let guide = try loadShipped()
+        var allSpecies: [SpeciesSeason] = guide.areas.flatMap(\.species)
+        if let freshwater = guide.freshwater {
+            allSpecies += freshwater.species
+            for overrides in (freshwater.byCounty ?? [:]).values {
+                allSpecies += overrides
+            }
+        }
+        for species in allSpecies {
+            guard let note = species.note else { continue }
+            #expect(try note.firstMatch(of: Self.datePattern) == nil,
+                    "\(species.species) note contains a date: \(note)")
         }
     }
 

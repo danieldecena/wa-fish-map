@@ -36,6 +36,22 @@ struct FishingMapView: View {
     /// Set once the user pans or zooms. A fix that lands afterwards must not yank
     /// the camera out from under them.
     @State private var userMovedCamera = false
+    /// With `position = .automatic`, MapKit fires a genuine `.onEnd` camera-change
+    /// event of its own once before any data exists, and fires a SECOND one when
+    /// `accessSites` populates from the network and the camera re-fits to it.
+    /// Exempting only the first such event (an ordinal count) let that second,
+    /// still-programmatic re-fit set `userMovedCamera` before CoreLocation had
+    /// even answered — the recentre-on-fix animation then never ran.
+    ///
+    /// `MapCameraUpdateContext` has no "gesture vs. programmatic" reason in the
+    /// SwiftUI Map API, so instead of counting events this keys off the data load
+    /// itself: `.beforeLoad` events are MapKit's own initial fit, `load()` flips
+    /// the phase to `.awaitingPostLoadRefit` the instant `accessSites` is set
+    /// (synchronously, before SwiftUI's next render can trigger the re-fit's
+    /// `.onEnd`), that one re-fit event is consumed to reach `.settled`, and only
+    /// an event in `.settled` is a real user gesture.
+    private enum CameraGuardPhase { case beforeLoad, awaitingPostLoadRefit, settled }
+    @State private var cameraGuardPhase: CameraGuardPhase = .beforeLoad
     /// Washington's bounding box. A fix outside it belongs to someone travelling,
     /// and centring there would show an empty map — the data is statewide only.
     private static let stateBounds = (
@@ -153,13 +169,23 @@ struct FishingMapView: View {
             location.requestIfNeeded()
             await model.load()
             recomputeHeatZones()
+            // accessSites is now populated, so MapKit's .automatic camera is about
+            // to re-fit to it — that re-fit is the event this phase exists to catch.
+            cameraGuardPhase = .awaitingPostLoadRefit
         }
         .onChange(of: showHeat) { recomputeHeatZones() }
         .onChange(of: Self.heatCellDegrees(cameraDistance)) { recomputeHeatZones() }
         .onChange(of: currentMonth) { recomputeHeatZones() }
         .onChange(of: location.fix?.latitude) { recenterOnFixIfAppropriate() }
         .onMapCameraChange(frequency: .onEnd) { context in
-            if cameraDistance != .greatestFiniteMagnitude { userMovedCamera = true }
+            switch cameraGuardPhase {
+            case .beforeLoad:
+                break // MapKit's own pre-data fit; not the user
+            case .awaitingPostLoadRefit:
+                cameraGuardPhase = .settled // consume the data-triggered re-fit; still not the user
+            case .settled:
+                userMovedCamera = true
+            }
             cameraDistance = context.camera.distance
             cameraCenter = LonLat(
                 longitude: context.camera.centerCoordinate.longitude,
@@ -180,8 +206,9 @@ struct FishingMapView: View {
 
     // MARK: Heat zones (density of good-rated spots, cold→hot)
 
-    /// Cached in state; zones only change with the toggle, the plan month, or a data
-    /// load, so they are recomputed there instead of on every body evaluation.
+    /// Cached in state; zones only change with the toggle, the plan month, a data
+    /// load, or the camera-distance band (cell size follows zoom), so they are
+    /// recomputed there instead of on every body evaluation.
     private func recomputeHeatZones() {
         guard showHeat else {
             heatZones = []
@@ -350,7 +377,7 @@ private struct GlassCard: ViewModifier {
     }
 }
 
-/// Cold-to-hot key shown while the heat overlay is on; mirrors heatColor's ramp.
+/// Cold-to-hot key shown while the heat overlay is on; mirrors ColorRamp.densityFill's ramp.
 private struct HeatLegend: View {
     var body: some View {
         HStack(spacing: 6) {
