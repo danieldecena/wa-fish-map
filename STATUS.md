@@ -19,6 +19,24 @@
 
 ## Decision log
 
+### 2026-08-30 (data-update review)
+- Reviewed how data updates: geo layers self-update per launch (live fetch,
+  bundle fallback); fisheries.json is release-only by design. Fixed the gaps:
+  - Rewrote scripts/verify_wdfw_live.py for the statewide contract (17 live
+    AreaNames, fisheries.json schema/months/areaName membership, layer counts
+    vs maxRecordCount, fixture anchors). Verified both ways: passes on real
+    data, fires on a mutated copy (bogus area + month 13), mutation asserted.
+  - Added .github/workflows/ci.yml: ubuntu contract job (push/PR + weekly cron
+    for WDFW drift) + macOS xcodebuild test job.
+  - App now rejects truncated ArcGIS responses (exceededTransferLimit at either
+    level -> WDFWLayerError.truncatedResponse) instead of rendering a partial
+    layer as complete; layer 0 is 477/2000 today so headroom is large.
+  - load() no longer strands "Loading…" when live fetch and bundle both fail;
+    restores the intent of old-main b5a15bc whose content was dropped in the
+    history unification. Both behaviors unit-tested (19/19 green).
+- Left unpaginated fetch as-is: verifier warns at 80% of maxRecordCount, which
+  is the cheap early signal; pagination only if that ever fires.
+
 ### 2026-08-30
 - Verified `fisheries.json` seasonal facts against WDFW via parallel research.
   Material corrections applied:

@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly drift check: WDFW can rename areas or grow layers past the
+    # transfer limit without any commit here.
+    - cron: "30 14 * * 1"
+
+jobs:
+  wdfw-contract:
+    name: WDFW contract + fisheries.json
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify live WDFW contract and curated data
+        run: python3 scripts/verify_wdfw_live.py
+
+  tests:
+    name: Xcode tests
+    # Live pushes and PRs only — the scheduled drift check is about WDFW, not the app.
+    if: github.event_name != 'schedule'
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run unit tests
+        run: |
+          xcodebuild -scheme WAFishMap \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -skipPackagePluginValidation \
+            test

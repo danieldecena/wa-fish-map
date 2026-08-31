@@ -1,13 +1,13 @@
 ## Tasks
 
-- [ ] Fix rating color ramp + marker a11y + Dynamic Type fonts
+- [x] Fix rating color ramp + marker a11y + Dynamic Type fonts — 9045cc2
 - [ ] Floating glass chrome on iPhone + disclaimer info button
 - [ ] Heat legend swap + cache heat zones
 - [ ] Pier inspector on iPad, loading spinner, zoom-gated labels
-- [ ] Rewrite verify_wdfw_live script for statewide contract
-- [ ] Add GitHub Actions CI
-- [ ] Guard ArcGIS truncation in app load
-- [ ] Surface load failure in statusMessage
+- [x] Rewrite verify_wdfw_live script for statewide contract
+- [x] Add GitHub Actions CI
+- [x] Guard ArcGIS truncation in app load
+- [x] Surface load failure in statusMessage
 
 ## Completed
 

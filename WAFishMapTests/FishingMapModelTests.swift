@@ -70,6 +70,40 @@ struct FishingMapModelTests {
         #expect(model.accessSites.map(\.facilityName).contains("Boston Harbor"))
         #expect(model.statusMessage.contains("offline"))
     }
+
+    @Test func truncatedResponseIsRejectedNotPartiallyDecoded() throws {
+        // ArcGIS marks a limit-hit response instead of erroring; a partial layer must
+        // not decode as if it were complete. Flag appears top-level and under
+        // `properties` depending on server version — both must trip the guard.
+        let topLevel = Data("""
+        {"type":"FeatureCollection","exceededTransferLimit":true,"features":[]}
+        """.utf8)
+        let nested = Data("""
+        {"type":"FeatureCollection","properties":{"exceededTransferLimit":true},"features":[]}
+        """.utf8)
+        for data in [topLevel, nested] {
+            #expect(throws: WDFWLayerError.truncatedResponse) {
+                try WDFWLayerLoader.accessSites(from: data)
+            }
+        }
+        // A complete response (no flag) still decodes.
+        let complete = Data("""
+        {"type":"FeatureCollection","features":[]}
+        """.utf8)
+        #expect(try WDFWLayerLoader.accessSites(from: complete).isEmpty)
+    }
+
+    @Test @MainActor func totalLoadFailureSurfacesInsteadOfStrandingLoading() async throws {
+        struct Boom: HTTPGet {
+            func data(from url: URL) async throws -> Data { throw WDFWLayerError.badHTTPStatus(500) }
+        }
+        // A resource-less bundle has no fixtures either — both paths fail.
+        let empty = try #require(Bundle(path: NSTemporaryDirectory()))
+        let model = FishingMapModel()
+        await model.load(client: Boom(), bundle: empty)
+        #expect(model.statusMessage != "Loading…")
+        #expect(model.statusMessage.contains("Couldn't load"))
+    }
 }
 
 /// Resolves GeoJSON fixtures when tests run outside a full app bundle (e.g. CI without xcodebuild).

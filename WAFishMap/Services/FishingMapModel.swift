@@ -93,7 +93,13 @@ final class FishingMapModel {
             indexSitesToAreas()
             statusMessage = "Washington · \(accessSites.count) access sites · live WDFW data"
         } catch {
-            try? loadFromBundle(bundle: bundle)
+            do {
+                try loadFromBundle(bundle: bundle)
+            } catch {
+                // Both the live fetch and the bundled sample failed — say so rather
+                // than stranding the "Loading…" placeholder.
+                statusMessage = "Couldn't load WDFW data — check your connection"
+            }
         }
         // Piers are a live-only enhancement; absence is non-fatal.
         if let pierData = try? await client.data(from: MapScope.piersURL),
