@@ -6,6 +6,7 @@
     {
       "areaName": "13",
       "species": [
+        { "species": "Crab Snaring (shore)", "bestMonths": [7, 8, 9], "goodMonths": [6, 10], "bait": "Rod + crab snare baited with chicken/fish, from shore or pier", "note": "Dungeness/red rock crab snared from beaches and piers; check crab season and areas." },
         { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11], "bait": "Trolled hoochies, herring, or spinners", "note": "Silver runs typically peak early fall in South Sound." },
         { "species": "Resident Chinook (Blackmouth)", "bestMonths": [12, 1, 2], "goodMonths": [11, 3, 4], "bait": "Trolled herring or flasher + hoochie", "note": "Winter resident kings; selective-fishery rules often apply." },
         { "species": "Chum Salmon", "bestMonths": [10, 11], "goodMonths": [9, 12], "bait": "Green/chartreuse twitching jigs, cured eggs", "note": "Strong late-fall South Sound returns." },
@@ -18,6 +19,7 @@
     {
       "areaName": "11",
       "species": [
+        { "species": "Crab Snaring (shore)", "bestMonths": [7, 8, 9], "goodMonths": [6, 10], "bait": "Rod + crab snare baited with chicken/fish, from shore or pier", "note": "Dungeness/red rock crab snared from beaches and piers; check crab season and areas." },
         { "species": "Resident Chinook (Blackmouth)", "bestMonths": [11, 12, 1, 2], "goodMonths": [3, 4], "bait": "Trolled herring, flasher + hoochie", "note": "Central Sound winter blackmouth." },
         { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11], "bait": "Trolled hoochies or herring", "note": "Fall silvers off Point Defiance / Dalco." },
         { "species": "Chum Salmon", "bestMonths": [10, 11], "goodMonths": [9, 12], "bait": "Chartreuse twitching jigs" },
@@ -29,6 +31,7 @@
     {
       "areaName": "10",
       "species": [
+        { "species": "Crab Snaring (shore)", "bestMonths": [7, 8, 9], "goodMonths": [6, 10], "bait": "Rod + crab snare baited with chicken/fish, from shore or pier", "note": "Dungeness/red rock crab snared from beaches and piers; check crab season and areas." },
         { "species": "Resident Chinook (Blackmouth)", "bestMonths": [11, 12, 1, 2], "goodMonths": [3, 4], "bait": "Trolled herring, flasher + hoochie", "note": "Elliott Bay / Central Sound." },
         { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11], "bait": "Trolled hoochies or spinners" },
         { "species": "Chum Salmon", "bestMonths": [10, 11], "goodMonths": [9, 12], "bait": "Chartreuse twitching jigs", "note": "Fall Elliott Bay chum." },
@@ -40,6 +43,8 @@
     {
       "areaName": "12",
       "species": [
+        { "species": "Crab Snaring (shore)", "bestMonths": [7, 8, 9], "goodMonths": [6, 10], "bait": "Rod + crab snare baited with chicken/fish, from shore or pier", "note": "Dungeness/red rock crab snared from beaches and piers; check crab season and areas." },
+        { "species": "Market Squid", "bestMonths": [11, 12, 1], "goodMonths": [10, 2], "bait": "Glow squid jigs under a light", "note": "Pier/jetty jigging after dark." },
         { "species": "Chum Salmon", "bestMonths": [10, 11], "goodMonths": [9, 12], "bait": "Chartreuse/green twitching jigs", "note": "Hood Canal is known for fall chum." },
         { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11], "bait": "Trolled hoochies or spinners" },
         { "species": "Spot Shrimp", "bestMonths": [5], "goodMonths": [6], "bait": "Shrimp pot with commercial bait", "note": "Short spring season set annually by WDFW — check dates." },
@@ -50,6 +55,8 @@
     {
       "areaName": "9",
       "species": [
+        { "species": "Crab Snaring (shore)", "bestMonths": [7, 8, 9], "goodMonths": [6, 10], "bait": "Rod + crab snare baited with chicken/fish, from shore or pier", "note": "Dungeness/red rock crab snared from beaches and piers; check crab season and areas." },
+        { "species": "Market Squid", "bestMonths": [11, 12, 1], "goodMonths": [10, 2], "bait": "Glow squid jigs under a light", "note": "Pier/jetty jigging after dark." },
         { "species": "Chinook Salmon", "bestMonths": [7, 8], "goodMonths": [6, 9], "bait": "Trolled herring, spoons, flashers", "note": "Summer kings through Admiralty Inlet." },
         { "species": "Coho Salmon", "bestMonths": [9, 10], "goodMonths": [8, 11], "bait": "Trolled hoochies or herring" },
         { "species": "Pink Salmon", "bestMonths": [8, 9], "goodMonths": [7], "bait": "Small pink hoochies and jigs", "note": "Strong on odd-numbered years." },

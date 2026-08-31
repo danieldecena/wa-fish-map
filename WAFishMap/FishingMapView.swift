@@ -5,6 +5,9 @@ struct FishingMapView: View {
     @State private var model = FishingMapModel()
     @State private var location = LocationProvider()
     @State private var position: MapCameraPosition = .automatic
+    /// Date/time the user is planning for. Defaults to now; the month drives ratings.
+    @State private var planDate = Date()
+    @State private var showHeat = false
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     /// POIs worth showing an angler (instead of hiding all landmarks).
@@ -12,10 +15,13 @@ struct FishingMapView: View {
         .marina, .park, .campground, .nationalPark, .parking, .publicTransport, .gasStation
     ]
 
-    /// Current calendar month drives the ratings. Injected here only; all rating logic
-    /// lives in `AreaFishery` and is tested with an explicit month (no clock).
+    /// Month from the selected plan date drives every rating on the map.
     private var currentMonth: Int {
-        Calendar.current.component(.month, from: Date())
+        Calendar.current.component(.month, from: planDate)
+    }
+
+    private var timeOfDay: TimeOfDay {
+        TimeOfDay(hour: Calendar.current.component(.hour, from: planDate))
     }
 
     var body: some View {
@@ -31,6 +37,10 @@ struct FishingMapView: View {
                         .background(.ultraThinMaterial, in: Capsule())
                 }
                 .annotationTitles(.hidden)
+            }
+            ForEach(heatZones) { zone in
+                MapCircle(center: zone.center.clLocationCoordinate, radius: 9000)
+                    .foregroundStyle(heatColor(zone.intensity).opacity(0.30))
             }
             ForEach(model.accessSites) { site in
                 Marker(site.facilityName,
@@ -51,6 +61,7 @@ struct FishingMapView: View {
             MapUserLocationButton()
             MapCompass()
         }
+        .safeAreaInset(edge: .top) { dateControl }
         .safeAreaInset(edge: .bottom) { statusBar }
         .modifier(AdaptiveDetail(item: selectedSiteBinding) { site in
             SiteDetailSheet(
@@ -87,6 +98,36 @@ struct FishingMapView: View {
         (model.rating(for: site, month: currentMonth)?.color) ?? .gray
     }
 
+    // MARK: Heat zones (density of good-rated spots, cold→hot)
+
+    private var heatZones: [HeatZone] {
+        guard showHeat else { return [] }
+        var points: [(coord: LonLat, weight: Double)] = []
+        for site in model.accessSites {
+            points.append((site.coordinate, heatWeight(model.rating(for: site, month: currentMonth))))
+        }
+        for pier in model.piers {
+            points.append((pier.coordinate, heatWeight(model.rating(for: pier, month: currentMonth))))
+        }
+        return HeatMap.zones(points: points, cellDegrees: 0.15)
+    }
+
+    /// Density counts every spot; better-rated spots weigh more so hot zones favor quality.
+    private func heatWeight(_ rating: FishingRating?) -> Double {
+        switch rating {
+        case .excellent: 2.0
+        case .good: 1.6
+        case .fair: 1.2
+        default: 1.0
+        }
+    }
+
+    /// Cold (blue) → hot (red) through purple midtones — deliberately distinct from the
+    /// green/yellow/orange/red marker rating palette.
+    private func heatColor(_ intensity: Double) -> Color {
+        Color(red: intensity, green: 0.1, blue: 1 - intensity)
+    }
+
     private var selectedSiteBinding: Binding<AccessSite?> {
         Binding(
             get: { model.selectedSite },
@@ -103,14 +144,48 @@ struct FishingMapView: View {
         )
     }
 
+    private var dateControl: some View {
+        HStack(spacing: 10) {
+            Image(systemName: timeOfDay.symbol)
+                .foregroundStyle(timeOfDay.isPrimeLight ? .green : .secondary)
+            DatePicker("Plan for", selection: $planDate)
+                .labelsHidden()
+            Spacer(minLength: 4)
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(timeOfDay.label).font(.caption2.weight(.semibold))
+                Text(timeOfDay.lightHint).font(.system(size: 9)).foregroundStyle(.secondary)
+            }
+            Button("Now") { planDate = Date() }
+                .font(.caption2.weight(.semibold))
+                .buttonStyle(.bordered)
+        }
+        .font(.caption2)
+        .controlSize(.small)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .frame(maxWidth: sizeClass == .regular ? 560 : .infinity, alignment: .leading)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: sizeClass == .regular ? 14 : 0))
+        .padding(sizeClass == .regular ? 12 : 0)
+    }
+
     private var statusBar: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(model.statusMessage)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack {
+                Text(model.statusMessage)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button { showHeat.toggle() } label: {
+                    Label("Heat", systemImage: showHeat ? "flame.fill" : "flame")
+                        .font(.caption2.weight(.semibold))
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .tint(showHeat ? .orange : .secondary)
+            }
             RatingLegend()
             Text("Tap a launch for what's biting. Guidance only — verify seasons in the Fish Washington app.")
-                .font(.caption2)
+                .font(.system(size: 9))
                 .foregroundStyle(.secondary)
         }
         .padding(.horizontal)
