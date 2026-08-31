@@ -9,6 +9,7 @@ struct FishingMapView: View {
     @State private var planDate = Date()
     @State private var showHeat = false
     @State private var showDisclaimer = false
+    @State private var heatZones: [HeatZone] = []
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     /// POIs worth showing an angler (instead of hiding all landmarks).
@@ -86,7 +87,10 @@ struct FishingMapView: View {
         .task {
             location.requestIfNeeded()
             await model.load()
+            recomputeHeatZones()
         }
+        .onChange(of: showHeat) { recomputeHeatZones() }
+        .onChange(of: currentMonth) { recomputeHeatZones() }
     }
 
     // MARK: Rating → color (nil rating renders neutral gray)
@@ -101,8 +105,13 @@ struct FishingMapView: View {
 
     // MARK: Heat zones (density of good-rated spots, cold→hot)
 
-    private var heatZones: [HeatZone] {
-        guard showHeat else { return [] }
+    /// Cached in state; zones only change with the toggle, the plan month, or a data
+    /// load, so they are recomputed there instead of on every body evaluation.
+    private func recomputeHeatZones() {
+        guard showHeat else {
+            heatZones = []
+            return
+        }
         var points: [(coord: LonLat, weight: Double)] = []
         for site in model.accessSites {
             points.append((site.coordinate, heatWeight(model.rating(for: site, month: currentMonth))))
@@ -110,7 +119,7 @@ struct FishingMapView: View {
         for pier in model.piers {
             points.append((pier.coordinate, heatWeight(model.rating(for: pier, month: currentMonth))))
         }
-        return HeatMap.zones(points: points, cellDegrees: 0.15)
+        heatZones = HeatMap.zones(points: points, cellDegrees: 0.15)
     }
 
     /// Density counts every spot; better-rated spots weigh more so hot zones favor quality.
@@ -201,7 +210,11 @@ struct FishingMapView: View {
                         .presentationCompactAdaptation(.popover)
                 }
             }
-            RatingLegend()
+            if showHeat {
+                HeatLegend()
+            } else {
+                RatingLegend()
+            }
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
@@ -220,6 +233,27 @@ private struct GlassCard: ViewModifier {
             content.glassEffect(.regular, in: .rect(cornerRadius: 14))
         } else {
             content.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+        }
+    }
+}
+
+/// Cold-to-hot key shown while the heat overlay is on; mirrors heatColor's ramp.
+private struct HeatLegend: View {
+    var body: some View {
+        HStack(spacing: 6) {
+            Text("Cold").font(.caption2).foregroundStyle(.secondary)
+            LinearGradient(
+                colors: [
+                    Color(red: 0, green: 0.1, blue: 1),
+                    Color(red: 0.5, green: 0.1, blue: 0.5),
+                    Color(red: 1, green: 0.1, blue: 0)
+                ],
+                startPoint: .leading, endPoint: .trailing
+            )
+            .frame(width: 90, height: 8)
+            .clipShape(Capsule())
+            Text("Hot").font(.caption2).foregroundStyle(.secondary)
+            Text("· density of well-rated spots").font(.caption2).foregroundStyle(.tertiary)
         }
     }
 }
