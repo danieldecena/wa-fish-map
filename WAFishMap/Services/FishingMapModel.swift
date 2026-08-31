@@ -7,6 +7,7 @@ final class FishingMapModel {
     var accessSites: [AccessSite] = []
     var piers: [FishingPier] = []
     var statusMessage = "Loading…"
+    var isLoading = true
     var selectedSiteID: AccessSite.ID?
 
     /// Curated seasonal guidance (bundled, offline). See `Fishery.swift`.
@@ -106,6 +107,7 @@ final class FishingMapModel {
            let loaded = try? WDFWLayerLoader.piers(from: pierData) {
             piers = loaded
         }
+        isLoading = false
     }
 
     /// Match every launch to the marine area whose polygon contains it (first wins).

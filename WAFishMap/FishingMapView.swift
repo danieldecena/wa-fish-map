@@ -10,6 +10,10 @@ struct FishingMapView: View {
     @State private var showHeat = false
     @State private var showDisclaimer = false
     @State private var heatZones: [HeatZone] = []
+    /// Camera altitude in meters; starts far out so area labels stay hidden until the
+    /// first camera event. Below the threshold the "MA n" capsules stop overlapping.
+    @State private var cameraDistance: Double = .greatestFiniteMagnitude
+    private static let areaLabelMaxDistance: Double = 600_000
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     /// POIs worth showing an angler (instead of hiding all landmarks).
@@ -32,13 +36,15 @@ struct FishingMapView: View {
                 MapPolygon(coordinates: area.mapCoordinates)
                     .foregroundStyle(color(forArea: area).opacity(0.18))
                     .stroke(color(forArea: area), lineWidth: 1)
-                Annotation("Area \(area.areaName)", coordinate: area.center) {
-                    Text("MA \(area.areaName)")
-                        .font(.caption2.weight(.semibold))
-                        .padding(.horizontal, 5).padding(.vertical, 2)
-                        .background(.ultraThinMaterial, in: Capsule())
+                if cameraDistance < Self.areaLabelMaxDistance {
+                    Annotation("Area \(area.areaName)", coordinate: area.center) {
+                        Text("MA \(area.areaName)")
+                            .font(.caption2.weight(.semibold))
+                            .padding(.horizontal, 5).padding(.vertical, 2)
+                            .background(.ultraThinMaterial, in: Capsule())
+                    }
+                    .annotationTitles(.hidden)
                 }
-                .annotationTitles(.hidden)
             }
             ForEach(heatZones) { zone in
                 MapCircle(center: zone.center.clLocationCoordinate, radius: 9000)
@@ -74,7 +80,7 @@ struct FishingMapView: View {
                 month: currentMonth
             )
         })
-        .sheet(item: selectedPierBinding) { pier in
+        .modifier(AdaptiveDetail(item: selectedPierBinding) { pier in
             PierDetailSheet(
                 pier: pier,
                 fishery: model.fishery(atCoordinate: pier.coordinate, county: pier.countyName),
@@ -82,8 +88,7 @@ struct FishingMapView: View {
                 guide: model.guide,
                 month: currentMonth
             )
-            .presentationDetents([.medium, .large])
-        }
+        })
         .task {
             location.requestIfNeeded()
             await model.load()
@@ -91,6 +96,9 @@ struct FishingMapView: View {
         }
         .onChange(of: showHeat) { recomputeHeatZones() }
         .onChange(of: currentMonth) { recomputeHeatZones() }
+        .onMapCameraChange(frequency: .onEnd) { context in
+            cameraDistance = context.camera.distance
+        }
     }
 
     // MARK: Rating → color (nil rating renders neutral gray)
@@ -185,6 +193,10 @@ struct FishingMapView: View {
     private var statusBar: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
+                if model.isLoading {
+                    ProgressView()
+                        .controlSize(.mini)
+                }
                 Text(model.statusMessage)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -278,10 +290,10 @@ private struct RatingLegend: View {
 
 /// Presents launch detail as a bottom sheet on iPhone (compact) and a trailing
 /// inspector on iPad (regular), so it isn't a stretched phone sheet on the larger screen.
-private struct AdaptiveDetail<Detail: View>: ViewModifier {
+private struct AdaptiveDetail<Item: Identifiable, Detail: View>: ViewModifier {
     @Environment(\.horizontalSizeClass) private var sizeClass
-    @Binding var item: AccessSite?
-    @ViewBuilder let detail: (AccessSite) -> Detail
+    @Binding var item: Item?
+    @ViewBuilder let detail: (Item) -> Detail
 
     private var isPresented: Binding<Bool> {
         Binding(get: { item != nil }, set: { if !$0 { item = nil } })
