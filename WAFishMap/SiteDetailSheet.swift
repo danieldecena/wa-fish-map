@@ -42,11 +42,21 @@ struct BitingNowView: View {
                             RatingBadge(rating: s.rating(inMonth: month))
                             Text(s.species).font(.subheadline.weight(.semibold))
                         }
+                        if s.riskMonths.contains(month) {
+                            Label("Season varies — verify", systemImage: "exclamationmark.triangle")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                         Label("Best months: \(Self.monthList(s.bestMonths))", systemImage: "calendar")
                             .font(.caption).foregroundStyle(.secondary)
                         if let bestTime = s.bestTime {
                             Label("Best time: \(bestTime)", systemImage: "clock")
                                 .font(.caption).foregroundStyle(.secondary)
+                        }
+                        if s.riskMonths.contains(month), let why = s.riskReason {
+                            Text(why)
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
                         }
                         if let bait = s.bait {
                             Label(bait, systemImage: "fish")
