@@ -87,4 +87,24 @@ struct FisheryTests {
         #expect(!guide.disclaimer.isEmpty)
         #expect(URL(string: guide.wdfwURL) != nil)
     }
+
+    @Test func flaggedMonthCapsPeakToFair() {
+        let flagged = coho.withRisk(months: [9], reason: "Quota-driven")
+        #expect(flagged.rating(inMonth: 9) == .fair)
+    }
+
+    @Test func unflaggedMonthKeepsFullRating() {
+        let flagged = coho.withRisk(months: [9], reason: "Quota-driven")
+        #expect(flagged.rating(inMonth: 10) == .excellent)
+    }
+
+    @Test func capNeverRaisesAWeakRating() {
+        let flagged = coho.withRisk(months: [3], reason: "Quota-driven")
+        #expect(flagged.rating(inMonth: 3) == .poor)
+    }
+
+    @Test func unstampedSpeciesIsUnaffected() {
+        #expect(coho.riskMonths.isEmpty)
+        #expect(coho.rating(inMonth: 9) == .excellent)
+    }
 }

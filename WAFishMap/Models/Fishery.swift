@@ -35,6 +35,11 @@ struct SpeciesSeason: Decodable, Equatable, Sendable {
     /// General light guidance, not a bite forecast.
     let bestTime: String?
     let note: String?
+    /// Months where a closure is plausible. Stamped at load from the `seasonRisk`
+    /// table, never decoded from a species row.
+    var riskMonths: [Int] = []
+    /// Why verification is needed, shown beside the capped rating.
+    var riskReason: String?
 
     init(species: String, bestMonths: [Int], goodMonths: [Int] = [], bait: String? = nil, bestTime: String? = nil, note: String? = nil) {
         self.species = species
@@ -59,13 +64,28 @@ struct SpeciesSeason: Decodable, Equatable, Sendable {
         note = try c.decodeIfPresent(String.self, forKey: .note)
     }
 
-    /// This species' rating in a given month: peak → good → shoulder → off.
+    /// A copy carrying the resolved season-risk flag.
+    func withRisk(months: [Int], reason: String?) -> SpeciesSeason {
+        var copy = self
+        copy.riskMonths = months
+        copy.riskReason = reason
+        return copy
+    }
+
+    /// This species' rating in a given month: peak → good → shoulder → off, then
+    /// clamped to `.fair` in a month where a closure is plausible.
     func rating(inMonth month: Int) -> FishingRating {
-        if bestMonths.contains(month) { return .excellent }
-        if goodMonths.contains(month) { return .good }
-        let onShoulder = (bestMonths + goodMonths)
-            .contains { Self.circularMonthDistance($0, month) == 1 }
-        return onShoulder ? .fair : .poor
+        let base: FishingRating
+        if bestMonths.contains(month) {
+            base = .excellent
+        } else if goodMonths.contains(month) {
+            base = .good
+        } else {
+            let onShoulder = (bestMonths + goodMonths)
+                .contains { Self.circularMonthDistance($0, month) == 1 }
+            base = onShoulder ? .fair : .poor
+        }
+        return riskMonths.contains(month) ? min(base, .fair) : base
     }
 
     /// Distance between two months on a 12-month circle, so Dec↔Jan == 1.
