@@ -192,7 +192,7 @@ struct FisheryGuide: Decodable, Sendable {
         updated = try c.decode(String.self, forKey: .updated)
         disclaimer = try c.decode(String.self, forKey: .disclaimer)
         wdfwURL = try c.decode(String.self, forKey: .wdfwURL)
-        areas = try c.decodeIfPresent([AreaFishery].self, forKey: .areas) ?? []
+        areas = try c.decode([AreaFishery].self, forKey: .areas)
         freshwater = try c.decodeIfPresent(FreshwaterGuide.self, forKey: .freshwater)
         seasonRisk = try c.decodeIfPresent([SeasonRisk].self, forKey: .seasonRisk) ?? []
     }

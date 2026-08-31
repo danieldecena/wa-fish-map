@@ -110,4 +110,36 @@ struct SeasonRiskResolutionTests {
         let guide = try FisheryLoader.guide(from: noTable)
         #expect(guide.area(named: "13")?.rating(inMonth: 1) == .excellent)
     }
+
+    @Test func byCountyFreshwaterSpeciesAreResolved() throws {
+        let byCounty = """
+        {
+          "updated": "2026-08-31", "disclaimer": "d", "wdfwURL": "u",
+          "seasonRisk": [{ "match": "Chinook", "months": [1, 2], "reason": "Quota-driven" }],
+          "areas": [],
+          "freshwater": {
+            "species": [{ "species": "Rainbow Trout", "bestMonths": [1] }],
+            "byCounty": {
+              "Skagit": [{ "species": "Chinook Salmon", "bestMonths": [1] }]
+            }
+          }
+        }
+        """.data(using: .utf8)!
+        let guide = try FisheryLoader.guide(from: byCounty)
+        let fishery = try #require(guide.freshwater?.fishery(county: "Skagit"))
+        let chinook = try #require(fishery.species.first { $0.species == "Chinook Salmon" })
+        #expect(chinook.riskMonths == [1, 2])
+        #expect(chinook.riskReason == "Quota-driven")
+    }
+
+    @Test func missingAreasKeyThrows() {
+        let noAreas = """
+        {
+          "updated": "2026-08-31", "disclaimer": "d", "wdfwURL": "u"
+        }
+        """.data(using: .utf8)!
+        #expect(throws: (any Error).self) {
+            try FisheryLoader.guide(from: noAreas)
+        }
+    }
 }
