@@ -15,6 +15,21 @@ enum TimeOfDay: String, Sendable, Equatable {
         }
     }
 
+    /// Classifies against real sun times: dawn/dusk are the hour either side of
+    /// sunrise/sunset, matching the low-light bite window the hint describes.
+    init(date: Date, solar: SolarTimes) {
+        let window: TimeInterval = 3600
+        if abs(date.timeIntervalSince(solar.sunrise)) <= window {
+            self = .dawn
+        } else if abs(date.timeIntervalSince(solar.sunset)) <= window {
+            self = .dusk
+        } else if solar.sunrise < date, date < solar.sunset {
+            self = .day
+        } else {
+            self = .night
+        }
+    }
+
     var label: String {
         switch self {
         case .dawn: "Dawn"

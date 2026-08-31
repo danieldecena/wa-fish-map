@@ -7,6 +7,9 @@
   2026-08-30. FisheryTests + FishingMapModelTests green (13/13).
 - `fisheries.json` v1 Puget Sound seed cross-checked against WDFW; corrections
   applied (see decision log).
+- Dawn/dusk comes from real sun times: `SolarTimes` (NOAA equations, pure, no
+  network) at the map's camera center, with the fixed hour buckets kept as the
+  fallback. Full suite green: 35 tests, 8 suites, iPhone 17 sim.
 
 ## Known broken
 

@@ -14,6 +14,9 @@ struct FishingMapView: View {
     /// first camera event. Below the threshold the "MA n" capsules stop overlapping.
     @State private var cameraDistance: Double = .greatestFiniteMagnitude
     private static let areaLabelMaxDistance: Double = 600_000
+    /// Where the user is looking; drives the sun-time math. Statewide the east-west
+    /// sunrise spread is ~10 minutes, so camera-center precision is plenty.
+    @State private var cameraCenter = MapScope.cameraCenter
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     /// POIs worth showing an angler (instead of hiding all landmarks).
@@ -27,7 +30,10 @@ struct FishingMapView: View {
     }
 
     private var timeOfDay: TimeOfDay {
-        TimeOfDay(hour: Calendar.current.component(.hour, from: planDate))
+        if let solar = SolarTimes.compute(on: planDate, at: cameraCenter) {
+            return TimeOfDay(date: planDate, solar: solar)
+        }
+        return TimeOfDay(hour: Calendar.current.component(.hour, from: planDate))
     }
 
     var body: some View {
@@ -83,8 +89,8 @@ struct FishingMapView: View {
         .modifier(AdaptiveDetail(item: selectedPierBinding) { pier in
             PierDetailSheet(
                 pier: pier,
-                fishery: model.fishery(atCoordinate: pier.coordinate, county: pier.countyName),
-                isMarine: model.isMarine(coordinate: pier.coordinate),
+                fishery: model.fishery(for: pier),
+                isMarine: model.isMarine(pier),
                 guide: model.guide,
                 month: currentMonth
             )
@@ -98,6 +104,10 @@ struct FishingMapView: View {
         .onChange(of: currentMonth) { recomputeHeatZones() }
         .onMapCameraChange(frequency: .onEnd) { context in
             cameraDistance = context.camera.distance
+            cameraCenter = LonLat(
+                longitude: context.camera.centerCoordinate.longitude,
+                latitude: context.camera.centerCoordinate.latitude
+            )
         }
     }
 
