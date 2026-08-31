@@ -153,7 +153,7 @@ struct FishingMapView: View {
             Spacer(minLength: 4)
             VStack(alignment: .trailing, spacing: 1) {
                 Text(timeOfDay.label).font(.caption2.weight(.semibold))
-                Text(timeOfDay.lightHint).font(.system(size: 9)).foregroundStyle(.secondary)
+                Text(timeOfDay.lightHint).font(.caption2).foregroundStyle(.secondary)
             }
             Button("Now") { planDate = Date() }
                 .font(.caption2.weight(.semibold))
@@ -185,7 +185,7 @@ struct FishingMapView: View {
             }
             RatingLegend()
             Text("Tap a launch for what's biting. Guidance only — verify seasons in the Fish Washington app.")
-                .font(.system(size: 9))
+                .font(.caption2)
                 .foregroundStyle(.secondary)
         }
         .padding(.horizontal)

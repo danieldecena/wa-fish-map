@@ -4,8 +4,8 @@ extension FishingRating {
     var color: Color {
         switch self {
         case .poor: .red
-        case .fair: .yellow
-        case .good: .orange
+        case .fair: .orange
+        case .good: .yellow
         case .excellent: .green
         }
     }
@@ -53,8 +53,12 @@ struct BitingNowView: View {
                             RatingBadge(rating: s.rating(inMonth: month))
                             Text(s.species).font(.subheadline.weight(.semibold))
                         }
-                        Text("Best: \(Self.monthList(s.bestMonths))")
+                        Label("Best months: \(Self.monthList(s.bestMonths))", systemImage: "calendar")
                             .font(.caption).foregroundStyle(.secondary)
+                        if let bestTime = s.bestTime {
+                            Label("Best time: \(bestTime)", systemImage: "clock")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
                         if let bait = s.bait {
                             Label(bait, systemImage: "fish")
                                 .font(.caption).foregroundStyle(.secondary)

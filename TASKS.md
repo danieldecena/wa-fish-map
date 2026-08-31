@@ -1,5 +1,9 @@
 ## Tasks
 
+- [ ] Fix rating color ramp + marker a11y + Dynamic Type fonts
+- [ ] Floating glass chrome on iPhone + disclaimer info button
+- [ ] Heat legend swap + cache heat zones
+- [ ] Pier inspector on iPad, loading spinner, zoom-gated labels
 - [ ] Rewrite verify_wdfw_live script for statewide contract
 - [ ] Add GitHub Actions CI
 - [ ] Guard ArcGIS truncation in app load
