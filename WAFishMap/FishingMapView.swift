@@ -3,6 +3,7 @@ import SwiftUI
 
 struct FishingMapView: View {
     @State private var model = FishingMapModel()
+    @Environment(\.openURL) private var openURL
     @State private var location = LocationProvider()
     @State private var position: MapCameraPosition = .automatic
     /// Date/time the user is planning for. Defaults to now; the month drives ratings.
@@ -54,7 +55,7 @@ struct FishingMapView: View {
             }
             ForEach(heatZones) { zone in
                 MapCircle(center: zone.center.clLocationCoordinate, radius: 9000)
-                    .foregroundStyle(heatColor(zone.intensity).opacity(0.30))
+                    .foregroundStyle(ColorRamp.density(zone.intensity))
             }
             ForEach(model.accessSites) { site in
                 Marker(site.facilityName,
@@ -150,12 +151,6 @@ struct FishingMapView: View {
         }
     }
 
-    /// Cold (blue) → hot (red) through purple midtones — deliberately distinct from the
-    /// green/yellow/orange/red marker rating palette.
-    private func heatColor(_ intensity: Double) -> Color {
-        Color(red: intensity, green: 0.1, blue: 1 - intensity)
-    }
-
     private var selectedSiteBinding: Binding<AccessSite?> {
         Binding(
             get: { model.selectedSite },
@@ -248,6 +243,17 @@ struct FishingMapView: View {
                         .presentationCompactAdaptation(.popover)
                 }
             }
+            if location.isDenied {
+                Button {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        openURL(url)
+                    }
+                } label: {
+                    Label("Location is off — turn it on in Settings", systemImage: "location.slash")
+                        .font(.caption2)
+                }
+                .buttonStyle(.borderless)
+            }
             if showHeat {
                 HeatLegend()
             } else {
@@ -279,18 +285,14 @@ private struct GlassCard: ViewModifier {
 private struct HeatLegend: View {
     var body: some View {
         HStack(spacing: 6) {
-            Text("Cold").font(.caption2).foregroundStyle(.secondary)
+            Text("Fewer").font(.caption2).foregroundStyle(.secondary)
             LinearGradient(
-                colors: [
-                    Color(red: 0, green: 0.1, blue: 1),
-                    Color(red: 0.5, green: 0.1, blue: 0.5),
-                    Color(red: 1, green: 0.1, blue: 0)
-                ],
+                colors: [ColorRamp.density(0), ColorRamp.density(0.5), ColorRamp.density(1)],
                 startPoint: .leading, endPoint: .trailing
             )
             .frame(width: 90, height: 8)
             .clipShape(Capsule())
-            Text("Hot").font(.caption2).foregroundStyle(.secondary)
+            Text("More").font(.caption2).foregroundStyle(.secondary)
             Text("· density of well-rated spots").font(.caption2).foregroundStyle(.tertiary)
         }
     }

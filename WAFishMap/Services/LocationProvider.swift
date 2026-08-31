@@ -22,6 +22,12 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
         manager.requestWhenInUseAuthorization()
     }
 
+    /// The user said no. `MapUserLocationButton` stays inert in this state, so the
+    /// map has to say why — otherwise the button just looks broken.
+    var isDenied: Bool {
+        authorization == .denied || authorization == .restricted
+    }
+
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         let status = manager.authorizationStatus
         Task { @MainActor in self.authorization = status }

@@ -1,16 +1,5 @@
 import SwiftUI
 
-extension FishingRating {
-    var color: Color {
-        switch self {
-        case .poor: .red
-        case .fair: .orange
-        case .good: .yellow
-        case .excellent: .green
-        }
-    }
-}
-
 /// Small colored capsule showing the rating. `nil` renders neutral gray — used for
 /// spots with no curated season data yet.
 struct RatingBadge: View {
