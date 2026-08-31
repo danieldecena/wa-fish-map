@@ -31,18 +31,22 @@ struct SpeciesSeason: Decodable, Equatable, Sendable {
     let bestMonths: [Int]
     let goodMonths: [Int]
     let bait: String?
+    /// Best time of day for this species (e.g. "Dawn & dusk", "Night, under lights").
+    /// General light guidance, not a bite forecast.
+    let bestTime: String?
     let note: String?
 
-    init(species: String, bestMonths: [Int], goodMonths: [Int] = [], bait: String? = nil, note: String? = nil) {
+    init(species: String, bestMonths: [Int], goodMonths: [Int] = [], bait: String? = nil, bestTime: String? = nil, note: String? = nil) {
         self.species = species
         self.bestMonths = bestMonths
         self.goodMonths = goodMonths
         self.bait = bait
+        self.bestTime = bestTime
         self.note = note
     }
 
     private enum CodingKeys: String, CodingKey {
-        case species, bestMonths, goodMonths, bait, note
+        case species, bestMonths, goodMonths, bait, bestTime, note
     }
 
     init(from decoder: Decoder) throws {
@@ -51,6 +55,7 @@ struct SpeciesSeason: Decodable, Equatable, Sendable {
         bestMonths = try c.decodeIfPresent([Int].self, forKey: .bestMonths) ?? []
         goodMonths = try c.decodeIfPresent([Int].self, forKey: .goodMonths) ?? []
         bait = try c.decodeIfPresent(String.self, forKey: .bait)
+        bestTime = try c.decodeIfPresent(String.self, forKey: .bestTime)
         note = try c.decodeIfPresent(String.self, forKey: .note)
     }
 
