@@ -30,6 +30,9 @@
   next extreme after the plan time is highlighted. Full suite: 73 tests, 12 suites.
 - Zoomed-out pins cluster on the same grid as the heat overlay. Count and best
   rating; tap zooms into the cell. Heat stays a toggle. 78 tests, 13 suites.
+- Species-first picker recolours pins, clusters, heat, and area fills by an
+  exact species name from the guide; missing listings stay gray. Date picker
+  unchanged. 80 tests, 13 suites.
 
 ## Known broken
 
@@ -45,10 +48,29 @@
 
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
-- Species-first mode, WeatherKit — brainstormed as a queue behind season/closure;
-  WeatherKit is likely blocked on a paid-account entitlement.
+- WeatherKit wind/precip at plan time — likely blocked on a paid-account
+  entitlement.
 
 ## Decision log
+
+### 2026-09-01 (waterbody-scoped notes)
+- Executed the waterbody-scoped-notes plan: NoteScopeTests gate committed
+  failing (b630fa7), data fixed (d26c4ca), rule recorded in CLAUDE.md
+  (82ac5e7). The gate caught 16 offenders, not the 2 the plan expected - the
+  whole 2026-08-30 county seed named its waterbodies.
+- Reworded 14 county notes to county-true prose; removed 4 entries instead:
+  Chelan/Snohomish/Whatcom Kokanee (duplicated the statewide default once the
+  lake name was gone; the county merge inherits it) and Whatcom Sockeye (only
+  true of Baker Lake - out of the file until a waterbody tier exists; the
+  seasonRisk "Sockeye" row stays for its return).
+- Widened the gate regex with "Woods" (Rufus Woods slipped it); "Potholes"
+  cannot be prose-matched, fixed as data, noted in CLAUDE.md.
+- Grant walleye rewording tripped the date-guard by reintroducing
+  "(spawn is Apr-May)" from an older text - the guard works; date dropped.
+
+
+### 2026-08-31 (species-first)
+- Decided: recolor, do not hide. Exact name match. Reuse the date picker.
 
 ### 2026-08-31 (marker clustering)
 - Decided: keep the heat toggle. Clusters replace overlapping pins, not the wash.

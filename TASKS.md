@@ -1,8 +1,10 @@
 ## Tasks
 
+- [x] Waterbody-scoped notes: gate + data fix + rule — d26c4ca
+
 - [x] Tide predictions in site detail (NOAA CO-OPS)
 - [ ] WeatherKit wind/precip at plan time
-- [ ] Species-first mode: picker, recolor, month scrubber
+- [x] Species-first mode: picker, recolor, month scrubber
 - [x] Marker clustering at low zoom (477 pins unreadable statewide)
 
 - [x] Season/closure rating cap + verify badge — d78377b
