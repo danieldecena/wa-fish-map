@@ -46,8 +46,8 @@ final class FishingMapModel {
 
     /// The launch's current-month rating, or nil when no guidance applies — the UI
     /// renders that neutral.
-    func rating(for site: AccessSite, month: Int) -> FishingRating? {
-        fishery(for: site)?.rating(inMonth: month)
+    func rating(for site: AccessSite, month: Int, species: String? = nil) -> FishingRating? {
+        fishery(for: site)?.rating(inMonth: month, species: species)
     }
 
     /// True when the pier sits inside a marine area (vs. a lake/river pier).
@@ -66,8 +66,8 @@ final class FishingMapModel {
 
     /// A pier's current-month rating, resolved the same way as launches so piers are
     /// color-coded too (marine by polygon, else freshwater by county).
-    func rating(for pier: FishingPier, month: Int) -> FishingRating? {
-        fishery(for: pier)?.rating(inMonth: month)
+    func rating(for pier: FishingPier, month: Int, species: String? = nil) -> FishingRating? {
+        fishery(for: pier)?.rating(inMonth: month, species: species)
     }
 
     enum Resource: String {

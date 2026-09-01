@@ -8,6 +8,8 @@ struct FishingMapView: View {
     @State private var position: MapCameraPosition = .automatic
     /// Date/time the user is planning for. Defaults to now; the month drives ratings.
     @State private var planDate = Date()
+    /// `nil` is All species (best in the area). Exact name from the guide otherwise.
+    @State private var selectedSpecies: String?
     @State private var showHeat = false
     @State private var showDisclaimer = false
     @State private var heatZones: [HeatZone] = []
@@ -117,7 +119,7 @@ struct FishingMapView: View {
                 }
                 ForEach(model.piers) { pier in
                     Marker(pier.name, systemImage: "fish.fill", coordinate: pier.mapCoordinate)
-                        .tint(model.rating(for: pier, month: currentMonth)?.color ?? .gray)
+                        .tint(rating(for: pier)?.color ?? .gray)
                         .tag(pier.id)
                 }
             }
@@ -166,6 +168,7 @@ struct FishingMapView: View {
         .onChange(of: showHeat) { recomputeHeatZones() }
         .onChange(of: Self.heatCellDegrees(cameraDistance)) { recomputeHeatZones() }
         .onChange(of: currentMonth) { recomputeHeatZones() }
+        .onChange(of: selectedSpecies) { recomputeHeatZones() }
         .onChange(of: location.fix?.latitude) { recenterOnFixIfAppropriate() }
         .onMapCameraChange(frequency: .onEnd) { context in
             switch cameraGuardPhase {
@@ -187,11 +190,11 @@ struct FishingMapView: View {
     // MARK: Rating → color (nil rating renders neutral gray)
 
     private func color(forArea area: MarineArea) -> Color {
-        (model.guide?.area(named: area.areaName)?.rating(inMonth: currentMonth).color) ?? .gray
+        (model.guide?.area(named: area.areaName)?.rating(inMonth: currentMonth, species: selectedSpecies)?.color) ?? .gray
     }
 
     private func color(forSite site: AccessSite) -> Color {
-        (model.rating(for: site, month: currentMonth)?.color) ?? .gray
+        rating(for: site)?.color ?? .gray
     }
 
     /// Sites and piers bucketed on the same grid as the heat overlay.
@@ -199,10 +202,10 @@ struct FishingMapView: View {
         var points: [(id: String, coord: LonLat, rating: FishingRating?)] = []
         points.reserveCapacity(model.accessSites.count + model.piers.count)
         for site in model.accessSites {
-            points.append((site.id, site.coordinate, model.rating(for: site, month: currentMonth)))
+            points.append((site.id, site.coordinate, rating(for: site)))
         }
         for pier in model.piers {
-            points.append((pier.id, pier.coordinate, model.rating(for: pier, month: currentMonth)))
+            points.append((pier.id, pier.coordinate, rating(for: pier)))
         }
         return HeatMap.clusters(points: points, cellDegrees: Self.heatCellDegrees(cameraDistance))
     }
@@ -217,7 +220,7 @@ struct FishingMapView: View {
             .tag(site.id)
         } else if cluster.count == 1, let pier = model.piers.first(where: { $0.id == cluster.memberIDs[0] }) {
             Annotation(pier.name, coordinate: pier.mapCoordinate) {
-                RatingDot(color: model.rating(for: pier, month: currentMonth)?.color ?? .gray)
+                RatingDot(color: rating(for: pier)?.color ?? .gray)
             }
             .annotationTitles(.hidden)
             .tag(pier.id)
@@ -244,9 +247,8 @@ struct FishingMapView: View {
 
     // MARK: Heat zones (density of good-rated spots, cold→hot)
 
-    /// Cached in state; zones only change with the toggle, the plan month, a data
-    /// load, or the camera-distance band (cell size follows zoom), so they are
-    /// recomputed there instead of on every body evaluation.
+    /// Cached in state; zones only change with the toggle, the plan month, the
+    /// species filter, a data load, or the camera-distance band.
     private func recomputeHeatZones() {
         guard showHeat else {
             heatZones = []
@@ -254,10 +256,10 @@ struct FishingMapView: View {
         }
         var points: [(coord: LonLat, weight: Double)] = []
         for site in model.accessSites {
-            points.append((site.coordinate, heatWeight(model.rating(for: site, month: currentMonth))))
+            points.append((site.coordinate, heatWeight(rating(for: site))))
         }
         for pier in model.piers {
-            points.append((pier.coordinate, heatWeight(model.rating(for: pier, month: currentMonth))))
+            points.append((pier.coordinate, heatWeight(rating(for: pier))))
         }
         heatZones = HeatMap.zones(points: points, cellDegrees: Self.heatCellDegrees(cameraDistance))
     }
@@ -301,12 +303,21 @@ struct FishingMapView: View {
         )
     }
 
+    private func rating(for site: AccessSite) -> FishingRating? {
+        model.rating(for: site, month: currentMonth, species: selectedSpecies)
+    }
+
+    private func rating(for pier: FishingPier) -> FishingRating? {
+        model.rating(for: pier, month: currentMonth, species: selectedSpecies)
+    }
+
     private var dateControl: some View {
         HStack(spacing: 10) {
             Image(systemName: timeOfDay.symbol)
                 .foregroundStyle(timeOfDay.isPrimeLight ? .green : .secondary)
             DatePicker("Plan for", selection: $planDate)
                 .labelsHidden()
+            speciesMenu
             Spacer(minLength: 4)
             // Measured against actual width, not size class: narrow regular contexts
             // (iPad split view, Mac windows) crushed the hint and wrapped the button.
@@ -343,6 +354,21 @@ struct FishingMapView: View {
             .font(.caption2.weight(.semibold))
             .buttonStyle(.bordered)
             .fixedSize()
+    }
+
+    private var speciesMenu: some View {
+        Menu {
+            Button("All species") { selectedSpecies = nil }
+            Divider()
+            ForEach(model.guide?.speciesNames ?? [], id: \.self) { name in
+                Button(name) { selectedSpecies = name }
+            }
+        } label: {
+            Label(selectedSpecies ?? "All species", systemImage: "fish")
+                .font(.caption2.weight(.semibold))
+                .lineLimit(1)
+        }
+        .fixedSize()
     }
 
     private var statusBar: some View {

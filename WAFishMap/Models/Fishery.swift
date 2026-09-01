@@ -124,6 +124,15 @@ struct AreaFishery: Decodable, Equatable, Sendable {
         species.map { $0.rating(inMonth: month) }.max() ?? .poor
     }
 
+    /// `nil` species is All (best in the area). A named species is an exact match,
+    /// or `nil` when this area does not list it.
+    func rating(inMonth month: Int, species name: String?) -> FishingRating? {
+        if let name {
+            return species.first { $0.species == name }?.rating(inMonth: month)
+        }
+        return rating(inMonth: month)
+    }
+
     /// Species worth targeting this month, best first (excludes off-season species).
     /// Ties break on declaration order so the list is stable across renders.
     func inSeason(month: Int) -> [SpeciesSeason] {
@@ -209,6 +218,25 @@ struct FisheryGuide: Decodable, Sendable {
 
     func area(named name: String) -> AreaFishery? {
         areas.first { $0.areaName == name }
+    }
+
+    /// Distinct species strings in the guide, sorted. Exact names, not collapsed.
+    var speciesNames: [String] {
+        var seen = Set<String>()
+        var names: [String] = []
+        func add(_ list: [SpeciesSeason]) {
+            for s in list where seen.insert(s.species).inserted {
+                names.append(s.species)
+            }
+        }
+        for area in areas { add(area.species) }
+        if let freshwater {
+            add(freshwater.species)
+            if let counties = freshwater.byCounty {
+                for list in counties.values { add(list) }
+            }
+        }
+        return names.sorted()
     }
 
     /// Stamp every species with its resolved risk months. Done once at load so

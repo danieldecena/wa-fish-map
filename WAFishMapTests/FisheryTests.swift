@@ -107,4 +107,35 @@ struct FisheryTests {
         #expect(coho.riskMonths.isEmpty)
         #expect(coho.rating(inMonth: 9) == .excellent)
     }
+
+    @Test func namedSpeciesRatingIsExactMatchOnly() {
+        let area = AreaFishery(areaName: "13", species: [
+            SpeciesSeason(species: "Chinook Salmon", bestMonths: [8]),
+            SpeciesSeason(species: "Chinook Salmon (ocean)", bestMonths: [6]),
+            SpeciesSeason(species: "Coho", bestMonths: [], goodMonths: [8]),
+        ])
+        #expect(area.rating(inMonth: 8, species: nil) == .excellent)
+        #expect(area.rating(inMonth: 8, species: "Chinook Salmon") == .excellent)
+        #expect(area.rating(inMonth: 8, species: "Chinook Salmon (ocean)") == .poor)
+        #expect(area.rating(inMonth: 8, species: "Coho") == .good)
+        #expect(area.rating(inMonth: 8, species: "Lingcod") == nil)
+    }
+
+    @Test func speciesNamesAreUniqueAndSorted() {
+        let guide = FisheryGuide(
+            updated: "2026-08-31", disclaimer: "d", wdfwURL: "https://example.com",
+            areas: [
+                AreaFishery(areaName: "13", species: [
+                    SpeciesSeason(species: "Coho", bestMonths: [9]),
+                    SpeciesSeason(species: "Chinook Salmon", bestMonths: [8]),
+                ]),
+            ],
+            freshwater: FreshwaterGuide(
+                species: [SpeciesSeason(species: "Rainbow Trout", bestMonths: [5])],
+                byCounty: ["King": [SpeciesSeason(species: "Coho", bestMonths: [10])]]
+            ),
+            seasonRisk: []
+        )
+        #expect(guide.speciesNames == ["Chinook Salmon", "Coho", "Rainbow Trout"])
+    }
 }
