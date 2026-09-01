@@ -89,7 +89,7 @@ struct FishingMapView: View {
                 if cameraDistance < Self.areaLabelMaxDistance {
                     Annotation("Area \(area.areaName)", coordinate: area.center) {
                         Text("MA \(area.areaName)")
-                            .font(.caption2.weight(.semibold))
+                            .font(DS.TypeScale.mapLabel)
                             .padding(.horizontal, 5).padding(.vertical, 2)
                             .background(.ultraThinMaterial, in: Capsule())
                     }
@@ -313,9 +313,9 @@ struct FishingMapView: View {
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 10) {
                     VStack(alignment: .trailing, spacing: 1) {
-                        Text(timeOfDay.label).font(.caption2.weight(.semibold))
+                        Text(timeOfDay.label).font(DS.TypeScale.control)
                         Text(timeOfDay.lightHint)
-                            .font(.caption2)
+                            .font(DS.TypeScale.legend)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
@@ -323,13 +323,13 @@ struct FishingMapView: View {
                 }
                 HStack(spacing: 10) {
                     Text(timeOfDay.label)
-                        .font(.caption2.weight(.semibold))
+                        .font(DS.TypeScale.control)
                         .fixedSize()
                     nowButton
                 }
             }
         }
-        .font(.caption2)
+        .font(DS.TypeScale.legend)
         .controlSize(.small)
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
@@ -340,7 +340,7 @@ struct FishingMapView: View {
 
     private var nowButton: some View {
         Button("Now") { planDate = Date() }
-            .font(.caption2.weight(.semibold))
+            .font(DS.TypeScale.control)
             .buttonStyle(.bordered)
             .fixedSize()
     }
@@ -353,25 +353,25 @@ struct FishingMapView: View {
                         .controlSize(.mini)
                 }
                 Text(model.statusMessage)
-                    .font(.caption2)
+                    .font(DS.TypeScale.legend)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button { showHeat.toggle() } label: {
                     Label("Heat", systemImage: showHeat ? "flame.fill" : "flame")
-                        .font(.caption2.weight(.semibold))
+                        .font(DS.TypeScale.control)
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .tint(showHeat ? .orange : .secondary)
                 Button { showDisclaimer.toggle() } label: {
                     Image(systemName: "info.circle")
-                        .font(.caption)
+                        .font(DS.TypeScale.meta)
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel("About this guidance")
                 .popover(isPresented: $showDisclaimer, arrowEdge: .bottom) {
                     Text("Tap a launch for what's biting. Guidance only — verify seasons in the Fish Washington app.")
-                        .font(.caption)
+                        .font(DS.TypeScale.meta)
                         .padding()
                         .frame(maxWidth: 280)
                         .presentationCompactAdaptation(.popover)
@@ -384,7 +384,7 @@ struct FishingMapView: View {
                     }
                 } label: {
                     Label("Location is off — turn it on in Settings", systemImage: "location.slash")
-                        .font(.caption2)
+                        .font(DS.TypeScale.legend)
                 }
                 .buttonStyle(.borderless)
             }
@@ -419,7 +419,7 @@ private struct GlassCard: ViewModifier {
 private struct HeatLegend: View {
     var body: some View {
         HStack(spacing: 6) {
-            Text("Fewer").font(.caption2).foregroundStyle(.secondary)
+            Text("Fewer").font(DS.TypeScale.legend).foregroundStyle(.secondary)
             // Discrete swatches, one per band, because that is exactly what the
             // map draws — a continuous gradient promised a precision the banded
             // fills do not have.
@@ -431,8 +431,8 @@ private struct HeatLegend: View {
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 2))
-            Text("More").font(.caption2).foregroundStyle(.secondary)
-            Text("· density of well-rated spots").font(.caption2).foregroundStyle(.tertiary)
+            Text("More").font(DS.TypeScale.legend).foregroundStyle(.secondary)
+            Text("· density of well-rated spots").font(DS.TypeScale.legend).foregroundStyle(.tertiary)
         }
     }
 }
@@ -444,12 +444,12 @@ private struct RatingLegend: View {
             ForEach([FishingRating.excellent, .good, .fair, .poor], id: \.rawValue) { r in
                 HStack(spacing: 3) {
                     Circle().fill(r.color).frame(width: 8, height: 8)
-                    Text(r.label).font(.caption2).foregroundStyle(.secondary)
+                    Text(r.label).font(DS.TypeScale.legend).foregroundStyle(.secondary)
                 }
             }
             HStack(spacing: 3) {
                 Circle().fill(.gray).frame(width: 8, height: 8)
-                Text("No data").font(.caption2).foregroundStyle(.secondary)
+                Text("No data").font(DS.TypeScale.legend).foregroundStyle(.secondary)
             }
         }
     }

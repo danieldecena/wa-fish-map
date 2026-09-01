@@ -5,12 +5,12 @@ import SwiftUI
 struct RatingBadge: View {
     let rating: FishingRating?
 
-    private var color: Color { rating?.color ?? .gray }
+    private var color: Color { rating?.color ?? DS.Rating.unrated }
     private var label: String { rating?.label ?? "No data" }
 
     var body: some View {
         Text(label)
-            .font(.caption.bold())
+            .font(DS.TypeScale.badge)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(color.opacity(0.2), in: Capsule())
@@ -28,47 +28,47 @@ struct BitingNowView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("What's biting").font(.headline)
+            Text("What's biting").font(DS.TypeScale.sectionTitle)
             if fishery == nil {
                 Text("No seasonal guidance for this spot's area yet. Marker shown neutral.")
-                    .font(.subheadline).foregroundStyle(.secondary)
+                    .font(DS.TypeScale.supporting).foregroundStyle(.secondary)
             } else if inSeason.isEmpty {
                 Text("Nothing is peaking here this month. Check back closer to a run, and confirm openings with WDFW.")
-                    .font(.subheadline).foregroundStyle(.secondary)
+                    .font(DS.TypeScale.supporting).foregroundStyle(.secondary)
             } else {
                 ForEach(inSeason, id: \.species) { s in
                     VStack(alignment: .leading, spacing: 2) {
                         HStack {
                             RatingBadge(rating: s.rating(inMonth: month))
-                            Text(s.species).font(.subheadline.weight(.semibold))
+                            Text(s.species).font(DS.TypeScale.itemTitle)
                         }
                         if s.riskMonths.contains(month) {
                             Label("Season varies — verify", systemImage: "exclamationmark.triangle")
-                                .font(.caption2)
+                                .font(DS.TypeScale.fineprint)
                                 .foregroundStyle(.secondary)
                         }
                         Label("Best months: \(Self.monthList(s.bestMonths))", systemImage: "calendar")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(DS.TypeScale.meta).foregroundStyle(.secondary)
                         if let bestTime = s.bestTime {
                             Label("Best time: \(bestTime)", systemImage: "clock")
-                                .font(.caption).foregroundStyle(.secondary)
+                                .font(DS.TypeScale.meta).foregroundStyle(.secondary)
                         }
                         if s.riskMonths.contains(month), let why = s.riskReason {
                             Text(why)
-                                .font(.caption2)
+                                .font(DS.TypeScale.fineprint)
                                 .foregroundStyle(.tertiary)
                         }
                         if let bait = s.bait {
                             Label(bait, systemImage: "fish")
-                                .font(.caption).foregroundStyle(.secondary)
+                                .font(DS.TypeScale.meta).foregroundStyle(.secondary)
                         }
                         if let note = s.note {
-                            Text(note).font(.caption2).foregroundStyle(.secondary)
+                            Text(note).font(DS.TypeScale.fineprint).foregroundStyle(.secondary)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(10)
-                    .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
+                    .background(DS.Surface.speciesRow, in: RoundedRectangle(cornerRadius: DS.Surface.speciesRowRadius))
                 }
             }
         }
@@ -90,23 +90,23 @@ struct GuidanceFooter: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Before you go").font(.headline)
+            Text("Before you go").font(DS.TypeScale.sectionTitle)
             if let urlString = guide?.wdfwURL, let url = URL(string: urlString) {
                 Link(destination: url) {
                     Label("Verify seasons & limits at WDFW", systemImage: "exclamationmark.shield")
-                        .font(.subheadline.weight(.semibold))
+                        .font(DS.TypeScale.itemTitle)
                 }
             }
             if let disclaimer = guide?.disclaimer {
-                Text(disclaimer).font(.caption).foregroundStyle(.secondary)
+                Text(disclaimer).font(DS.TypeScale.meta).foregroundStyle(.secondary)
             }
             if let updated = guide?.updated {
-                Text("Guidance updated \(updated)").font(.caption2).foregroundStyle(.tertiary)
+                Text("Guidance updated \(updated)").font(DS.TypeScale.fineprint).foregroundStyle(.tertiary)
             }
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.yellow.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+        .background(DS.Surface.advisory, in: RoundedRectangle(cornerRadius: DS.Surface.advisoryRadius))
     }
 }
 
@@ -149,7 +149,7 @@ struct SiteDetailSheet: View {
         HStack(spacing: 10) {
             RatingBadge(rating: rating)
             Text(headerSummary)
-                .font(.subheadline)
+                .font(DS.TypeScale.supporting)
                 .foregroundStyle(.secondary)
         }
     }
@@ -173,7 +173,7 @@ struct SiteDetailSheet: View {
                   systemImage: site.hasRestrooms ? "checkmark.circle" : "xmark.circle")
                 .foregroundStyle(site.hasRestrooms ? .primary : .secondary)
         }
-        .font(.subheadline)
+        .font(DS.TypeScale.supporting)
     }
 
     @ViewBuilder private var amenitiesSection: some View {
@@ -192,11 +192,11 @@ struct SiteDetailSheet: View {
                 }
                 if !site.publicNotes.isEmpty {
                     Text(site.publicNotes)
-                        .font(.caption)
+                        .font(DS.TypeScale.meta)
                         .foregroundStyle(.secondary)
                 }
             }
-            .font(.subheadline)
+            .font(DS.TypeScale.supporting)
         }
     }
 
@@ -211,8 +211,8 @@ struct SiteDetailSheet: View {
 
     private var directionsSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Directions").font(.headline)
-            Text(site.directions).font(.caption).foregroundStyle(.secondary)
+            Text("Directions").font(DS.TypeScale.sectionTitle)
+            Text(site.directions).font(DS.TypeScale.meta).foregroundStyle(.secondary)
         }
     }
 }
@@ -234,7 +234,7 @@ struct PierDetailSheet: View {
                 VStack(alignment: .leading, spacing: 18) {
                     HStack(spacing: 10) {
                         RatingBadge(rating: rating)
-                        Text("Public fishing pier").font(.subheadline).foregroundStyle(.secondary)
+                        Text("Public fishing pier").font(DS.TypeScale.supporting).foregroundStyle(.secondary)
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         Label("\(pier.countyName) County", systemImage: "mappin.and.ellipse")
@@ -246,7 +246,7 @@ struct PierDetailSheet: View {
                             }
                         }
                     }
-                    .font(.subheadline)
+                    .font(DS.TypeScale.supporting)
                     TidePredictionsView(
                         coordinate: pier.coordinate,
                         planDate: planDate,

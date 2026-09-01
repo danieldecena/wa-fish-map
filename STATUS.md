@@ -54,6 +54,27 @@
 
 ## Decision log
 
+### 2026-09-01 (design system)
+- Added `WAFishMap/DesignSystem.swift` (`DS`) and moved every view onto it. No
+  view names a raw colour or a raw font step any more.
+- Decided: defer to the platform. The rating ramp is now `Color.blue/.yellow/
+  .orange/.red` rather than four hand-mixed literals. Those literals sat *near*
+  Apple's system colours without matching — Slow 7 units off systemBlue, Fair 5
+  off systemYellow — which reads as a colour that failed to load, not a choice.
+  The blue → yellow → orange → red design is unchanged; only the anchors moved,
+  and the ramp now has a dark appearance, which fixed literals could never have.
+  That matters here more than most: the app is about dawn and dusk.
+- Decided: the density wash stays custom. It must not be mistakable for a
+  rating, and it is tuned against the muted basemap — migrating it to
+  systemPurple would walk back into the composite bug in the log below. It is
+  the one adaptive token with a hand-picked dark value, and wants a device check.
+- Decided: the advisory block drops its `.yellow` wash for a semantic fill.
+  Yellow was doing double duty on one sheet — the Fair rating *and* "caution".
+- Type roles are bound 1:1 to the steps already in use, so adoption was a rename
+  with no visual change. Recorded for later: 31 of 48 type calls sit on the two
+  smallest steps and `.body` is never used, so `control` and `legend` are the
+  roles to promote — now a one-line edit each instead of twenty.
+
 ### 2026-09-01 (CI had never compiled)
 - Diagnosed: every CI run since the workflow was added (13/13) failed. The
   `wdfw-contract` job was always green; `Xcode tests` never reached a test.

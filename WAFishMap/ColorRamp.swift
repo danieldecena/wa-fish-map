@@ -23,12 +23,11 @@ enum ColorRamp {
     /// band papered over that and made it garish; draining the ground fixes it.
     ///
     /// The coldest band draws nothing, so the basemap stays clean where there is
-    /// nothing to say. Violet because the rating ramp gave it up when it moved
-    /// to blue/amber/orange/red, so the overlay cannot be misread as a rating.
+    /// nothing to say. The hue itself is `DS.Overlay.density`.
     static func densityFill(band: Int) -> Color {
         let alphas = [0.0, 0.14, 0.26, 0.40]
         let clamped = min(max(band, 0), alphas.count - 1)
-        return Color(red: 0.48, green: 0.16, blue: 0.72).opacity(alphas[clamped])
+        return DS.Overlay.density.opacity(alphas[clamped])
     }
 
     /// Fill for a zone, straight from its intensity.
@@ -38,16 +37,19 @@ enum ColorRamp {
 }
 
 extension FishingRating {
-    /// A thermal ramp, cold to hot: blue → amber → orange → red. Stated as four
+    /// A thermal ramp, cold to hot: blue → yellow → orange → red. Stated as four
     /// explicit stops rather than sampled off a continuous function — sampling a
     /// blue-to-red line runs through magenta, which reads as a different scale
     /// rather than as heat.
+    ///
+    /// The stops live in `DS.Rating`, anchored on the system colours so they
+    /// carry a dark appearance. See that type for why the old literals moved.
     var color: Color {
         switch self {
-        case .poor: Color(red: 0.00, green: 0.45, blue: 1.00)
-        case .fair: Color(red: 1.00, green: 0.78, blue: 0.00)
-        case .good: Color(red: 1.00, green: 0.45, blue: 0.00)
-        case .excellent: Color(red: 0.94, green: 0.11, blue: 0.05)
+        case .poor: DS.Rating.slow
+        case .fair: DS.Rating.fair
+        case .good: DS.Rating.good
+        case .excellent: DS.Rating.prime
         }
     }
 }
@@ -71,7 +73,7 @@ struct ClusterMark: View {
 
     var body: some View {
         Text("\(count)")
-            .font(.caption2.bold())
+            .font(DS.TypeScale.clusterCount)
             .foregroundStyle(.white)
             .frame(width: 26, height: 26)
             .background(color, in: Circle())
