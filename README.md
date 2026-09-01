@@ -1,13 +1,17 @@
 # WAFishMap
 
-Native MapKit overlay of WDFW Marine Area 13 (South Puget Sound) plus
-Thurston County water-access launches.
+Native MapKit overlay of every WDFW marine area in Washington, plus the
+statewide water-access launches and fishing piers.
 
-Widen the slice by editing `WAFishMap/Models/MapScope.swift` only.
+Layer queries live in `WAFishMap/Models/MapScope.swift` — keep them there
+rather than pasting `where=` strings into the view.
 
 Overlays are geography, not the rulebook. Check Fish Washington before you fish.
 
 ## Quick start (Mac)
+
+Needs **Xcode 26 or newer**: the chrome calls `glassEffect(_:in:)`, so the app
+compiles against the iOS 26 SDK even though it still deploys to iOS 18.
 
 ```zsh
 git clone git@github.com:danieldecena/wa-fish-map.git ~/developer/wa-fish-map
@@ -18,7 +22,11 @@ open WAFishMap.xcodeproj
 Build and run on the iOS Simulator, or test from Terminal:
 
 ```zsh
-xcodebuild -scheme WAFishMap -destination 'platform=iOS Simulator,name=iPhone 16' test
+# Any installed iPhone simulator works — list yours with:
+#   xcrun simctl list devices available | grep iPhone
+xcodebuild -scheme WAFishMap \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
+  test
 ```
 
 See [SETUP.md](SETUP.md) for signing and troubleshooting.
