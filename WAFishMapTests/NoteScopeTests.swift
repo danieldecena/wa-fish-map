@@ -13,9 +13,10 @@ import Testing
 struct NoteScopeTests {
 
     /// A proper noun immediately followed by a waterbody word. Matches
-    /// "Lake Washington" and "Green River"; does not match the generic
-    /// "Lowland lakes" or "warm-water bite", which are true anywhere.
-    static let waterbodyPattern = /\b([A-Z][a-z]+)\s+(Lake|River|Bay|Sound|Creek|Reservoir)\b|\b(Lake|Mount)\s+[A-Z][a-z]+/
+    /// "Lake Washington", "Green River", and "Rufus Woods"; does not match the
+    /// generic "Lowland lakes" or "warm-water bite", which are true anywhere.
+    /// "Potholes" cannot be prose-matched — that one is on the data editor.
+    static let waterbodyPattern = /\b([A-Z][a-z]+)\s+(Lake|River|Bay|Sound|Creek|Reservoir|Woods)\b|\b(Lake|Mount)\s+[A-Z][a-z]+/
 
     private func offenders(in species: [SpeciesSeason], scope: String) -> [String] {
         species.compactMap { s in
@@ -51,6 +52,7 @@ struct NoteScopeTests {
     @Test func patternCatchesAWaterbodyAndSparesGenericProse() {
         #expect("Lake Washington; huge population".firstMatch(of: Self.waterbodyPattern) != nil)
         #expect("Green River hatchery run".firstMatch(of: Self.waterbodyPattern) != nil)
+        #expect("Rufus Woods; trophy triploids".firstMatch(of: Self.waterbodyPattern) != nil)
         #expect("Lowland lakes; many open year-round.".firstMatch(of: Self.waterbodyPattern) == nil)
         #expect("Warm-water bite late spring through summer.".firstMatch(of: Self.waterbodyPattern) == nil)
     }

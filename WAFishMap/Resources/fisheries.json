@@ -1,30 +1,121 @@
 {
-  "updated": "2026-08-31",
+  "updated": "2026-09-01",
   "disclaimer": "Seasonal guidance only — NOT official regulations. Runs, open seasons, areas, and limits change year to year and can close with little notice. Statewide first-pass data; inland areas without an entry show a neutral rating. Bait/gear are general suggestions. Always confirm current rules in the WDFW Fish Washington app before you fish.",
   "wdfwURL": "https://wdfw.wa.gov/fishing/regulations",
   "seasonRisk": [
-    { "match": "Crab", "months": [6,7,8,9,10],
-      "reason": "Season and areas set annually by WDFW; confirm before you go" },
-    { "match": "Resident Chinook", "months": [1,2,3,4,11,12],
-      "reason": "Selective-fishery rules and season dates set annually; confirm before you go" },
-    { "match": "Chinook Salmon (ocean)", "months": [6,7,8],
-      "reason": "Ocean season opens and can close by quota; confirm dates with WDFW" },
-    { "match": "Chinook Salmon", "months": [7,8,9],
-      "reason": "Quota-driven summer fishery; days can be limited or closed in-season" },
-    { "match": "Coho", "months": [9,10,11],
-      "reason": "Fished only when the run supports it; some years closed" },
-    { "match": "Sockeye", "months": [7,8],
-      "reason": "Opens only when the return supports it; confirm before you go" },
-    { "match": "Spot Shrimp", "months": [5,6],
-      "reason": "Short season set annually by WDFW; confirm dates" },
-    { "match": "Lingcod", "months": [3,4,5,6,7,8,9,10],
-      "reason": "Bottomfish season set annually with area and depth limits; confirm dates" },
-    { "match": "Rockfish", "months": [5,6,7],
-      "reason": "Some rockfish species closed seasonally; yelloweye is release-only" },
-    { "match": "Halibut", "months": [4,5,6,7,8],
-      "reason": "A few announced days each year, quota-driven; confirm before you go" },
-    { "match": "Razor Clam", "months": [1,2,3,4,10,11,12],
-      "reason": "Digs announced by WDFW only after marine-toxin testing" }
+    {
+      "match": "Crab",
+      "months": [
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "reason": "Season and areas set annually by WDFW; confirm before you go"
+    },
+    {
+      "match": "Resident Chinook",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        11,
+        12
+      ],
+      "reason": "Selective-fishery rules and season dates set annually; confirm before you go"
+    },
+    {
+      "match": "Chinook Salmon (ocean)",
+      "months": [
+        6,
+        7,
+        8
+      ],
+      "reason": "Ocean season opens and can close by quota; confirm dates with WDFW"
+    },
+    {
+      "match": "Chinook Salmon",
+      "months": [
+        7,
+        8,
+        9
+      ],
+      "reason": "Quota-driven summer fishery; days can be limited or closed in-season"
+    },
+    {
+      "match": "Coho",
+      "months": [
+        9,
+        10,
+        11
+      ],
+      "reason": "Fished only when the run supports it; some years closed"
+    },
+    {
+      "match": "Sockeye",
+      "months": [
+        7,
+        8
+      ],
+      "reason": "Opens only when the return supports it; confirm before you go"
+    },
+    {
+      "match": "Spot Shrimp",
+      "months": [
+        5,
+        6
+      ],
+      "reason": "Short season set annually by WDFW; confirm dates"
+    },
+    {
+      "match": "Lingcod",
+      "months": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "reason": "Bottomfish season set annually with area and depth limits; confirm dates"
+    },
+    {
+      "match": "Rockfish",
+      "months": [
+        5,
+        6,
+        7
+      ],
+      "reason": "Some rockfish species closed seasonally; yelloweye is release-only"
+    },
+    {
+      "match": "Halibut",
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "reason": "A few announced days each year, quota-driven; confirm before you go"
+    },
+    {
+      "match": "Razor Clam",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        10,
+        11,
+        12
+      ],
+      "reason": "Digs announced by WDFW only after marine-toxin testing"
+    }
   ],
   "areas": [
     {
@@ -1575,21 +1666,6 @@
     "byCounty": {
       "Chelan": [
         {
-          "species": "Kokanee",
-          "bestMonths": [
-            5,
-            6,
-            7
-          ],
-          "goodMonths": [
-            4,
-            8
-          ],
-          "bait": "Trolled dodger + hoochie tipped with corn",
-          "note": "Lake Chelan / Wenatchee.",
-          "bestTime": "Early morning, before the sun is high"
-        },
-        {
           "species": "Rainbow Trout",
           "bestMonths": [
             4,
@@ -1632,7 +1708,7 @@
             9
           ],
           "bait": "Bottom-walker + worm harness, crankbaits",
-          "note": "Potholes / Columbia system; best post-spawn in summer.",
+          "note": "The county's big reservoirs; best post-spawn in summer.",
           "bestTime": "Dawn, dusk & after dark"
         },
         {
@@ -1710,7 +1786,7 @@
             12
           ],
           "bait": "Worm or small perch jig on the bottom",
-          "note": "Lake Washington; huge population, schools deep in fall/winter.",
+          "note": "Common in the county's lowland lakes; schools move deep in fall and winter.",
           "bestTime": "Midday through afternoon"
         },
         {
@@ -1723,26 +1799,11 @@
             11
           ],
           "bait": "Cut-plug herring or spinners, north end",
-          "note": "Lake Washington fall coho only in years with a healthy run; sockeye has been closed for years.",
+          "note": "Fall run only in years the return supports it; confirm the waterbody before you go.",
           "bestTime": "Dawn & dusk; first light is best"
         }
       ],
       "Snohomish": [
-        {
-          "species": "Kokanee",
-          "bestMonths": [
-            5,
-            6,
-            7
-          ],
-          "goodMonths": [
-            4,
-            8
-          ],
-          "bait": "Trolled dodger + pink hoochie tipped with corn",
-          "note": "Lake Stevens; best in spring before fish go deep.",
-          "bestTime": "Early morning, before the sun is high"
-        },
         {
           "species": "Smallmouth Bass",
           "bestMonths": [
@@ -1755,7 +1816,7 @@
             9
           ],
           "bait": "Tube jigs, crankbaits, drop-shot",
-          "note": "Lake Stevens and lowland lakes.",
+          "note": "Lowland lakes across the county.",
           "bestTime": "Morning & evening"
         }
       ],
@@ -1773,7 +1834,7 @@
             11
           ],
           "bait": "Nymphs, dry flies, small spinners",
-          "note": "Spokane River native redband, catch-and-release; season dates set annually - confirm with WDFW. Wild fishery, tread lightly.",
+          "note": "Native redband trout in the county's rivers, catch-and-release; season dates set annually - confirm with WDFW. Wild fishery, tread lightly.",
           "bestTime": "Morning & evening"
         },
         {
@@ -1810,7 +1871,7 @@
             10
           ],
           "bait": "Trolled dodger + hoochie tipped with corn near the dam",
-          "note": "Lake Roosevelt; trophy kokanee, best in winter/spring.",
+          "note": "Trophy kokanee on the county's Columbia-system reservoirs; best in winter and spring.",
           "bestTime": "Early morning, before the sun is high"
         },
         {
@@ -1825,7 +1886,7 @@
             8
           ],
           "bait": "Bottom-walker + worm harness, crankbaits",
-          "note": "Lake Roosevelt; mercury advisory - limit consumption.",
+          "note": "Columbia-system reservoirs; a mercury advisory applies - limit consumption.",
           "bestTime": "Dawn, dusk & after dark"
         },
         {
@@ -1842,7 +1903,7 @@
             12
           ],
           "bait": "Trolled Wedding Rings or spoons",
-          "note": "Lake Roosevelt net-pen triploids; best in cool months.",
+          "note": "Net-pen triploids on the county's Columbia-system reservoirs; best in cool months.",
           "bestTime": "Early morning & evening"
         }
       ],
@@ -1863,7 +1924,7 @@
             10
           ],
           "bait": "Trolled dodger + hoochie tipped with corn",
-          "note": "Lake Roosevelt; trophy kokanee, best in winter/spring.",
+          "note": "Trophy kokanee on the county's Columbia-system reservoirs; best in winter and spring.",
           "bestTime": "Early morning, before the sun is high"
         },
         {
@@ -1878,7 +1939,7 @@
             8
           ],
           "bait": "Bottom-walker + worm harness, crankbaits",
-          "note": "Lake Roosevelt; mercury advisory - limit consumption.",
+          "note": "Columbia-system reservoirs; a mercury advisory applies - limit consumption.",
           "bestTime": "Dawn, dusk & after dark"
         },
         {
@@ -1895,7 +1956,7 @@
             12
           ],
           "bait": "Trolled Wedding Rings or spoons",
-          "note": "Lake Roosevelt net-pen triploids; best in cool months.",
+          "note": "Net-pen triploids on the county's Columbia-system reservoirs; best in cool months.",
           "bestTime": "Early morning & evening"
         }
       ],
@@ -1913,7 +1974,7 @@
             10
           ],
           "bait": "Trout dough bait or nightcrawlers near the net pens",
-          "note": "Rufus Woods; trophy triploids, a cold-weather fishery - spring is poor.",
+          "note": "Trophy triploids on the county's Columbia-system reservoirs; a cold-weather fishery - spring is poor.",
           "bestTime": "Early morning & evening"
         },
         {
@@ -1929,7 +1990,7 @@
             10
           ],
           "bait": "Bottom bouncers + spinners near the net pens",
-          "note": "Rufus Woods; good winter walleye.",
+          "note": "Good winter walleye on the county's Columbia-system reservoirs.",
           "bestTime": "Dawn, dusk & after dark"
         }
       ],
@@ -1947,7 +2008,7 @@
             10
           ],
           "bait": "Tubes, crankbaits, drop-shot",
-          "note": "Lower Yakima River; peaks at the spawn, good into fall.",
+          "note": "The county's warm rivers; peaks at the spawn, good into fall.",
           "bestTime": "Morning & evening"
         },
         {
@@ -1978,7 +2039,7 @@
             10
           ],
           "bait": "Dry flies, nymphs",
-          "note": "Upper Yakima River; catch-and-release, selective gear.",
+          "note": "Wild river rainbows; catch-and-release, selective gear rules apply.",
           "bestTime": "Early morning & evening"
         },
         {
@@ -1993,34 +2054,6 @@
           "bait": "Small spinners, flies",
           "note": "Alpine lakes; best after ice-out through summer.",
           "bestTime": "Morning & evening"
-        }
-      ],
-      "Whatcom": [
-        {
-          "species": "Sockeye Salmon",
-          "bestMonths": [
-            7,
-            8
-          ],
-          "goodMonths": [],
-          "bait": "Trolled red hoochies/hooks tipped with corn behind a dodger, 30-60 ft",
-          "note": "Baker Lake; season set by the return each year - confirm with WDFW. Boat needed.",
-          "bestTime": "First light, early morning"
-        },
-        {
-          "species": "Kokanee",
-          "bestMonths": [
-            5,
-            6,
-            7
-          ],
-          "goodMonths": [
-            4,
-            8
-          ],
-          "bait": "Trolled dodger + hoochie with corn",
-          "note": "Lake Whatcom.",
-          "bestTime": "Early morning, before the sun is high"
         }
       ]
     }
