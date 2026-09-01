@@ -50,6 +50,24 @@
 
 ## Decision log
 
+### 2026-09-01 (CI had never compiled)
+- Diagnosed: every CI run since the workflow was added (13/13) failed. The
+  `wdfw-contract` job was always green; `Xcode tests` never reached a test.
+  `GlassCard` calls `glassEffect(_:in:)` under `if #available(iOS 26.0, *)`,
+  but `#available` is a *runtime* gate — the compiler still has to find the
+  symbol in the SDK it builds against. The runner was `macos-15` (Xcode 16.4,
+  iOS 18.5 SDK), where the call does not resolve, so the build died with
+  "has no member 'glassEffect'". It compiled locally on Xcode 26, which is why
+  the red never got looked at.
+- Decided: move the runner to `macos-26`, not drop the glass call. The
+  `#available` + material fallback with an iOS 18 deployment target is the
+  correct shape for this code; the toolchain was the thing that was wrong.
+- Decided: resolve the simulator from `xcrun simctl` instead of naming a model.
+  `name=iPhone 16` was a second instance of the same drift — correct on
+  macos-15, absent on macos-26, which ships the iPhone 17 family. The step
+  picks any available iPhone on the newest installed iOS runtime and fails
+  loudly if there is none.
+
 ### 2026-08-31 (marker clustering)
 - Decided: keep the heat toggle. Clusters replace overlapping pins, not the wash.
 - Decided: same lon/lat grid as heat, tap zooms into the cell, color is the
