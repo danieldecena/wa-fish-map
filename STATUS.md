@@ -30,6 +30,10 @@
   next extreme after the plan time is highlighted. Full suite: 73 tests, 12 suites.
 - Zoomed-out pins cluster on the same grid as the heat overlay. Count and best
   rating; tap zooms into the cell. Heat stays a toggle. 78 tests, 13 suites.
+- CI is green for the first time. The `Xcode tests` job had never once compiled
+  (13/13 red since it was added); it now builds on macos-26 against the iOS 26.5
+  SDK and runs the suite in ~3.5 min. Verified on run #14: Xcode 26.6, iPhone Air
+  on iOS 26.5, "78 tests in 13 suites passed", zero compiler errors.
 
 ## Known broken
 
@@ -67,6 +71,10 @@
   macos-15, absent on macos-26, which ships the iPhone 17 family. The step
   picks any available iPhone on the newest installed iOS runtime and fails
   loudly if there is none.
+- Verified on the real runner, not just locally: the simulator step resolved
+  "iPhone Air on iOS 26.5" and the suite went 78/78. Worth knowing for the next
+  toolchain bump — the app compiles against the iOS 26 SDK, so dropping the
+  runner back to macos-15 returns this repo to a build that cannot compile.
 
 ### 2026-08-31 (marker clustering)
 - Decided: keep the heat toggle. Clusters replace overlapping pins, not the wash.
