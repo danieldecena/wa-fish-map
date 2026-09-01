@@ -30,6 +30,10 @@
   next extreme after the plan time is highlighted. Full suite: 73 tests, 12 suites.
 - Zoomed-out pins cluster on the same grid as the heat overlay. Count and best
   rating; tap zooms into the cell. Heat stays a toggle. 78 tests, 13 suites.
+- CI is green for the first time. The `Xcode tests` job had never once compiled
+  (13/13 red since it was added); it now builds on macos-26 against the iOS 26.5
+  SDK and runs the suite in ~3.5 min. Verified on run #14: Xcode 26.6, iPhone Air
+  on iOS 26.5, "78 tests in 13 suites passed", zero compiler errors.
 
 ## Known broken
 
@@ -49,6 +53,49 @@
   WeatherKit is likely blocked on a paid-account entitlement.
 
 ## Decision log
+
+### 2026-09-01 (design system)
+- Added `WAFishMap/DesignSystem.swift` (`DS`) and moved every view onto it. No
+  view names a raw colour or a raw font step any more.
+- Decided: defer to the platform. The rating ramp is now `Color.blue/.yellow/
+  .orange/.red` rather than four hand-mixed literals. Those literals sat *near*
+  Apple's system colours without matching — Slow 7 units off systemBlue, Fair 5
+  off systemYellow — which reads as a colour that failed to load, not a choice.
+  The blue → yellow → orange → red design is unchanged; only the anchors moved,
+  and the ramp now has a dark appearance, which fixed literals could never have.
+  That matters here more than most: the app is about dawn and dusk.
+- Decided: the density wash stays custom. It must not be mistakable for a
+  rating, and it is tuned against the muted basemap — migrating it to
+  systemPurple would walk back into the composite bug in the log below. It is
+  the one adaptive token with a hand-picked dark value, and wants a device check.
+- Decided: the advisory block drops its `.yellow` wash for a semantic fill.
+  Yellow was doing double duty on one sheet — the Fair rating *and* "caution".
+- Type roles are bound 1:1 to the steps already in use, so adoption was a rename
+  with no visual change. Recorded for later: 31 of 48 type calls sit on the two
+  smallest steps and `.body` is never used, so `control` and `legend` are the
+  roles to promote — now a one-line edit each instead of twenty.
+
+### 2026-09-01 (CI had never compiled)
+- Diagnosed: every CI run since the workflow was added (13/13) failed. The
+  `wdfw-contract` job was always green; `Xcode tests` never reached a test.
+  `GlassCard` calls `glassEffect(_:in:)` under `if #available(iOS 26.0, *)`,
+  but `#available` is a *runtime* gate — the compiler still has to find the
+  symbol in the SDK it builds against. The runner was `macos-15` (Xcode 16.4,
+  iOS 18.5 SDK), where the call does not resolve, so the build died with
+  "has no member 'glassEffect'". It compiled locally on Xcode 26, which is why
+  the red never got looked at.
+- Decided: move the runner to `macos-26`, not drop the glass call. The
+  `#available` + material fallback with an iOS 18 deployment target is the
+  correct shape for this code; the toolchain was the thing that was wrong.
+- Decided: resolve the simulator from `xcrun simctl` instead of naming a model.
+  `name=iPhone 16` was a second instance of the same drift — correct on
+  macos-15, absent on macos-26, which ships the iPhone 17 family. The step
+  picks any available iPhone on the newest installed iOS runtime and fails
+  loudly if there is none.
+- Verified on the real runner, not just locally: the simulator step resolved
+  "iPhone Air on iOS 26.5" and the suite went 78/78. Worth knowing for the next
+  toolchain bump — the app compiles against the iOS 26 SDK, so dropping the
+  runner back to macos-15 returns this repo to a build that cannot compile.
 
 ### 2026-08-31 (marker clustering)
 - Decided: keep the heat toggle. Clusters replace overlapping pins, not the wash.
