@@ -3,6 +3,7 @@ import SwiftUI
 
 struct FishingMapView: View {
     @State private var model = FishingMapModel()
+    @Environment(\.openURL) private var openURL
     @State private var location = LocationProvider()
     @State private var position: MapCameraPosition = .automatic
     /// Date/time the user is planning for. Defaults to now; the month drives ratings.
@@ -14,6 +15,52 @@ struct FishingMapView: View {
     /// first camera event. Below the threshold the "MA n" capsules stop overlapping.
     @State private var cameraDistance: Double = .greatestFiniteMagnitude
     private static let areaLabelMaxDistance: Double = 600_000
+    /// Above this altitude a site is a bare colored dot. Balloon pins carry a
+    /// glyph and a shadow that are unreadable at range and mat together.
+    private static let pinDetailMaxDistance: Double = 150_000
+
+    /// Grid cell size, in degrees, for the density overlay. A fixed size cannot
+    /// work at every zoom: 0.15 was a chessboard up close, and 0.06 was specks
+    /// from statewide. Coarser as the camera pulls back keeps the cell roughly
+    /// the same size on screen.
+    private static func heatCellDegrees(_ distance: Double) -> Double {
+        switch distance {
+        case ..<120_000: 0.05
+        case ..<400_000: 0.10
+        default: 0.20
+        }
+    }
+    /// Where the user is looking; drives the sun-time math. Statewide the east-west
+    /// sunrise spread is ~10 minutes, so camera-center precision is plenty.
+    @State private var cameraCenter = MapScope.cameraCenter
+    /// Set once the user pans or zooms. A fix that lands afterwards must not yank
+    /// the camera out from under them.
+    @State private var userMovedCamera = false
+    /// With `position = .automatic`, MapKit fires a genuine `.onEnd` camera-change
+    /// event of its own once before any data exists, and fires a SECOND one when
+    /// `accessSites` populates from the network and the camera re-fits to it.
+    /// Exempting only the first such event (an ordinal count) let that second,
+    /// still-programmatic re-fit set `userMovedCamera` before CoreLocation had
+    /// even answered — the recentre-on-fix animation then never ran.
+    ///
+    /// `MapCameraUpdateContext` has no "gesture vs. programmatic" reason in the
+    /// SwiftUI Map API, so instead of counting events this keys off the data load
+    /// itself: `.beforeLoad` events are MapKit's own initial fit, `load()` flips
+    /// the phase to `.awaitingPostLoadRefit` the instant `accessSites` is set
+    /// (synchronously, before SwiftUI's next render can trigger the re-fit's
+    /// `.onEnd`), that one re-fit event is consumed to reach `.settled`, and only
+    /// an event in `.settled` is a real user gesture.
+    private enum CameraGuardPhase { case beforeLoad, awaitingPostLoadRefit, settled }
+    @State private var cameraGuardPhase: CameraGuardPhase = .beforeLoad
+    /// Washington's bounding box. A fix outside it belongs to someone travelling,
+    /// and centring there would show an empty map — the data is statewide only.
+    private static let stateBounds = (
+        minLat: 45.5, maxLat: 49.1, minLon: -124.9, maxLon: -116.9
+    )
+    private static func isInWashington(_ c: CLLocationCoordinate2D) -> Bool {
+        (stateBounds.minLat...stateBounds.maxLat).contains(c.latitude)
+            && (stateBounds.minLon...stateBounds.maxLon).contains(c.longitude)
+    }
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     /// POIs worth showing an angler (instead of hiding all landmarks).
@@ -27,15 +74,18 @@ struct FishingMapView: View {
     }
 
     private var timeOfDay: TimeOfDay {
-        TimeOfDay(hour: Calendar.current.component(.hour, from: planDate))
+        if let solar = SolarTimes.compute(on: planDate, at: cameraCenter) {
+            return TimeOfDay(date: planDate, solar: solar)
+        }
+        return TimeOfDay(hour: Calendar.current.component(.hour, from: planDate))
     }
 
     var body: some View {
         Map(position: $position, selection: $model.selectedSiteID) {
             ForEach(model.marineAreas) { area in
                 MapPolygon(coordinates: area.mapCoordinates)
-                    .foregroundStyle(color(forArea: area).opacity(0.18))
-                    .stroke(color(forArea: area), lineWidth: 1)
+                    .foregroundStyle(color(forArea: area).opacity(0.12))
+                    .stroke(color(forArea: area).opacity(0.35), lineWidth: 0.75)
                 if cameraDistance < Self.areaLabelMaxDistance {
                     Annotation("Area \(area.areaName)", coordinate: area.center) {
                         Text("MA \(area.areaName)")
@@ -47,24 +97,40 @@ struct FishingMapView: View {
                 }
             }
             ForEach(heatZones) { zone in
-                MapCircle(center: zone.center.clLocationCoordinate, radius: 9000)
-                    .foregroundStyle(heatColor(zone.intensity).opacity(0.30))
+                // The real grid cell, tiled. Circles wider than their own cell
+                // overlapped, and translucent overlap composites rather than
+                // maxes, so mediocre neighbours out-darkened a genuinely hot cell.
+                MapPolygon(coordinates: zone.corners.map(\.clLocationCoordinate))
+                    .foregroundStyle(ColorRamp.densityFill(zone.intensity))
             }
-            ForEach(model.accessSites) { site in
-                Marker(site.facilityName,
-                       systemImage: site.hasLaunch ? "anchor.fill" : "figure.fishing",
-                       coordinate: site.mapCoordinate)
-                    .tint(color(forSite: site))
-                    .tag(site.id)
-            }
-            ForEach(model.piers) { pier in
-                Marker(pier.name, systemImage: "fish.fill", coordinate: pier.mapCoordinate)
-                    .tint(model.rating(for: pier, month: currentMonth)?.color ?? .gray)
-                    .tag(pier.id)
+            if cameraDistance > Self.pinDetailMaxDistance {
+                ForEach(pinClusters) { cluster in
+                    clusterAnnotation(cluster)
+                }
+            } else {
+                ForEach(model.accessSites) { site in
+                    Marker(site.facilityName,
+                           systemImage: site.hasLaunch ? "anchor.fill" : "figure.fishing",
+                           coordinate: site.mapCoordinate)
+                        .tint(color(forSite: site))
+                        .tag(site.id)
+                }
+                ForEach(model.piers) { pier in
+                    Marker(pier.name, systemImage: "fish.fill", coordinate: pier.mapCoordinate)
+                        .tint(model.rating(for: pier, month: currentMonth)?.color ?? .gray)
+                        .tag(pier.id)
+                }
             }
             UserAnnotation()
         }
-        .mapStyle(.standard(pointsOfInterest: .including(landmarkCategories)))
+        // Drain the basemap while the overlay is on. A translucent fill takes its
+        // apparent colour from what is under it, so over the full-colour map one
+        // density band read as three different colours depending on land, water
+        // or city. A neutral ground is what makes the bands mean one thing.
+        .mapStyle(.standard(
+            emphasis: showHeat ? .muted : .automatic,
+            pointsOfInterest: .including(landmarkCategories)
+        ))
         .mapControls {
             MapUserLocationButton()
             MapCompass()
@@ -77,27 +143,44 @@ struct FishingMapView: View {
                 fishery: model.fishery(for: site),
                 isMarine: model.isMarine(site),
                 guide: model.guide,
-                month: currentMonth
+                planDate: planDate
             )
         })
         .modifier(AdaptiveDetail(item: selectedPierBinding) { pier in
             PierDetailSheet(
                 pier: pier,
-                fishery: model.fishery(atCoordinate: pier.coordinate, county: pier.countyName),
-                isMarine: model.isMarine(coordinate: pier.coordinate),
+                fishery: model.fishery(for: pier),
+                isMarine: model.isMarine(pier),
                 guide: model.guide,
-                month: currentMonth
+                planDate: planDate
             )
         })
         .task {
             location.requestIfNeeded()
             await model.load()
             recomputeHeatZones()
+            // accessSites is now populated, so MapKit's .automatic camera is about
+            // to re-fit to it — that re-fit is the event this phase exists to catch.
+            cameraGuardPhase = .awaitingPostLoadRefit
         }
         .onChange(of: showHeat) { recomputeHeatZones() }
+        .onChange(of: Self.heatCellDegrees(cameraDistance)) { recomputeHeatZones() }
         .onChange(of: currentMonth) { recomputeHeatZones() }
+        .onChange(of: location.fix?.latitude) { recenterOnFixIfAppropriate() }
         .onMapCameraChange(frequency: .onEnd) { context in
+            switch cameraGuardPhase {
+            case .beforeLoad:
+                break // MapKit's own pre-data fit; not the user
+            case .awaitingPostLoadRefit:
+                cameraGuardPhase = .settled // consume the data-triggered re-fit; still not the user
+            case .settled:
+                userMovedCamera = true
+            }
             cameraDistance = context.camera.distance
+            cameraCenter = LonLat(
+                longitude: context.camera.centerCoordinate.longitude,
+                latitude: context.camera.centerCoordinate.latitude
+            )
         }
     }
 
@@ -111,10 +194,59 @@ struct FishingMapView: View {
         (model.rating(for: site, month: currentMonth)?.color) ?? .gray
     }
 
+    /// Sites and piers bucketed on the same grid as the heat overlay.
+    private var pinClusters: [MapCluster] {
+        var points: [(id: String, coord: LonLat, rating: FishingRating?)] = []
+        points.reserveCapacity(model.accessSites.count + model.piers.count)
+        for site in model.accessSites {
+            points.append((site.id, site.coordinate, model.rating(for: site, month: currentMonth)))
+        }
+        for pier in model.piers {
+            points.append((pier.id, pier.coordinate, model.rating(for: pier, month: currentMonth)))
+        }
+        return HeatMap.clusters(points: points, cellDegrees: Self.heatCellDegrees(cameraDistance))
+    }
+
+    @MapContentBuilder
+    private func clusterAnnotation(_ cluster: MapCluster) -> some MapContent {
+        if cluster.count == 1, let site = model.accessSites.first(where: { $0.id == cluster.memberIDs[0] }) {
+            Annotation(site.facilityName, coordinate: site.mapCoordinate) {
+                RatingDot(color: color(forSite: site))
+            }
+            .annotationTitles(.hidden)
+            .tag(site.id)
+        } else if cluster.count == 1, let pier = model.piers.first(where: { $0.id == cluster.memberIDs[0] }) {
+            Annotation(pier.name, coordinate: pier.mapCoordinate) {
+                RatingDot(color: model.rating(for: pier, month: currentMonth)?.color ?? .gray)
+            }
+            .annotationTitles(.hidden)
+            .tag(pier.id)
+        } else {
+            Annotation("", coordinate: cluster.center.clLocationCoordinate) {
+                ClusterMark(count: cluster.count, color: cluster.bestRating?.color ?? .gray)
+                    .onTapGesture { zoomToCluster(cluster) }
+            }
+            .annotationTitles(.hidden)
+        }
+    }
+
+    private func zoomToCluster(_ cluster: MapCluster) {
+        userMovedCamera = true
+        cameraGuardPhase = .settled
+        let span = cluster.cellDegrees * 2.5
+        withAnimation(.easeInOut(duration: 0.4)) {
+            position = .region(MKCoordinateRegion(
+                center: cluster.center.clLocationCoordinate,
+                span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)
+            ))
+        }
+    }
+
     // MARK: Heat zones (density of good-rated spots, cold→hot)
 
-    /// Cached in state; zones only change with the toggle, the plan month, or a data
-    /// load, so they are recomputed there instead of on every body evaluation.
+    /// Cached in state; zones only change with the toggle, the plan month, a data
+    /// load, or the camera-distance band (cell size follows zoom), so they are
+    /// recomputed there instead of on every body evaluation.
     private func recomputeHeatZones() {
         guard showHeat else {
             heatZones = []
@@ -127,7 +259,7 @@ struct FishingMapView: View {
         for pier in model.piers {
             points.append((pier.coordinate, heatWeight(model.rating(for: pier, month: currentMonth))))
         }
-        heatZones = HeatMap.zones(points: points, cellDegrees: 0.15)
+        heatZones = HeatMap.zones(points: points, cellDegrees: Self.heatCellDegrees(cameraDistance))
     }
 
     /// Density counts every spot; better-rated spots weigh more so hot zones favor quality.
@@ -140,10 +272,17 @@ struct FishingMapView: View {
         }
     }
 
-    /// Cold (blue) → hot (red) through purple midtones — deliberately distinct from the
-    /// green/yellow/orange/red marker rating palette.
-    private func heatColor(_ intensity: Double) -> Color {
-        Color(red: intensity, green: 0.1, blue: 1 - intensity)
+    /// Ease to the user once, and only when it helps: a fix outside Washington
+    /// would frame an empty map, and a user who has already moved the camera has
+    /// said where they want to be.
+    private func recenterOnFixIfAppropriate() {
+        guard !userMovedCamera, let fix = location.fix, Self.isInWashington(fix) else { return }
+        withAnimation(.easeInOut(duration: 0.6)) {
+            position = .region(MKCoordinateRegion(
+                center: fix,
+                span: MKCoordinateSpan(latitudeDelta: 0.9, longitudeDelta: 0.9)
+            ))
+        }
     }
 
     private var selectedSiteBinding: Binding<AccessSite?> {
@@ -169,17 +308,26 @@ struct FishingMapView: View {
             DatePicker("Plan for", selection: $planDate)
                 .labelsHidden()
             Spacer(minLength: 4)
-            VStack(alignment: .trailing, spacing: 1) {
-                Text(timeOfDay.label).font(.caption2.weight(.semibold))
-                // The full light hint needs room; on compact the tinted icon carries it.
-                if sizeClass == .regular {
-                    Text(timeOfDay.lightHint).font(.caption2).foregroundStyle(.secondary)
+            // Measured against actual width, not size class: narrow regular contexts
+            // (iPad split view, Mac windows) crushed the hint and wrapped the button.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 10) {
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text(timeOfDay.label).font(.caption2.weight(.semibold))
+                        Text(timeOfDay.lightHint)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    nowButton
+                }
+                HStack(spacing: 10) {
+                    Text(timeOfDay.label)
+                        .font(.caption2.weight(.semibold))
+                        .fixedSize()
+                    nowButton
                 }
             }
-            Button("Now") { planDate = Date() }
-                .font(.caption2.weight(.semibold))
-                .buttonStyle(.bordered)
-                .fixedSize()
         }
         .font(.caption2)
         .controlSize(.small)
@@ -188,6 +336,13 @@ struct FishingMapView: View {
         .frame(maxWidth: sizeClass == .regular ? 560 : .infinity, alignment: .leading)
         .modifier(GlassCard())
         .padding(sizeClass == .regular ? 12 : 8)
+    }
+
+    private var nowButton: some View {
+        Button("Now") { planDate = Date() }
+            .font(.caption2.weight(.semibold))
+            .buttonStyle(.bordered)
+            .fixedSize()
     }
 
     private var statusBar: some View {
@@ -222,6 +377,17 @@ struct FishingMapView: View {
                         .presentationCompactAdaptation(.popover)
                 }
             }
+            if location.isDenied {
+                Button {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        openURL(url)
+                    }
+                } label: {
+                    Label("Location is off — turn it on in Settings", systemImage: "location.slash")
+                        .font(.caption2)
+                }
+                .buttonStyle(.borderless)
+            }
             if showHeat {
                 HeatLegend()
             } else {
@@ -249,22 +415,23 @@ private struct GlassCard: ViewModifier {
     }
 }
 
-/// Cold-to-hot key shown while the heat overlay is on; mirrors heatColor's ramp.
+/// Cold-to-hot key shown while the heat overlay is on; mirrors ColorRamp.densityFill's ramp.
 private struct HeatLegend: View {
     var body: some View {
         HStack(spacing: 6) {
-            Text("Cold").font(.caption2).foregroundStyle(.secondary)
-            LinearGradient(
-                colors: [
-                    Color(red: 0, green: 0.1, blue: 1),
-                    Color(red: 0.5, green: 0.1, blue: 0.5),
-                    Color(red: 1, green: 0.1, blue: 0)
-                ],
-                startPoint: .leading, endPoint: .trailing
-            )
-            .frame(width: 90, height: 8)
-            .clipShape(Capsule())
-            Text("Hot").font(.caption2).foregroundStyle(.secondary)
+            Text("Fewer").font(.caption2).foregroundStyle(.secondary)
+            // Discrete swatches, one per band, because that is exactly what the
+            // map draws — a continuous gradient promised a precision the banded
+            // fills do not have.
+            HStack(spacing: 2) {
+                ForEach(0..<ColorRamp.densityBandCount, id: \.self) { band in
+                    Rectangle()
+                        .fill(ColorRamp.densityFill(band: band))
+                        .frame(width: 20, height: 8)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 2))
+            Text("More").font(.caption2).foregroundStyle(.secondary)
             Text("· density of well-rated spots").font(.caption2).foregroundStyle(.tertiary)
         }
     }

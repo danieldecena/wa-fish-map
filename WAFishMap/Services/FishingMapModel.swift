@@ -17,6 +17,10 @@ final class FishingMapModel {
     /// launches, which have no marine area and therefore a neutral rating.
     private(set) var siteAreaName: [AccessSite.ID: String] = [:]
 
+    /// Pier → containing marine area, same point-in-polygon index as launches so pier
+    /// markers and heat zones don't re-scan every polygon on each render.
+    private(set) var pierAreaName: [FishingPier.ID: String] = [:]
+
     var selectedSite: AccessSite? {
         accessSites.first { $0.id == selectedSiteID }
     }
@@ -29,21 +33,6 @@ final class FishingMapModel {
     /// True when the launch sits inside a marine area (vs. inland freshwater).
     func isMarine(_ site: AccessSite) -> Bool {
         areaName(for: site) != nil
-    }
-
-    /// True when a coordinate falls inside any marine area.
-    func isMarine(coordinate: LonLat) -> Bool {
-        marineAreas.contains { $0.contains(coordinate) }
-    }
-
-    /// Resolved guidance for any point: the marine area whose polygon contains it, else
-    /// the freshwater table for its county. Nil only when no guidance applies at all.
-    func fishery(atCoordinate coordinate: LonLat, county: String) -> AreaFishery? {
-        if let marine = marineAreas.first(where: { $0.contains(coordinate) }),
-           let f = guide?.area(named: marine.areaName) {
-            return f
-        }
-        return guide?.freshwater?.fishery(county: county)
     }
 
     /// Resolved guidance for a launch (uses the precomputed area index for its marine
@@ -61,10 +50,24 @@ final class FishingMapModel {
         fishery(for: site)?.rating(inMonth: month)
     }
 
+    /// True when the pier sits inside a marine area (vs. a lake/river pier).
+    func isMarine(_ pier: FishingPier) -> Bool {
+        pierAreaName[pier.id] != nil
+    }
+
+    /// Resolved guidance for a pier (precomputed area index, else freshwater by
+    /// county) — the same chain as launches.
+    func fishery(for pier: FishingPier) -> AreaFishery? {
+        if let area = pierAreaName[pier.id], let marine = guide?.area(named: area) {
+            return marine
+        }
+        return guide?.freshwater?.fishery(county: pier.countyName)
+    }
+
     /// A pier's current-month rating, resolved the same way as launches so piers are
     /// color-coded too (marine by polygon, else freshwater by county).
     func rating(for pier: FishingPier, month: Int) -> FishingRating? {
-        fishery(atCoordinate: pier.coordinate, county: pier.countyName)?.rating(inMonth: month)
+        fishery(for: pier)?.rating(inMonth: month)
     }
 
     enum Resource: String {
@@ -87,10 +90,11 @@ final class FishingMapModel {
     func load(client: HTTPGet = URLSessionHTTPGet(), bundle: Bundle = .main) async {
         loadGuide(bundle: bundle)
         do {
-            let marineData = try await client.data(from: MapScope.marineAreasURL)
-            let siteData = try await client.data(from: MapScope.accessSitesURL)
-            marineAreas = MapScope.filter(marineAreas: try WDFWLayerLoader.marineAreas(from: marineData))
-            accessSites = MapScope.filter(accessSites: try WDFWLayerLoader.accessSites(from: siteData))
+            // Independent layers — fetch concurrently.
+            async let marineData = client.data(from: MapScope.marineAreasURL)
+            async let siteData = client.data(from: MapScope.accessSitesURL)
+            marineAreas = MapScope.filter(marineAreas: try WDFWLayerLoader.marineAreas(from: await marineData))
+            accessSites = MapScope.filter(accessSites: try WDFWLayerLoader.accessSites(from: await siteData))
             indexSitesToAreas()
             statusMessage = "Washington · \(accessSites.count) access sites · live WDFW data"
         } catch {
@@ -106,6 +110,7 @@ final class FishingMapModel {
         if let pierData = try? await client.data(from: MapScope.piersURL),
            let loaded = try? WDFWLayerLoader.piers(from: pierData) {
             piers = loaded
+            indexPiersToAreas()
         }
         isLoading = false
     }
@@ -119,6 +124,17 @@ final class FishingMapModel {
             }
         }
         siteAreaName = map
+    }
+
+    /// Match every pier to the marine area whose polygon contains it (first wins).
+    private func indexPiersToAreas() {
+        var map: [FishingPier.ID: String] = [:]
+        for pier in piers {
+            if let area = marineAreas.first(where: { $0.contains(pier.coordinate) }) {
+                map[pier.id] = area.areaName
+            }
+        }
+        pierAreaName = map
     }
 
     /// Loads the curated guide from the bundle. Absence is non-fatal — the map still

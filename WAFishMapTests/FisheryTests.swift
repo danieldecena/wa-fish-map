@@ -53,6 +53,31 @@ struct FisheryTests {
         #expect(area.inSeason(month: 6).map(\.species) == ["Peak", "Good"])
     }
 
+    @Test func countyOverrideMergesWithStatewideDefaults() {
+        let guide = FreshwaterGuide(
+            species: [
+                SpeciesSeason(species: "Rainbow Trout", bestMonths: [4, 5]),
+                SpeciesSeason(species: "Kokanee", bestMonths: [5, 6], note: "Statewide note"),
+            ],
+            byCounty: ["King": [SpeciesSeason(species: "Kokanee", bestMonths: [6, 7], note: "Local note")]]
+        )
+        let king = guide.fishery(county: "King")
+        // County entry wins for its species (local note kept), defaults inherited after.
+        #expect(king.species.map(\.species) == ["Kokanee", "Rainbow Trout"])
+        #expect(king.species[0].note == "Local note")
+        #expect(king.species[0].bestMonths == [6, 7])
+    }
+
+    @Test func emptyOrMissingCountyOverrideFallsBackToStatewide() {
+        let guide = FreshwaterGuide(
+            species: [SpeciesSeason(species: "Rainbow Trout", bestMonths: [4, 5])],
+            byCounty: ["Empty": []]
+        )
+        // An empty override list must not shadow the default with zero species.
+        #expect(guide.fishery(county: "Empty").species.map(\.species) == ["Rainbow Trout"])
+        #expect(guide.fishery(county: "Unlisted").species.map(\.species) == ["Rainbow Trout"])
+    }
+
     @Test func bundledGuideDecodesAndHasArea13() throws {
         let bundle = try #require(FixtureBundle.loader)
         let url = try #require(bundle.url(forResource: "fisheries", withExtension: "json"))
@@ -61,5 +86,25 @@ struct FisheryTests {
         #expect(!area.species.isEmpty)
         #expect(!guide.disclaimer.isEmpty)
         #expect(URL(string: guide.wdfwURL) != nil)
+    }
+
+    @Test func flaggedMonthCapsPeakToFair() {
+        let flagged = coho.withRisk(months: [9], reason: "Quota-driven")
+        #expect(flagged.rating(inMonth: 9) == .fair)
+    }
+
+    @Test func unflaggedMonthKeepsFullRating() {
+        let flagged = coho.withRisk(months: [9], reason: "Quota-driven")
+        #expect(flagged.rating(inMonth: 10) == .excellent)
+    }
+
+    @Test func capNeverRaisesAWeakRating() {
+        let flagged = coho.withRisk(months: [3], reason: "Quota-driven")
+        #expect(flagged.rating(inMonth: 3) == .poor)
+    }
+
+    @Test func unstampedSpeciesIsUnaffected() {
+        #expect(coho.riskMonths.isEmpty)
+        #expect(coho.rating(inMonth: 9) == .excellent)
     }
 }

@@ -6,8 +6,11 @@ Native MapKit app. Geography overlay + curated seasonal guidance.
 
 **Statewide, live.** `WAFishMap/Models/MapScope.swift` queries WDFW for *all* marine
 areas (`where=1=1`, layer 6) and *all* launches (`where=Launch=1`, layer 0) — no
-county/area filter. The camera auto-fits (`position = .automatic`); `cameraCenter`/
-`cameraSpanDegrees` are only a pre-load fallback. Do not paste `where=` strings into
+county/area filter. The camera opens auto-fit (`position = .automatic`), then eases once to a regional
+span around the user's first location fix — but only if that fix is inside the
+Washington bounding box and the user has not already moved the camera. A fix
+elsewhere keeps the statewide framing, since the data is Washington-only.
+`cameraCenter` is only a pre-load fallback. Do not paste `where=` strings into
 the view.
 
 Launches carry no marine-area code, so each is matched to its area by point-in-polygon
@@ -19,11 +22,12 @@ launches match no area → **neutral (gray) rating**, by design.
 `WAFishMap/Resources/fisheries.json` holds hand-curated, per-area species and
 their best/good months. It drives:
 
-- the red→yellow→orange→green marker/rating (`FishingRating`, computed by month in
+- the blue→amber→orange→red marker/rating (`FishingRating`, computed by month in
   `Fishery.swift` — pure and unit-tested; the *view* injects `Calendar` month, the
   logic never reads the clock)
-- the tap-a-launch detail sheet (`SiteDetailSheet.swift`): what's biting now, best
-  months, and the "Before you go" alerts block.
+- the tap-a-launch detail sheet (`SiteDetailSheet.swift`): NOAA high/low tides
+  for the nearest station, what's biting now, best months, and the "Before you go"
+  alerts block.
 
 Editing rules:
 

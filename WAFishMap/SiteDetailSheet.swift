@@ -1,16 +1,5 @@
 import SwiftUI
 
-extension FishingRating {
-    var color: Color {
-        switch self {
-        case .poor: .red
-        case .fair: .orange
-        case .good: .yellow
-        case .excellent: .green
-        }
-    }
-}
-
 /// Small colored capsule showing the rating. `nil` renders neutral gray — used for
 /// spots with no curated season data yet.
 struct RatingBadge: View {
@@ -53,11 +42,21 @@ struct BitingNowView: View {
                             RatingBadge(rating: s.rating(inMonth: month))
                             Text(s.species).font(.subheadline.weight(.semibold))
                         }
+                        if s.riskMonths.contains(month) {
+                            Label("Season varies — verify", systemImage: "exclamationmark.triangle")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                         Label("Best months: \(Self.monthList(s.bestMonths))", systemImage: "calendar")
                             .font(.caption).foregroundStyle(.secondary)
                         if let bestTime = s.bestTime {
                             Label("Best time: \(bestTime)", systemImage: "clock")
                                 .font(.caption).foregroundStyle(.secondary)
+                        }
+                        if s.riskMonths.contains(month), let why = s.riskReason {
+                            Text(why)
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
                         }
                         if let bait = s.bait {
                             Label(bait, systemImage: "fish")
@@ -117,8 +116,9 @@ struct SiteDetailSheet: View {
     let fishery: AreaFishery?
     let isMarine: Bool
     let guide: FisheryGuide?
-    let month: Int
+    let planDate: Date
 
+    private var month: Int { Calendar.current.component(.month, from: planDate) }
     private var rating: FishingRating? { fishery?.rating(inMonth: month) }
     private var inSeason: [SpeciesSeason] { fishery?.inSeason(month: month) ?? [] }
 
@@ -129,6 +129,11 @@ struct SiteDetailSheet: View {
                     header
                     facilitySection
                     amenitiesSection
+                    TidePredictionsView(
+                        coordinate: site.coordinate,
+                        planDate: planDate,
+                        isMarine: isMarine
+                    )
                     BitingNowView(fishery: fishery, month: month)
                     GuidanceFooter(guide: guide)
                     if !site.directions.isEmpty { directionsSection }
@@ -218,8 +223,9 @@ struct PierDetailSheet: View {
     let fishery: AreaFishery?
     let isMarine: Bool
     let guide: FisheryGuide?
-    let month: Int
+    let planDate: Date
 
+    private var month: Int { Calendar.current.component(.month, from: planDate) }
     private var rating: FishingRating? { fishery?.rating(inMonth: month) }
 
     var body: some View {
@@ -241,6 +247,11 @@ struct PierDetailSheet: View {
                         }
                     }
                     .font(.subheadline)
+                    TidePredictionsView(
+                        coordinate: pier.coordinate,
+                        planDate: planDate,
+                        isMarine: isMarine
+                    )
                     BitingNowView(fishery: fishery, month: month)
                     GuidanceFooter(guide: guide)
                 }
