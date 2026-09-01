@@ -7,8 +7,8 @@ import Foundation
 /// always confirm regulations in the WDFW Fish Washington app.
 enum FishingRating: Int, Comparable, Sendable {
     case poor = 0        // red — nothing notable in season
-    case fair = 1        // yellow — shoulder of a season
-    case good = 2        // orange — a species is in a good stretch
+    case fair = 1        // orange — shoulder of a season
+    case good = 2        // yellow — a species is in a good stretch
     case excellent = 3   // green — a species is at its peak
 
     static func < (lhs: FishingRating, rhs: FishingRating) -> Bool {

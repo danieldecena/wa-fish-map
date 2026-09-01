@@ -19,7 +19,7 @@ launches match no area → **neutral (gray) rating**, by design.
 `WAFishMap/Resources/fisheries.json` holds hand-curated, per-area species and
 their best/good months. It drives:
 
-- the red→yellow→orange→green marker/rating (`FishingRating`, computed by month in
+- the red→orange→yellow→green marker/rating (`FishingRating`, computed by month in
   `Fishery.swift` — pure and unit-tested; the *view* injects `Calendar` month, the
   logic never reads the clock)
 - the tap-a-launch detail sheet (`SiteDetailSheet.swift`): what's biting now, best
