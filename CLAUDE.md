@@ -65,3 +65,34 @@ the editor, not just the test.
 
 If a claim is only true of one lake, it does not belong in this file at all
 until the data model has a waterbody tier.
+
+## Apple's docs are a tool call, not a memory
+
+An `apple-docs` MCP server is registered globally (`~/.claude/mcp/apple-docs/`).
+Check API facts against it rather than recalling them — signatures, deprecations
+and availability move every release, and this project targets iOS 18.0, which is
+newer than most training data.
+
+- `get_apple_doc(page)` — full page with declaration and per-platform availability.
+  Takes a bare symbol (`MKMapView`), a `Framework/Symbol` path, or a docs URL.
+  Works for every framework, indexed or not.
+- `search_apple_docs(query, framework?)` — when you don't know the symbol's name.
+  Search covers Swift, SwiftUI, MapKit, Foundation, UIKit, XCTest, XCUIAutomation
+  and CoreLocation; `index_apple_framework` adds others.
+
+Two things that will otherwise cost a build cycle:
+
+**Fetching `developer.apple.com` directly returns an empty shell.** The site renders
+client-side, so a plain fetch gets the title and nothing else. Appending `.md` to a
+documentation URL returns real markdown — that is what the server does, and why it
+succeeds where a raw fetch quietly returns a stub you might mistake for the page.
+
+**UI automation is no longer in XCTest.** `XCUIElement`, `XCUIElementQuery` and
+their kin live in `XCUIAutomation`; every `XCTest/XCUI*` path 404s. The server
+retries across frameworks and will find it, but write the right one. For the
+record, since it was checked against Apple and belongs here:
+`XCUIElementQuery.containing(_:)` matches elements *containing a descendant* that
+satisfies the predicate — it filters by descendant, not by the element's own
+attributes. That is the whole reason it composes differently from `matching(_:)`.
+
+Quote declarations from the docs. Do not reconstruct them from memory.
