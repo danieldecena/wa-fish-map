@@ -33,6 +33,77 @@ struct ProtectedAreaTests {
                               detailURL: nil, polygon: Self.square).wacCitation.isEmpty)
     }
 
+    private static func mpa(name: String, type: String, wac: String = "220-330-180") -> ProtectedArea {
+        ProtectedArea(name: name, type: type, wac: wac, detailURL: nil, polygon: square)
+    }
+
+    private static let prohibition = "Fishing or shellfishing may be prohibited or limited here."
+
+    /// The four prohibitive types keep the approved wording.
+    @Test(arguments: ["Marine Preserve", "Conservation Area", "Octopus Preserve", "Urchin and Cucumber"])
+    func prohibitiveTypesClaimARestriction(type: String) {
+        #expect(Self.mpa(name: "Golden Gardens", type: type).restrictionSentence == Self.prohibition)
+    }
+
+    /// WDFW asks; it prohibits nothing. Claiming otherwise is the overreach the
+    /// "Not this app" boundary forbids.
+    @Test func aVoluntaryAreaClaimsNoProhibition() {
+        let line = Self.mpa(name: "Sund Rock", type: "Voluntary").detailLine
+        #expect(line.contains("voluntarily avoid"))
+        #expect(!line.contains("prohibited"))
+        #expect(!line.contains("limited"))
+    }
+
+    /// A biotoxin closure is a different authority for a different reason.
+    @Test func aHealthClosureIsNotPresentedAsAFishingRule() {
+        let line = Self.mpa(name: "Liberty Bay", type: "Health Closure").detailLine
+        #expect(line.contains("public-health closure"))
+        #expect(line.contains("not a fishing rule"))
+        #expect(!line.contains("prohibited"))
+    }
+
+    /// WDFW adds types. A type this build has never seen must not inherit a
+    /// prohibition claim by default.
+    @Test(arguments: ["Kelp Reserve", "", "MARINE PRESERVE"])
+    func anUnrecognisedTypeAssertsNoRule(type: String) {
+        let line = Self.mpa(name: "Somewhere New", type: type).detailLine
+        #expect(line.contains("Check WDFW for what applies here."))
+        #expect(!line.contains("prohibited"))
+        #expect(!line.contains("voluntarily"))
+    }
+
+    /// Finding 1: an empty WDFW WAC field must not ship "Marine Preserve — . Fishing…".
+    @Test func anEmptyCitationDropsCleanlyFromTheSentence() {
+        let line = Self.mpa(name: "Golden Gardens", type: "Marine Preserve", wac: "").detailLine
+        #expect(line == "Marine Preserve. \(Self.prohibition)")
+        #expect(!line.contains("— ."))
+        #expect(!line.contains(" . "))
+    }
+
+    @Test func aCitationIsRenderedWhenPresent() {
+        #expect(Self.mpa(name: "Golden Gardens", type: "Marine Preserve").detailLine
+                == "Marine Preserve — WAC 220-330-180. \(Self.prohibition)")
+    }
+
+    /// Finding 2: "Marine Area 12" collides with the app's own marine-area concept,
+    /// so the headline leads with the type and the name moves into the detail line.
+    @Test func aGenericNameLeadsWithTheTypeInstead() {
+        let generic = Self.mpa(name: "Marine Area 12", type: "Octopus Preserve")
+        #expect(generic.hasGenericName)
+        #expect(generic.headline == "Inside an Octopus Preserve")
+        #expect(generic.detailLine.hasPrefix("Marine Area 12 — WAC"))
+        #expect(Self.mpa(name: "Marine Area 12", type: "Urchin and Cucumber").headline
+                == "Inside an Urchin and Cucumber")
+        #expect(Self.mpa(name: "Marine Area 12", type: "Conservation Area").headline
+                == "Inside a Conservation Area")
+    }
+
+    @Test func aPlaceNamedAreaKeepsItsOwnName() {
+        let named = Self.mpa(name: "Golden Gardens", type: "Marine Preserve")
+        #expect(!named.hasGenericName)
+        #expect(named.headline == "Inside Golden Gardens")
+    }
+
     @Test func idIsTheName() {
         #expect(Self.mpa().id == "Golden Gardens")
     }
