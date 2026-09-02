@@ -129,6 +129,7 @@ struct SiteDetailSheet: View {
                     header
                     facilitySection
                     amenitiesSection
+                    DaylightView(coordinate: site.coordinate, planDate: planDate)
                     TidePredictionsView(
                         coordinate: site.coordinate,
                         planDate: planDate,
@@ -247,6 +248,7 @@ struct PierDetailSheet: View {
                         }
                     }
                     .font(.subheadline)
+                    DaylightView(coordinate: pier.coordinate, planDate: planDate)
                     TidePredictionsView(
                         coordinate: pier.coordinate,
                         planDate: planDate,
