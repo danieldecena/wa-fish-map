@@ -58,18 +58,25 @@
 
 ## Known broken
 
-- WeatherKit does not work. Every layer this project controls is correct and
-  verified; the failure is at Apple's token issuance. On a physical iPhone 16 Pro
-  (iOS 27.0), `https://weatherkit.apple.com/v3/token` answers a bare 401,
-  Content-Length 0, no reason, in 97ms over h2:
+- WeatherKit's **native device path** does not work. The service itself is fine:
+  the REST API returns a real forecast for the same coordinate the app fails on,
+  through the same host, on the same team, minutes apart (2026-09-02).
 
-      [com.danieldecena.WAFishMap:weather] WeatherKit hourly fetch failed:
-      Error Domain=WeatherDaemon.WDSJWTAuthenticatorServiceListener.Errors Code=2
+      REST   GET /api/v1/weather/en-US/47.1397/-122.9055?dataSets=forecastHourly
+             -> 200, 25 hours, first hour wind 7 mph @194 deg, precip 20%, 59 F
+      device POST /v3/token (automatic, from the app's entitlement)
+             -> 401, Content-Length 0, no reason
 
-  Not a network failure, not a signing failure, and **not** a missing capability
-  or an unaccepted agreement — all four were ruled out by artifact, not by
-  assumption (decision log, 2026-09-02). Nothing has ever authenticated, which is
-  why the WeatherKit plan shows 0 calls: a 401 dies before it reaches the quota.
+  The REST call authenticates with a Services ID
+  (`com.danieldecena.weatherkit-client`) and key `57C5ZXDJ97`; the device call
+  authenticates with the `com.danieldecena.WAFishMap` App ID entitlement. Same
+  service, two doors, one open. That clears the app code, this Mac, the phone,
+  the network, the licence agreement, the quota, and the WeatherKit service
+  provisioning — all of which were suspected in turn and are now excluded by a
+  positive control rather than by absence of evidence.
+
+  What remains is token issuance for that one App ID. Reproduce with
+  `scripts/weatherkit_rest_probe.py`.
 
   The app degrades honestly throughout: it renders "Wind and rain unavailable
   right now." rather than inventing numbers.
@@ -83,18 +90,41 @@
 
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
-- Run the WeatherKit REST control: create a WeatherKit key and a Services ID in
-  the portal, then sign a developer token and `GET /api/v1/availability`. Same
-  service, different credential path, so it separates "the service is refusing
-  this team through every door" from "only device-side token issuance is broken".
-  A prober is written and its signing is verified; it needs the key id and the
-  Service ID. This outranks filing support, because it decides what the ticket says.
-- Then file code-level support — the evidence bundle is in the decision log
-  entry below, and it is not a "did you enable it" ticket.
+- Re-provision the App ID before escalating: Identifiers > App IDs >
+  `com.danieldecena.WAFishMap`, toggle WeatherKit off, save, toggle it back on,
+  save, then delete the local profile and rebuild so Xcode mints a fresh one.
+  The REST control proves the service works for this team, so a stale server-side
+  registration on that one identifier is the cheapest remaining explanation.
+- If that does not fix it, file code-level support. The ticket now carries a
+  positive control: REST 200 with data and device 401, same team, same host,
+  same coordinate, minutes apart. That is not a "did you enable it" ticket.
 
 Everything else open lives in `TASKS.md`.
 
 ## Decision log
+
+### 2026-09-02 (the REST control: WeatherKit works, the device path does not)
+
+- Finding: WeatherKit serves team 877MLS29T9. `GET /api/v1/availability` returned
+  200 with `forecastHourly` among the datasets, and the weather endpoint returned
+  25 real hours for Boston Harbor — 7 mph at 194 degrees, which is the `SSW 7 mph`
+  the app's wind row would have drawn. The device path returned a bare 401 for the
+  same coordinate minutes earlier.
+- Decided: the control had to sit on the surface that failed. MapKit JS was
+  considered and rejected — its auth is unrelated, so a green MapKit would have
+  said nothing about WeatherKit. The REST API is the same host and the same
+  service, differing only in credential path, which is what makes the contrast
+  mean something.
+- Refused to guess the Service ID. A token whose `sub` is not a registered
+  Services ID is rejected with the same bare 401 as the bug, so trying candidates
+  would have manufactured exactly the false confirmation the control exists to
+  prevent. Same reason the pre-existing `AuthKey_5Z2966W5U2.p8` was not used: a
+  `.p8` carries no record of which service it belongs to, and every Apple key is
+  P-256, so the file cannot answer it.
+- The signer was proved before it was aimed at Apple: signed with a throwaway
+  P-256 key and the output decoded to check the documented header
+  (`alg`/`kid`/`id`), the four claims, and a 64-byte raw r||s signature. A
+  malformed token would also have produced a 401.
 
 ### 2026-09-02 (WeatherKit fault localised to token issuance)
 
