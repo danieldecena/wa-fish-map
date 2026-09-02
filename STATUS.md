@@ -46,25 +46,36 @@
 - Marine sheets show the nearest NDBC buoy's latest wave height and water
   temperature, each with its own timestamp. 135 tests, 22 suites.
 - The WeatherKit device check is one command,
-  `./scripts/verify_weatherkit_device.sh`, and its assertion has been observed to
-  **fail** as well as to exist: run against the simulator with the hardware gate
-  removed, `testWindReadsARealValueOnDevice` failed on all three assertions, the
-  third naming the cause ("Wind and rain unavailable right now."). That is the
-  known-bad input; the device run is the known-good one still outstanding.
+  `./scripts/verify_weatherkit_device.sh`, and it has run end to end on a real
+  iPhone 16 Pro: build, sign, install, launch and drive all succeeded, and the
+  readiness gate reported `tunnel=connected paired=paired developer-mode=enabled`.
+  The assertion has been observed to **fail** against a known-bad input, on the
+  device itself, with the failure message naming what was on screen. A known-GOOD
+  input does not exist yet and cannot until Apple authorises the App ID, so the
+  test is not yet known to be able to pass — see Known broken.
 
 ## Known broken
 
-- WeatherKit's live fetch is still unverified: nobody has seen a real wind speed
-  on screen. The entitlement is real and the code path runs, but a simulator
-  build is ad-hoc signed with no provisioning profile, so the fetch cannot
-  complete there. The app now says so in its own log rather than only rendering
-  "unavailable" — observed 2026-09-02 on the simulator:
-  `[com.danieldecena.WAFishMap:weather] WeatherKit hourly fetch failed: Error
-  Domain=WeatherDaemon.WDSJWTAuthenticatorServiceListener.Errors Code=2`.
-  What changed is the route, not the answer: `./scripts/verify_weatherkit_device.sh`
-  is now one command, and a device `xcodebuild test` is possible at all for the
-  first time (see the signing fix in the log below). Blocked only on hardware —
-  `devicectl` reports the iPhone unpaired with Developer Mode off.
+- WeatherKit does not work, and the cause is on Apple's side, not in this app.
+  Verified on a physical iPhone 16 Pro (iOS 27.0) 2026-09-02, so this is no
+  longer "unverified" — it is a negative result with a named cause. The app's own
+  log and the daemon's agree:
+
+      [com.danieldecena.WAFishMap:weather] WeatherKit hourly fetch failed:
+      Error Domain=WeatherDaemon.WDSJWTAuthenticatorServiceListener.Errors Code=2
+      [com.apple.weather:WeatherDataService] Got JWT token response ...
+      { URL: https://weatherkit.apple.com/v3/token } { Status Code: 401 }
+
+  The request reaches Apple over h2 in 97ms and is refused with a bare 401,
+  Content-Length 0, no reason given. So this is an authorisation refusal, not a
+  network failure and not a signing failure on this machine: the profile really
+  does carry `com.apple.developer.weatherkit`, and `codesign -d --entitlements`
+  confirms it on the installed binary. An entitlement in a profile is Xcode's
+  local claim; the 401 is Apple's server declining to issue a token for this
+  App ID. Next step is in the developer portal, not in Xcode — see Next Up.
+
+  The app degrades honestly throughout: it renders "Wind and rain unavailable
+  right now." rather than inventing numbers.
 - The camera guard has a disclosed residual: a genuine user gesture made BEFORE
   the WDFW load completes is misclassified as non-user, so a later location fix
   would still recentre. Narrower than the bug it replaced, and documented in the
@@ -75,15 +86,50 @@
 
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
-- Attach the iPhone (data cable, unlock, Trust, Developer Mode on) and run
-  `./scripts/verify_weatherkit_device.sh`. It refuses in about a second with the
-  specific unblock if the phone is not ready, and otherwise runs the one XCUITest
-  that asserts a live wind speed is on screen. Tagged `[you]` in TASKS.md because
-  it needs the device, not because a code path is missing.
+- Authorise the App ID for WeatherKit. The device run is done and the phone is
+  no longer the blocker; `https://weatherkit.apple.com/v3/token` returns 401 for
+  `com.danieldecena.WAFishMap`. Check, in order: the WeatherKit capability is
+  enabled on that identifier in Certificates, Identifiers & Profiles; there is no
+  unaccepted Apple Developer Program License Agreement in App Store Connect
+  (an unsigned agreement 401s service endpoints across the board); and allow for
+  propagation, which Apple documents as up to about 30 minutes after first
+  enabling. Then re-run `./scripts/verify_weatherkit_device.sh` — nothing else is
+  needed, and a pass is also the first known-GOOD input this test has ever had.
 
 Everything else open lives in `TASKS.md`.
 
 ## Decision log
+
+### 2026-09-02 (WeatherKit answered: Apple returns 401)
+
+- Finding: WeatherKit fails on hardware for the same reason it fails on the
+  simulator, and neither reason is the one assumed. The simulator's ad-hoc
+  signing was a real obstacle, but removing it changed nothing: the token
+  endpoint returns 401 with an empty body on a correctly-entitled, correctly-
+  signed device build. The question "does the live path work on a phone" is now
+  answered — no — and the remaining work is an account-level authorisation, not
+  code. Nine sessions of this being filed as "needs a device" ended in one run.
+- Decided: keep the swallowed-error Logger permanently. It is what turned a mute
+  "unavailable" into a 401 with a URL in under a minute, on a device where no
+  debugger was attached. Reading the daemon's own subsystem out of the same
+  archive gave the status code the app never sees.
+- Corrected: the 2026-09-02 simulator control run proved less than first claimed.
+  Two of its three assertions used `staticTexts.containing(predicate)`, which
+  filters by *descendant*; a StaticText is a leaf, so those two could never have
+  matched anything and would have "failed correctly" against any input at all.
+  Sourced from the SDK, not from memory — `XCUIAutomation.framework/Headers/
+  XCUIElementQuery.h`: `containingPredicate:` is "elements that contain a
+  descendant matching the specification", `matchingPredicate:` "applies the
+  specified attributes or predicate to the receiver".
+  Only the third, an identifier lookup, was sound. Fixed to `matching(...)`, and
+  the failure message now dumps every label on screen — which is the only reason
+  the device run could be diagnosed from its output. The valid known-bad
+  observation is now the device run itself, where all three fired and the dump
+  showed "Wind and rain unavailable right now.".
+- Noted: a device run that failed at 67s showed two failures and one at 79s
+  showed three, because at 67s the section was still spinning. A fixed timeout
+  around a live fetch makes the failure count itself unstable; the label dump,
+  not the count, is what identifies the state.
 
 ### 2026-09-02 (device signing, WeatherKit diagnosability)
 

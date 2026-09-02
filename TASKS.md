@@ -5,11 +5,13 @@
 - [x] XCUITest target: observe the verify badge, retire the unobservable claims
 - [x] Clamp cluster badges below a readable zoom
 - [x] WeatherKit wind/precip at plan time
-- [ ] [you] Verify WeatherKit on a physical iPhone — the simulator cannot
+- [x] Verify WeatherKit on a physical iPhone — answered: Apple returns 401
+- [ ] [you] Enable WeatherKit on the App ID / accept the dev program agreement
+- [x] Fix the UI query: containing() filters descendants, a StaticText is a leaf
 - [x] Device-sign the test bundles: build-for-testing on generic/platform=iOS — 24bbeff
 - [x] Log the swallowed WeatherKit error in PlanWeatherView — 24bbeff
 - [x] Device-gated UI test asserting a live wind reading on screen
-- [x] Prove the weather test fails on the simulator (known-bad control)
+- [x] Known-bad control for the weather test — observed on the device itself
 - [x] scripts/verify_weatherkit_device.sh + README line
 - [x] Waterbody note tier: restore the Baker Lake sockeye entry
 - [x] Piers outside marine polygons answer freshwater, not neutral

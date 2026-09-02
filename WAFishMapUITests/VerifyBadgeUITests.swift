@@ -32,6 +32,12 @@ final class VerifyBadgeUITests: XCTestCase {
                       file: file, line: line)
     }
 
+    /// A failure that only says "not found" cannot tell a missing value from a
+    /// query that could never match. Name what was on screen instead.
+    private static func labels(_ app: XCUIApplication) -> String {
+        app.staticTexts.allElementsBoundByIndex.map(\.label).joined(separator: " | ")
+    }
+
     private func count(_ app: XCUIApplication, _ id: String) -> Int {
         app.descendants(matching: .any).matching(identifier: id).count
     }
@@ -78,14 +84,17 @@ final class VerifyBadgeUITests: XCTestCase {
         let app = launch(month: "7")
         sheet(app)
 
-        let forecast = app.staticTexts.containing(
-            NSPredicate(format: "label CONTAINS 'not an observation'")).firstMatch
+        // `containing` filters by *descendant*, and a StaticText is a leaf, so it
+        // can never match one. `matching` filters the elements themselves.
+        let forecast = app.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS %@", "not an observation")).firstMatch
         XCTAssertTrue(forecast.waitForExistence(timeout: 60),
-                      "The forecast never resolved, so no live reading was observed.")
+                      "The forecast never resolved. On screen: \(Self.labels(app))")
 
-        let wind = app.staticTexts.containing(
-            NSPredicate(format: "label CONTAINS ' mph'")).firstMatch
-        XCTAssertTrue(wind.exists, "The forecast resolved but no wind speed was drawn.")
+        let wind = app.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS %@", " mph")).firstMatch
+        XCTAssertTrue(wind.exists,
+                      "The forecast resolved but no wind speed was drawn. On screen: \(Self.labels(app))")
 
         XCTAssertFalse(app.staticTexts["Wind and rain unavailable right now."].exists,
                        "The section reported unavailable — the live fetch failed on device.")
