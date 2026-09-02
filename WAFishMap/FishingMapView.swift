@@ -38,7 +38,11 @@ struct FishingMapView: View {
     /// Set once the user pans or zooms. A fix that lands afterwards must not yank
     /// the camera out from under them.
     @State private var userMovedCamera = false
-    /// With `position = .automatic`, MapKit fires a genuine `.onEnd` camera-change
+    /// A one-shot camera move handed to the representable (the recentre-on-fix
+    /// ease). MapKit's own delegate reports real pan/pinch touches, so the
+    /// three-phase `CameraGuardPhase` machine this replaced is gone.
+    @State private var focusRegion: MKCoordinateRegion?
+    /* removed: with `position = .automatic`, MapKit fires a genuine `.onEnd` camera-change
     /// event of its own once before any data exists, and fires a SECOND one when
     /// `accessSites` populates from the network and the camera re-fits to it.
     /// Exempting only the first such event (an ordinal count) let that second,
@@ -52,8 +56,7 @@ struct FishingMapView: View {
     /// (synchronously, before SwiftUI's next render can trigger the re-fit's
     /// `.onEnd`), that one re-fit event is consumed to reach `.settled`, and only
     /// an event in `.settled` is a real user gesture.
-    private enum CameraGuardPhase { case beforeLoad, awaitingPostLoadRefit, settled }
-    @State private var cameraGuardPhase: CameraGuardPhase = .beforeLoad
+    */
     /// Washington's bounding box. A fix outside it belongs to someone travelling,
     /// and centring there would show an empty map — the data is statewide only.
     private static let stateBounds = (
@@ -83,60 +86,21 @@ struct FishingMapView: View {
     }
 
     var body: some View {
-        Map(position: $position, selection: $model.selectedSiteID) {
-            ForEach(model.marineAreas) { area in
-                MapPolygon(coordinates: area.mapCoordinates)
-                    .foregroundStyle(color(forArea: area).opacity(0.12))
-                    .stroke(color(forArea: area).opacity(0.35), lineWidth: 0.75)
-                if cameraDistance < Self.areaLabelMaxDistance {
-                    Annotation("Area \(area.areaName)", coordinate: area.center) {
-                        Text("MA \(area.areaName)")
-                            .font(.caption2.weight(.semibold))
-                            .padding(.horizontal, 5).padding(.vertical, 2)
-                            .background(.ultraThinMaterial, in: Capsule())
-                    }
-                    .annotationTitles(.hidden)
-                }
-            }
-            ForEach(heatZones) { zone in
-                // The real grid cell, tiled. Circles wider than their own cell
-                // overlapped, and translucent overlap composites rather than
-                // maxes, so mediocre neighbours out-darkened a genuinely hot cell.
-                MapPolygon(coordinates: zone.corners.map(\.clLocationCoordinate))
-                    .foregroundStyle(ColorRamp.densityFill(zone.intensity))
-            }
-            if cameraDistance > Self.pinDetailMaxDistance {
-                ForEach(pinClusters) { cluster in
-                    clusterAnnotation(cluster)
-                }
-            } else {
-                ForEach(model.accessSites) { site in
-                    Marker(site.facilityName,
-                           systemImage: site.hasLaunch ? "anchor.fill" : "figure.fishing",
-                           coordinate: site.mapCoordinate)
-                        .tint(color(forSite: site))
-                        .tag(site.id)
-                }
-                ForEach(model.piers) { pier in
-                    Marker(pier.name, systemImage: "fish.fill", coordinate: pier.mapCoordinate)
-                        .tint(rating(for: pier)?.color ?? .gray)
-                        .tag(pier.id)
-                }
-            }
-            UserAnnotation()
-        }
-        // Drain the basemap while the overlay is on. A translucent fill takes its
-        // apparent colour from what is under it, so over the full-colour map one
-        // density band read as three different colours depending on land, water
-        // or city. A neutral ground is what makes the bands mean one thing.
-        .mapStyle(.standard(
-            emphasis: showHeat ? .muted : .automatic,
-            pointsOfInterest: .including(landmarkCategories)
-        ))
-        .mapControls {
-            MapUserLocationButton()
-            MapCompass()
-        }
+        FishingMapRepresentable(
+            annotations: siteAnnotations,
+            areas: model.marineAreas,
+            areaColors: areaColors,
+            heatZones: heatZones,
+            showHeat: showHeat,
+            showAreaLabels: cameraDistance < Self.areaLabelMaxDistance,
+            pointsOfInterest: landmarkCategories,
+            selectedID: $model.selectedSiteID,
+            cameraDistance: $cameraDistance,
+            cameraCenter: $cameraCenter,
+            userMovedCamera: $userMovedCamera,
+            focusRegion: $focusRegion
+        )
+        .ignoresSafeArea()
         .safeAreaInset(edge: .top) { dateControl }
         .safeAreaInset(edge: .bottom) { statusBar }
         .modifier(AdaptiveDetail(item: selectedSiteBinding) { site in
@@ -184,30 +148,24 @@ struct FishingMapView: View {
             location.requestIfNeeded()
             await model.load()
             recomputeHeatZones()
-            // accessSites is now populated, so MapKit's .automatic camera is about
-            // to re-fit to it — that re-fit is the event this phase exists to catch.
-            cameraGuardPhase = .awaitingPostLoadRefit
         }
         .onChange(of: showHeat) { recomputeHeatZones() }
         .onChange(of: Self.heatCellDegrees(cameraDistance)) { recomputeHeatZones() }
         .onChange(of: currentMonth) { recomputeHeatZones() }
         .onChange(of: selectedSpecies) { recomputeHeatZones() }
         .onChange(of: location.fix?.latitude) { recenterOnFixIfAppropriate() }
-        .onMapCameraChange(frequency: .onEnd) { context in
-            switch cameraGuardPhase {
-            case .beforeLoad:
-                break // MapKit's own pre-data fit; not the user
-            case .awaitingPostLoadRefit:
-                cameraGuardPhase = .settled // consume the data-triggered re-fit; still not the user
-            case .settled:
-                userMovedCamera = true
-            }
-            cameraDistance = context.camera.distance
-            cameraCenter = LonLat(
-                longitude: context.camera.centerCoordinate.longitude,
-                latitude: context.camera.centerCoordinate.latitude
-            )
-        }
+    }
+
+    /// Sites and piers as MapKit annotations, ratings resolved up front.
+    private var siteAnnotations: [SiteAnnotation] {
+        model.accessSites.map { SiteAnnotation(site: $0, rating: rating(for: $0)) }
+            + model.piers.map { SiteAnnotation(pier: $0, rating: rating(for: $0)) }
+    }
+
+    private var areaColors: [String: Color] {
+        var colors: [String: Color] = [:]
+        for area in model.marineAreas { colors[area.id] = color(forArea: area) }
+        return colors
     }
 
     // MARK: Rating → color (nil rating renders neutral gray)
@@ -250,7 +208,7 @@ struct FishingMapView: View {
         } else {
             Annotation("", coordinate: cluster.center.clLocationCoordinate) {
                 ClusterMark(count: cluster.count, color: cluster.bestRating?.color ?? .gray)
-                    .onTapGesture { zoomToCluster(cluster) }
+
             }
             .annotationTitles(.hidden)
         }
@@ -258,14 +216,11 @@ struct FishingMapView: View {
 
     private func zoomToCluster(_ cluster: MapCluster) {
         userMovedCamera = true
-        cameraGuardPhase = .settled
         let span = cluster.cellDegrees * 2.5
-        withAnimation(.easeInOut(duration: 0.4)) {
-            position = .region(MKCoordinateRegion(
-                center: cluster.center.clLocationCoordinate,
-                span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)
-            ))
-        }
+        focusRegion = MKCoordinateRegion(
+            center: cluster.center.clLocationCoordinate,
+            span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)
+        )
     }
 
     // MARK: Heat zones (density of good-rated spots, cold→hot)
@@ -302,12 +257,10 @@ struct FishingMapView: View {
     /// said where they want to be.
     private func recenterOnFixIfAppropriate() {
         guard !userMovedCamera, let fix = location.fix, Self.isInWashington(fix) else { return }
-        withAnimation(.easeInOut(duration: 0.6)) {
-            position = .region(MKCoordinateRegion(
-                center: fix,
-                span: MKCoordinateSpan(latitudeDelta: 0.9, longitudeDelta: 0.9)
-            ))
-        }
+        focusRegion = MKCoordinateRegion(
+            center: fix,
+            span: MKCoordinateSpan(latitudeDelta: 0.9, longitudeDelta: 0.9)
+        )
     }
 
     private var selectedSiteBinding: Binding<AccessSite?> {
