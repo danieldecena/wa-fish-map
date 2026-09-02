@@ -4,7 +4,8 @@
 - [x] MKMapView migration: MapKit clustering, then chart tiles if a URL resolves
 - [x] XCUITest target: observe the verify badge, retire the unobservable claims
 - [x] Clamp cluster badges below a readable zoom
-- [ ] WeatherKit wind/precip at plan time
+- [x] WeatherKit wind/precip at plan time
+- [ ] [you] Verify WeatherKit on a physical iPhone — the simulator cannot
 - [x] Waterbody note tier: restore the Baker Lake sockeye entry
 - [x] Piers outside marine polygons answer freshwater, not neutral
 - [x] Index piers against Marine Protected Areas too
