@@ -68,7 +68,8 @@
 
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
-Everything else open lives in `TASKS.md`.
+
+Everything else open lives in `TASKS.md`, which has no open items.
 
 ## Decision log
 
