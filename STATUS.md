@@ -45,16 +45,26 @@
   facility list. Baker Lake sockeye is its first row.
 - Marine sheets show the nearest NDBC buoy's latest wave height and water
   temperature, each with its own timestamp. 135 tests, 22 suites.
+- The WeatherKit device check is one command,
+  `./scripts/verify_weatherkit_device.sh`, and its assertion has been observed to
+  **fail** as well as to exist: run against the simulator with the hardware gate
+  removed, `testWindReadsARealValueOnDevice` failed on all three assertions, the
+  third naming the cause ("Wind and rain unavailable right now."). That is the
+  known-bad input; the device run is the known-good one still outstanding.
 
 ## Known broken
 
-- WeatherKit's live fetch is unverified. The entitlement is real (a device build
-  with `-allowProvisioningUpdates` minted a profile carrying
-  `com.apple.developer.weatherkit`) and the code path runs, but the simulator
-  cannot complete it: a simulator build is ad-hoc signed with no provisioning
-  profile, so the log shows `Failed to generate jwt token ... Code=2`. The view
-  degrades to "unavailable" rather than inventing numbers. Nobody has yet seen a
-  real wind speed on screen — that needs a physical iPhone.
+- WeatherKit's live fetch is still unverified: nobody has seen a real wind speed
+  on screen. The entitlement is real and the code path runs, but a simulator
+  build is ad-hoc signed with no provisioning profile, so the fetch cannot
+  complete there. The app now says so in its own log rather than only rendering
+  "unavailable" — observed 2026-09-02 on the simulator:
+  `[com.danieldecena.WAFishMap:weather] WeatherKit hourly fetch failed: Error
+  Domain=WeatherDaemon.WDSJWTAuthenticatorServiceListener.Errors Code=2`.
+  What changed is the route, not the answer: `./scripts/verify_weatherkit_device.sh`
+  is now one command, and a device `xcodebuild test` is possible at all for the
+  first time (see the signing fix in the log below). Blocked only on hardware —
+  `devicectl` reports the iPhone unpaired with Developer Mode off.
 - The camera guard has a disclosed residual: a genuine user gesture made BEFORE
   the WDFW load completes is misclassified as non-user, so a later location fix
   would still recentre. Narrower than the bug it replaced, and documented in the
@@ -65,13 +75,48 @@
 
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
-- Run the app on a physical iPhone once, to see WeatherKit return real numbers
-  and to confirm the buoy section against live NDBC. Tagged `[you]` in TASKS.md
-  because it needs the device, not because a code path is missing.
+- Attach the iPhone (data cable, unlock, Trust, Developer Mode on) and run
+  `./scripts/verify_weatherkit_device.sh`. It refuses in about a second with the
+  specific unblock if the phone is not ready, and otherwise runs the one XCUITest
+  that asserts a live wind speed is on screen. Tagged `[you]` in TASKS.md because
+  it needs the device, not because a code path is missing.
 
 Everything else open lives in `TASKS.md`.
 
 ## Decision log
+
+### 2026-09-02 (device signing, WeatherKit diagnosability)
+
+- Decided: scope `CODE_SIGN_ENTITLEMENTS` to the app target instead of the
+  project. It sat on the two PBXProject-level configs, so all three targets
+  inherited it and both test bundles claimed `com.apple.developer.weatherkit`
+  under bundle ids whose App IDs have no such capability. Ad-hoc simulator
+  signing hides this completely, which is why it survived every green run to
+  date. `xcodebuild build-for-testing -destination 'generic/platform=iOS'`
+  reproduces it with no hardware attached and was the whole diagnosis:
+  `error: Entitlement com.apple.developer.weatherkit not found and could not be
+  included in profile ... (in target 'WAFishMapUITests')`. A device
+  `xcodebuild test` had therefore never been possible — the verification had no
+  route that did not end in reading a screenshot.
+- Decided: the success sentinel for the weather section is the "not an
+  observation" footer, not the `planWeatherSection` identifier. That identifier
+  is on the header `Text`, so it renders in every state including the spinner and
+  the failure string; asserting on it would have passed while nothing had loaded.
+  The footer renders only when a `PlanWeather` exists.
+- Decided: log the error `PlanWeatherView.load()` was discarding. The `catch`
+  bound `error` and threw it away, and the app had no logging at all, so a JWT
+  refusal and a dropped network rendered the same single string and were
+  indistinguishable afterwards. One `Logger` line now attributes the failure from
+  the app's own subsystem rather than from WeatherDaemon's.
+- Decided: `verify_weatherkit_device.sh` refuses ambiguity rather than picking a
+  device. It filters `devicectl` to physical devices and exits if there are zero
+  or more than one, then checks pairing and Developer Mode before building. The
+  2026-09-01 attempt was lost precisely to an iPad silently standing in for the
+  iPhone and then dropping out mid-build.
+- Noted: `xcodebuild ... | tail -60` reports the exit status of `tail`, so the
+  first device-signing run looked like a success (exit 0) while the log said
+  `TEST BUILD FAILED`. Only the text was the observation. Later runs use
+  `set -o pipefail`.
 
 ### 2026-09-01 (UI test target, zoom clamp, piers, waterbody tier)
 

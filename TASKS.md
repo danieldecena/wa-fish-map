@@ -6,11 +6,11 @@
 - [x] Clamp cluster badges below a readable zoom
 - [x] WeatherKit wind/precip at plan time
 - [ ] [you] Verify WeatherKit on a physical iPhone — the simulator cannot
-- [ ] Device-sign the test bundles: build-for-testing on generic/platform=iOS
-- [ ] Log the swallowed WeatherKit error in PlanWeatherView
-- [ ] Device-gated UI test asserting a live wind reading on screen
-- [ ] Prove the weather test fails on the simulator (known-bad control)
-- [ ] scripts/verify_weatherkit_device.sh + README line
+- [x] Device-sign the test bundles: build-for-testing on generic/platform=iOS — 24bbeff
+- [x] Log the swallowed WeatherKit error in PlanWeatherView — 24bbeff
+- [x] Device-gated UI test asserting a live wind reading on screen
+- [x] Prove the weather test fails on the simulator (known-bad control)
+- [x] scripts/verify_weatherkit_device.sh + README line
 - [x] Waterbody note tier: restore the Baker Lake sockeye entry
 - [x] Piers outside marine polygons answer freshwater, not neutral
 - [x] Index piers against Marine Protected Areas too
