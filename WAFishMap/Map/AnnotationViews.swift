@@ -34,9 +34,10 @@ final class SiteMarkerView: MKMarkerAnnotationView {
         }
     }
 
-    /// Same glyph and tint the SwiftUI `Marker`s carried: anchor for a launch,
-    /// an angler for a shore-only site, a fish for a pier; tint is the rating
-    /// colour, neutral gray when unrated.
+    /// A boat for a launch, an angler for a shore-only site, a fish for a pier;
+    /// tint is the rating colour, neutral gray when unrated. `anchor.fill` (the
+    /// original SwiftUI `Marker` glyph) is not a real SF Symbol — it resolves to
+    /// nil and MapKit silently falls back to a default pin.
     private func apply(_ annotation: MKAnnotation?) {
         guard let site = annotation as? SiteAnnotation else { return }
         markerTintColor = UIColor(site.rating?.color ?? .gray)
@@ -45,7 +46,7 @@ final class SiteMarkerView: MKMarkerAnnotationView {
 
     static func symbol(for kind: SiteAnnotation.Kind) -> String {
         switch kind {
-        case .launch: "anchor.fill"
+        case .launch: "sailboat.fill"
         case .shore: "figure.fishing"
         case .pier: "fish.fill"
         }
