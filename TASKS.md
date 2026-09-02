@@ -9,7 +9,7 @@
 - [x] Piers outside marine polygons answer freshwater, not neutral
 - [x] Index piers against Marine Protected Areas too
 - [x] Launch pins draw a default marker, anchor.fill is not a symbol
-- [ ] Wave height + water temp from NDBC (no depth)
+- [x] Wave height + water temp from NDBC (no depth)
 - [x] Daylight row in the detail sheets — 72bec59
 - [x] Layered OS27 app icon — 2 vector layers + document gradient fill
 - [x] Tap zooms count as a user camera move; protected-area default is unavailable — 15c4b5c

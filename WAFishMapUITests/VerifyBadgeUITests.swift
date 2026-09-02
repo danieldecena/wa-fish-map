@@ -46,6 +46,19 @@ final class VerifyBadgeUITests: XCTestCase {
                              "The season-varies badge never appeared for a capped species.")
     }
 
+    /// The buoy section is wired into the marine sheet. Asserts the section is
+    /// present, not what it says: the readings come from a live NDBC fetch, so
+    /// asserting a number here would make the test fail whenever a buoy is down
+    /// — a test of NOAA's uptime, not of this app.
+    func testTheBuoySectionIsPresentOnAMarineSite() {
+        let app = launch(month: "7")
+        sheet(app)
+
+        let section = app.descendants(matching: .any)["buoySection"].firstMatch
+        XCTAssertTrue(section.waitForExistence(timeout: 30),
+                      "The on-the-water section is missing from a marine site sheet.")
+    }
+
     /// The control. Every month in area 13 flags something, so an absence test
     /// is impossible here — but selectivity is still checkable: the badge must
     /// appear on *some* species and not all of them. A badge rendered

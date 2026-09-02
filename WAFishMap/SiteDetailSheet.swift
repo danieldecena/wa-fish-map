@@ -181,6 +181,7 @@ struct SiteDetailSheet: View {
                         planDate: planDate,
                         isMarine: isMarine
                     )
+                    BuoyConditionsView(coordinate: site.coordinate, isMarine: isMarine)
                     ProtectedAreaSection(check: protectedAreaCheck)
                     BitingNowView(fishery: fishery, month: month)
                     GuidanceFooter(guide: guide)
@@ -305,6 +306,7 @@ struct PierDetailSheet: View {
                         planDate: planDate,
                         isMarine: isMarine
                     )
+                    BuoyConditionsView(coordinate: pier.coordinate, isMarine: isMarine)
                     ProtectedAreaSection(check: protectedAreaCheck)
                     BitingNowView(fishery: fishery, month: month)
                     GuidanceFooter(guide: guide)
