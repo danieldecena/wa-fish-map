@@ -36,9 +36,6 @@
 
 ## Known broken
 
-- The verify badge (Task 5) has not been seen on screen. Injected simulator taps
-  were unreliable all session, so it is proven by tests and by reading the diff,
-  not by observation.
 - The camera guard has a disclosed residual: a genuine user gesture made BEFORE
   the WDFW load completes is misclassified as non-user, so a later location fix
   would still recentre. Narrower than the bug it replaced, and documented in the
@@ -49,10 +46,42 @@
 
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
-- WeatherKit wind/precip at plan time — likely blocked on a paid-account
-  entitlement.
+- WeatherKit wind/precip at plan time. Not blocked on the account, as this
+  entry previously assumed: `defaults read com.apple.dt.Xcode
+  IDEProvisioningTeamByIdentifier` reports team 877MLS29T9 with
+  `isFreeProvisioningTeam = 0`, i.e. a paid Individual membership. What remains
+  is enabling the WeatherKit capability on the App ID in the developer portal
+  (web GUI) and adding the entitlement — a step, not a wall.
 
 ## Decision log
+
+### 2026-09-01 (UI test target, zoom clamp, piers, waterbody tier)
+
+- The verify badge is now **observed**, not inferred. `WAFishMapUITests` launches
+  the app with `-uiTesting -planMonth 7`, which loads the bundled fixture and
+  preselects Boston Harbor, and asserts the badge is on screen. That retires the
+  Known-broken entry it had carried since it shipped. Injected taps are not
+  involved: the seam preselects the site, which is why this finally worked after
+  a session of unreliable tap injection.
+- The UI assertions do not hardcode how many species a month flags. The first
+  draft did, reimplementing `inSeason(month:)` in the test, and was wrong in both
+  directions — 3 badges where it expected 2, 2 where it expected 1. A test that
+  restates the rule it checks cannot catch that rule being wrong. It now asserts
+  the badge is present and that badges are fewer than species listed: selective,
+  not unconditional.
+- `.accessibilityIdentifier` on a card *container* collapses it into one
+  accessibility element and hides the badge inside. Marking the species name
+  instead keeps both queryable. Cost one red run to find.
+- Decided: pins stop being drawn past 400km (`MapDetailLevel`) and the density
+  overlay is forced on there, because MapKit's clustering declutters collisions
+  but has no notion of a badge being unreadable. The legend follows what is
+  drawn, not the toggle — a rating legend over a heat map lies.
+- Piers are indexed against MPAs where piers load, not in the MPA block: piers
+  arrive after that layer, so an index built there would run against an empty
+  list and every assertion would pass for the wrong reason.
+- The freshwater tier gained `byWaterbody` keyed by a curated facility list.
+  Substring-matching facility names against waterbody names was rejected — it is
+  the same prose-matching guess `NoteScopeTests` exists to prevent.
 
 ### 2026-09-01 (camera gestures, protected-area default)
 

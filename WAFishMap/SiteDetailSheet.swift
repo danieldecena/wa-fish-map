@@ -40,7 +40,12 @@ struct BitingNowView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack {
                             RatingBadge(rating: s.rating(inMonth: month))
+                            // Counts the species on screen for the UI test. It sits
+                            // on the name, not the card: an identifier on the card
+                            // container makes SwiftUI collapse it into one element
+                            // and the badge inside stops being queryable.
                             Text(s.species).font(.subheadline.weight(.semibold))
+                                .accessibilityIdentifier("speciesName")
                         }
                         if s.riskMonths.contains(month) {
                             Label("Season varies — verify", systemImage: "exclamationmark.triangle")

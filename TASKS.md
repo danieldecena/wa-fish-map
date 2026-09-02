@@ -2,7 +2,7 @@
 
 - [x] Flag sites inside WDFW Marine Protected Areas (44, live, unused)
 - [x] MKMapView migration: MapKit clustering, then chart tiles if a URL resolves
-- [ ] XCUITest target: observe the verify badge, retire the unobservable claims
+- [x] XCUITest target: observe the verify badge, retire the unobservable claims
 - [x] Clamp cluster badges below a readable zoom
 - [ ] WeatherKit wind/precip at plan time
 - [x] Waterbody note tier: restore the Baker Lake sockeye entry
