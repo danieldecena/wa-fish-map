@@ -157,6 +157,28 @@ struct FishingMapView: View {
                 planDate: planDate
             )
         })
+        .overlay {
+            // Total load failure (no live data, no bundled sample): the kit's
+            // empty-state pattern instead of a bare caption in the status bar.
+            if !model.isLoading && model.accessSites.isEmpty {
+                ContentUnavailableView {
+                    Label("No fishing data", systemImage: "wifi.slash")
+                } description: {
+                    Text(model.statusMessage)
+                } actions: {
+                    Button("Try Again") {
+                        Task {
+                            model.isLoading = true
+                            await model.load()
+                            recomputeHeatZones()
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20))
+                .padding(40)
+            }
+        }
         .task {
             location.requestIfNeeded()
             await model.load()
