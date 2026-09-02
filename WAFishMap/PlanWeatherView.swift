@@ -16,6 +16,15 @@ struct PlanWeatherView: View {
     @State private var weather: PlanWeather?
     @State private var failed = false
     @State private var outOfRange = false
+    @State private var attribution: WeatherAttribution?
+
+    @Environment(\.colorScheme) private var colorScheme
+
+    /// One fetch per place-and-hour for the life of the process. The sheet is
+    /// rebuilt on every tap, so without this reopening the same site in the same
+    /// hour spends another call against the 500k/month quota for an answer that
+    /// cannot have changed.
+    @MainActor private static var cache: [String: PlanWeather] = [:]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -49,6 +58,7 @@ struct PlanWeatherView: View {
             Text("Forecast for \(Self.hourLabel.string(from: weather.hour)), not an observation.")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
+            attributionMark
         } else if outOfRange {
             // The forecast does not reach the chosen date. Saying which is the
             // point — falling back to the nearest available hour would answer a
@@ -62,6 +72,33 @@ struct PlanWeatherView: View {
                 .foregroundStyle(.secondary)
         } else {
             ProgressView()
+        }
+    }
+
+    /// Apple requires attribution for any published use of WeatherKit, and the
+    /// mark and legal link come from the service rather than being hardcoded, so
+    /// they follow whatever Apple serves. Drawn only alongside a real reading:
+    /// attributing data that failed to load would be a claim about nothing.
+    @ViewBuilder private var attributionMark: some View {
+        if let attribution {
+            Link(destination: attribution.legalPageURL) {
+                HStack(spacing: 4) {
+                    AsyncImage(
+                        url: colorScheme == .dark
+                            ? attribution.combinedMarkDarkURL
+                            : attribution.combinedMarkLightURL
+                    ) { image in
+                        image.resizable().scaledToFit()
+                    } placeholder: {
+                        Text(attribution.serviceName).font(.caption2)
+                    }
+                    .frame(height: 12)
+                    Image(systemName: "chevron.right").font(.system(size: 8))
+                }
+                .foregroundStyle(.tertiary)
+            }
+            .accessibilityIdentifier("weatherAttribution")
+            .accessibilityLabel("Weather data by \(attribution.serviceName). Opens legal attribution.")
         }
     }
 
@@ -82,9 +119,14 @@ struct PlanWeatherView: View {
     private static let log = Logger(subsystem: "com.danieldecena.WAFishMap", category: "weather")
 
     private func load() async {
-        weather = nil
         failed = false
         outOfRange = false
+        if let hit = Self.cache[hourKey] {
+            weather = hit
+            await loadAttribution()
+            return
+        }
+        weather = nil
         do {
             let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
             let forecast = try await WeatherService.shared.weather(for: location, including: .hourly)
@@ -99,9 +141,22 @@ struct PlanWeatherView: View {
                 precipitationChance: hour.precipitationChance,
                 temperatureFahrenheit: hour.temperature.converted(to: .fahrenheit).value
             )
+            Self.cache[hourKey] = weather
+            await loadAttribution()
         } catch {
             failed = true
             Self.log.error("WeatherKit hourly fetch failed: \(error, privacy: .public)")
+        }
+    }
+
+    /// Attribution failing must not blank a good reading, so it is fetched apart
+    /// from the forecast and its failure only costs the mark.
+    private func loadAttribution() async {
+        guard attribution == nil else { return }
+        do {
+            attribution = try await WeatherService.shared.attribution
+        } catch {
+            Self.log.error("WeatherKit attribution fetch failed: \(error, privacy: .public)")
         }
     }
 }
