@@ -28,14 +28,33 @@
 - Marine launch and pier sheets show that day's NOAA high/low tides for the
   nearest bundled station (170 WA + Columbia-mouth). Follows the map date;
   next extreme after the plan time is highlighted. Full suite: 73 tests, 12 suites.
-- Zoomed-out pins cluster on the same grid as the heat overlay. Count and best
-  rating; tap zooms into the cell. Heat stays a toggle. 78 tests, 13 suites.
+- Pins cluster via MapKit's `clusteringIdentifier` (the hand-rolled grid
+  clusterer was deleted in the MKMapView migration). Past 400km they are not
+  drawn at all — `MapDetailLevel` — and the density overlay is forced on so the
+  map is never blank; the legend follows what is drawn, not the toggle.
 - Species-first picker recolours pins, clusters, heat, and area fills by an
   exact species name from the guide; missing listings stay gray. Date picker
   unchanged. 80 tests, 13 suites.
+- `WAFishMapUITests` is a real target and the verify badge is **observed on
+  screen**, not inferred. `-uiTesting` loads the bundled fixture and preselects a
+  site so no tap injection is involved; `-planMonth n` pins the month.
+- Piers are checked against Marine Protected Areas and answer the same
+  three-way `inside / clear / unavailable` as launches, through a shared
+  `ProtectedAreaSection`. Piers outside every marine polygon answer freshwater.
+- `freshwater.byWaterbody` pins a claim to one lake or river, keyed by a curated
+  facility list. Baker Lake sockeye is its first row.
+- Marine sheets show the nearest NDBC buoy's latest wave height and water
+  temperature, each with its own timestamp. 135 tests, 22 suites.
 
 ## Known broken
 
+- WeatherKit's live fetch is unverified. The entitlement is real (a device build
+  with `-allowProvisioningUpdates` minted a profile carrying
+  `com.apple.developer.weatherkit`) and the code path runs, but the simulator
+  cannot complete it: a simulator build is ad-hoc signed with no provisioning
+  profile, so the log shows `Failed to generate jwt token ... Code=2`. The view
+  degrades to "unavailable" rather than inventing numbers. Nobody has yet seen a
+  real wind speed on screen — that needs a physical iPhone.
 - The camera guard has a disclosed residual: a genuine user gesture made BEFORE
   the WDFW load completes is misclassified as non-user, so a later location fix
   would still recentre. Narrower than the bug it replaced, and documented in the
@@ -46,12 +65,11 @@
 
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
-- WeatherKit wind/precip at plan time. Not blocked on the account, as this
-  entry previously assumed: `defaults read com.apple.dt.Xcode
-  IDEProvisioningTeamByIdentifier` reports team 877MLS29T9 with
-  `isFreeProvisioningTeam = 0`, i.e. a paid Individual membership. What remains
-  is enabling the WeatherKit capability on the App ID in the developer portal
-  (web GUI) and adding the entitlement — a step, not a wall.
+- Run the app on a physical iPhone once, to see WeatherKit return real numbers
+  and to confirm the buoy section against live NDBC. Tagged `[you]` in TASKS.md
+  because it needs the device, not because a code path is missing.
+
+Everything else open lives in `TASKS.md`.
 
 ## Decision log
 
@@ -79,6 +97,21 @@
 - Piers are indexed against MPAs where piers load, not in the MPA block: piers
   arrive after that layer, so an index built there would run against an empty
   list and every assertion would pass for the wrong reason.
+- NDBC readings are per-field, not per-observation: station 46088's newest row
+  carries a wave height and `MM` for water temperature, with the real
+  temperature one row older. Each reading keeps its own timestamp. `MM` is
+  absence — read as zero it would report flat calm water at freezing.
+- Corrected twice on WeatherKit, both times by checking instead of reasoning.
+  "Blocked on a paid account" was wrong (the membership is paid); "the
+  capability must be enabled by hand in the portal" was also wrong
+  (`-allowProvisioningUpdates` enabled it and minted the profile). The live
+  fetch still fails on the simulator for an unrelated reason — ad-hoc signing,
+  no profile, no JWT — so the feature ships verified at build and unverified at
+  runtime, and says so.
+- The graphify post-commit hook is installed in all 11 repos that have a graph,
+  and new repos get a guarded template hook via `init.templateDir`. Deliberately
+  not a global `core.hooksPath`: that overrides every repo's own `.git/hooks`
+  and would silently disable the gitleaks and claude-dir-guard hooks in `~/`.
 - The freshwater tier gained `byWaterbody` keyed by a curated facility list.
   Substring-matching facility names against waterbody names was rejected — it is
   the same prose-matching guess `NoteScopeTests` exists to prevent.
