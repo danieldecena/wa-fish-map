@@ -32,6 +32,11 @@ enum WDFWLayerLoader {
             .features.compactMap(AccessSite.init(feature:))
     }
 
+    static func protectedAreas(from data: Data) throws -> [ProtectedArea] {
+        try collection(ProtectedArea.Properties.self, from: data)
+            .features.compactMap(ProtectedArea.init(feature:))
+    }
+
     static func piers(from data: Data) throws -> [FishingPier] {
         try collection(FishingPier.Properties.self, from: data)
             .features.compactMap(FishingPier.init(feature:))

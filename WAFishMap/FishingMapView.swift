@@ -145,7 +145,8 @@ struct FishingMapView: View {
                 fishery: model.fishery(for: site),
                 isMarine: model.isMarine(site),
                 guide: model.guide,
-                planDate: planDate
+                planDate: planDate,
+                protectedArea: model.protectedArea(for: site)
             )
         })
         .modifier(AdaptiveDetail(item: selectedPierBinding) { pier in

@@ -117,6 +117,7 @@ struct SiteDetailSheet: View {
     let isMarine: Bool
     let guide: FisheryGuide?
     let planDate: Date
+    var protectedArea: ProtectedArea?
 
     private var month: Int { Calendar.current.component(.month, from: planDate) }
     private var rating: FishingRating? { fishery?.rating(inMonth: month) }
@@ -135,6 +136,7 @@ struct SiteDetailSheet: View {
                         planDate: planDate,
                         isMarine: isMarine
                     )
+                    protectedAreaSection
                     BitingNowView(fishery: fishery, month: month)
                     GuidanceFooter(guide: guide)
                     if !site.directions.isEmpty { directionsSection }
@@ -143,6 +145,24 @@ struct SiteDetailSheet: View {
             }
             .navigationTitle(site.facilityName)
             .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    /// Shown above "What's biting" so the qualifier is read before the guidance.
+    @ViewBuilder private var protectedAreaSection: some View {
+        if let mpa = protectedArea {
+            VStack(alignment: .leading, spacing: 4) {
+                Label("Inside \(mpa.name)", systemImage: "exclamationmark.shield")
+                    .font(.subheadline.weight(.semibold))
+                Text("\(mpa.type) — \(mpa.wac). Fishing or shellfishing may be prohibited or limited here.")
+                    .font(.caption)
+                if let url = mpa.detailURL {
+                    Link("WDFW details", destination: url).font(.caption)
+                }
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.orange.opacity(0.14), in: RoundedRectangle(cornerRadius: 10))
         }
     }
 

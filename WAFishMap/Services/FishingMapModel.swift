@@ -6,6 +6,7 @@ final class FishingMapModel {
     var marineAreas: [MarineArea] = []
     var accessSites: [AccessSite] = []
     var piers: [FishingPier] = []
+    var protectedAreas: [ProtectedArea] = []
     var statusMessage = "Loading…"
     var isLoading = true
     var selectedSiteID: AccessSite.ID?
@@ -20,6 +21,14 @@ final class FishingMapModel {
     /// Pier → containing marine area, same point-in-polygon index as launches so pier
     /// markers and heat zones don't re-scan every polygon on each render.
     private(set) var pierAreaName: [FishingPier.ID: String] = [:]
+
+    /// Site → the Marine Protected Area whose polygon contains it (first match).
+    private(set) var siteProtectedArea: [AccessSite.ID: ProtectedArea] = [:]
+
+    /// The Marine Protected Area a site sits inside, if any.
+    func protectedArea(for site: AccessSite) -> ProtectedArea? {
+        siteProtectedArea[site.id]
+    }
 
     var selectedSite: AccessSite? {
         accessSites.first { $0.id == selectedSiteID }
@@ -106,6 +115,12 @@ final class FishingMapModel {
                 statusMessage = "Couldn't load WDFW data — check your connection"
             }
         }
+        // Marine Protected Areas are a live-only overlay; absence is non-fatal.
+        if let mpaData = try? await client.data(from: MapScope.protectedAreasURL),
+           let loaded = try? WDFWLayerLoader.protectedAreas(from: mpaData) {
+            protectedAreas = loaded
+            indexSitesToProtectedAreas()
+        }
         // Piers are a live-only enhancement; absence is non-fatal.
         if let pierData = try? await client.data(from: MapScope.piersURL),
            let loaded = try? WDFWLayerLoader.piers(from: pierData) {
@@ -124,6 +139,17 @@ final class FishingMapModel {
             }
         }
         siteAreaName = map
+    }
+
+    /// Match every site to the Marine Protected Area containing it (first wins).
+    private func indexSitesToProtectedAreas() {
+        var map: [AccessSite.ID: ProtectedArea] = [:]
+        for site in accessSites {
+            if let mpa = protectedAreas.first(where: { $0.contains(site.coordinate) }) {
+                map[site.id] = mpa
+            }
+        }
+        siteProtectedArea = map
     }
 
     /// Match every pier to the marine area whose polygon contains it (first wins).

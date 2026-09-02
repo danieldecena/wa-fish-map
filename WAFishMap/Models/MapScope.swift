@@ -48,6 +48,19 @@ enum MapScope {
         return components.url!
     }
 
+    /// All 44 Marine Protected Areas statewide (layer 4) — preserves and
+    /// conservation areas, with their WAC citation and WDFW detail page.
+    static var protectedAreasURL: URL {
+        var components = URLComponents(string: "\(mapServer)/4/query")!
+        components.queryItems = [
+            URLQueryItem(name: "where", value: "1=1"),
+            URLQueryItem(name: "outFields", value: "MPA_Name,TypeOfMPA,WAC,DetailedInfoURL"),
+            URLQueryItem(name: "f", value: "geojson"),
+            URLQueryItem(name: "outSR", value: "4326"),
+        ]
+        return components.url!
+    }
+
     /// Statewide: keep every marine area.
     static func filter(marineAreas: [MarineArea]) -> [MarineArea] {
         marineAreas
