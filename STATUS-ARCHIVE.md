@@ -3,6 +3,54 @@
 Rotated out of `STATUS.md` to keep the live file readable. Append-only;
 git holds the full history either way. Newest first.
 
+### 2026-08-31 (species-first)
+- Decided: recolor, do not hide. Exact name match. Reuse the date picker.
+
+### 2026-08-31 (marker clustering)
+- Decided: keep the heat toggle. Clusters replace overlapping pins, not the wash.
+- Decided: same lon/lat grid as heat, tap zooms into the cell, color is the
+  best rating in the cell. No MKMapView rewrite.
+
+### 2026-08-31 (tide predictions)
+- Decided: day's high/low table, not live stage. The map already has a plan date;
+  live height fights a future Saturday.
+- Decided: nearest bundled NOAA station (170 WA + Columbia-mouth), not a runtime
+  catalog (`state=WA` is ignored and returns 3,500 US stations) and not one
+  station per marine area (wrong at the edges).
+- Decided: marine only, fail open, same "not a tide book" posture as WDFW.
+
+### 2026-08-31 (season/closure + map design)
+- Decided: cap, do not hide. A closure-prone species keeps its card and its
+  place in "Biting now" but cannot reach Prime. Hiding it would cost the user
+  the information that sends them to WDFW.
+- Decided: cap only in flagged months, not blanket per species, so a fishery
+  reliably open at its peak still reaches Prime.
+- Decided: curate centrally by species name, not `verifyMonths` on all 134 rows.
+  Substring matching knowingly over-flags (Lingcod, Crab, Coho, Sockeye,
+  Chinook); over-flagging is the safe direction for a "verify" signal, and
+  `"seasonRisk": "none"` is the per-row escape hatch.
+- Decided: the rating ramp is thermal (blue → amber → orange → red) as four
+  explicit stops. Sampling a blue-to-red line ran the midtones through magenta,
+  which reads as a different scale and put Good and Prime adjacent in the
+  reddest stretch.
+- Decided: the heat overlay draws real grid cells, not circles. Circles 10-28km
+  across in an 11.3km cell had to overlap, and translucent overlap composites
+  rather than maxes, so two mediocre neighbours out-darkened one hot cell — the
+  layer encoded how many cells held data. Diagnosis came from a peer session and
+  its arithmetic was verified against the source here.
+- Decided: rank each cell against the others instead of normalising to the
+  densest. One outlier crushed every ordinary cell to the floor.
+- Decided: mute the basemap while heat is on. A translucent fill takes its
+  colour from what is under it, so one band read pink over city, brown over
+  forest, violet over water. Hue-shifting the bands compensated and looked
+  garish; draining the ground fixed the cause.
+- Decided: the Stop-hook auto-commit is off. It swept unreviewed work into
+  commits and pushed them three times in one session, each under a generic
+  fallback message. `~/bin/auto-commit.sh` stays on disk; `auto-push.sh` still
+  runs.
+
+Older entries: [STATUS-ARCHIVE.md](STATUS-ARCHIVE.md).
+
 ### 2026-08-30 (data-update review)
 - Reviewed how data updates: geo layers self-update per launch (live fetch,
   bundle fallback); fisheries.json is release-only by design. Fixed the gaps:

@@ -55,11 +55,11 @@
   device pre-flight, build, sign, install, run, then confirm from the device.
 - The suite is 139 tests: 138 pass, 1 skips. The skip is
   `testWindReadsARealValueOnDevice`, gated to hardware on purpose.
-- Build 1 is live in TestFlight for the account holder. Apple reports the build
-  as `IN_BETA_TESTING`, attached to an internal group `Internal`
-  (`f303ff11-…`) holding `danieldecena@icloud.com` in state `INVITED`.
-  `./scripts/testflight_internal.py` created that chain and reads it back; run
-  without `--apply` it is a read-only diagnosis of what is missing.
+- Build 1 is offered to the account holder in TestFlight. Apple reports it as
+  `IN_BETA_TESTING`, attached to an internal group `Internal` (`f303ff11-…`)
+  holding `danieldecena@icloud.com`. `./scripts/testflight_internal.py` created
+  that chain and reads it back; run without `--apply` it is a read-only
+  diagnosis of what is missing.
 
 ## Known broken
 
@@ -71,6 +71,10 @@
 
 ## Next Up
 
+- Accept the TestFlight invitation at `danieldecena@icloud.com`. The tester sits
+  at state `INVITED`, which is why the app is not listed in TestFlight yet —
+  server state is otherwise complete. An invitation was re-sent 2026-09-02
+  (`POST /v1/betaTesterInvitations`, `inviteType: EMAIL`).
 - Invite the brother: `POST /v1/userInvitations` with his Apple Account and
   `roles: ["DEVELOPER"]`, he accepts the emailed invitation, then re-run
   `testflight_internal.py --apply --tester <his email>` to put him in the
@@ -108,6 +112,10 @@ Everything else open lives in `TASKS.md`, which has no open items.
 - The confirmation is Apple's own state change, not the absence of an error:
   `internalBuildState` moved `READY_FOR_BETA_TESTING` -> `IN_BETA_TESTING` across
   the writes.
+- A tester at state `INVITED` is invited, not testing. TestFlight lists nothing
+  for them until the emailed invitation is accepted, so a fully correct server
+  state — internal group, tester, build attached, `IN_BETA_TESTING` — still
+  shows an empty TestFlight. `POST /v1/betaTesterInvitations` re-sends it.
 - The App Store Connect key is a **team** key: its JWT carries `iss`. Signed as
   an individual key (`sub: "user"`, no `iss`) it returns a bare 401 identical to
   a revoked key, which cost a detour re-deriving credentials that were fine.
@@ -521,52 +529,3 @@ Everything else open lives in `TASKS.md`.
   cannot be prose-matched, fixed as data, noted in CLAUDE.md.
 - Grant walleye rewording tripped the date-guard by reintroducing
   "(spawn is Apr-May)" from an older text - the guard works; date dropped.
-
-
-### 2026-08-31 (species-first)
-- Decided: recolor, do not hide. Exact name match. Reuse the date picker.
-
-### 2026-08-31 (marker clustering)
-- Decided: keep the heat toggle. Clusters replace overlapping pins, not the wash.
-- Decided: same lon/lat grid as heat, tap zooms into the cell, color is the
-  best rating in the cell. No MKMapView rewrite.
-
-### 2026-08-31 (tide predictions)
-- Decided: day's high/low table, not live stage. The map already has a plan date;
-  live height fights a future Saturday.
-- Decided: nearest bundled NOAA station (170 WA + Columbia-mouth), not a runtime
-  catalog (`state=WA` is ignored and returns 3,500 US stations) and not one
-  station per marine area (wrong at the edges).
-- Decided: marine only, fail open, same "not a tide book" posture as WDFW.
-
-### 2026-08-31 (season/closure + map design)
-- Decided: cap, do not hide. A closure-prone species keeps its card and its
-  place in "Biting now" but cannot reach Prime. Hiding it would cost the user
-  the information that sends them to WDFW.
-- Decided: cap only in flagged months, not blanket per species, so a fishery
-  reliably open at its peak still reaches Prime.
-- Decided: curate centrally by species name, not `verifyMonths` on all 134 rows.
-  Substring matching knowingly over-flags (Lingcod, Crab, Coho, Sockeye,
-  Chinook); over-flagging is the safe direction for a "verify" signal, and
-  `"seasonRisk": "none"` is the per-row escape hatch.
-- Decided: the rating ramp is thermal (blue → amber → orange → red) as four
-  explicit stops. Sampling a blue-to-red line ran the midtones through magenta,
-  which reads as a different scale and put Good and Prime adjacent in the
-  reddest stretch.
-- Decided: the heat overlay draws real grid cells, not circles. Circles 10-28km
-  across in an 11.3km cell had to overlap, and translucent overlap composites
-  rather than maxes, so two mediocre neighbours out-darkened one hot cell — the
-  layer encoded how many cells held data. Diagnosis came from a peer session and
-  its arithmetic was verified against the source here.
-- Decided: rank each cell against the others instead of normalising to the
-  densest. One outlier crushed every ordinary cell to the floor.
-- Decided: mute the basemap while heat is on. A translucent fill takes its
-  colour from what is under it, so one band read pink over city, brown over
-  forest, violet over water. Hue-shifting the bands compensated and looked
-  garish; draining the ground fixed the cause.
-- Decided: the Stop-hook auto-commit is off. It swept unreviewed work into
-  commits and pushed them three times in one session, each under a generic
-  fallback message. `~/bin/auto-commit.sh` stays on disk; `auto-push.sh` still
-  runs.
-
-Older entries: [STATUS-ARCHIVE.md](STATUS-ARCHIVE.md).
