@@ -5,7 +5,6 @@ struct FishingMapView: View {
     @State private var model = FishingMapModel()
     @Environment(\.openURL) private var openURL
     @State private var location = LocationProvider()
-    @State private var position: MapCameraPosition = .automatic
     /// Date/time the user is planning for. Defaults to now; the month drives ratings.
     @State private var planDate = Date()
     /// `nil` is All species (best in the area). Exact name from the guide otherwise.
@@ -42,21 +41,6 @@ struct FishingMapView: View {
     /// ease). MapKit's own delegate reports real pan/pinch touches, so the
     /// three-phase `CameraGuardPhase` machine this replaced is gone.
     @State private var focusRegion: MKCoordinateRegion?
-    /* removed: with `position = .automatic`, MapKit fires a genuine `.onEnd` camera-change
-    /// event of its own once before any data exists, and fires a SECOND one when
-    /// `accessSites` populates from the network and the camera re-fits to it.
-    /// Exempting only the first such event (an ordinal count) let that second,
-    /// still-programmatic re-fit set `userMovedCamera` before CoreLocation had
-    /// even answered — the recentre-on-fix animation then never ran.
-    ///
-    /// `MapCameraUpdateContext` has no "gesture vs. programmatic" reason in the
-    /// SwiftUI Map API, so instead of counting events this keys off the data load
-    /// itself: `.beforeLoad` events are MapKit's own initial fit, `load()` flips
-    /// the phase to `.awaitingPostLoadRefit` the instant `accessSites` is set
-    /// (synchronously, before SwiftUI's next render can trigger the re-fit's
-    /// `.onEnd`), that one re-fit event is consumed to reach `.settled`, and only
-    /// an event in `.settled` is a real user gesture.
-    */
     /// Washington's bounding box. A fix outside it belongs to someone travelling,
     /// and centring there would show an empty map — the data is statewide only.
     private static let stateBounds = (
@@ -101,6 +85,9 @@ struct FishingMapView: View {
             focusRegion: $focusRegion
         )
         .ignoresSafeArea()
+        // `MKMapView` has no built-in recentre control, so `MapUserLocationButton`
+        // is rebuilt by hand. The compass is native (`showsCompass`).
+        .overlay(alignment: .topTrailing) { recenterButton }
         .safeAreaInset(edge: .top) { dateControl }
         .safeAreaInset(edge: .bottom) { statusBar }
         .modifier(AdaptiveDetail(item: selectedSiteBinding) { site in
@@ -261,6 +248,25 @@ struct FishingMapView: View {
             center: fix,
             span: MKCoordinateSpan(latitudeDelta: 0.9, longitudeDelta: 0.9)
         )
+    }
+
+    private var recenterButton: some View {
+        Button {
+            guard let fix = location.fix else { return }
+            userMovedCamera = true
+            focusRegion = MKCoordinateRegion(
+                center: fix,
+                span: MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)
+            )
+        } label: {
+            Image(systemName: "location.fill")
+                .font(.system(size: 15, weight: .medium))
+                .frame(width: 36, height: 36)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+        }
+        .accessibilityLabel("Center on my location")
+        .padding(.trailing, 10)
+        .padding(.top, 6)
     }
 
     private var selectedSiteBinding: Binding<AccessSite?> {
