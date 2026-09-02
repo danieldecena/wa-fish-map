@@ -103,16 +103,75 @@
   is enabled on the identifier, so that step is verified complete by artifact.
   The ~30-minute propagation window has therefore also already elapsed.
 
-  The live hypothesis is the licence agreement, and the shape of the 401 supports
-  it: a capability problem returns `401 {reason: NOT_ENABLED}` with a body, while
-  an account-level block returns a bare 401, which is what we get. So: accept any
-  pending agreement in App Store Connect → Business → Agreements, then re-run
-  `./scripts/verify_weatherkit_device.sh` immediately — no wait required. A pass
-  is also the first known-GOOD input this test has ever had.
+  **The licence agreement is not it either.** Checked in the portal 2026-09-02:
+  Apple Developer Program License Agreement issued 2026-08-18, **accepted
+  2026-09-01**. No banner, nothing pending. The Paid Apps Agreement does read
+  "Pending User Info", but that gates *payouts* — it wants a bank account and a
+  W-9 — and the Free Apps Agreement is Active. Do not submit banking details to
+  test this; it does not gate service entitlements.
+
+  **Every layer visible from a browser is green.** Certificates, Identifiers &
+  Profiles → Services → WeatherKit shows an active plan: 500,000 calls/month,
+  **0 used, 0 calls in the last 30 days**, "You don't have any calls within this
+  period." A team without WeatherKit provisioned has no plan page at all. So the
+  service is provisioned, the quota is untouched, the entitlement is in the
+  signed profile, and the agreement is accepted.
+
+  That localises the fault precisely: **the failure is at token issuance**, not at
+  capability, quota, or agreement. Nothing has ever authenticated, which is why
+  usage is zero — a 401 dies before it reaches the quota.
+
+  Remaining hypothesis is propagation, and the dates support it: the membership
+  renewed 2026-09-01 (renewal date 2027-09-01), the PLA was accepted 2026-09-01,
+  and the failing device run was 2026-09-02. The account's current agreement is
+  one day older than the bug. Forum thread 807586 describes this exact shape —
+  entitlement present in the profile, key created, still 401s, survives clean
+  builds and reinstalls.
+
+  Next, in order:
+
+  1. Device-side cache reset — reboot the iPhone, delete WAFishMap, rebuild to
+     device, re-run `./scripts/verify_weatherkit_device.sh`. Entitlement data
+     caches on the phone, and this is the documented fix when the server side is
+     already correct. Five minutes.
+  2. If it still returns a bare 401, this is Apple's to fix. File code-level
+     support (included with the membership) with: Team ID `877MLS29T9`, bundle
+     `com.danieldecena.WAFishMap`, entitlement present in the embedded profile,
+     PLA accepted 2026-09-01, WeatherKit plan active with 0 calls, bare 401 from
+     `https://weatherkit.apple.com/v3/token` on a signed device build. That is
+     not a "did you enable it" ticket.
+
+  Do not re-check the capability or the agreement. Both are verified, by artifact
+  and by portal respectively, and re-checking them has already cost two rounds.
+  A pass is also the first known-GOOD input this test has ever had.
 
 Everything else open lives in `TASKS.md`.
 
 ## Decision log
+
+### 2026-09-02 (WeatherKit narrowed to token issuance; two hypotheses killed)
+
+- Corrected: "Authorise the App ID for WeatherKit" had sat in Next Up as work to
+  do. It was already done, and a local artifact proved it — Apple's portal cannot
+  emit a provisioning profile carrying `com.apple.developer.weatherkit` unless the
+  capability is enabled, and that profile was already embedded in the device build
+  on disk. One `security cms -D -i ... | plutil -extract Entitlements` closed the
+  item and skipped a documented ~30-minute propagation wait. Rule added to
+  CLAUDE.md: check what local artifact would already be different before filing an
+  action item that lives in someone's browser.
+- Killed: the licence-agreement hypothesis, which this file had named as the live
+  branch. The Program License Agreement was accepted 2026-09-01. The Paid Apps
+  Agreement reads "Pending User Info", but that gates payouts, not services, and
+  chasing it would have meant submitting bank and tax details to test a guess.
+- Narrowed: the WeatherKit service page shows an active 500,000-call plan with
+  0 calls in 30 days. Service provisioned, quota untouched, entitlement in the
+  signed profile, agreement accepted — so the fault is specifically at token
+  issuance. Nothing has ever authenticated.
+- Live hypothesis is now propagation since the 2026-09-01 renewal, the failing run
+  being one day later. Next step is a device-side entitlement cache reset; after
+  that it is a code-level support ticket, not local debugging.
+- Method note: three rounds of this were spent re-checking things that were
+  already verifiable. The evidence was on disk and in the portal the whole time.
 
 ### 2026-09-02 (WeatherKit answered: Apple returns 401)
 
