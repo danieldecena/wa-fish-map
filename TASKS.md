@@ -6,7 +6,8 @@
 - [x] Clamp cluster badges below a readable zoom
 - [x] WeatherKit wind/precip at plan time
 - [x] Verify WeatherKit on a physical iPhone — answered: Apple returns 401
-- [ ] [you] Enable WeatherKit on the App ID / accept the dev program agreement
+- [x] Device-cache reset for WeatherKit — tried 2026-09-02, did not fix it
+- [ ] [you] WeatherKit REST control: create a key + Services ID, then probe
 - [x] Fix the UI query: containing() filters descendants, a StaticText is a leaf
 - [x] Device-sign the test bundles: build-for-testing on generic/platform=iOS — 24bbeff
 - [x] Log the swallowed WeatherKit error in PlanWeatherView — 24bbeff

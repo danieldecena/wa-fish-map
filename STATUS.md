@@ -83,11 +83,14 @@
 
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
-- Reset the device-side entitlement cache: reboot the iPhone, delete WAFishMap,
-  rebuild to device, re-run `./scripts/verify_weatherkit_device.sh`. Five minutes,
-  and it is the documented fix when the server side is already correct.
-- If it still returns a bare 401, file code-level support — the evidence bundle
-  is in the decision log entry below, and it is not a "did you enable it" ticket.
+- Run the WeatherKit REST control: create a WeatherKit key and a Services ID in
+  the portal, then sign a developer token and `GET /api/v1/availability`. Same
+  service, different credential path, so it separates "the service is refusing
+  this team through every door" from "only device-side token issuance is broken".
+  A prober is written and its signing is verified; it needs the key id and the
+  Service ID. This outranks filing support, because it decides what the ticket says.
+- Then file code-level support — the evidence bundle is in the decision log
+  entry below, and it is not a "did you enable it" ticket.
 
 Everything else open lives in `TASKS.md`.
 
@@ -95,6 +98,16 @@ Everything else open lives in `TASKS.md`.
 
 ### 2026-09-02 (WeatherKit fault localised to token issuance)
 
+- Tried and failed: the device-side entitlement cache reset. Rebooted the phone,
+  deleted the app (absence confirmed via `devicectl device info apps`, not
+  assumed), rebuilt and re-ran 2026-09-02. Identical result: the sheet renders
+  "Wind and rain unavailable right now." and all three assertions fire. The
+  documented remedy for a correct server side does not apply here.
+- Noted: the run immediately after the delete proved nothing and was discarded.
+  Its label dump held only map chrome — no sheet, no `Wind & rain` — because a
+  fresh install re-prompts for location, so `PlanWeatherView` never rendered and
+  no fetch was attempted. A failure count alone would have read as confirmation;
+  the dump is what showed it was a different failure entirely.
 - Finding: every layer below token issuance is green;
   `https://weatherkit.apple.com/v3/token` still returns a bare 401 for
   `com.danieldecena.WAFishMap`.
