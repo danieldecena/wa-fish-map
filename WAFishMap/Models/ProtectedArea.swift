@@ -13,6 +13,13 @@ struct ProtectedArea: Identifiable, Equatable, Sendable {
     let detailURL: URL?
     let polygon: [LonLat]
 
+    /// Live layer 4 stores the citation bare ("220-330-180"); render it as a WAC.
+    var wacCitation: String {
+        let trimmed = wac.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return "" }
+        return trimmed.uppercased().hasPrefix("WAC") ? trimmed : "WAC \(trimmed)"
+    }
+
     var mapCoordinates: [CLLocationCoordinate2D] {
         polygon.map(\.clLocationCoordinate)
     }

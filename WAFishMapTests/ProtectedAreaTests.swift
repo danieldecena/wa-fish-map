@@ -23,6 +23,16 @@ struct ProtectedAreaTests {
         #expect(!mpa.contains(LonLat(longitude: -122.00, latitude: 47.65)))
     }
 
+    @Test func aBareCitationIsRenderedAsAWAC() {
+        // Live layer 4 stores "220-330-180"; already-prefixed values pass through.
+        #expect(ProtectedArea(name: "x", type: "t", wac: "220-330-180",
+                              detailURL: nil, polygon: Self.square).wacCitation == "WAC 220-330-180")
+        #expect(ProtectedArea(name: "x", type: "t", wac: "WAC 220-302-060",
+                              detailURL: nil, polygon: Self.square).wacCitation == "WAC 220-302-060")
+        #expect(ProtectedArea(name: "x", type: "t", wac: "",
+                              detailURL: nil, polygon: Self.square).wacCitation.isEmpty)
+    }
+
     @Test func idIsTheName() {
         #expect(Self.mpa().id == "Golden Gardens")
     }
