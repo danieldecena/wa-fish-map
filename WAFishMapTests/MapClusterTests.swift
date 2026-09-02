@@ -29,6 +29,30 @@ struct MapClusterTests {
         #expect(clusters[0].cellDegrees == 0.15)
     }
 
+    /// The badge must sit on the sites it stands for, not on its grid cell's
+    /// centre. Cell centres quantise every cluster onto a fixed lon/lat lattice,
+    /// which renders as visibly regular rows and columns of pins across the state.
+    @Test func clusterSitsOnItsMembersNotOnTheCellCentre() {
+        let clusters = HeatMap.clusters(
+            points: [
+                (id: "boston", coord: a, rating: .fair),
+                (id: "luhrs", coord: nearby, rating: .excellent),
+            ],
+            cellDegrees: 0.15
+        )
+        #expect(abs(clusters[0].center.longitude - (-122.895)) < 0.0001)
+        #expect(abs(clusters[0].center.latitude - 47.105) < 0.0001)
+    }
+
+    @Test func aLoneSiteClusterSitsExactlyOnThatSite() {
+        let clusters = HeatMap.clusters(
+            points: [(id: "boston", coord: a, rating: .good)],
+            cellDegrees: 0.15
+        )
+        #expect(abs(clusters[0].center.longitude - a.longitude) < 0.0001)
+        #expect(abs(clusters[0].center.latitude - a.latitude) < 0.0001)
+    }
+
     @Test func farApartPointsStaySingletons() {
         let clusters = HeatMap.clusters(
             points: [
