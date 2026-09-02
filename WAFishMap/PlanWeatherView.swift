@@ -1,6 +1,7 @@
 import SwiftUI
 import WeatherKit
 import CoreLocation
+import OSLog
 
 extension HourWeather: ForecastHour {}
 
@@ -76,6 +77,10 @@ struct PlanWeatherView: View {
         return f
     }()
 
+    /// Every failure renders the same one string, so without this a JWT refusal
+    /// and a dropped network are indistinguishable after the fact.
+    private static let log = Logger(subsystem: "com.danieldecena.WAFishMap", category: "weather")
+
     private func load() async {
         weather = nil
         failed = false
@@ -96,6 +101,7 @@ struct PlanWeatherView: View {
             )
         } catch {
             failed = true
+            Self.log.error("WeatherKit hourly fetch failed: \(error, privacy: .public)")
         }
     }
 }

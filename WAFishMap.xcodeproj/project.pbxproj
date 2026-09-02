@@ -278,7 +278,6 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				CODE_SIGN_ENTITLEMENTS = WAFishMap/WAFishMap.entitlements;
 				DEVELOPMENT_TEAM = 877MLS29T9;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -344,7 +343,6 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				CODE_SIGN_ENTITLEMENTS = WAFishMap/WAFishMap.entitlements;
 				DEVELOPMENT_TEAM = 877MLS29T9;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -371,6 +369,7 @@
 		A10000000000000000000032 /* Debug configuration for PBXNativeTarget "WAFishMap" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = WAFishMap/WAFishMap.entitlements;
 				ASSETCATALOG_COMPILER_APPICON_NAME = WAFishMap;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
@@ -401,6 +400,7 @@
 		A10000000000000000000033 /* Release configuration for PBXNativeTarget "WAFishMap" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = WAFishMap/WAFishMap.entitlements;
 				ASSETCATALOG_COMPILER_APPICON_NAME = WAFishMap;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;

@@ -6,6 +6,11 @@
 - [x] Clamp cluster badges below a readable zoom
 - [x] WeatherKit wind/precip at plan time
 - [ ] [you] Verify WeatherKit on a physical iPhone — the simulator cannot
+- [ ] Device-sign the test bundles: build-for-testing on generic/platform=iOS
+- [ ] Log the swallowed WeatherKit error in PlanWeatherView
+- [ ] Device-gated UI test asserting a live wind reading on screen
+- [ ] Prove the weather test fails on the simulator (known-bad control)
+- [ ] scripts/verify_weatherkit_device.sh + README line
 - [x] Waterbody note tier: restore the Baker Lake sockeye entry
 - [x] Piers outside marine polygons answer freshwater, not neutral
 - [x] Index piers against Marine Protected Areas too
@@ -48,7 +53,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-01 22:19.
+Plan approved 2026-09-02 02:36.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
@@ -57,7 +62,7 @@ when launched via `cb` (--allow-dangerously-skip-permissions); `yolo`
 
 Only if Claude Code actually closed:
 
-    claude --resume c7aee6b6-3151-406b-a14b-4a5fe813c9b2
+    claude --resume a1f346c7-be4d-4e2d-bf76-e5ce45f7ae96
 
 (`-c` resumes the most recent session; bare `--resume` opens a searchable picker.)
 <!-- /resume-footer -->

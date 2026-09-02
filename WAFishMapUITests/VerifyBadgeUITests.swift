@@ -59,6 +59,39 @@ final class VerifyBadgeUITests: XCTestCase {
                       "The on-the-water section is missing from a marine site sheet.")
     }
 
+    /// The observation the WeatherKit task exists for: a live wind speed on a
+    /// real screen. WeatherKit mints a JWT from the provisioning profile, and a
+    /// Simulator build is ad-hoc signed with none, so this can only mean
+    /// anything on hardware — hence the skip rather than a weaker assertion.
+    ///
+    /// `-uiTesting` puts the sheet up without a synthesised tap but does not
+    /// stub the forecast: `PlanWeatherView` still calls `WeatherService` for
+    /// real, at Boston Harbor.
+    ///
+    /// The footer is the success sentinel, not the wind row: it renders only
+    /// when a `PlanWeather` exists, so it separates a real reading from the
+    /// spinner in a way that a substring match alone does not.
+    func testWindReadsARealValueOnDevice() throws {
+        #if targetEnvironment(simulator)
+        throw XCTSkip("WeatherKit cannot sign a Simulator build. Run scripts/verify_weatherkit_device.sh.")
+        #else
+        let app = launch(month: "7")
+        sheet(app)
+
+        let forecast = app.staticTexts.containing(
+            NSPredicate(format: "label CONTAINS 'not an observation'")).firstMatch
+        XCTAssertTrue(forecast.waitForExistence(timeout: 60),
+                      "The forecast never resolved, so no live reading was observed.")
+
+        let wind = app.staticTexts.containing(
+            NSPredicate(format: "label CONTAINS ' mph'")).firstMatch
+        XCTAssertTrue(wind.exists, "The forecast resolved but no wind speed was drawn.")
+
+        XCTAssertFalse(app.staticTexts["Wind and rain unavailable right now."].exists,
+                       "The section reported unavailable — the live fetch failed on device.")
+        #endif
+    }
+
     /// The control. Every month in area 13 flags something, so an absence test
     /// is impossible here — but selectivity is still checkable: the badge must
     /// appear on *some* species and not all of them. A badge rendered
