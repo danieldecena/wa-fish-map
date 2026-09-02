@@ -8,6 +8,7 @@
 - [ ] Waterbody note tier: restore the Baker Lake sockeye entry
 - [ ] Piers outside marine polygons answer freshwater, not neutral
 - [ ] Index piers against Marine Protected Areas too
+- [ ] Launch pins draw a default marker, anchor.fill is not a symbol
 - [ ] Wave height + water temp from NDBC (no depth)
 - [x] Daylight row in the detail sheets — 72bec59
 - [x] Layered OS27 app icon — 2 vector layers + document gradient fill
