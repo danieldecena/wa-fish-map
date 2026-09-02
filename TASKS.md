@@ -1,5 +1,9 @@
 ## Tasks
 
+- [ ] XCUITest target: observe the verify badge, retire the unobservable claims
+- [ ] Clamp cluster badges below a readable zoom
+- [ ] WeatherKit wind/precip at plan time
+- [ ] Waterbody note tier: restore the Baker Lake sockeye entry
 - [x] Layered OS27 app icon — 2 vector layers + document gradient fill
 - [x] ContentUnavailableView for the load-failure state — 406d3dc
 - [x] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
@@ -7,7 +11,6 @@
 - [x] Waterbody-scoped notes: gate + data fix + rule — d26c4ca
 
 - [x] Tide predictions in site detail (NOAA CO-OPS)
-- [ ] WeatherKit wind/precip at plan time
 - [x] Species-first mode: picker, recolor, month scrubber
 - [x] Marker clustering at low zoom (477 pins unreadable statewide)
 
