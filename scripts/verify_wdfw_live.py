@@ -133,6 +133,30 @@ def check_point_layer(layer: int, label: str, minimum: int, failures: list[str])
         )
 
 
+def check_protected_areas(failures: list[str]) -> None:
+    """Layer 4: the Marine Protected Areas the app flags sites against."""
+    count = feature_count(4)
+    print(f"live marine protected areas: {count} features")
+    if count < 30:
+        failures.append(f"protected areas: only {count} features (expected >= 30)")
+    data = fetch(4, {
+        "where": "1=1",
+        "outFields": "MPA_Name,TypeOfMPA,WAC,DetailedInfoURL",
+        "returnGeometry": "false",
+        "f": "json",
+    })
+    features = data.get("features", [])
+    fields = {"MPA_Name", "TypeOfMPA", "WAC", "DetailedInfoURL"}
+    for f in features[:1]:
+        missing = fields - set(f["attributes"])
+        if missing:
+            failures.append(f"protected areas: layer 4 missing fields {sorted(missing)}")
+    names = {f["attributes"].get("MPA_Name") for f in features}
+    for anchor in ("Golden Gardens", "Bracketts Landing"):
+        if anchor not in names:
+            failures.append(f"protected area anchor {anchor!r} gone from live layer")
+
+
 def check_fixture_anchors(failures: list[str]) -> None:
     sites = fetch(0, {
         "where": "Launch=1 AND CountyName='Thurston'",
@@ -154,6 +178,7 @@ def main() -> int:
     check_fisheries(live_areas, failures)
     check_point_layer(0, "access sites", minimum=100, failures=failures)
     check_point_layer(1, "piers", minimum=10, failures=failures)
+    check_protected_areas(failures)
     check_fixture_anchors(failures)
 
     if failures:
