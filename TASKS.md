@@ -2,7 +2,7 @@
 
 - [ ] Layered OS27 app icon (3 SVG layers, Icon Composer)
 - [ ] ContentUnavailableView for the load-failure state
-- [ ] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
+- [x] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
 
 - [x] Waterbody-scoped notes: gate + data fix + rule — d26c4ca
 
@@ -36,7 +36,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-01 17:08.
+Plan approved 2026-09-01 17:12.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
@@ -45,7 +45,7 @@ when launched via `cb` (--allow-dangerously-skip-permissions); `yolo`
 
 Only if Claude Code actually closed:
 
-    claude --resume fc849c58-fd70-4e93-8fe9-243d8a3b01c7
+    claude --resume cb15233e-025c-4c94-884f-0bf8d07d49ed
 
 (`-c` resumes the most recent session; bare `--resume` opens a searchable picker.)
 <!-- /resume-footer -->

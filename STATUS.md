@@ -53,6 +53,26 @@
 
 ## Decision log
 
+### 2026-09-01 (app icon)
+- The icon had no vector source - only a hand-made PNG from 4edb1e1 - so the
+  three known defects (tail meeting the body at a point, mark off-centre, eye
+  half outside the head) were unfixable without redrawing it. Added
+  `scripts/make_icon.swift`, which draws the mark with CoreGraphics and
+  regenerates icon_1024.png. Swift over an SVG pipeline because this Mac has no
+  rasterizer (rsvg/inkscape/magick/cairosvg all absent) while the Xcode
+  toolchain is already required.
+- Composition is derived, not nudged: one transform centres the union bbox of
+  body+tail on the canvas at 62% width. The tail's apex sits 145pt *inside* the
+  body, so the two white fills merge instead of touching.
+- The script checks its own bitmap before writing and exits non-zero on
+  failure: a ring outside the eye must be all body, a flood fill from the tail
+  must reach the nose, and the mark's bbox must be centred at the intended
+  width. Each check was exercised against a known-bad input (eye pushed out,
+  overlap negative, transform offset, width 80%) and observed to fail, and
+  against the good geometry and observed to pass.
+- Still open: the layered OS27 icon (3 SVG layers, Icon Composer) is a separate
+  item and needs vector layers this script does not emit.
+
 ### 2026-09-01 (waterbody-scoped notes)
 - Executed the waterbody-scoped-notes plan: NoteScopeTests gate committed
   failing (b630fa7), data fixed (d26c4ca), rule recorded in CLAUDE.md
