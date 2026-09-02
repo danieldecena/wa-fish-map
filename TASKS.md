@@ -8,7 +8,7 @@
 - [x] Verify WeatherKit on a physical iPhone — answered: Apple returns 401
 - [x] Device-cache reset for WeatherKit — tried 2026-09-02, did not fix it
 - [x] WeatherKit REST control — 200 with real data; device path is the fault
-- [ ] [you] Re-provision the WAFishMap App ID (toggle WeatherKit off/on), rebuild
+- [x] WeatherKit works on device — legacy WEATHERKIT vs WEATHER_KIT capability
 - [x] Fix the UI query: containing() filters descendants, a StaticText is a leaf
 - [x] Device-sign the test bundles: build-for-testing on generic/platform=iOS — 24bbeff
 - [x] Log the swallowed WeatherKit error in PlanWeatherView — 24bbeff

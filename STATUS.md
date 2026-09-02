@@ -45,41 +45,19 @@
   facility list. Baker Lake sockeye is its first row.
 - Marine sheets show the nearest NDBC buoy's latest wave height and water
   temperature, each with its own timestamp.
-- The WeatherKit device check is one command,
-  `./scripts/verify_weatherkit_device.sh`, and it has run end to end on a real
-  iPhone 16 Pro: build, sign, install, launch and drive all succeeded, and the
-  readiness gate reported `tunnel=connected paired=paired developer-mode=enabled`.
-  The assertion has been observed to **fail** against a known-bad input, on the
-  device itself, with the failure message naming what was on screen. It has never
-  been observed to pass, because the fetch it asserts on has never succeeded —
-  see Known broken.
+- WeatherKit works on device. `testWindReadsARealValueOnDevice` **passed** on a
+  physical iPhone 16 Pro 2026-09-02, asserting a live `… mph` reading and the
+  success-only footer on screen at once. It ran in 7.7s against 68-79s for every
+  prior failing run, because the fetch now returns instead of grinding out.
+  The test has both inputs: it was observed failing on the same device before the
+  fix and passing after, so a green run means something.
+- `./scripts/verify_weatherkit_device.sh` is the one command that proves it:
+  device pre-flight, build, sign, install, run, then confirm from the device.
 - The suite is 139 tests: 138 pass, 1 skips. The skip is
   `testWindReadsARealValueOnDevice`, gated to hardware on purpose.
 
 ## Known broken
 
-- WeatherKit's **native device path** does not work. The service itself is fine:
-  the REST API returns a real forecast for the same coordinate the app fails on,
-  through the same host, on the same team, minutes apart (2026-09-02).
-
-      REST   GET /api/v1/weather/en-US/47.1397/-122.9055?dataSets=forecastHourly
-             -> 200, 25 hours, first hour wind 7 mph @194 deg, precip 20%, 59 F
-      device POST /v3/token (automatic, from the app's entitlement)
-             -> 401, Content-Length 0, no reason
-
-  The REST call authenticates with a Services ID
-  (`com.danieldecena.weatherkit-client`) and key `57C5ZXDJ97`; the device call
-  authenticates with the `com.danieldecena.WAFishMap` App ID entitlement. Same
-  service, two doors, one open. That clears the app code, this Mac, the phone,
-  the network, the licence agreement, the quota, and the WeatherKit service
-  provisioning — all of which were suspected in turn and are now excluded by a
-  positive control rather than by absence of evidence.
-
-  What remains is token issuance for that one App ID. Reproduce with
-  `scripts/weatherkit_rest_probe.py`.
-
-  The app degrades honestly throughout: it renders "Wind and rain unavailable
-  right now." rather than inventing numbers.
 - The camera guard has a disclosed residual: a genuine user gesture made BEFORE
   the WDFW load completes is misclassified as non-user, so a later location fix
   would still recentre. Narrower than the bug it replaced, and documented in the
@@ -90,18 +68,35 @@
 
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
-- Re-provision the App ID before escalating: Identifiers > App IDs >
-  `com.danieldecena.WAFishMap`, toggle WeatherKit off, save, toggle it back on,
-  save, then delete the local profile and rebuild so Xcode mints a fresh one.
-  The REST control proves the service works for this team, so a stale server-side
-  registration on that one identifier is the cheapest remaining explanation.
-- If that does not fix it, file code-level support. The ticket now carries a
-  positive control: REST 200 with data and device 401, same team, same host,
-  same coordinate, minutes apart. That is not a "did you enable it" ticket.
-
 Everything else open lives in `TASKS.md`.
 
 ## Decision log
+
+### 2026-09-02 (root cause: two WeatherKit capability type strings)
+
+- **Fixed.** The App ID carried a legacy `WEATHERKIT` capability record. The
+  portal minted profiles from it, so `codesign -d --entitlements` showed the
+  entitlement present on the installed binary and every check we ran looked
+  green, but `weatherkit.apple.com/v3/token` would not honour it. Re-registering
+  the capability produced a second record, `WEATHER_KIT`, and the token issued on
+  the first attempt. The device test went from failing in 68-79s to passing in
+  7.7s.
+- Corroboration, found only because the write failed: the App Store Connect API
+  will *read* `WEATHERKIT` back but rejects it on `POST`, and its accepted enum
+  does not contain it at all. That is a legacy value which can still exist on an
+  identifier and can no longer be issued.
+- Why this took four sessions: every individual check was green. Entitlement in
+  the profile, capability visible in the portal, licence accepted, quota active,
+  service reachable. The failure lived in the *disagreement* between two
+  representations of the same capability, which no single check could see. What
+  finally localised it was the REST control — same service, different credential
+  path, returning 200 with real data while the device got 401 — which proved the
+  fault was neither the app nor the service but the binding between them.
+- Mistake worth keeping: the re-registration was run as DELETE-then-POST without
+  first verifying the POST would be accepted. The DELETE succeeded, the POST was
+  refused, and the capability sat removed until it was restored by hand in the
+  portal. Read enum and write enum were not the same set. Verify the reverse
+  operation before running the irreversible half.
 
 ### 2026-09-02 (the REST control: WeatherKit works, the device path does not)
 
