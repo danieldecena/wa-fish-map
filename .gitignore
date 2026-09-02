@@ -8,3 +8,6 @@ build/
 .swiftpm/
 .build/
 .ios-build/
+
+# graphify knowledge graph (build artifact, rebuilt by post-commit hook)
+graphify-out/
