@@ -53,6 +53,31 @@
 
 ## Decision log
 
+### 2026-09-01 (layered icon layers)
+- `scripts/make_icon.swift` now also emits `icon/background.svg`,
+  `icon/tail.svg` and `icon/body.svg` from the same constants and the same
+  CGPaths as the flat PNG, so the layered icon and `icon_1024.png` cannot
+  describe different shapes. The PNG is byte-identical across the change.
+- The eye is a punch-out in `body.svg` (even-odd, eye as a subpath hole), not
+  its own dark layer: the system recolours foreground layers for the tinted and
+  clear appearances, where a dark dot would vanish but a hole still reads.
+  Layers are background / tail / body so the system gives the tail its own
+  depth instead of the flat icon faking it.
+- The script reads the SVGs back, rasterises them through NSImage and asserts
+  against the bitmap. First attempt was a check that could not fail: it sampled
+  through `svgPlace`, the same transform that drew the file, so removing the
+  y-flip moved drawing and sample together and passed. Rewritten to measure the
+  drawn bboxes and the *enclosed* transparency, compared against `expectedX`/
+  `expectedY` derived from `markBounds`/`scale` rather than the transform.
+  Known-bad runs now fail as they should: no flip (eye centre y 520 vs 504),
+  no eye subpath ("the eye is filled, not punched through"), swapped gradient
+  stops.
+- `icon.json` is NOT hand-authored. Its schema is Apple's, undocumented, absent
+  from disk, and `icrtool` has no CLI; a guessed document can compile and still
+  render wrong. The `.icon` bundle comes from Icon Composer.
+- Open: `WAFishMap.icon` not yet assembled, so nothing is wired into the build
+  and the app still ships the flat icon.
+
 ### 2026-09-01 (app icon)
 - The icon had no vector source - only a hand-made PNG from 4edb1e1 - so the
   three known defects (tail meeting the body at a point, mark off-centre, eye

@@ -11,6 +11,7 @@
 // Nothing is written until the three checks at the bottom pass against the
 // rendered bitmap.
 
+import AppKit
 import CoreGraphics
 import Foundation
 import ImageIO
@@ -197,3 +198,219 @@ guard CGImageDestinationFinalize(dest) else {
     exit(1)
 }
 print("wrote \(out.path)")
+
+// MARK: - Layer SVGs for the Icon Composer bundle
+
+// Same paths, same transform, so the layered icon and the flat PNG cannot
+// describe different shapes. SVG's y axis points down, so the placement
+// transform is composed with a flip about the canvas mid-line.
+let svgPlace = place.concatenating(
+    CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: canvas))
+
+func svgPathData(_ path: CGPath) -> String {
+    var d = ""
+    func f(_ v: CGFloat) -> String { String(format: "%.2f", v) }
+    path.copy(using: [svgPlace])!.applyWithBlock { element in
+        let p = element.pointee.points
+        switch element.pointee.type {
+        case .moveToPoint: d += "M\(f(p[0].x)) \(f(p[0].y))"
+        case .addLineToPoint: d += "L\(f(p[0].x)) \(f(p[0].y))"
+        case .addQuadCurveToPoint:
+            d += "Q\(f(p[0].x)) \(f(p[0].y)) \(f(p[1].x)) \(f(p[1].y))"
+        case .addCurveToPoint:
+            d += "C\(f(p[0].x)) \(f(p[0].y)) \(f(p[1].x)) \(f(p[1].y)) \(f(p[2].x)) \(f(p[2].y))"
+        case .closeSubpath: d += "Z"
+        @unknown default: break
+        }
+    }
+    return d
+}
+
+func hex(_ c: (r: Double, g: Double, b: Double)) -> String {
+    String(format: "#%02X%02X%02X", Int(c.r * 255), Int(c.g * 255), Int(c.b * 255))
+}
+
+let svgHeader = """
+<svg xmlns="http://www.w3.org/2000/svg" width="\(Int(canvas))" height="\(Int(canvas))" \
+viewBox="0 0 \(Int(canvas)) \(Int(canvas))">
+"""
+
+let backgroundSVG = """
+\(svgHeader)
+<defs><linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="\(hex(gradientTop))"/>
+<stop offset="1" stop-color="\(hex(gradientBottom))"/>
+</linearGradient></defs>
+<rect width="\(Int(canvas))" height="\(Int(canvas))" fill="url(#sea)"/>
+</svg>
+
+"""
+
+let tailSVG = """
+\(svgHeader)
+<path fill="#FFFFFF" d="\(svgPathData(tailPath))"/>
+</svg>
+
+"""
+
+// The eye is a hole punched through the body rather than its own dark layer:
+// the system recolours foreground layers for the tinted and clear appearances,
+// where a dark dot would vanish but a punch-out still reads.
+let bodySVG = """
+\(svgHeader)
+<path fill="#FFFFFF" fill-rule="evenodd" \
+d="\(svgPathData(bodyPath))\(svgPathData(CGPath(ellipseIn: eyeRect, transform: nil)))"/>
+</svg>
+
+"""
+
+let iconDir = root.appendingPathComponent("icon")
+try! FileManager.default.createDirectory(at: iconDir, withIntermediateDirectories: true)
+var svgURLs: [String: URL] = [:]
+for (name, svg) in [("background", backgroundSVG), ("tail", tailSVG), ("body", bodySVG)] {
+    let url = iconDir.appendingPathComponent("\(name).svg")
+    try! svg.data(using: .utf8)!.write(to: url)
+    svgURLs[name] = url
+}
+
+// MARK: - Checks against the rendered SVGs
+
+// The files are read back and rasterised, so what is asserted is what a
+// renderer actually draws - not what the generator meant to write. This is the
+// only check on the y-flip: get it wrong and the fish is mirrored, which moves
+// the eye below the centreline and the punch-out sample lands on white.
+func rasterise(_ url: URL) -> NSBitmapImageRep {
+    guard let image = NSImage(contentsOf: url) else {
+        FileHandle.standardError.write("could not load \(url.path)\n".data(using: .utf8)!)
+        exit(1)
+    }
+    let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size,
+                               bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true,
+                               isPlanar: false, colorSpaceName: .deviceRGB,
+                               bytesPerRow: size * 4, bitsPerPixel: 32)!
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+    image.draw(in: NSRect(x: 0, y: 0, width: canvas, height: canvas))
+    NSGraphicsContext.restoreGraphicsState()
+    return rep
+}
+
+// Expectations are expressed against the canvas independently of `svgPlace`,
+// so a wrong placement transform is caught rather than cancelled out: sampling
+// a drawing through the same transform that drew it can never disagree with it.
+// `markBounds` and `scale` come from the paths, not from the transform.
+func expectedX(_ markX: Double) -> Double { canvas / 2 + scale * (markX - markBounds.midX) }
+func expectedY(_ markY: Double) -> Double { canvas / 2 - scale * markY }  // SVG y points down
+
+/// Bounding box of the pixels matching `test`, in top-down raster coordinates.
+func boundingBox(_ rep: NSBitmapImageRep, within region: CGRect? = nil,
+                 where test: (NSColor) -> Bool) -> CGRect? {
+    let area = region ?? CGRect(x: 0, y: 0, width: canvas, height: canvas)
+    var minX = size, maxX = -1, minY = size, maxY = -1
+    for y in Int(area.minY)..<Int(area.maxY) {
+        for x in Int(area.minX)..<Int(area.maxX) where test(rep.colorAt(x: x, y: y)!) {
+            minX = min(minX, x); maxX = max(maxX, x)
+            minY = min(minY, y); maxY = max(maxY, y)
+        }
+    }
+    guard maxX >= minX else { return nil }
+    return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
+}
+
+func check(_ label: String, _ got: Double, _ want: Double, tolerance: Double = 4) {
+    if abs(got - want) > tolerance {
+        svgFailures.append(String(format: "%@: %.0f, want %.0f ±%.0f", label, got, want, tolerance))
+    }
+}
+
+var svgFailures: [String] = []
+
+let backgroundRep = rasterise(svgURLs["background"]!)
+for (label, y, want) in [("top", 10, gradientTop), ("bottom", size - 11, gradientBottom)] {
+    let c = backgroundRep.colorAt(x: size / 2, y: y)!
+    if abs(c.redComponent - want.r) > 0.02 || abs(c.greenComponent - want.g) > 0.02
+        || abs(c.blueComponent - want.b) > 0.02 {
+        svgFailures.append(String(format: "background %@: got #%02X%02X%02X, want %@",
+                                  label, Int(c.redComponent * 255), Int(c.greenComponent * 255),
+                                  Int(c.blueComponent * 255), hex(want)))
+    }
+}
+
+func isOpaque(_ c: NSColor) -> Bool { c.alphaComponent > 0.99 && c.redComponent > 0.99 }
+func isClear(_ c: NSColor) -> Bool { c.alphaComponent < 0.01 }
+
+let tailRep = rasterise(svgURLs["tail"]!)
+if let box = boundingBox(tailRep, where: isOpaque) {
+    check("tail.svg trailing edge", box.minX, expectedX(peduncleX - tailLength))
+    check("tail.svg apex", box.maxX, expectedX(tailApexX))
+    check("tail.svg top lobe", box.minY, expectedY(tailSpread))
+    check("tail.svg bottom lobe", box.maxY, expectedY(-tailSpread))
+} else {
+    svgFailures.append("tail.svg: nothing is drawn")
+}
+
+let bodyRep = rasterise(svgURLs["body"]!)
+guard let bodyBox = boundingBox(bodyRep, where: isOpaque) else {
+    FileHandle.standardError.write("body.svg: nothing is drawn\n".data(using: .utf8)!)
+    exit(1)
+}
+check("body.svg peduncle", bodyBox.minX, expectedX(peduncleX))
+check("body.svg nose", bodyBox.maxX, expectedX(noseX))
+check("body.svg back", bodyBox.minY, expectedY(bodyHeight))
+check("body.svg belly", bodyBox.maxY, expectedY(-bodyHeight))
+
+// The eye is a hole, so it is transparency *enclosed* by the silhouette - not
+// merely transparency inside the bounding box, most of which is the background
+// either side of the almond. Flooding the clear pixels inward from the box edge
+// leaves only the enclosed ones. Measuring where the hole actually landed is
+// what catches a mirrored or missing punch-out; asking whether one predicted
+// pixel is clear would not.
+var outside = Set<Int>()
+var flood: [(Int, Int)] = []
+for x in Int(bodyBox.minX)...Int(bodyBox.maxX) {
+    for y in [Int(bodyBox.minY), Int(bodyBox.maxY)] where isClear(bodyRep.colorAt(x: x, y: y)!) {
+        if outside.insert(y * size + x).inserted { flood.append((x, y)) }
+    }
+}
+for y in Int(bodyBox.minY)...Int(bodyBox.maxY) {
+    for x in [Int(bodyBox.minX), Int(bodyBox.maxX)] where isClear(bodyRep.colorAt(x: x, y: y)!) {
+        if outside.insert(y * size + x).inserted { flood.append((x, y)) }
+    }
+}
+var cursor = 0
+while cursor < flood.count {
+    let (x, y) = flood[cursor]; cursor += 1
+    for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+        let nx = x + dx, ny = y + dy
+        guard bodyBox.contains(CGPoint(x: nx, y: ny)) else { continue }
+        if isClear(bodyRep.colorAt(x: nx, y: ny)!), outside.insert(ny * size + nx).inserted {
+            flood.append((nx, ny))
+        }
+    }
+}
+var holeMinX = size, holeMaxX = -1, holeMinY = size, holeMaxY = -1
+for y in Int(bodyBox.minY)...Int(bodyBox.maxY) {
+    for x in Int(bodyBox.minX)...Int(bodyBox.maxX)
+    where isClear(bodyRep.colorAt(x: x, y: y)!) && !outside.contains(y * size + x) {
+        holeMinX = min(holeMinX, x); holeMaxX = max(holeMaxX, x)
+        holeMinY = min(holeMinY, y); holeMaxY = max(holeMaxY, y)
+    }
+}
+if holeMaxX >= holeMinX {
+    check("body.svg eye centre x", Double(holeMinX + holeMaxX) / 2, expectedX(eyeX))
+    check("body.svg eye centre y", Double(holeMinY + holeMaxY) / 2, expectedY(eyeY))
+    check("body.svg eye diameter", Double(holeMaxX - holeMinX), eyeRadius * 2 * scale, tolerance: 6)
+} else {
+    svgFailures.append("body.svg: the eye is filled, not punched through")
+}
+
+if !isClear(bodyRep.colorAt(x: 30, y: 30)!) {
+    svgFailures.append("body.svg: the layer is not transparent outside the mark")
+}
+
+guard svgFailures.isEmpty else {
+    FileHandle.standardError.write((svgFailures.joined(separator: "\n") + "\n").data(using: .utf8)!)
+    exit(1)
+}
+print("background gradient, tail fill, body fill and eye punch-out all verified")
+for name in ["background", "tail", "body"] { print("wrote \(svgURLs[name]!.path)") }
