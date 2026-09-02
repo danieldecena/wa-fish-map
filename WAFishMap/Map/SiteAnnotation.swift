@@ -19,14 +19,14 @@ final class SiteAnnotation: NSObject, MKAnnotation {
         self.coordinate = site.mapCoordinate
         self.title = site.facilityName
         self.rating = rating
-        self.kind = .launch
+        self.kind = site.hasLaunch ? .launch : .shore
     }
 
-    init(pier: FishingPier) {
+    init(pier: FishingPier, rating: FishingRating? = nil) {
         self.id = pier.id
         self.coordinate = pier.mapCoordinate
         self.title = pier.name
-        self.rating = nil
+        self.rating = rating
         self.kind = .pier
     }
 }
