@@ -12,7 +12,7 @@
 - [ ] Wave height + water temp from NDBC (no depth)
 - [x] Daylight row in the detail sheets — 72bec59
 - [x] Layered OS27 app icon — 2 vector layers + document gradient fill
-- [ ] Tap zooms count as a user camera move; protected-area default is unavailable
+- [x] Tap zooms count as a user camera move; protected-area default is unavailable — 15c4b5c
 - [x] ContentUnavailableView for the load-failure state — 406d3dc
 - [x] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
 
