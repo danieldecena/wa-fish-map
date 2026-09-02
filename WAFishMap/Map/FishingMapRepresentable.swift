@@ -69,7 +69,10 @@ struct FishingMapRepresentable: UIViewRepresentable {
     final class Coordinator: NSObject, MKMapViewDelegate, UIGestureRecognizerDelegate {
         static let areaLabelReuseID = "areaLabel"
         var parent: FishingMapRepresentable
-        private var overlaySignature: String?
+        private var areaSignature: String?
+        private var heatSignature: String?
+        private var areaOverlays: [MKOverlay] = []
+        private var heatOverlays: [MKOverlay] = []
         private var annotationSignature: String?
         private var labelSignature: String?
         private var emphasisIsMuted: Bool?
@@ -89,7 +92,6 @@ struct FishingMapRepresentable: UIViewRepresentable {
             // its apparent colour from what is under it, so over the full-colour
             // map one density band read as three different colours.
             let config = MKStandardMapConfiguration(
-                elevationStyle: .flat,
                 emphasisStyle: parent.showHeat ? .muted : .default
             )
             config.pointOfInterestFilter = MKPointOfInterestFilter(including: parent.pointsOfInterest)
@@ -98,30 +100,40 @@ struct FishingMapRepresentable: UIViewRepresentable {
 
         // MARK: Overlays
 
+        /// Two independent overlay sets. They were one, and because the heat
+        /// zones are recomputed at every camera-distance band, a zoom that
+        /// crossed a band tore down and re-added the marine-area polygons too —
+        /// a visible flash of the fills mid-zoom.
         func syncOverlays(_ mapView: MKMapView) {
-            let signature = parent.areas.map { "\($0.id):\(parent.areaColors[$0.id].map(String.init(describing:)) ?? "-")" }
+            let areaKey = parent.areas
+                .map { "\($0.id):\(parent.areaColors[$0.id].map(String.init(describing:)) ?? "-")" }
                 .joined(separator: "|")
-                + "#" + parent.heatZones.map { "\($0.id):\($0.intensity)" }.joined(separator: ",")
-            guard signature != overlaySignature else { return }
-            overlaySignature = signature
+            if areaKey != areaSignature {
+                areaSignature = areaKey
+                mapView.removeOverlays(areaOverlays)
+                areaOverlays = parent.areas.compactMap { area in
+                    let coords = area.mapCoordinates
+                    guard coords.count > 2 else { return nil }
+                    let polygon = RatedPolygon(coordinates: coords, count: coords.count)
+                    polygon.color = parent.areaColors[area.id] ?? .gray
+                    return polygon
+                }
+                mapView.addOverlays(areaOverlays, level: .aboveRoads)
+            }
 
-            mapView.removeOverlays(mapView.overlays)
-            var overlays: [MKOverlay] = []
-            for area in parent.areas {
-                let coords = area.mapCoordinates
-                guard coords.count > 2 else { continue }
-                let polygon = RatedPolygon(coordinates: coords, count: coords.count)
-                polygon.color = parent.areaColors[area.id] ?? .gray
-                overlays.append(polygon)
+            let heatKey = parent.heatZones.map { "\($0.id):\($0.intensity)" }.joined(separator: ",")
+            if heatKey != heatSignature {
+                heatSignature = heatKey
+                mapView.removeOverlays(heatOverlays)
+                heatOverlays = parent.heatZones.map { zone in
+                    let coords = zone.corners.map(\.clLocationCoordinate)
+                    let polygon = RatedPolygon(coordinates: coords, count: coords.count)
+                    polygon.color = ColorRamp.densityFill(zone.intensity)
+                    polygon.isHeat = true
+                    return polygon
+                }
+                mapView.addOverlays(heatOverlays, level: .aboveRoads)
             }
-            for zone in parent.heatZones {
-                let coords = zone.corners.map(\.clLocationCoordinate)
-                let polygon = RatedPolygon(coordinates: coords, count: coords.count)
-                polygon.color = ColorRamp.densityFill(zone.intensity)
-                polygon.isHeat = true
-                overlays.append(polygon)
-            }
-            mapView.addOverlays(overlays)
         }
 
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
@@ -151,8 +163,20 @@ struct FishingMapRepresentable: UIViewRepresentable {
 
             if signature != annotationSignature {
                 annotationSignature = signature
+                // Removing the selected annotation makes MapKit fire `didDeselect`,
+                // which would nil `selectedSiteID` and dismiss an open sheet. Any
+                // rating change rebuilds the whole list, so a month or species
+                // change closed the sheet under the user. Suppress the round-trip
+                // and put the selection back on the replacement annotation.
+                let previouslySelected = parent.selectedID
+                isSyncingSelection = true
                 mapView.removeAnnotations(mapView.annotations.compactMap { $0 as? SiteAnnotation })
                 mapView.addAnnotations(parent.annotations)
+                if let id = previouslySelected,
+                   let match = parent.annotations.first(where: { $0.id == id }) {
+                    mapView.selectAnnotation(match, animated: false)
+                }
+                isSyncingSelection = false
             }
             if labels != labelSignature {
                 labelSignature = labels
@@ -209,7 +233,11 @@ struct FishingMapRepresentable: UIViewRepresentable {
         }
 
         func mapView(_ mapView: MKMapView, didDeselect view: MKAnnotationView) {
-            guard !isSyncingSelection, view.annotation is SiteAnnotation else { return }
+            guard !isSyncingSelection, let site = view.annotation as? SiteAnnotation else { return }
+            // MapKit also deselects when it recycles the view of a pin that has
+            // scrolled off screen. Panning the selected pin out of frame is not
+            // the user closing the sheet, so only an on-screen deselect counts.
+            guard mapView.visibleMapRect.contains(MKMapPoint(site.coordinate)) else { return }
             parent.selectedID = nil
         }
 
