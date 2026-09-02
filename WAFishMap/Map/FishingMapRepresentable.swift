@@ -354,7 +354,7 @@ struct FishingMapRepresentable: UIViewRepresentable {
         /// double-tap stopped counting as a user camera move.
         static func isCameraMove(_ state: UIGestureRecognizer.State) -> Bool {
             switch state {
-            case .began, .changed: true
+            case .began, .changed, .ended: true
             default: false
             }
         }

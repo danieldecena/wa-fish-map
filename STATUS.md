@@ -65,6 +65,14 @@
   but could not fire and tap zooms did not count as a user camera move. The
   guard is now `Coordinator.isCameraMove(_:)`, covered by
   `WAFishMapTests/CameraGestureTests.swift`.
+- Corrected: that commit extracted the guard and wrote the test but never
+  changed the predicate, which still accepted only `.began`/`.changed`. The
+  refactor shipped and the fix did not, so tap zooms still went uncounted. The
+  commit said in its own message that the suite was unfinished when it landed;
+  the run that followed failed on `discreteTapStatesCountAsACameraMove()` and
+  the failure sat unread until a stale background task reported it. `.ended` is
+  now accepted (`.recognized` is `.ended`), 108 tests in 18 suites pass. A test
+  written alongside a fix does not prove the fix is in the commit.
 - `appliedSelectionID = nil` moved above the visibility guard in the deselect
   handler. MapKit drops the selection whether or not the pin is on screen, so
   leaving the applied id set meant `syncSelection`'s guard held forever and a
