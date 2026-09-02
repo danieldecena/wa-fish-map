@@ -241,7 +241,14 @@ def main() -> int:
     else:
         print(f"{email} is already in {a.group}")
 
-    live = next(b for b in survey(jwt, a.app)["builds"] if not b["expired"])
+    live = next(
+        (b for b in survey(jwt, a.app)["builds"] if not b["expired"]), None
+    )
+    if live is None:
+        raise SystemExit(
+            "no unexpired build to attach; TestFlight builds expire 90 days after "
+            "upload, so upload a new one first"
+        )
     if a.group not in live["groups"]:
         print(f"POST /v1/builds/{live['id']}/relationships/betaGroups")
         call(

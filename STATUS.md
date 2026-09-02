@@ -55,9 +55,10 @@
   device pre-flight, build, sign, install, run, then confirm from the device.
 - The suite is 139 tests: 138 pass, 1 skips. The skip is
   `testWindReadsARealValueOnDevice`, gated to hardware on purpose.
-- Build 1 is offered to the account holder in TestFlight. Apple reports it as
-  `IN_BETA_TESTING`, attached to an internal group `Internal` (`f303ff11-…`)
-  holding `danieldecena@icloud.com`. `./scripts/testflight_internal.py` created
+- Build 1 is installed from TestFlight. Apple reports the build
+  `IN_BETA_TESTING`, attached to the internal group `Internal` (`f303ff11-…`),
+  and `danieldecena@icloud.com` at state `INSTALLED` — the tester state is the
+  observation, not the upload receipt or the group membership. `./scripts/testflight_internal.py` created
   that chain and reads it back; run without `--apply` it is a read-only
   diagnosis of what is missing.
 
@@ -71,10 +72,6 @@
 
 ## Next Up
 
-- Accept the TestFlight invitation at `danieldecena@icloud.com`. The tester sits
-  at state `INVITED`, which is why the app is not listed in TestFlight yet —
-  server state is otherwise complete. An invitation was re-sent 2026-09-02
-  (`POST /v1/betaTesterInvitations`, `inviteType: EMAIL`).
 - Invite the brother: `POST /v1/userInvitations` with his Apple Account and
   `roles: ["DEVELOPER"]`, he accepts the emailed invitation, then re-run
   `testflight_internal.py --apply --tester <his email>` to put him in the
@@ -115,7 +112,9 @@ Everything else open lives in `TASKS.md`, which has no open items.
 - A tester at state `INVITED` is invited, not testing. TestFlight lists nothing
   for them until the emailed invitation is accepted, so a fully correct server
   state — internal group, tester, build attached, `IN_BETA_TESTING` — still
-  shows an empty TestFlight. `POST /v1/betaTesterInvitations` re-sends it.
+  shows an empty TestFlight. `POST /v1/betaTesterInvitations` re-sends it, and
+  the state went `INVITED` -> `INSTALLED` once it was accepted. **The tester
+  state is the only field that answers "can they run it".**
 - The App Store Connect key is a **team** key: its JWT carries `iss`. Signed as
   an individual key (`sub: "user"`, no `iss`) it returns a bare 401 identical to
   a revoked key, which cost a detour re-deriving credentials that were fine.
