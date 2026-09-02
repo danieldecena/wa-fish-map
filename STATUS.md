@@ -42,7 +42,8 @@
 - The camera guard has a disclosed residual: a genuine user gesture made BEFORE
   the WDFW load completes is misclassified as non-user, so a later location fix
   would still recentre. Narrower than the bug it replaced, and documented in the
-  code.
+  code. Narrower again as of the `isCameraMove` fix below: tap-driven zooms are
+  now recognised at all, so only the pre-load window remains.
 
 ## Next Up
 
@@ -52,6 +53,22 @@
   entitlement.
 
 ## Decision log
+
+### 2026-09-01 (camera gestures, protected-area default)
+
+- Decided: `SiteDetailSheet.protectedAreaCheck` defaults to `.unavailable`, not
+  `.clear`. `.clear` renders "not in a protected area" for a check that never
+  ran, which is a safety claim asserted from the absence of a result. An
+  unavailable check must read as unknown.
+- `userGesture` guarded on `.began`/`.changed`, states a discrete recognizer
+  never enters, so the double-tap and two-finger-tap recognizers were attached
+  but could not fire and tap zooms did not count as a user camera move. The
+  guard is now `Coordinator.isCameraMove(_:)`, covered by
+  `WAFishMapTests/CameraGestureTests.swift`.
+- `appliedSelectionID = nil` moved above the visibility guard in the deselect
+  handler. MapKit drops the selection whether or not the pin is on screen, so
+  leaving the applied id set meant `syncSelection`'s guard held forever and a
+  pin panned back into view never re-highlighted.
 
 ### 2026-09-01 (MKMapView migration)
 

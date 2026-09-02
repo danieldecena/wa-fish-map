@@ -302,8 +302,11 @@ struct FishingMapRepresentable: UIViewRepresentable {
             // MapKit also deselects when it recycles the view of a pin that has
             // scrolled off screen. Panning the selected pin out of frame is not
             // the user closing the sheet, so only an on-screen deselect counts.
-            guard mapView.visibleMapRect.contains(MKMapPoint(site.coordinate)) else { return }
+            // MapKit has genuinely dropped the selection either way, so forget
+            // that we applied it — otherwise syncSelection's guard holds and the
+            // pin never re-highlights when it is panned back into view.
             appliedSelectionID = nil
+            guard mapView.visibleMapRect.contains(MKMapPoint(site.coordinate)) else { return }
             parent.selectedID = nil
         }
 
@@ -345,8 +348,19 @@ struct FishingMapRepresentable: UIViewRepresentable {
             }
         }
 
+        /// Pan and pinch are continuous and report `.began`/`.changed`; the tap
+        /// recognizers are discrete and only ever reach `.ended`. A guard on the
+        /// continuous states alone silently ignores every tap zoom, which is how
+        /// double-tap stopped counting as a user camera move.
+        static func isCameraMove(_ state: UIGestureRecognizer.State) -> Bool {
+            switch state {
+            case .began, .changed: true
+            default: false
+            }
+        }
+
         @objc func userGesture(_ recognizer: UIGestureRecognizer) {
-            guard recognizer.state == .began || recognizer.state == .changed else { return }
+            guard Coordinator.isCameraMove(recognizer.state) else { return }
             guard !parent.userMovedCamera else { return }
             DispatchQueue.main.async { self.parent.userMovedCamera = true }
         }

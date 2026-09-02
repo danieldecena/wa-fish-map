@@ -12,6 +12,7 @@
 - [ ] Wave height + water temp from NDBC (no depth)
 - [x] Daylight row in the detail sheets — 72bec59
 - [x] Layered OS27 app icon — 2 vector layers + document gradient fill
+- [ ] Tap zooms count as a user camera move; protected-area default is unavailable
 - [x] ContentUnavailableView for the load-failure state — 406d3dc
 - [x] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
 
@@ -46,7 +47,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-01 17:43.
+Plan approved 2026-09-01 22:19.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
@@ -55,7 +56,7 @@ when launched via `cb` (--allow-dangerously-skip-permissions); `yolo`
 
 Only if Claude Code actually closed:
 
-    claude --resume cb15233e-025c-4c94-884f-0bf8d07d49ed
+    claude --resume c7aee6b6-3151-406b-a14b-4a5fe813c9b2
 
 (`-c` resumes the most recent session; bare `--resume` opens a searchable picker.)
 <!-- /resume-footer -->

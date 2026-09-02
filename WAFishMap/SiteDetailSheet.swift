@@ -117,7 +117,7 @@ struct SiteDetailSheet: View {
     let isMarine: Bool
     let guide: FisheryGuide?
     let planDate: Date
-    var protectedAreaCheck: ProtectedAreaCheck = .clear
+    var protectedAreaCheck: ProtectedAreaCheck = .unavailable
 
     private var month: Int { Calendar.current.component(.month, from: planDate) }
     private var rating: FishingRating? { fishery?.rating(inMonth: month) }
