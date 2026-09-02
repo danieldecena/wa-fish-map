@@ -1,15 +1,30 @@
-// Generates WAFishMap/Assets.xcassets/AppIcon.appiconset/icon_1024.png.
+// Draws the app mark once and emits both forms of it:
 //
 //     swift scripts/make_icon.swift
 //
-// CoreGraphics rather than an SVG pipeline: this Mac has no rasterizer
+//   icon/icon_1024.png        the flat mark, outside the app target
+//   WAFishMap/WAFishMap.icon  the layered bundle the build actually consumes
+//
+// One set of constants and one set of CGPaths feed both, so they cannot drift.
+// CoreGraphics rather than an SVG pipeline because this Mac has no rasterizer
 // (rsvg/inkscape/magick/cairosvg are all absent) but the Xcode toolchain is
 // already a hard requirement for the project, so /usr/bin/swift always works.
 //
-// The mark is drawn in its own coordinate space centred on (0,0) and placed on
-// the canvas by one transform, so the composition is fixed by construction.
-// Nothing is written until the three checks at the bottom pass against the
-// rendered bitmap.
+// The mark is drawn in its own coordinate space centred on (0,0) and placed by
+// one transform, so the composition is fixed by construction. Nothing is
+// written until the checks pass: the raster is asserted against its own bitmap,
+// and the SVGs are read back and rasterised so what is asserted is what a
+// renderer draws.
+//
+// To see what the layered bundle looks like in any appearance (Default, Dark,
+// TintedLight, TintedDark, ClearLight, ClearDark):
+//
+//     "/Applications/Xcode-beta.app/Contents/Applications/Icon Composer.app/Contents/Executables/ictool" \
+//       WAFishMap/WAFishMap.icon --export-image --output-file /tmp/icon.png \
+//       --platform iOS --rendition Default --width 1024 --height 1024 --scale 1
+//
+// Note that is *not* the ictool shim in Developer/usr/bin, which rejects these
+// arguments.
 
 import AppKit
 import CoreGraphics
@@ -189,8 +204,12 @@ print("eye enclosed, tail connected, mark centred " +
 
 let root = URL(fileURLWithPath: CommandLine.arguments[0])
     .deletingLastPathComponent().deletingLastPathComponent()
-let out = root.appendingPathComponent(
-    "WAFishMap/Assets.xcassets/AppIcon.appiconset/icon_1024.png")
+// Outside the app target: the .icon bundle supplies every size the build
+// needs, legacy ones included. This raster is the shareable flat mark, and the
+// bitmap the geometry checks above are asserted against.
+try! FileManager.default.createDirectory(at: root.appendingPathComponent("icon"),
+                                         withIntermediateDirectories: true)
+let out = root.appendingPathComponent("icon/icon_1024.png")
 let dest = CGImageDestinationCreateWithURL(out as CFURL, UTType.png.identifier as CFString, 1, nil)!
 CGImageDestinationAddImage(dest, ctx.makeImage()!, nil)
 guard CGImageDestinationFinalize(dest) else {
@@ -226,23 +245,35 @@ func svgPathData(_ path: CGPath) -> String {
     return d
 }
 
-func hex(_ c: (r: Double, g: Double, b: Double)) -> String {
-    String(format: "#%02X%02X%02X", Int(c.r * 255), Int(c.g * 255), Int(c.b * 255))
-}
-
 let svgHeader = """
 <svg xmlns="http://www.w3.org/2000/svg" width="\(Int(canvas))" height="\(Int(canvas))" \
 viewBox="0 0 \(Int(canvas)) \(Int(canvas))">
 """
 
-let backgroundSVG = """
-\(svgHeader)
-<defs><linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0" stop-color="\(hex(gradientTop))"/>
-<stop offset="1" stop-color="\(hex(gradientBottom))"/>
-</linearGradient></defs>
-<rect width="\(Int(canvas))" height="\(Int(canvas))" fill="url(#sea)"/>
-</svg>
+// The background is the document's own `fill`, not a layer: only a document
+// fill is substituted for the Dark, Tinted and Clear appearances, so a
+// background drawn as a foreground group would fight the system instead of
+// letting it recolour the icon.
+func srgb(_ c: (r: Double, g: Double, b: Double)) -> String {
+    String(format: "extended-srgb:%.5f,%.5f,%.5f,1.00000", c.r, c.g, c.b)
+}
+
+let iconJSON = """
+{
+  "fill" : {
+    "linear-gradient" : [
+      "\(srgb(gradientTop))",
+      "\(srgb(gradientBottom))"
+    ]
+  },
+  "groups" : [
+    { "layers" : [ { "image-name" : "tail.svg", "fill" : { "solid" : "extended-srgb:1.00000,1.00000,1.00000,1.00000" } } ] },
+    { "layers" : [ { "image-name" : "body.svg", "fill" : { "solid" : "extended-srgb:1.00000,1.00000,1.00000,1.00000" } } ] }
+  ],
+  "supported-platforms" : {
+    "squares" : [ "iOS" ]
+  }
+}
 
 """
 
@@ -264,11 +295,14 @@ d="\(svgPathData(bodyPath))\(svgPathData(CGPath(ellipseIn: eyeRect, transform: n
 
 """
 
-let iconDir = root.appendingPathComponent("icon")
-try! FileManager.default.createDirectory(at: iconDir, withIntermediateDirectories: true)
+let iconBundle = root.appendingPathComponent("WAFishMap/WAFishMap.icon")
+let assets = iconBundle.appendingPathComponent("Assets")
+try! FileManager.default.createDirectory(at: assets, withIntermediateDirectories: true)
+try! iconJSON.data(using: .utf8)!
+    .write(to: iconBundle.appendingPathComponent("icon.json"))
 var svgURLs: [String: URL] = [:]
-for (name, svg) in [("background", backgroundSVG), ("tail", tailSVG), ("body", bodySVG)] {
-    let url = iconDir.appendingPathComponent("\(name).svg")
+for (name, svg) in [("tail", tailSVG), ("body", bodySVG)] {
+    let url = assets.appendingPathComponent("\(name).svg")
     try! svg.data(using: .utf8)!.write(to: url)
     svgURLs[name] = url
 }
@@ -324,17 +358,6 @@ func check(_ label: String, _ got: Double, _ want: Double, tolerance: Double = 4
 }
 
 var svgFailures: [String] = []
-
-let backgroundRep = rasterise(svgURLs["background"]!)
-for (label, y, want) in [("top", 10, gradientTop), ("bottom", size - 11, gradientBottom)] {
-    let c = backgroundRep.colorAt(x: size / 2, y: y)!
-    if abs(c.redComponent - want.r) > 0.02 || abs(c.greenComponent - want.g) > 0.02
-        || abs(c.blueComponent - want.b) > 0.02 {
-        svgFailures.append(String(format: "background %@: got #%02X%02X%02X, want %@",
-                                  label, Int(c.redComponent * 255), Int(c.greenComponent * 255),
-                                  Int(c.blueComponent * 255), hex(want)))
-    }
-}
 
 func isOpaque(_ c: NSColor) -> Bool { c.alphaComponent > 0.99 && c.redComponent > 0.99 }
 func isClear(_ c: NSColor) -> Bool { c.alphaComponent < 0.01 }
@@ -412,5 +435,5 @@ guard svgFailures.isEmpty else {
     FileHandle.standardError.write((svgFailures.joined(separator: "\n") + "\n").data(using: .utf8)!)
     exit(1)
 }
-print("background gradient, tail fill, body fill and eye punch-out all verified")
-for name in ["background", "tail", "body"] { print("wrote \(svgURLs[name]!.path)") }
+print("tail and body layers placed, eye punched through")
+print("wrote \(iconBundle.path)")

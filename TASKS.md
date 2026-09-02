@@ -1,6 +1,6 @@
 ## Tasks
 
-- [ ] Layered OS27 app icon (3 SVG layers, Icon Composer)
+- [x] Layered OS27 app icon — 2 vector layers + document gradient fill
 - [x] ContentUnavailableView for the load-failure state — 406d3dc
 - [x] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
 
@@ -36,7 +36,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-01 17:23.
+Plan approved 2026-09-01 17:43.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
