@@ -88,13 +88,27 @@
   Thurston left on the statewide default by design — add only if distinct).
 - Authorise the App ID for WeatherKit. The device run is done and the phone is
   no longer the blocker; `https://weatherkit.apple.com/v3/token` returns 401 for
-  `com.danieldecena.WAFishMap`. Check, in order: the WeatherKit capability is
-  enabled on that identifier in Certificates, Identifiers & Profiles; there is no
-  unaccepted Apple Developer Program License Agreement in App Store Connect
-  (an unsigned agreement 401s service endpoints across the board); and allow for
-  propagation, which Apple documents as up to about 30 minutes after first
-  enabling. Then re-run `./scripts/verify_weatherkit_device.sh` — nothing else is
-  needed, and a pass is also the first known-GOOD input this test has ever had.
+  `com.danieldecena.WAFishMap`.
+
+  **The capability is already enabled — do not re-do it, and do not wait on
+  propagation.** The signed profile Apple issued and embedded in the device build
+  carries the entitlement:
+
+      $ security cms -D -i ~/Library/Developer/Xcode/DerivedData/WAFishMap-*/ \
+          Build/Products/Debug-iphoneos/WAFishMap.app/embedded.mobileprovision \
+        | plutil -extract Entitlements xml1 -o - -
+      <key>com.apple.developer.weatherkit</key><true/>
+
+  The portal cannot emit a profile containing that entitlement unless WeatherKit
+  is enabled on the identifier, so that step is verified complete by artifact.
+  The ~30-minute propagation window has therefore also already elapsed.
+
+  The live hypothesis is the licence agreement, and the shape of the 401 supports
+  it: a capability problem returns `401 {reason: NOT_ENABLED}` with a body, while
+  an account-level block returns a bare 401, which is what we get. So: accept any
+  pending agreement in App Store Connect → Business → Agreements, then re-run
+  `./scripts/verify_weatherkit_device.sh` immediately — no wait required. A pass
+  is also the first known-GOOD input this test has ever had.
 
 Everything else open lives in `TASKS.md`.
 
