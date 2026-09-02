@@ -70,6 +70,7 @@ struct FishingMapView: View {
             annotations: siteAnnotations,
             areas: model.marineAreas,
             areaColors: areaColors,
+            protectedAreas: model.protectedAreas,
             heatZones: heatZones,
             showHeat: showHeat,
             showAreaLabels: cameraDistance < Self.areaLabelMaxDistance,
@@ -93,7 +94,7 @@ struct FishingMapView: View {
                 isMarine: model.isMarine(site),
                 guide: model.guide,
                 planDate: planDate,
-                protectedArea: model.protectedArea(for: site)
+                protectedAreaCheck: model.protectedAreaCheck(for: site)
             )
         })
         .modifier(AdaptiveDetail(item: selectedPierBinding) { pier in

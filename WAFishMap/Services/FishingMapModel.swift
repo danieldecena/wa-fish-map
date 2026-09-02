@@ -25,9 +25,23 @@ final class FishingMapModel {
     /// Site → the Marine Protected Area whose polygon contains it (first match).
     private(set) var siteProtectedArea: [AccessSite.ID: ProtectedArea] = [:]
 
-    /// The Marine Protected Area a site sits inside, if any.
+    /// True once the MPA layer has actually been read. An empty `protectedAreas`
+    /// on its own cannot tell "checked, nothing here" from "the check never ran",
+    /// and the second must never render as the first.
+    private(set) var protectedAreasLoaded = false
+
+    /// The Marine Protected Area a site sits inside, if any. Only meaningful once
+    /// `protectedAreasLoaded`; callers wanting the three-way answer use
+    /// `protectedAreaCheck(for:)`.
     func protectedArea(for site: AccessSite) -> ProtectedArea? {
         siteProtectedArea[site.id]
+    }
+
+    /// Inside an MPA, clear of every MPA, or unable to say.
+    func protectedAreaCheck(for site: AccessSite) -> ProtectedAreaCheck {
+        guard protectedAreasLoaded else { return .unavailable }
+        if let mpa = siteProtectedArea[site.id] { return .inside(mpa) }
+        return .clear
     }
 
     var selectedSite: AccessSite? {
@@ -115,11 +129,18 @@ final class FishingMapModel {
                 statusMessage = "Couldn't load WDFW data — check your connection"
             }
         }
-        // Marine Protected Areas are a live-only overlay; absence is non-fatal.
-        if let mpaData = try? await client.data(from: MapScope.protectedAreasURL),
-           let loaded = try? WDFWLayerLoader.protectedAreas(from: mpaData) {
-            protectedAreas = loaded
+        // Marine Protected Areas are a live-only overlay; a failure is non-fatal
+        // for the load but is not silent — `protectedAreasLoaded` stays false and
+        // the sheet says the check could not run.
+        do {
+            let mpaData = try await client.data(from: MapScope.protectedAreasURL)
+            protectedAreas = try WDFWLayerLoader.protectedAreas(from: mpaData)
             indexSitesToProtectedAreas()
+            protectedAreasLoaded = true
+        } catch {
+            protectedAreas = []
+            siteProtectedArea = [:]
+            protectedAreasLoaded = false
         }
         // Piers are a live-only enhancement; absence is non-fatal.
         if let pierData = try? await client.data(from: MapScope.piersURL),

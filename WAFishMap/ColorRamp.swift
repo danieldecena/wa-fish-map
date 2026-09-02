@@ -51,16 +51,3 @@ extension FishingRating {
         }
     }
 }
-
-/// A site rendered at range: colour and position only, no glyph or balloon.
-struct RatingDot: View {
-    let color: Color
-
-    var body: some View {
-        Circle()
-            .fill(color)
-            .stroke(.white, lineWidth: 1.5)
-            .frame(width: 11, height: 11)
-    }
-}
-

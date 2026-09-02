@@ -1,5 +1,14 @@
 import CoreLocation
 
+/// The answer to "is this site in a Marine Protected Area?". `unavailable` is a
+/// first-class outcome: the layer is live-only, and a failed fetch must not read
+/// back as a clean site.
+enum ProtectedAreaCheck: Equatable {
+    case inside(ProtectedArea)
+    case clear
+    case unavailable
+}
+
 /// A WDFW Marine Protected Area (MapServer layer 4): the geography of a preserve
 /// or conservation area. Purely a polygon plus its WAC citation — the app renders
 /// where it is and links WDFW, and never states the rule itself.

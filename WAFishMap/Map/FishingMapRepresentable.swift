@@ -10,6 +10,11 @@ final class RatedPolygon: MKPolygon {
     var isHeat = false
 }
 
+/// A Marine Protected Area boundary. Geography, not a rating — its own class so
+/// the renderer can draw it as a dashed outline rather than a rated fill. The
+/// name rides on `MKShape.title`, which is what MapKit reads out.
+final class ProtectedAreaPolygon: MKPolygon {}
+
 /// Hosts `MKMapView` so MapKit can do collision-based clustering, which SwiftUI's
 /// `Map` does not expose. Everything the `Map {}` block drew is reproduced here:
 /// marine-area polygons, "MA n" labels, heat cells, site/pier pins, the user dot.
@@ -18,6 +23,8 @@ struct FishingMapRepresentable: UIViewRepresentable {
     let areas: [MarineArea]
     /// Rating colour per `MarineArea.id`; the polygon fill/stroke.
     let areaColors: [String: Color]
+    /// WDFW Marine Protected Area boundaries; drawn under the marine-area fills.
+    let protectedAreas: [ProtectedArea]
     let heatZones: [HeatZone]
     let showHeat: Bool
     let showAreaLabels: Bool
@@ -45,10 +52,21 @@ struct FishingMapRepresentable: UIViewRepresentable {
 
         // A real touch is the only reliable "the user moved the camera" signal;
         // `regionDidChangeAnimated` cannot tell a gesture from a programmatic fit.
+        // Double-tap (zoom in) and two-finger tap (zoom out) are camera moves too;
+        // without them a user who zoomed by tapping was still yanked by a late fix.
+        let doubleTap = UITapGestureRecognizer(target: context.coordinator,
+                                               action: #selector(Coordinator.userGesture))
+        doubleTap.numberOfTapsRequired = 2
+        let twoFingerTap = UITapGestureRecognizer(target: context.coordinator,
+                                                  action: #selector(Coordinator.userGesture))
+        twoFingerTap.numberOfTouchesRequired = 2
         for recognizer in [UIPanGestureRecognizer(target: context.coordinator,
                                                   action: #selector(Coordinator.userGesture)),
                            UIPinchGestureRecognizer(target: context.coordinator,
-                                                    action: #selector(Coordinator.userGesture))] as [UIGestureRecognizer] {
+                                                    action: #selector(Coordinator.userGesture)),
+                           doubleTap,
+                           twoFingerTap] as [UIGestureRecognizer] {
+            // Recognize alongside MapKit's own so the zoom itself still happens.
             recognizer.delegate = context.coordinator
             mapView.addGestureRecognizer(recognizer)
         }
@@ -72,11 +90,20 @@ struct FishingMapRepresentable: UIViewRepresentable {
         private var areaSignature: String?
         private var heatSignature: String?
         private var areaOverlays: [MKOverlay] = []
+        private var mpaSignature: String?
+        private var mpaOverlays: [MKOverlay] = []
         private var heatOverlays: [MKOverlay] = []
         private var annotationSignature: String?
         private var labelSignature: String?
         private var emphasisIsMuted: Bool?
         private var hasDoneInitialFit = false
+        /// The selection id this coordinator last pushed into the map. Reading it
+        /// back off `selectedAnnotations` does not work: a clustered member is not
+        /// in that array, so the guard never held and every update churned.
+        private var appliedSelectionID: String?
+        /// Set once a requested camera move has been handed to MapKit. The initial
+        /// auto-fit is skipped from then on.
+        private(set) var hasAppliedFocusRegion = false
         /// Guards the selection round-trip: applying the binding to the map must
         /// not read back as a fresh user selection.
         private var isSyncingSelection = false
@@ -105,18 +132,42 @@ struct FishingMapRepresentable: UIViewRepresentable {
         /// crossed a band tore down and re-added the marine-area polygons too —
         /// a visible flash of the fills mid-zoom.
         func syncOverlays(_ mapView: MKMapView) {
+            // Protected areas are geography and sit under the rated fills.
+            let mpaKey = parent.protectedAreas.map(\.id).joined(separator: "|")
+            var mpaRebuilt = false
+            if mpaKey != mpaSignature {
+                mpaSignature = mpaKey
+                mpaRebuilt = true
+                mapView.removeOverlays(mpaOverlays)
+                mpaOverlays = parent.protectedAreas.compactMap { mpa in
+                    let coords = mpa.mapCoordinates
+                    guard coords.count > 2 else { return nil }
+                    let polygon = ProtectedAreaPolygon(coordinates: coords, count: coords.count)
+                    polygon.title = mpa.name
+                    return polygon
+                }
+                mapView.addOverlays(mpaOverlays, level: .aboveRoads)
+            }
+
             let areaKey = parent.areas
                 .map { "\($0.id):\(parent.areaColors[$0.id].map(String.init(describing:)) ?? "-")" }
                 .joined(separator: "|")
-            if areaKey != areaSignature {
-                areaSignature = areaKey
-                mapView.removeOverlays(areaOverlays)
-                areaOverlays = parent.areas.compactMap { area in
-                    let coords = area.mapCoordinates
-                    guard coords.count > 2 else { return nil }
-                    let polygon = RatedPolygon(coordinates: coords, count: coords.count)
-                    polygon.color = parent.areaColors[area.id] ?? .gray
-                    return polygon
+            // Within a level MapKit draws in add order, so an MPA set that arrived
+            // after the fills would cover them. Re-adding the fills restores the
+            // stack without touching the heat cells (a level above).
+            if areaKey != areaSignature || (mpaRebuilt && !areaOverlays.isEmpty) {
+                if areaKey != areaSignature {
+                    areaSignature = areaKey
+                    mapView.removeOverlays(areaOverlays)
+                    areaOverlays = parent.areas.compactMap { area in
+                        let coords = area.mapCoordinates
+                        guard coords.count > 2 else { return nil }
+                        let polygon = RatedPolygon(coordinates: coords, count: coords.count)
+                        polygon.color = parent.areaColors[area.id] ?? .gray
+                        return polygon
+                    }
+                } else {
+                    mapView.removeOverlays(areaOverlays)
                 }
                 mapView.addOverlays(areaOverlays, level: .aboveRoads)
             }
@@ -132,13 +183,22 @@ struct FishingMapRepresentable: UIViewRepresentable {
                     polygon.isHeat = true
                     return polygon
                 }
-                mapView.addOverlays(heatOverlays, level: .aboveRoads)
+                // A level of its own: order inside a level is add order, so at the
+                // same level a recolour of the fills re-added them over the heat.
+                mapView.addOverlays(heatOverlays, level: .aboveLabels)
             }
         }
 
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             let r = MKPolygonRenderer(overlay: overlay)
-            if let tagged = overlay as? RatedPolygon {
+            if overlay is ProtectedAreaPolygon {
+                // Deliberately unlike the rated fills: a hatched grey boundary
+                // states where the area is, and claims nothing about fishing.
+                r.fillColor = UIColor.systemGray.withAlphaComponent(0.10)
+                r.strokeColor = UIColor.systemGray.withAlphaComponent(0.85)
+                r.lineWidth = 1.2
+                r.lineDashPattern = [4, 3]
+            } else if let tagged = overlay as? RatedPolygon {
                 if tagged.isHeat {
                     r.fillColor = UIColor(tagged.color)
                     r.strokeColor = .clear
@@ -187,8 +247,12 @@ struct FishingMapRepresentable: UIViewRepresentable {
             }
 
             // The camera opened statewide with `position = .automatic`; do that
-            // once, as soon as there is anything to frame.
-            if !hasDoneInitialFit && !parent.annotations.isEmpty {
+            // once, as soon as there is anything to frame — but never over the
+            // top of a camera the user or a location fix has already claimed.
+            // CoreLocation regularly answers before the WDFW fetch, and the fit
+            // used to erase the recentre with no second chance to reapply it.
+            if !hasDoneInitialFit && !parent.annotations.isEmpty
+                && !parent.userMovedCamera && parent.focusRegion == nil && !hasAppliedFocusRegion {
                 hasDoneInitialFit = true
                 mapView.showAnnotations(parent.annotations, animated: false)
             }
@@ -206,8 +270,8 @@ struct FishingMapRepresentable: UIViewRepresentable {
         // MARK: Selection
 
         func syncSelection(_ mapView: MKMapView) {
-            let current = (mapView.selectedAnnotations.first as? SiteAnnotation)?.id
-            guard current != parent.selectedID else { return }
+            guard appliedSelectionID != parent.selectedID else { return }
+            appliedSelectionID = parent.selectedID
             isSyncingSelection = true
             defer { isSyncingSelection = false }
             for annotation in mapView.selectedAnnotations {
@@ -228,6 +292,7 @@ struct FishingMapRepresentable: UIViewRepresentable {
             }
             guard !isSyncingSelection else { return }
             if let site = view.annotation as? SiteAnnotation {
+                appliedSelectionID = site.id
                 parent.selectedID = site.id
             }
         }
@@ -238,6 +303,7 @@ struct FishingMapRepresentable: UIViewRepresentable {
             // scrolled off screen. Panning the selected pin out of frame is not
             // the user closing the sheet, so only an on-screen deselect counts.
             guard mapView.visibleMapRect.contains(MKMapPoint(site.coordinate)) else { return }
+            appliedSelectionID = nil
             parent.selectedID = nil
         }
 
@@ -263,6 +329,7 @@ struct FishingMapRepresentable: UIViewRepresentable {
 
         func applyFocusRegionIfNeeded(_ mapView: MKMapView) {
             guard let region = parent.focusRegion else { return }
+            hasAppliedFocusRegion = true
             DispatchQueue.main.async {
                 self.parent.focusRegion = nil
                 mapView.setRegion(region, animated: true)

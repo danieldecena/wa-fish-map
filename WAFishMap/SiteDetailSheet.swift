@@ -117,7 +117,7 @@ struct SiteDetailSheet: View {
     let isMarine: Bool
     let guide: FisheryGuide?
     let planDate: Date
-    var protectedArea: ProtectedArea?
+    var protectedAreaCheck: ProtectedAreaCheck = .clear
 
     private var month: Int { Calendar.current.component(.month, from: planDate) }
     private var rating: FishingRating? { fishery?.rating(inMonth: month) }
@@ -149,8 +149,11 @@ struct SiteDetailSheet: View {
     }
 
     /// Shown above "What's biting" so the qualifier is read before the guidance.
+    /// `unavailable` gets its own row: a site whose MPA check never ran must not
+    /// render identically to one that came back clear.
     @ViewBuilder private var protectedAreaSection: some View {
-        if let mpa = protectedArea {
+        switch protectedAreaCheck {
+        case .inside(let mpa):
             VStack(alignment: .leading, spacing: 4) {
                 Label(mpa.headline, systemImage: "exclamationmark.shield")
                     .font(.subheadline.weight(.semibold))
@@ -163,6 +166,18 @@ struct SiteDetailSheet: View {
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.orange.opacity(0.14), in: RoundedRectangle(cornerRadius: 10))
+        case .unavailable:
+            VStack(alignment: .leading, spacing: 4) {
+                Label("Protected-area check unavailable", systemImage: "questionmark.circle")
+                    .font(.subheadline.weight(.semibold))
+                Text("WDFW's protected-area layer didn't load, so this app can't say whether this spot sits in one. Check WDFW.")
+                    .font(.caption)
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.gray.opacity(0.14), in: RoundedRectangle(cornerRadius: 10))
+        case .clear:
+            EmptyView()
         }
     }
 
