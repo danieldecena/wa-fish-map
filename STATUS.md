@@ -3,19 +3,19 @@
 ## Confirmed working
 
 - `fisheries.json` now seeds all 16 statewide marine areas (1-8-2 + 9-13; only
-  the "Oregon" polygon is unseeded) plus 12 freshwater counties. WDFW-checked
-  2026-08-30. FisheryTests + FishingMapModelTests green (13/13).
+  the "Oregon" polygon is unseeded) plus 11 freshwater counties. WDFW-checked
+  2026-08-30.
 - `fisheries.json` v1 Puget Sound seed cross-checked against WDFW; corrections
   applied (see decision log).
 - Dawn/dusk comes from real sun times: `SolarTimes` (NOAA equations, pure, no
   network) at the map's camera center, with the fixed hour buckets kept as the
-  fallback. Full suite green: 35 tests, 8 suites, iPhone 17 sim.
+  fallback.
 - Season/closure capping ships: a curated `seasonRisk` table in fisheries.json
   is matched to species by case-insensitive substring at load, stamping
   `riskMonths` that clamp a species to `.fair`, so a fishery whose season is set
   annually can never render as Prime. Capped species carry a "Season varies —
   verify" badge and their reason. 11 table rows cover the 42 entries whose notes
-  already described a closure. Full suite green: 65 tests, 11 suites.
+  already described a closure.
 - Ratings run a thermal ramp — Slow azure, Fair amber, Good orange, Prime red —
   as four explicit stops. Above 150km altitude a site draws as an 11pt dot
   instead of a balloon pin.
@@ -27,14 +27,14 @@
   Settings.
 - Marine launch and pier sheets show that day's NOAA high/low tides for the
   nearest bundled station (170 WA + Columbia-mouth). Follows the map date;
-  next extreme after the plan time is highlighted. Full suite: 73 tests, 12 suites.
+  next extreme after the plan time is highlighted.
 - Pins cluster via MapKit's `clusteringIdentifier` (the hand-rolled grid
   clusterer was deleted in the MKMapView migration). Past 400km they are not
   drawn at all — `MapDetailLevel` — and the density overlay is forced on so the
   map is never blank; the legend follows what is drawn, not the toggle.
 - Species-first picker recolours pins, clusters, heat, and area fills by an
   exact species name from the guide; missing listings stay gray. Date picker
-  unchanged. 80 tests, 13 suites.
+  unchanged.
 - `WAFishMapUITests` is a real target and the verify badge is **observed on
   screen**, not inferred. `-uiTesting` loads the bundled fixture and preselects a
   site so no tap injection is involved; `-planMonth n` pins the month.
@@ -44,35 +44,32 @@
 - `freshwater.byWaterbody` pins a claim to one lake or river, keyed by a curated
   facility list. Baker Lake sockeye is its first row.
 - Marine sheets show the nearest NDBC buoy's latest wave height and water
-  temperature, each with its own timestamp. 135 tests, 22 suites.
+  temperature, each with its own timestamp.
 - The WeatherKit device check is one command,
   `./scripts/verify_weatherkit_device.sh`, and it has run end to end on a real
   iPhone 16 Pro: build, sign, install, launch and drive all succeeded, and the
   readiness gate reported `tunnel=connected paired=paired developer-mode=enabled`.
   The assertion has been observed to **fail** against a known-bad input, on the
-  device itself, with the failure message naming what was on screen. A known-GOOD
-  input does not exist yet and cannot until Apple authorises the App ID, so the
-  test is not yet known to be able to pass — see Known broken.
+  device itself, with the failure message naming what was on screen. It has never
+  been observed to pass, because the fetch it asserts on has never succeeded —
+  see Known broken.
+- The suite is 139 tests: 138 pass, 1 skips. The skip is
+  `testWindReadsARealValueOnDevice`, gated to hardware on purpose.
 
 ## Known broken
 
-- WeatherKit does not work, and the cause is on Apple's side, not in this app.
-  Verified on a physical iPhone 16 Pro (iOS 27.0) 2026-09-02, so this is no
-  longer "unverified" — it is a negative result with a named cause. The app's own
-  log and the daemon's agree:
+- WeatherKit does not work. Every layer this project controls is correct and
+  verified; the failure is at Apple's token issuance. On a physical iPhone 16 Pro
+  (iOS 27.0), `https://weatherkit.apple.com/v3/token` answers a bare 401,
+  Content-Length 0, no reason, in 97ms over h2:
 
       [com.danieldecena.WAFishMap:weather] WeatherKit hourly fetch failed:
       Error Domain=WeatherDaemon.WDSJWTAuthenticatorServiceListener.Errors Code=2
-      [com.apple.weather:WeatherDataService] Got JWT token response ...
-      { URL: https://weatherkit.apple.com/v3/token } { Status Code: 401 }
 
-  The request reaches Apple over h2 in 97ms and is refused with a bare 401,
-  Content-Length 0, no reason given. So this is an authorisation refusal, not a
-  network failure and not a signing failure on this machine: the profile really
-  does carry `com.apple.developer.weatherkit`, and `codesign -d --entitlements`
-  confirms it on the installed binary. An entitlement in a profile is Xcode's
-  local claim; the 401 is Apple's server declining to issue a token for this
-  App ID. Next step is in the developer portal, not in Xcode — see Next Up.
+  Not a network failure, not a signing failure, and **not** a missing capability
+  or an unaccepted agreement — all four were ruled out by artifact, not by
+  assumption (decision log, 2026-09-02). Nothing has ever authenticated, which is
+  why the WeatherKit plan shows 0 calls: a 401 dies before it reaches the quota.
 
   The app degrades honestly throughout: it renders "Wind and rain unavailable
   right now." rather than inventing numbers.
@@ -86,8 +83,20 @@
 
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
-- Authorise the App ID for WeatherKit. The device run is done and the phone is
-  no longer the blocker; `https://weatherkit.apple.com/v3/token` returns 401 for
+- Reset the device-side entitlement cache: reboot the iPhone, delete WAFishMap,
+  rebuild to device, re-run `./scripts/verify_weatherkit_device.sh`. Five minutes,
+  and it is the documented fix when the server side is already correct.
+- If it still returns a bare 401, file code-level support — the evidence bundle
+  is in the decision log entry below, and it is not a "did you enable it" ticket.
+
+Everything else open lives in `TASKS.md`.
+
+## Decision log
+
+### 2026-09-02 (WeatherKit fault localised to token issuance)
+
+- Finding: every layer below token issuance is green;
+  `https://weatherkit.apple.com/v3/token` still returns a bare 401 for
   `com.danieldecena.WAFishMap`.
 
   **The capability is already enabled — do not re-do it, and do not wait on
@@ -146,8 +155,6 @@
   A pass is also the first known-GOOD input this test has ever had.
 
 Everything else open lives in `TASKS.md`.
-
-## Decision log
 
 ### 2026-09-02 (WeatherKit narrowed to token issuance; two hypotheses killed)
 
@@ -469,48 +476,4 @@ Everything else open lives in `TASKS.md`.
   fallback message. `~/bin/auto-commit.sh` stays on disk; `auto-push.sh` still
   runs.
 
-### 2026-08-30 (data-update review)
-- Reviewed how data updates: geo layers self-update per launch (live fetch,
-  bundle fallback); fisheries.json is release-only by design. Fixed the gaps:
-  - Rewrote scripts/verify_wdfw_live.py for the statewide contract (17 live
-    AreaNames, fisheries.json schema/months/areaName membership, layer counts
-    vs maxRecordCount, fixture anchors). Verified both ways: passes on real
-    data, fires on a mutated copy (bogus area + month 13), mutation asserted.
-  - Added .github/workflows/ci.yml: ubuntu contract job (push/PR + weekly cron
-    for WDFW drift) + macOS xcodebuild test job.
-  - App now rejects truncated ArcGIS responses (exceededTransferLimit at either
-    level -> WDFWLayerError.truncatedResponse) instead of rendering a partial
-    layer as complete; layer 0 is 477/2000 today so headroom is large.
-  - load() no longer strands "Loading…" when live fetch and bundle both fail;
-    restores the intent of old-main b5a15bc whose content was dropped in the
-    history unification. Both behaviors unit-tested (19/19 green).
-- Left unpaginated fetch as-is: verifier warns at 80% of maxRecordCount, which
-  is the cheap early signal; pagination only if that ever fires.
-
-### 2026-08-30
-- Verified `fisheries.json` seasonal facts against WDFW via parallel research.
-  Material corrections applied:
-  - Blackmouth (resident Chinook): MA 10/11 were "best Nov-Feb" but those areas
-    are generally closed then; real fishery is a spring (Mar-Apr) selective
-    opener. MA 13 shifted to spring-leaning (best Jan-Apr, good Nov-Dec).
-  - Lingcod: inner Puget Sound (MA 5-11) closes ~Jun 15, so July is closed —
-    dropped month 7 from goodMonths on all marine lingcod entries.
-  - MA 9 summer Chinook: June typically closed — dropped from goodMonths.
-  - Grant Co walleye (Potholes): fishes best post-spawn (Jun-Aug), not May-Jun.
-- Deferred minors (squid Oct, MA 13 cutthroat Dec) were already present in the
-  data — no change needed.
-
-### 2026-08-30 (statewide seed)
-- Extended `fisheries.json` statewide: added marine areas 1, 2, 2-1, 2-2, 3, 4,
-  5, 6, 7, 8-1, 8-2 (11 new) and freshwater counties King, Snohomish, Spokane,
-  Stevens, Ferry, Douglas, Yakima, Kittitas, Whatcom (9 new). Data WDFW-checked
-  via direct web research (subagents hit the account session limit, so research
-  ran in the main loop).
-- Signature fisheries per region: coastal ocean salmon (Jun-Sep) + Mar-Oct
-  bottomfish + albacore + razor clams; strait summer Chinook/coho + halibut +
-  spring blackmouth; north Sound coho/pinks/blackmouth; Lake Roosevelt
-  kokanee/walleye, Rufus Woods triploids, Baker sockeye, Yakima smallmouth, etc.
-- Left Pierce/Mason/Kitsap/Thurston on the statewide default (not distinct
-  enough to seed). Only the "Oregon" area polygon stays unseeded.
-- Verified all 16 areaName values match the live WDFW layer-6 set; JSON valid;
-  all months 1-12; tests green.
+Older entries: [STATUS-ARCHIVE.md](STATUS-ARCHIVE.md).
