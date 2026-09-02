@@ -10,7 +10,7 @@ final class SiteAnnotation: NSObject, MKAnnotation {
     let rating: FishingRating?
     let kind: Kind
 
-    enum Kind {
+    enum Kind: CaseIterable {
         case launch, shore, pier
     }
 
