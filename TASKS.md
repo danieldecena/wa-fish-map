@@ -3,11 +3,11 @@
 - [x] Flag sites inside WDFW Marine Protected Areas (44, live, unused)
 - [x] MKMapView migration: MapKit clustering, then chart tiles if a URL resolves
 - [ ] XCUITest target: observe the verify badge, retire the unobservable claims
-- [ ] Clamp cluster badges below a readable zoom
+- [x] Clamp cluster badges below a readable zoom
 - [ ] WeatherKit wind/precip at plan time
-- [ ] Waterbody note tier: restore the Baker Lake sockeye entry
-- [ ] Piers outside marine polygons answer freshwater, not neutral
-- [ ] Index piers against Marine Protected Areas too
+- [x] Waterbody note tier: restore the Baker Lake sockeye entry
+- [x] Piers outside marine polygons answer freshwater, not neutral
+- [x] Index piers against Marine Protected Areas too
 - [x] Launch pins draw a default marker, anchor.fill is not a symbol
 - [ ] Wave height + water temp from NDBC (no depth)
 - [x] Daylight row in the detail sheets — 72bec59

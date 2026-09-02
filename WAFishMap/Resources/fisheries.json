@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-01",
+  "updated": "2026-09-02",
   "disclaimer": "Seasonal guidance only — NOT official regulations. Runs, open seasons, areas, and limits change year to year and can close with little notice. Statewide first-pass data; inland areas without an entry show a neutral rating. Bait/gear are general suggestions. Always confirm current rules in the WDFW Fish Washington app before you fish.",
   "wdfwURL": "https://wdfw.wa.gov/fishing/regulations",
   "seasonRisk": [
@@ -2055,6 +2055,31 @@
           "note": "Alpine lakes; best after ice-out through summer.",
           "bestTime": "Morning & evening"
         }
+      ]
+    },
+    "byWaterbody": {
+      "Baker Lake": [
+        {
+          "species": "Sockeye Salmon",
+          "bestMonths": [
+            7,
+            8
+          ],
+          "goodMonths": [
+            6
+          ],
+          "bait": "Small pink or red hoochies behind a dodger, trolled slow",
+          "bestTime": "First light to mid-morning",
+          "note": "Baker Lake sockeye run on a WDFW trap-and-haul quota, so the fishery opens only when enough fish are passed above the dams."
+        }
+      ]
+    },
+    "waterbodySites": {
+      "Baker Lake": [
+        "Baker Lake",
+        "Baker Lake Resort",
+        "Horseshoe Cove",
+        "Kulshan Campground"
       ]
     }
   }

@@ -46,6 +46,7 @@ struct BitingNowView: View {
                             Label("Season varies — verify", systemImage: "exclamationmark.triangle")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
+                                .accessibilityIdentifier("verifyBadge")
                         }
                         Label("Best months: \(Self.monthList(s.bestMonths))", systemImage: "calendar")
                             .font(.caption).foregroundStyle(.secondary)
@@ -110,49 +111,16 @@ struct GuidanceFooter: View {
     }
 }
 
-/// Detail shown when a launch/shore marker is tapped.
-struct SiteDetailSheet: View {
-    let site: AccessSite
-    let fishery: AreaFishery?
-    let isMarine: Bool
-    let guide: FisheryGuide?
-    let planDate: Date
-    var protectedAreaCheck: ProtectedAreaCheck = .unavailable
-
-    private var month: Int { Calendar.current.component(.month, from: planDate) }
-    private var rating: FishingRating? { fishery?.rating(inMonth: month) }
-    private var inSeason: [SpeciesSeason] { fishery?.inSeason(month: month) ?? [] }
+/// The MPA qualifier, shared by the launch and pier sheets. Shown above "What's
+/// biting" so it is read before the guidance it qualifies.
+///
+/// `unavailable` gets its own row: a spot whose MPA check never ran must not
+/// render identically to one that came back clear.
+struct ProtectedAreaSection: View {
+    let check: ProtectedAreaCheck
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    header
-                    facilitySection
-                    amenitiesSection
-                    DaylightView(coordinate: site.coordinate, planDate: planDate)
-                    TidePredictionsView(
-                        coordinate: site.coordinate,
-                        planDate: planDate,
-                        isMarine: isMarine
-                    )
-                    protectedAreaSection
-                    BitingNowView(fishery: fishery, month: month)
-                    GuidanceFooter(guide: guide)
-                    if !site.directions.isEmpty { directionsSection }
-                }
-                .padding()
-            }
-            .navigationTitle(site.facilityName)
-            .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-
-    /// Shown above "What's biting" so the qualifier is read before the guidance.
-    /// `unavailable` gets its own row: a site whose MPA check never ran must not
-    /// render identically to one that came back clear.
-    @ViewBuilder private var protectedAreaSection: some View {
-        switch protectedAreaCheck {
+        switch check {
         case .inside(let mpa):
             VStack(alignment: .leading, spacing: 4) {
                 Label(mpa.headline, systemImage: "exclamationmark.shield")
@@ -179,6 +147,48 @@ struct SiteDetailSheet: View {
         case .clear:
             EmptyView()
         }
+    }
+}
+
+/// Detail shown when a launch/shore marker is tapped.
+struct SiteDetailSheet: View {
+    let site: AccessSite
+    let fishery: AreaFishery?
+    let isMarine: Bool
+    let guide: FisheryGuide?
+    let planDate: Date
+    var protectedAreaCheck: ProtectedAreaCheck = .unavailable
+
+    private var month: Int { UITestSeam.planMonth ?? Calendar.current.component(.month, from: planDate) }
+    private var rating: FishingRating? { fishery?.rating(inMonth: month) }
+    private var inSeason: [SpeciesSeason] { fishery?.inSeason(month: month) ?? [] }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    header
+                    facilitySection
+                    amenitiesSection
+                    DaylightView(coordinate: site.coordinate, planDate: planDate)
+                    TidePredictionsView(
+                        coordinate: site.coordinate,
+                        planDate: planDate,
+                        isMarine: isMarine
+                    )
+                    ProtectedAreaSection(check: protectedAreaCheck)
+                    BitingNowView(fishery: fishery, month: month)
+                    GuidanceFooter(guide: guide)
+                    if !site.directions.isEmpty { directionsSection }
+                }
+                .padding()
+            }
+            .navigationTitle(site.facilityName)
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        // Lets a UI test wait for the sheet before asserting the *absence* of the
+        // verify badge; without it an absence check can pass by running early.
+        .accessibilityIdentifier("siteDetailSheet")
     }
 
     private var header: some View {
@@ -260,8 +270,9 @@ struct PierDetailSheet: View {
     let isMarine: Bool
     let guide: FisheryGuide?
     let planDate: Date
+    var protectedAreaCheck: ProtectedAreaCheck = .unavailable
 
-    private var month: Int { Calendar.current.component(.month, from: planDate) }
+    private var month: Int { UITestSeam.planMonth ?? Calendar.current.component(.month, from: planDate) }
     private var rating: FishingRating? { fishery?.rating(inMonth: month) }
 
     var body: some View {
@@ -289,6 +300,7 @@ struct PierDetailSheet: View {
                         planDate: planDate,
                         isMarine: isMarine
                     )
+                    ProtectedAreaSection(check: protectedAreaCheck)
                     BitingNowView(fishery: fishery, month: month)
                     GuidanceFooter(guide: guide)
                 }

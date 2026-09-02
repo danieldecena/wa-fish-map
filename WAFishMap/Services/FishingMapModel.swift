@@ -21,6 +21,7 @@ final class FishingMapModel {
     /// Pier → containing marine area, same point-in-polygon index as launches so pier
     /// markers and heat zones don't re-scan every polygon on each render.
     private(set) var pierAreaName: [FishingPier.ID: String] = [:]
+    private(set) var pierProtectedArea: [FishingPier.ID: ProtectedArea] = [:]
 
     /// Site → the Marine Protected Area whose polygon contains it (first match).
     private(set) var siteProtectedArea: [AccessSite.ID: ProtectedArea] = [:]
@@ -44,6 +45,14 @@ final class FishingMapModel {
         return .clear
     }
 
+    /// Inside an MPA, clear of every MPA, or unable to say — piers sit in the
+    /// same water as launches, so the same restriction applies to them.
+    func protectedAreaCheck(for pier: FishingPier) -> ProtectedAreaCheck {
+        guard protectedAreasLoaded else { return .unavailable }
+        if let mpa = pierProtectedArea[pier.id] { return .inside(mpa) }
+        return .clear
+    }
+
     var selectedSite: AccessSite? {
         accessSites.first { $0.id == selectedSiteID }
     }
@@ -64,7 +73,10 @@ final class FishingMapModel {
         if let area = areaName(for: site), let marine = guide?.area(named: area) {
             return marine
         }
-        return guide?.freshwater?.fishery(county: site.countyName)
+        return guide?.freshwater?.fishery(
+            county: site.countyName,
+            waterbody: guide?.freshwater?.waterbody(forFacility: site.facilityName)
+        )
     }
 
     /// The launch's current-month rating, or nil when no guidance applies — the UI
@@ -84,7 +96,10 @@ final class FishingMapModel {
         if let area = pierAreaName[pier.id], let marine = guide?.area(named: area) {
             return marine
         }
-        return guide?.freshwater?.fishery(county: pier.countyName)
+        return guide?.freshwater?.fishery(
+            county: pier.countyName,
+            waterbody: guide?.freshwater?.waterbody(forFacility: pier.name)
+        )
     }
 
     /// A pier's current-month rating, resolved the same way as launches so piers are
@@ -111,6 +126,18 @@ final class FishingMapModel {
     }
 
     func load(client: HTTPGet = URLSessionHTTPGet(), bundle: Bundle = .main) async {
+        // Under a UI test the network is not a dependency worth having: the run
+        // asserts what the sheet renders, not that WDFW is up. The fixture also
+        // fixes which site is selected, so the sheet is on screen without a tap.
+        if UITestSeam.isActive {
+            do {
+                try loadFromBundle(bundle: bundle)
+                selectedSiteID = accessSites.first?.id
+            } catch {
+                statusMessage = "Couldn't load WDFW data — check your connection"
+            }
+            return
+        }
         loadGuide(bundle: bundle)
         do {
             // Independent layers — fetch concurrently.
@@ -140,6 +167,7 @@ final class FishingMapModel {
         } catch {
             protectedAreas = []
             siteProtectedArea = [:]
+            pierProtectedArea = [:]
             protectedAreasLoaded = false
         }
         // Piers are a live-only enhancement; absence is non-fatal.
@@ -147,6 +175,9 @@ final class FishingMapModel {
            let loaded = try? WDFWLayerLoader.piers(from: pierData) {
             piers = loaded
             indexPiersToAreas()
+            // Piers load after the MPA layer, so their MPA index is built here.
+            // Indexing inside the MPA block would always see zero piers.
+            indexPiersToProtectedAreas()
         }
         isLoading = false
     }
@@ -171,6 +202,17 @@ final class FishingMapModel {
             }
         }
         siteProtectedArea = map
+    }
+
+    /// Match every pier to the Marine Protected Area containing it (first wins).
+    private func indexPiersToProtectedAreas() {
+        var map: [FishingPier.ID: ProtectedArea] = [:]
+        for pier in piers {
+            if let mpa = protectedAreas.first(where: { $0.contains(pier.coordinate) }) {
+                map[pier.id] = mpa
+            }
+        }
+        pierProtectedArea = map
     }
 
     /// Match every pier to the marine area whose polygon contains it (first wins).

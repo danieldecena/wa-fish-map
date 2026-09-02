@@ -55,7 +55,7 @@ struct FishingMapView: View {
 
     /// Month from the selected plan date drives every rating on the map.
     private var currentMonth: Int {
-        Calendar.current.component(.month, from: planDate)
+        UITestSeam.planMonth ?? Calendar.current.component(.month, from: planDate)
     }
 
     private var timeOfDay: TimeOfDay {
@@ -67,12 +67,12 @@ struct FishingMapView: View {
 
     var body: some View {
         FishingMapRepresentable(
-            annotations: siteAnnotations,
+            annotations: showsPins ? siteAnnotations : [],
             areas: model.marineAreas,
             areaColors: areaColors,
             protectedAreas: model.protectedAreas,
             heatZones: heatZones,
-            showHeat: showHeat,
+            showHeat: heatVisible,
             showAreaLabels: cameraDistance < Self.areaLabelMaxDistance,
             pointsOfInterest: landmarkCategories,
             selectedID: $model.selectedSiteID,
@@ -103,7 +103,8 @@ struct FishingMapView: View {
                 fishery: model.fishery(for: pier),
                 isMarine: model.isMarine(pier),
                 guide: model.guide,
-                planDate: planDate
+                planDate: planDate,
+                protectedAreaCheck: model.protectedAreaCheck(for: pier)
             )
         })
         .overlay {
@@ -133,11 +134,22 @@ struct FishingMapView: View {
             await model.load()
             recomputeHeatZones()
         }
-        .onChange(of: showHeat) { recomputeHeatZones() }
+        .onChange(of: heatVisible) { recomputeHeatZones() }
         .onChange(of: Self.heatCellDegrees(cameraDistance)) { recomputeHeatZones() }
         .onChange(of: currentMonth) { recomputeHeatZones() }
         .onChange(of: selectedSpecies) { recomputeHeatZones() }
         .onChange(of: location.fix?.latitude) { recenterOnFixIfAppropriate() }
+    }
+
+    /// Pulled back far enough, individual pins are an unreadable mass; the
+    /// density overlay carries the state-wide picture instead.
+    private var showsPins: Bool {
+        MapDetailLevel.showsPins(atCameraDistance: cameraDistance)
+    }
+
+    /// The user's toggle, plus the forced-on case where pins are hidden.
+    private var heatVisible: Bool {
+        MapDetailLevel.showsHeat(userEnabled: showHeat, atCameraDistance: cameraDistance)
     }
 
     /// Sites and piers as MapKit annotations, ratings resolved up front.
@@ -167,7 +179,7 @@ struct FishingMapView: View {
     /// Cached in state; zones only change with the toggle, the plan month, the
     /// species filter, a data load, or the camera-distance band.
     private func recomputeHeatZones() {
-        guard showHeat else {
+        guard heatVisible else {
             heatZones = []
             return
         }
@@ -348,7 +360,9 @@ struct FishingMapView: View {
                 }
                 .buttonStyle(.borderless)
             }
-            if showHeat {
+            // Follows what is actually drawn, not the toggle: zoomed out the
+            // overlay is forced on, and a rating legend over a heat map lies.
+            if heatVisible {
                 HeatLegend()
             } else {
                 RatingLegend()

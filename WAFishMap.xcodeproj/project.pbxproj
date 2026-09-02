@@ -14,11 +14,19 @@
 			remoteGlobalIDString = A10000000000000000000008;
 			remoteInfo = WAFishMap;
 		};
+		A10000000000000000000046 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000000000000000000008;
+			remoteInfo = WAFishMap;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A10000000000000000000006 /* WAFishMap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WAFishMap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000007 /* WAFishMapTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WAFishMapTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000041 /* WAFishMapUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WAFishMapUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -30,6 +38,11 @@
 		A10000000000000000000005 /* WAFishMapTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WAFishMapTests;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000040 /* WAFishMapUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = WAFishMapUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -45,6 +58,11 @@
 			files = (
 			);
 		};
+		A10000000000000000000044 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -53,6 +71,7 @@
 			children = (
 				A10000000000000000000004 /* WAFishMap */,
 				A10000000000000000000005 /* WAFishMapTests */,
+				A10000000000000000000040 /* WAFishMapUITests */,
 				A10000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -62,6 +81,7 @@
 			children = (
 				A10000000000000000000006 /* WAFishMap.app */,
 				A10000000000000000000007 /* WAFishMapTests.xctest */,
+				A10000000000000000000041 /* WAFishMapUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -108,6 +128,27 @@
 			productReference = A10000000000000000000007 /* WAFishMapTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		A10000000000000000000042 /* WAFishMapUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000048 /* Build configuration list for PBXNativeTarget "WAFishMapUITests" */;
+			buildPhases = (
+				A10000000000000000000043 /* Sources */,
+				A10000000000000000000044 /* Frameworks */,
+				A10000000000000000000045 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A10000000000000000000047 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A10000000000000000000040 /* WAFishMapUITests */,
+			);
+			name = WAFishMapUITests;
+			productName = WAFishMapUITests;
+			productReference = A10000000000000000000041 /* WAFishMapUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -122,6 +163,10 @@
 						CreatedOnToolsVersion = 16.0;
 					};
 					A10000000000000000000009 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = A10000000000000000000008;
+					};
+					A10000000000000000000042 = {
 						CreatedOnToolsVersion = 16.0;
 						TestTargetID = A10000000000000000000008;
 					};
@@ -143,6 +188,7 @@
 			targets = (
 				A10000000000000000000008 /* WAFishMap */,
 				A10000000000000000000009 /* WAFishMapTests */,
+				A10000000000000000000042 /* WAFishMapUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -154,6 +200,11 @@
 			);
 		};
 		A1000000000000000000000F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		A10000000000000000000045 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
@@ -171,6 +222,11 @@
 			files = (
 			);
 		};
+		A10000000000000000000043 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -178,6 +234,11 @@
 			isa = PBXTargetDependency;
 			target = A10000000000000000000008 /* WAFishMap */;
 			targetProxy = A10000000000000000000010 /* PBXContainerItemProxy */;
+		};
+		A10000000000000000000047 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000000000000000000008 /* WAFishMap */;
+			targetProxy = A10000000000000000000046 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -413,6 +474,52 @@
 			};
 			name = Release;
 		};
+		A10000000000000000000049 /* Debug configuration for PBXNativeTarget "WAFishMapUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.danieldecena.WAFishMapUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = WAFishMap;
+			};
+			name = Debug;
+		};
+		A1000000000000000000004A /* Release configuration for PBXNativeTarget "WAFishMapUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.danieldecena.WAFishMapUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = WAFishMap;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -438,6 +545,15 @@
 				A10000000000000000000034 /* Debug configuration for PBXNativeTarget "WAFishMapTests" */,
 				A10000000000000000000035 /* Release configuration for PBXNativeTarget "WAFishMapTests" */,
 			);
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000048 /* Build configuration list for PBXNativeTarget "WAFishMapUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000049 /* Debug configuration for PBXNativeTarget "WAFishMapUITests" */,
+				A1000000000000000000004A /* Release configuration for PBXNativeTarget "WAFishMapUITests" */,
+			);
+			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */

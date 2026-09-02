@@ -47,6 +47,35 @@ struct NoteScopeTests {
         #expect(bad.isEmpty, "county notes must hold anywhere in the county:\n\(bad.joined(separator: "\n"))")
     }
 
+    /// The waterbody tier is exempt for the same reason the area tier is: the
+    /// row IS a place, so "Baker Lake sockeye run on a WDFW quota" attached to
+    /// Baker Lake is true everywhere it renders. The exemption is sound only
+    /// because the tier is keyed by a curated facility list rather than by
+    /// prose-matching a name — that guess is the failure this suite exists for.
+    ///
+    /// What is asserted instead: every waterbody row must name a waterbody the
+    /// guide can actually resolve a site to, or the note is unreachable and the
+    /// tier quietly does nothing.
+    @Test func everyWaterbodyRowHasAtLeastOneSiteThatCanReachIt() throws {
+        let freshwater = try #require(bundledGuide().freshwater)
+        let keyed = Set(freshwater.waterbodySites?.keys ?? [:].keys)
+        let orphans = (freshwater.byWaterbody ?? [:]).keys.filter { !keyed.contains($0) }
+        #expect(orphans.isEmpty,
+                "waterbody notes no site maps to: \(orphans.sorted().joined(separator: ", "))")
+    }
+
+    /// The season cap must reach the new tier. A tier the resolver skips lets a
+    /// closure-prone fishery render Prime, which is the whole defect the cap
+    /// exists to prevent.
+    @Test func waterbodyRowsAreStampedWithSeasonRisk() throws {
+        let guide = try bundledGuide()
+        let sockeye = guide.freshwater?.byWaterbody?["Baker Lake"]?
+            .first { $0.species == "Sockeye Salmon" }
+        let expected = guide.seasonRisk.first { $0.matches("Sockeye Salmon") }
+        #expect(try #require(sockeye).riskMonths == expected?.months ?? [],
+                "Baker Lake sockeye did not pick up the seasonRisk stamp.")
+    }
+
     /// Proves the pattern fires, so a passing suite means the data is clean
     /// rather than the regex being broken.
     @Test func patternCatchesAWaterbodyAndSparesGenericProse() {
