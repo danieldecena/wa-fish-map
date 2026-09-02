@@ -66,12 +66,30 @@
 
 ## Next Up
 
+- Finish TestFlight: build 1 is uploaded and `VALID` on app `6807799974`. What
+  remains is browser-only — invite the tester under Users and Access with the
+  Developer role, then add them to Internal Testing. No review, no cable.
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
 
 Everything else open lives in `TASKS.md`, which has no open items.
 
 ## Decision log
+
+### 2026-09-02 (TestFlight: build 1 uploaded)
+
+- Archive and upload must use the **release** Xcode. App Store Connect rejects a
+  beta toolchain with `90534: Unsupported SDK or Xcode version`. Set
+  `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` for those commands
+  only — switching `xcode-select` globally would drag the device script with it,
+  and that one wants the beta.
+- Xcode 26.6 shipped with no iOS platform; `xcodebuild -downloadPlatform iOS`
+  fetched 8.5GB before it could build for iOS at all.
+- `altool` reported failure while the shell pipeline reported success, because
+  `tail` was the last command. The only thing that caught it was
+  `GET /v1/apps/{id}/builds` returning zero. An upload receipt is not evidence a
+  build arrived; the build list is. Confirmed `version=1 state=VALID` two minutes
+  after the successful upload.
 
 ### 2026-09-02 (root cause: two WeatherKit capability type strings)
 
