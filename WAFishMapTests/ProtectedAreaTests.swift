@@ -192,4 +192,65 @@ struct ProtectedAreaTests {
         #expect(model.protectedArea(for: inside)?.wac == "WAC 220-302-060")
         #expect(model.protectedArea(for: outside) == nil)
     }
+
+    /// The silent-failure case: layer 4 is unreachable, so `protectedAreas` is
+    /// empty for a reason the UI must not read as "checked, nothing here".
+    struct FailingMPAClient: HTTPGet {
+        var siteData: Data
+        func data(from url: URL) async throws -> Data {
+            if url.absoluteString.contains("/4/query") { throw WDFWLayerError.badHTTPStatus(500) }
+            if url.absoluteString.contains("/0/query") { return siteData }
+            return Data(#"{"type":"FeatureCollection","features":[]}"#.utf8)
+        }
+    }
+
+    private static let oneSite = """
+    {"type":"FeatureCollection","features":[
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[-122.00,47.65]},
+     "properties":{"FacilityName":"Elsewhere","CountyName":"King","Launch":1,"Directions":""}}]}
+    """
+
+    @Test @MainActor func anMPAFetchFailureReportsUnavailableRatherThanClear() async throws {
+        let model = FishingMapModel()
+        await model.load(client: FailingMPAClient(siteData: Data(Self.oneSite.utf8)), bundle: .main)
+        let site = try #require(model.accessSites.first)
+        #expect(!model.protectedAreasLoaded)
+        #expect(model.protectedAreaCheck(for: site) == .unavailable)
+    }
+
+    /// A truncated layer 4 is the same defect wearing a 200: the guard's throw was
+    /// swallowed too, so a partial layer read as a complete one.
+    struct TruncatedMPAClient: HTTPGet {
+        var siteData: Data
+        func data(from url: URL) async throws -> Data {
+            if url.absoluteString.contains("/4/query") {
+                return Data(#"{"type":"FeatureCollection","exceededTransferLimit":true,"features":[]}"#.utf8)
+            }
+            if url.absoluteString.contains("/0/query") { return siteData }
+            return Data(#"{"type":"FeatureCollection","features":[]}"#.utf8)
+        }
+    }
+
+    @Test @MainActor func aTruncatedMPALayerAlsoReportsUnavailable() async throws {
+        let model = FishingMapModel()
+        await model.load(client: TruncatedMPAClient(siteData: Data(Self.oneSite.utf8)), bundle: .main)
+        let site = try #require(model.accessSites.first)
+        #expect(model.protectedAreaCheck(for: site) == .unavailable)
+    }
+
+    /// The known-good half: a layer that loads and simply has nothing at this site
+    /// is `clear`, not `unavailable`.
+    @Test @MainActor func aLoadedLayerWithNoMatchIsClearNotUnavailable() async throws {
+        let empty = #"{"type":"FeatureCollection","features":[]}"#
+        let model = FishingMapModel()
+        await model.load(
+            client: StubClient(marineData: Data(empty.utf8),
+                               siteData: Data(Self.oneSite.utf8),
+                               mpaData: Data(empty.utf8)),
+            bundle: .main
+        )
+        let site = try #require(model.accessSites.first)
+        #expect(model.protectedAreasLoaded)
+        #expect(model.protectedAreaCheck(for: site) == .clear)
+    }
 }
