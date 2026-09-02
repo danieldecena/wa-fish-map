@@ -4,6 +4,9 @@
 - [ ] Clamp cluster badges below a readable zoom
 - [ ] WeatherKit wind/precip at plan time
 - [ ] Waterbody note tier: restore the Baker Lake sockeye entry
+- [ ] Piers outside marine polygons answer freshwater, not neutral
+- [ ] Wave height + water temp from NDBC (no depth)
+- [ ] Daylight row in the detail sheets
 - [x] Layered OS27 app icon — 2 vector layers + document gradient fill
 - [x] ContentUnavailableView for the load-failure state — 406d3dc
 - [x] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script

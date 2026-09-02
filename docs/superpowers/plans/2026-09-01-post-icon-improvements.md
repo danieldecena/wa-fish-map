@@ -427,7 +427,55 @@ git commit -m "feat: waterbody note tier, and restore the Baker Lake sockeye ent
 
 ---
 
-### Task 5 (optional): Camera guard residual
+### Task 5: Piers that match no marine polygon answer confidently instead of neutrally
+
+Found on screen 2026-09-01. Spokane St. Bridge sits on the Duwamish, tidal
+saltwater. The sheet labels it **Freshwater**, gives it King County's
+lowland-lake guidance ("Common in the county's lowland lakes", "spring plants
+peak the bite") and shows **no tide table** on tidal water.
+
+`CLAUDE.md` describes the intended behaviour as "inland/lake launches match no
+area -> **neutral (gray) rating**, by design". That is not what the code does.
+`FishingMapModel.swift:57-64` falls through to freshwater-by-county:
+
+```swift
+if let area = pierAreaName[pier.id], let marine = guide?.area(named: area) { return marine }
+return guide?.freshwater?.fishery(county: pier.countyName)
+```
+
+Failing to match a polygon produces a confident freshwater answer, not a neutral
+one. WDFW's marine polygons cover open marine water and do not reach up
+waterways, so every waterway pier and ramp is affected.
+
+**Decide the fix with data first.** Count how many piers and launches fall
+outside every marine polygon, and eyeball whether they are genuinely inland.
+Only then choose between: a curated marine override list keyed by pier name; a
+buffer on the marine polygons; or making the fallback neutral and losing real
+freshwater guidance at genuine lake sites. Do not pick before counting — the
+right answer depends on whether this is three sites or eighty.
+
+Whatever is chosen, `isMarine` must drive the tide table too: a tidal pier
+showing no tides is the more dangerous half of this bug.
+
+### Task 6: Wave height, period and water temperature from NDBC
+
+Requested 2026-09-01, alongside depth. **Depth is deliberately out of scope** —
+that is bathymetry and chart soundings, `home-domain-reference` routes it to
+Navionics, and a wrong sounding shown to someone in a boat is a safety problem,
+not a UX one. Link out to a chart app instead.
+
+Waves fit the existing pattern almost exactly: bundle a station catalogue as
+`Resources/wave-stations.json` and mirror `Services/NOAATideLoader.swift`
+(catalogue load, nearest station, injectable `HTTPGet`, `.task(id:)` in the
+view). Water temperature comes along free and matters more to fish behaviour
+than wave height does.
+
+**The trap to design against:** buoys are sparse. Nearest-station logic that is
+correct for 170 tide stations will return a buoy 40 miles offshore for a Lake
+Washington ramp. Require a distance cutoff and render nothing beyond it — an
+absent reading must render as absent, never as a distant one.
+
+### Task 7 (optional): Camera guard residual
 
 `FishingMapView.swift:38-56` documents the residual honestly: a genuine user
 gesture during `.beforeLoad` or `.awaitingPostLoadRefit` is swallowed, because
