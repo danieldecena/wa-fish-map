@@ -55,6 +55,11 @@
   device pre-flight, build, sign, install, run, then confirm from the device.
 - The suite is 139 tests: 138 pass, 1 skips. The skip is
   `testWindReadsARealValueOnDevice`, gated to hardware on purpose.
+- Build 1 is live in TestFlight for the account holder. Apple reports the build
+  as `IN_BETA_TESTING`, attached to an internal group `Internal`
+  (`f303ff11-…`) holding `danieldecena@icloud.com` in state `INVITED`.
+  `./scripts/testflight_internal.py` created that chain and reads it back; run
+  without `--apply` it is a read-only diagnosis of what is missing.
 
 ## Known broken
 
@@ -66,15 +71,46 @@
 
 ## Next Up
 
-- Finish TestFlight: build 1 is uploaded and `VALID` on app `6807799974`. What
-  remains is browser-only — invite the tester under Users and Access with the
-  Developer role, then add them to Internal Testing. No review, no cable.
+- Invite the brother: `POST /v1/userInvitations` with his Apple Account and
+  `roles: ["DEVELOPER"]`, he accepts the emailed invitation, then re-run
+  `testflight_internal.py --apply --tester <his email>` to put him in the
+  `Internal` group. The invitation half is the only part not yet scripted.
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
 
 Everything else open lives in `TASKS.md`, which has no open items.
 
 ## Decision log
+
+### 2026-09-02 (TestFlight: nobody was a tester)
+
+- "I don't see it in the TestFlight app" was not a build problem. Build 1 was
+  `VALID`, `READY_FOR_BETA_TESTING`, export compliance already answered. The app
+  had zero beta groups, the account had zero beta testers, and the build was
+  attached to nothing. Nothing was wrong; nothing had been asked for.
+- **Being the Account Holder does not make you a TestFlight tester.** An internal
+  tester is a `betaTester` record whose email matches an App Store Connect user,
+  in an internal `betaGroup` the build is attached to. Creating that chain is
+  three POSTs, so the previous entry's "the rest is browser-only" was wrong.
+- The tester email is the Apple Account on the developer account,
+  `danieldecena@icloud.com`, not the address used elsewhere for this work. A
+  TestFlight signed in to the other account would show nothing however correct
+  the server state is.
+- `isInternalGroup` is settable on `POST /v1/betaGroups`, confirmed against the
+  schema Apple publishes for `BetaGroupCreateRequest.Data.Attributes` before the
+  write, not after. The script still deletes the group if Apple hands back an
+  external one, because an external group routes the build to App Review.
+- **A swallowed 403 reads exactly like an empty relationship.** The first pass
+  asked `GET /v1/builds/{id}/betaGroups`, defaulted the error body to `[]`, and
+  reported "attached to no groups" — the right conclusion by luck. Apple refuses
+  that direction outright (`the relationship 'betaGroups' does not allow
+  'GET_RELATED'`); the edge is only readable as `GET /v1/betaGroups/{id}/builds`.
+- The confirmation is Apple's own state change, not the absence of an error:
+  `internalBuildState` moved `READY_FOR_BETA_TESTING` -> `IN_BETA_TESTING` across
+  the writes.
+- The App Store Connect key is a **team** key: its JWT carries `iss`. Signed as
+  an individual key (`sub: "user"`, no `iss`) it returns a bare 401 identical to
+  a revoked key, which cost a detour re-deriving credentials that were fine.
 
 ### 2026-09-02 (TestFlight: build 1 uploaded)
 

@@ -11,7 +11,8 @@
 - [x] WeatherKit works on device — legacy WEATHERKIT vs WEATHER_KIT capability
 - [x] WeatherKit attribution — WeatherAttribution mark + legal link — c705807
 - [x] Cache PlanWeatherView by hourKey — c705807
-- [ ] [you] TestFlight: invite brother (Developer role), add to Internal Testing
+- [x] TestFlight: internal group + account holder as tester, build 1 attached
+- [ ] [you] TestFlight: invite brother (Developer role), add to Internal group
 - [x] Fix the UI query: containing() filters descendants, a StaticText is a leaf
 - [x] Device-sign the test bundles: build-for-testing on generic/platform=iOS — 24bbeff
 - [x] Log the swallowed WeatherKit error in PlanWeatherView — 24bbeff
@@ -60,7 +61,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-02 02:36.
+Plan approved 2026-09-02 05:54.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
@@ -69,7 +70,7 @@ when launched via `cb` (--allow-dangerously-skip-permissions); `yolo`
 
 Only if Claude Code actually closed:
 
-    claude --resume a1f346c7-be4d-4e2d-bf76-e5ce45f7ae96
+    claude --resume 3db27db8-5ae5-4516-9760-10c546c2a07a
 
 (`-c` resumes the most recent session; bare `--resume` opens a searchable picker.)
 <!-- /resume-footer -->
