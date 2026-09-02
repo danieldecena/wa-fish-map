@@ -16,10 +16,6 @@ struct FishingMapView: View {
     /// first camera event. Below the threshold the "MA n" capsules stop overlapping.
     @State private var cameraDistance: Double = .greatestFiniteMagnitude
     private static let areaLabelMaxDistance: Double = 600_000
-    /// Above this altitude a site is a bare colored dot. Balloon pins carry a
-    /// glyph and a shadow that are unreadable at range and mat together.
-    private static let pinDetailMaxDistance: Double = 150_000
-
     /// Grid cell size, in degrees, for the density overlay. A fixed size cannot
     /// work at every zoom: 0.15 was a chessboard up close, and 0.06 was specks
     /// from statewide. Coarser as the camera pulls back keeps the cell roughly
@@ -163,51 +159,6 @@ struct FishingMapView: View {
 
     private func color(forSite site: AccessSite) -> Color {
         rating(for: site)?.color ?? .gray
-    }
-
-    /// Sites and piers bucketed on the same grid as the heat overlay.
-    private var pinClusters: [MapCluster] {
-        var points: [(id: String, coord: LonLat, rating: FishingRating?)] = []
-        points.reserveCapacity(model.accessSites.count + model.piers.count)
-        for site in model.accessSites {
-            points.append((site.id, site.coordinate, rating(for: site)))
-        }
-        for pier in model.piers {
-            points.append((pier.id, pier.coordinate, rating(for: pier)))
-        }
-        return HeatMap.clusters(points: points, cellDegrees: Self.heatCellDegrees(cameraDistance))
-    }
-
-    @MapContentBuilder
-    private func clusterAnnotation(_ cluster: MapCluster) -> some MapContent {
-        if cluster.count == 1, let site = model.accessSites.first(where: { $0.id == cluster.memberIDs[0] }) {
-            Annotation(site.facilityName, coordinate: site.mapCoordinate) {
-                RatingDot(color: color(forSite: site))
-            }
-            .annotationTitles(.hidden)
-            .tag(site.id)
-        } else if cluster.count == 1, let pier = model.piers.first(where: { $0.id == cluster.memberIDs[0] }) {
-            Annotation(pier.name, coordinate: pier.mapCoordinate) {
-                RatingDot(color: rating(for: pier)?.color ?? .gray)
-            }
-            .annotationTitles(.hidden)
-            .tag(pier.id)
-        } else {
-            Annotation("", coordinate: cluster.center.clLocationCoordinate) {
-                ClusterMark(count: cluster.count, color: cluster.bestRating?.color ?? .gray)
-
-            }
-            .annotationTitles(.hidden)
-        }
-    }
-
-    private func zoomToCluster(_ cluster: MapCluster) {
-        userMovedCamera = true
-        let span = cluster.cellDegrees * 2.5
-        focusRegion = MKCoordinateRegion(
-            center: cluster.center.clLocationCoordinate,
-            span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)
-        )
     }
 
     // MARK: Heat zones (density of good-rated spots, cold→hot)

@@ -71,49 +71,4 @@ enum HeatMap {
             (lhs.y, lhs.x) < (rhs.y, rhs.x)
         }
     }
-
-    /// Bucket sites/piers into the same lon/lat grid as `zones`. A cell with one
-    /// member is still a cluster of count 1 so the view can draw it as a dot.
-    static func clusters(
-        points: [(id: String, coord: LonLat, rating: FishingRating?)],
-        cellDegrees: Double
-    ) -> [MapCluster] {
-        guard cellDegrees > 0, !points.isEmpty else { return [] }
-        var buckets: [GridKey: [(id: String, coord: LonLat, rating: FishingRating?)]] = [:]
-        for p in points {
-            let key = GridKey(
-                x: Int((p.coord.longitude / cellDegrees).rounded(.down)),
-                y: Int((p.coord.latitude / cellDegrees).rounded(.down))
-            )
-            buckets[key, default: []].append(p)
-        }
-        return buckets.sorted { $0.key < $1.key }.map { key, members in
-            // The badge sits on the mean of its members, not on the cell centre.
-            // Cell centres quantise every cluster onto a fixed lon/lat lattice, so
-            // the map drew regular rows and columns of pins that had nothing to do
-            // with where the ramps are. The grid still decides *what* groups; it no
-            // longer decides where the group is drawn.
-            let count = Double(members.count)
-            return MapCluster(
-                id: "\(cellDegrees)|\(key.x)|\(key.y)",
-                center: LonLat(
-                    longitude: members.reduce(0) { $0 + $1.coord.longitude } / count,
-                    latitude: members.reduce(0) { $0 + $1.coord.latitude } / count
-                ),
-                cellDegrees: cellDegrees,
-                memberIDs: members.map(\.id),
-                bestRating: members.compactMap(\.rating).max()
-            )
-        }
-    }
-}
-
-/// One grid cell of pins: either a singleton (draw as a dot) or a numbered cluster.
-struct MapCluster: Equatable, Sendable, Identifiable {
-    let id: String
-    let center: LonLat
-    let cellDegrees: Double
-    let memberIDs: [String]
-    let bestRating: FishingRating?
-    var count: Int { memberIDs.count }
 }
