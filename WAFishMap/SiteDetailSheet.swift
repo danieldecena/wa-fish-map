@@ -152,9 +152,9 @@ struct SiteDetailSheet: View {
     @ViewBuilder private var protectedAreaSection: some View {
         if let mpa = protectedArea {
             VStack(alignment: .leading, spacing: 4) {
-                Label("Inside \(mpa.name)", systemImage: "exclamationmark.shield")
+                Label(mpa.headline, systemImage: "exclamationmark.shield")
                     .font(.subheadline.weight(.semibold))
-                Text("\(mpa.type) — \(mpa.wacCitation). Fishing or shellfishing may be prohibited or limited here.")
+                Text(mpa.detailLine)
                     .font(.caption)
                 if let url = mpa.detailURL {
                     Link("WDFW details", destination: url).font(.caption)
