@@ -72,16 +72,32 @@
 
 ## Next Up
 
-- Invite the brother: `POST /v1/userInvitations` with his Apple Account and
-  `roles: ["DEVELOPER"]`, he accepts the emailed invitation, then re-run
-  `testflight_internal.py --apply --tester <his email>` to put him in the
-  `Internal` group. The invitation half is the only part not yet scripted.
+- Add the brother's email to the `insideout` external group (TestFlight ->
+  insideout -> Testers -> `+`). The group still reads 0 Testers; the invite
+  sends itself once Beta App Review clears. Build 1.0 (1) is attached and
+  Waiting for Review, expiring in 90 days.
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
 
 Everything else open lives in `TASKS.md`, which has no open items.
 
 ## Decision log
+
+### 2026-09-02 (TestFlight: external, not internal)
+
+- Decided: put the brother in the `insideout` **external** group rather than
+  invite him as an App Store Connect user with a `DEVELOPER` role. External
+  costs a one-time Beta App Review; internal would have cost him an account
+  seat, given him visibility into the account, and required him to accept a
+  user invitation. Every later build now reaches him without another review.
+- Test Information: `Sign-in required` left **unchecked**. The app has no
+  accounts, so there are no reviewer credentials to supply; leaving it checked
+  blocks the form and invites a rejection for credentials that do not work.
+- Recorded because it retires the old Next Up item, which described the
+  internal route and the `POST /v1/userInvitations` call that was never made.
+- Open question deliberately not answered: TestFlight builds expire at 90 days,
+  so keeping the app on his phone means re-uploading before each expiry. The
+  App Store alternative stays gated on verifying `fisheries.json` against WDFW.
 
 ### 2026-09-02 (TestFlight: nobody was a tester)
 
