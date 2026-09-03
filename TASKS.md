@@ -13,7 +13,8 @@
 - [x] Cache PlanWeatherView by hourKey — c705807
 - [x] TestFlight: internal group + account holder as tester, build 1 attached
 - [x] TestFlight: external group insideout, build 1 submitted for Beta App Review
-- [ ] [you] TestFlight: add brother's email to the insideout group
+- [x] TestFlight: public join link on insideout, tester limit 5
+- [ ] [you] TestFlight: send the join link once Beta App Review approves build 1
 - [x] Fix the UI query: containing() filters descendants, a StaticText is a leaf
 - [x] Device-sign the test bundles: build-for-testing on generic/platform=iOS — 24bbeff
 - [x] Log the swallowed WeatherKit error in PlanWeatherView — 24bbeff

@@ -72,10 +72,11 @@
 
 ## Next Up
 
-- Add the brother's email to the `insideout` external group (TestFlight ->
-  insideout -> Testers -> `+`). The group still reads 0 Testers; the invite
-  sends itself once Beta App Review clears. Build 1.0 (1) is attached and
-  Waiting for Review, expiring in 90 days.
+- Send the brother the TestFlight public join link, but only once Beta App
+  Review approves build 1.0 (1). The link exists (insideout -> Testers ->
+  Public Link, limit 5, 0 joined) and App Store Connect refuses joins until
+  the group has an approved build. The URL is not recorded here on purpose:
+  anyone holding it can take one of the five seats. Build expires in 90 days.
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
 
