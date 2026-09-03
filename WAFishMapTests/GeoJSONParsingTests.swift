@@ -109,6 +109,41 @@ struct GeoJSONParsingTests {
         #expect(boston.mapCoordinate.latitude == 47.13965712964172)
     }
 
+    /// The geometry enum decoded only Point and Polygon, so a line fell into
+    /// `.other` and every `init?(feature:)` returned nil — no line could ever be
+    /// drawn. Both line shapes now decode, and an unknown one still must not.
+    @Test func lineGeometriesDecodeToTheirOwnCases() throws {
+        struct Bare: Decodable {}
+        let json = """
+        {"type":"FeatureCollection","features":[
+          {"type":"Feature","geometry":{"type":"LineString","coordinates":[[-122.0,47.0],[-121.9,47.1]]},"properties":{}},
+          {"type":"Feature","geometry":{"type":"MultiLineString","coordinates":[[[-122.0,47.0],[-121.9,47.1]]]},"properties":{}},
+          {"type":"Feature","geometry":{"type":"GeometryCollection","coordinates":[]},"properties":{}}
+        ]}
+        """.data(using: .utf8)!
+        let collection = try JSONDecoder().decode(GeoJSONFeatureCollection<Bare>.self, from: json)
+
+        guard case .lineString(let line) = collection.features[0].geometry else {
+            Issue.record("first feature did not decode as a LineString")
+            return
+        }
+        #expect(line.count == 2)
+
+        guard case .multiLineString(let lines) = collection.features[1].geometry else {
+            Issue.record("second feature did not decode as a MultiLineString")
+            return
+        }
+        #expect(lines.count == 1)
+
+        // The control: without it, "decodes lines" cannot be told apart from
+        // "accepts anything".
+        guard case .other(let kind) = collection.features[2].geometry else {
+            Issue.record("an unknown geometry was not refused")
+            return
+        }
+        #expect(kind == "GeometryCollection")
+    }
+
     @Test func accessSiteLaunchTypeFallsBackToUnknown() throws {
         let json = """
         {"type":"FeatureCollection","features":[

@@ -10,6 +10,7 @@ struct FishingMapView: View {
     /// `nil` is All species (best in the area). Exact name from the guide otherwise.
     @State private var selectedSpecies: String?
     @State private var showHeat = false
+    @State private var showRivers = false
     @State private var showDisclaimer = false
     @State private var heatZones: [HeatZone] = []
     /// Camera altitude in meters; starts far out so area labels stay hidden until the
@@ -72,6 +73,9 @@ struct FishingMapView: View {
             areaColors: areaColors,
             protectedAreas: model.protectedAreas,
             heatZones: heatZones,
+            rivers: model.rivers,
+            riverColors: riverColors,
+            showRivers: showRivers,
             showHeat: heatVisible,
             showAreaLabels: cameraDistance < Self.areaLabelMaxDistance,
             pointsOfInterest: landmarkCategories,
@@ -148,6 +152,11 @@ struct FishingMapView: View {
     }
 
     /// The user's toggle, plus the forced-on case where pins are hidden.
+    /// No river carries a rating yet: colour comes from live USGS flow, which is
+    /// its own slice. Empty means every river draws neutral, which is the honest
+    /// resting state rather than a stand-in.
+    private var riverColors: [String: Color] { [:] }
+
     private var heatVisible: Bool {
         MapDetailLevel.showsHeat(userEnabled: showHeat, atCameraDistance: cameraDistance)
     }
@@ -328,6 +337,13 @@ struct FishingMapView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 Spacer()
+                Button { showRivers.toggle() } label: {
+                    Label("Rivers", systemImage: "water.waves")
+                        .font(.caption2.weight(.semibold))
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .tint(showRivers ? .teal : .secondary)
                 Button { showHeat.toggle() } label: {
                     Label("Heat", systemImage: showHeat ? "flame.fill" : "flame")
                         .font(.caption2.weight(.semibold))

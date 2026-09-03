@@ -28,6 +28,8 @@ struct MapCoordinatorTests {
         areaColors: [String: Color] = [:],
         protectedAreas: [ProtectedArea] = [],
         heatZones: [HeatZone] = [],
+        rivers: [River] = [],
+        riverColors: [String: Color] = [:],
         userMovedCamera: Bool = false,
         focusRegion: MKCoordinateRegion? = nil
     ) -> FishingMapRepresentable {
@@ -37,6 +39,9 @@ struct MapCoordinatorTests {
             areaColors: areaColors,
             protectedAreas: protectedAreas,
             heatZones: heatZones,
+            rivers: rivers,
+            riverColors: riverColors,
+            showRivers: !rivers.isEmpty,
             showHeat: !heatZones.isEmpty,
             showAreaLabels: false,
             pointsOfInterest: [],
@@ -46,6 +51,13 @@ struct MapCoordinatorTests {
             userMovedCamera: .constant(userMovedCamera),
             focusRegion: .constant(focusRegion)
         )
+    }
+
+    private static func river(_ name: String, order: Int, lon: Double, lat: Double) -> River {
+        River(name: name, streamOrder: order, lengthKm: 40, lines: [[
+            LonLat(longitude: lon, latitude: lat),
+            LonLat(longitude: lon + 0.2, latitude: lat + 0.2)
+        ]])
     }
 
     private static let parked = MKCoordinateRegion(
@@ -113,6 +125,58 @@ struct MapCoordinatorTests {
         #expect(mapView.overlays(in: .aboveLabels).count == 1)
         #expect(mapView.overlays(in: .aboveLabels).first is RatedPolygon)
         #expect((mapView.overlays(in: .aboveLabels).first as? RatedPolygon)?.isHeat == true)
+    }
+
+    /// Rivers share `.aboveRoads` with the fills and must not disturb the heat
+    /// cells a level up. Asserted rather than trusted: order inside a level is
+    /// add order, which is exactly what bit the fills when the MPAs arrived.
+    @Test func riversDrawOverTheFillsAndUnderTheHeat() {
+        let mapView = MKMapView(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
+        let areas = [Self.area("10", lon: -122.5, lat: 47.5)]
+        let heat = [HeatZone(id: 1, center: LonLat(longitude: -122.5, latitude: 47.5),
+                             cellDegrees: 0.1, intensity: 0.8)]
+        let rivers = [Self.river("Skagit River", order: 6, lon: -121.8, lat: 48.4)]
+        let coordinator = FishingMapRepresentable.Coordinator(
+            Self.representable(areas: areas, areaColors: ["10": .blue],
+                               heatZones: heat, rivers: rivers))
+        coordinator.syncOverlays(mapView)
+        coordinator.syncRivers(mapView)
+
+        let low = mapView.overlays(in: .aboveRoads)
+        #expect(low.count == 2)
+        #expect(low.last is RiverPolyline)
+        #expect(mapView.overlays(in: .aboveLabels).count == 1)
+        #expect(mapView.overlays(in: .aboveLabels).first is RatedPolygon)
+    }
+
+    /// The toggle is what removes them; a stale signature would leave the lines
+    /// on the map after the user switched the layer off.
+    @Test func turningRiversOffRemovesTheirOverlays() {
+        let mapView = MKMapView(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
+        let rivers = [Self.river("Skagit River", order: 6, lon: -121.8, lat: 48.4)]
+        let coordinator = FishingMapRepresentable.Coordinator(Self.representable(rivers: rivers))
+        coordinator.syncRivers(mapView)
+        #expect(mapView.overlays(in: .aboveRoads).count == 1)
+
+        coordinator.parent = Self.representable(rivers: [])
+        coordinator.syncRivers(mapView)
+        #expect(mapView.overlays(in: .aboveRoads).isEmpty)
+    }
+
+    /// A river with no gauge reading draws neutral, and a rated one draws its
+    /// rating colour — the seam the flow slice fills in.
+    @Test func aRatedRiverTakesItsColourAndAnUnratedOneStaysNeutral() {
+        let mapView = MKMapView(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
+        let rivers = [Self.river("Skagit River", order: 6, lon: -121.8, lat: 48.4),
+                      Self.river("Sauk River", order: 4, lon: -121.5, lat: 48.2)]
+        let coordinator = FishingMapRepresentable.Coordinator(
+            Self.representable(rivers: rivers, riverColors: ["Skagit River": .red]))
+        coordinator.syncRivers(mapView)
+
+        let lines = mapView.overlays(in: .aboveRoads).compactMap { $0 as? RiverPolyline }
+        #expect(lines.count == 2)
+        #expect(lines.first { $0.title == "Skagit River" }?.color == .red)
+        #expect(lines.first { $0.title == "Sauk River" }?.color == .gray)
     }
 
     /// MPAs load after the marine areas, and within one level MapKit draws in add

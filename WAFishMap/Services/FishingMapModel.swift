@@ -13,6 +13,8 @@ final class FishingMapModel {
 
     /// Curated seasonal guidance (bundled, offline). See `Fishery.swift`.
     var guide: FisheryGuide?
+    /// Bundled river geometry. Not a live layer — see `River`.
+    var rivers: [River] = []
 
     /// Launch → containing marine area (by point-in-polygon). Absent for inland/lake
     /// launches, which have no marine area and therefore a neutral rating.
@@ -121,6 +123,7 @@ final class FishingMapModel {
             accessSites: try WDFWLayerLoader.accessSites(from: Self.data(.accessSites, in: bundle))
         )
         loadGuide(bundle: bundle)
+        loadRivers(bundle: bundle)
         indexSitesToAreas()
         statusMessage = "Washington · offline sample"
     }
@@ -139,6 +142,7 @@ final class FishingMapModel {
             return
         }
         loadGuide(bundle: bundle)
+        loadRivers(bundle: bundle)
         do {
             // Independent layers — fetch concurrently.
             async let marineData = client.data(from: MapScope.marineAreasURL)
@@ -228,6 +232,16 @@ final class FishingMapModel {
 
     /// Loads the curated guide from the bundle. Absence is non-fatal — the map still
     /// works, ratings just fall back to neutral.
+    /// Loads the bundled river geometry. Absence is non-fatal, like the guide —
+    /// the map still draws every launch, it just draws no rivers.
+    private func loadRivers(bundle: Bundle) {
+        guard rivers.isEmpty,
+              let url = bundle.url(forResource: "rivers", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let loaded = try? RiverLoader.rivers(from: data) else { return }
+        rivers = loaded
+    }
+
     private func loadGuide(bundle: Bundle) {
         guard guide == nil,
               let url = bundle.url(forResource: "fisheries", withExtension: "json"),

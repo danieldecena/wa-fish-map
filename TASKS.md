@@ -16,6 +16,14 @@
 - [x] TestFlight: public join link on insideout, tester limit 5
 - [x] TestFlight: invite Joseph and Pauline as Developer-role ASC users
 - [ ] [you] TestFlight: add both to the Internal group once they activate
+- [ ] Rivers slice 1: decode lines, bundle rivers.json, draw them
+- [ ] Rivers slice 2: USGS live flow colours the lines
+- [ ] Rivers slice 3: tap a river for flow, temp and notes
+- [ ] Verify Pierce, Mason, Kitsap, Thurston freshwater vs the default
+- [ ] Close the camera-guard pre-load residual
+- [ ] Drain the 1878-item capture inbox into TASKS.md and STATUS
+- [ ] [you] Re-invite Pauline at her Apple Account address
+- [ ] [you] GitHub Actions billing blocks PR #4 CI
 - [x] Fix the UI query: containing() filters descendants, a StaticText is a leaf
 - [x] Device-sign the test bundles: build-for-testing on generic/platform=iOS — 24bbeff
 - [x] Log the swallowed WeatherKit error in PlanWeatherView — 24bbeff
@@ -64,7 +72,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-02 19:44.
+Plan approved 2026-09-03 16:22.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
@@ -73,7 +81,7 @@ when launched via `cb` (--allow-dangerously-skip-permissions); `yolo`
 
 Only if Claude Code actually closed:
 
-    claude --resume 71807eed-4ff4-4d0c-a6ab-8818600904b8
+    claude --resume 2bdd9db8-c592-44cd-b9aa-5f33989a3980
 
 (`-c` resumes the most recent session; bare `--resume` opens a searchable picker.)
 <!-- /resume-footer -->

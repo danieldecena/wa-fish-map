@@ -24,6 +24,8 @@ struct GeoJSONFeature<Props: Decodable>: Decodable {
 enum GeoJSONGeometry: Decodable {
     case point(longitude: Double, latitude: Double)
     case polygon(rings: [[[Double]]])
+    case lineString(coordinates: [[Double]])
+    case multiLineString(lines: [[[Double]]])
     case other(String)
 
     enum CodingKeys: String, CodingKey {
@@ -44,6 +46,12 @@ enum GeoJSONGeometry: Decodable {
         case "Polygon":
             let rings = try container.decode([[[Double]]].self, forKey: .coordinates)
             self = .polygon(rings: rings)
+        case "LineString":
+            let line = try container.decode([[Double]].self, forKey: .coordinates)
+            self = .lineString(coordinates: line)
+        case "MultiLineString":
+            let lines = try container.decode([[[Double]]].self, forKey: .coordinates)
+            self = .multiLineString(lines: lines)
         default:
             self = .other(type)
         }

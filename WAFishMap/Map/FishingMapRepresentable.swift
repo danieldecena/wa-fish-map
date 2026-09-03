@@ -10,6 +10,15 @@ final class RatedPolygon: MKPolygon {
     var isHeat = false
 }
 
+/// A river reach. Lines, not fills, so it needs its own class and its own
+/// renderer branch — everything else on this map is a polygon. Carries its tint
+/// and weight for the same reason `RatedPolygon` does: the renderer is a
+/// delegate callback with no model access.
+final class RiverPolyline: MKPolyline {
+    var color: Color = .gray
+    var width: CGFloat = 1.0
+}
+
 /// A Marine Protected Area boundary. Geography, not a rating — its own class so
 /// the renderer can draw it as a dashed outline rather than a rated fill. The
 /// name rides on `MKShape.title`, which is what MapKit reads out.
@@ -26,6 +35,12 @@ struct FishingMapRepresentable: UIViewRepresentable {
     /// WDFW Marine Protected Area boundaries; drawn under the marine-area fills.
     let protectedAreas: [ProtectedArea]
     let heatZones: [HeatZone]
+    let rivers: [River]
+    /// Rating colour per `River.id`. Empty in the geometry-only build, so every
+    /// river falls to neutral gray — the colour that already means "no rating
+    /// available" on an inland launch, not a placeholder.
+    let riverColors: [String: Color]
+    let showRivers: Bool
     let showHeat: Bool
     let showAreaLabels: Bool
     let pointsOfInterest: [MKPointOfInterestCategory]
@@ -77,6 +92,7 @@ struct FishingMapRepresentable: UIViewRepresentable {
         context.coordinator.parent = self
         context.coordinator.syncConfiguration(mapView)
         context.coordinator.syncOverlays(mapView)
+        context.coordinator.syncRivers(mapView)
         context.coordinator.syncAnnotations(mapView)
         context.coordinator.syncSelection(mapView)
         context.coordinator.applyFocusRegionIfNeeded(mapView)
@@ -93,6 +109,8 @@ struct FishingMapRepresentable: UIViewRepresentable {
         private var mpaSignature: String?
         private var mpaOverlays: [MKOverlay] = []
         private var heatOverlays: [MKOverlay] = []
+        private var riverSignature: String?
+        private var riverOverlays: [MKOverlay] = []
         private var annotationSignature: String?
         private var labelSignature: String?
         private var emphasisIsMuted: Bool?
@@ -113,13 +131,16 @@ struct FishingMapRepresentable: UIViewRepresentable {
         // MARK: Configuration
 
         func syncConfiguration(_ mapView: MKMapView) {
-            guard emphasisIsMuted != parent.showHeat else { return }
-            emphasisIsMuted = parent.showHeat
-            // Drain the basemap while the overlay is on: a translucent fill takes
-            // its apparent colour from what is under it, so over the full-colour
-            // map one density band read as three different colours.
+            // Two layers want the basemap drained, for two reasons. The heat cells
+            // are translucent fills that took their apparent colour from whatever
+            // sat under them — one density band read as three colours. Rivers want
+            // it so fresh water is the brightest thing on screen rather than
+            // competing with Apple's own blue.
+            let muted = parent.showHeat || parent.showRivers
+            guard emphasisIsMuted != muted else { return }
+            emphasisIsMuted = muted
             let config = MKStandardMapConfiguration(
-                emphasisStyle: parent.showHeat ? .muted : .default
+                emphasisStyle: muted ? .muted : .default
             )
             config.pointOfInterestFilter = MKPointOfInterestFilter(including: parent.pointsOfInterest)
             mapView.preferredConfiguration = config
@@ -189,7 +210,45 @@ struct FishingMapRepresentable: UIViewRepresentable {
             }
         }
 
+        /// Separate from `syncOverlays` for the same reason the heat cells are:
+        /// rivers change only when the toggle or the colouring does, and folding
+        /// them in would rebuild them on every camera-distance band change.
+        func syncRivers(_ mapView: MKMapView) {
+            let key = parent.showRivers
+                ? parent.rivers
+                    .map { "\($0.id):\(String(describing: parent.riverColors[$0.id] ?? .gray))" }
+                    .joined(separator: "|")
+                : ""
+            guard key != riverSignature else { return }
+            riverSignature = key
+            mapView.removeOverlays(riverOverlays)
+            guard parent.showRivers else {
+                riverOverlays = []
+                return
+            }
+            riverOverlays = parent.rivers.flatMap { river -> [MKOverlay] in
+                river.mapLines.compactMap { coords in
+                    guard coords.count >= 2 else { return nil }
+                    let line = RiverPolyline(coordinates: coords, count: coords.count)
+                    line.title = river.name
+                    line.color = parent.riverColors[river.id] ?? .gray
+                    line.width = river.lineWidth
+                    return line
+                }
+            }
+            // Above the marine fills, below the heat cells at `.aboveLabels`.
+            mapView.addOverlays(riverOverlays, level: .aboveRoads)
+        }
+
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            if let river = overlay as? RiverPolyline {
+                let line = MKPolylineRenderer(overlay: river)
+                line.strokeColor = UIColor(river.color)
+                line.lineWidth = river.width
+                line.lineCap = .round
+                line.lineJoin = .round
+                return line
+            }
             let r = MKPolygonRenderer(overlay: overlay)
             if overlay is ProtectedAreaPolygon {
                 // Deliberately unlike the rated fills: a hatched grey boundary

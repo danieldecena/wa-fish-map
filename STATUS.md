@@ -70,6 +70,24 @@
   code. Narrower again as of the `isCameraMove` fix below: tap-driven zooms are
   now recognised at all, so only the pre-load window remains.
 
+- PR #4's two CI checks are red for a reason that is not the code. Both jobs on
+  run `33712289921` carry the annotation *"The job was not started because
+  recent account payments have failed or your spending limit needs to be
+  increased."* The same branch passed three times at 02:45, 02:48 and 02:55 on
+  2026-09-03; the block landed at 03:41. Do not re-debug the test suite over
+  this - it is the Billing and plans section of the GitHub account.
+
+- The river layer (slice 1) is written but **has never been built or tested**.
+  Every Swift file below is unverified: `River`, `RiverLoader`, `RiverPolyline`,
+  the `syncRivers` pass, the `LineString`/`MultiLineString` cases on
+  `GeoJSONGeometry`, and the `showRivers` toggle. The `xcodebuild test` run was
+  the next command and the session was stopped before it. SourceKit reported
+  "cannot find type 'LonLat' in scope" against the new files, which is the
+  signature of index lag on a synchronized group rather than a real error — but
+  that is an inference, not an observation. Build it before trusting any of it.
+  The data half *is* verified: 287 rivers, anchors present, Oregon clipped,
+  byte-identical on re-run.
+
 ## Next Up
 
 - Re-invite Pauline. Her invitation went to `romulopauline@yahoo.com` and she
@@ -86,9 +104,40 @@
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
 
-Everything else open lives in `TASKS.md`, which has no open items.
+Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
+current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-03 (rivers are lines, and a line cannot be contained)
+
+- Decided: add rivers to the map in three slices - draw them, colour them by
+  live USGS flow, then make them tappable. The design is in
+  `~/.claude/plans/sorted-conjuring-hollerith.md`.
+- The structural reason this is not a small change: every fishable thing in the
+  app is a *point* inside a *polygon*, and `MarineArea.contains(_:)` is how a
+  point earns its colour. A river is a line that crosses counties and holds
+  different fish at the mouth than at the headwaters, so no containment test can
+  answer what it is worth today.
+- Colour comes from live USGS flow, not curated guidance. Rivers close by river,
+  by reach, by run, sometimes mid-week by emergency rule, so an editorial rating
+  on a river is a far stronger claim than the same rating on a marine area.
+  Flow is a fact that holds whether or not the river is open, which is the same
+  standing tides and NDBC wave height already have.
+- Flow reuses the existing blue-amber-orange-red ramp rather than minting a
+  fourth colour vocabulary. The mapping is deliberately non-monotonic: blown out
+  and bone dry both read Slow, the fishable window reads Prime.
+- Ungauged named rivers draw neutral gray, the colour that already means "no
+  rating available" on inland launches. Borrowing the nearest basin gauge was
+  rejected - a tributary can fish well on a day its mainstem is unfishable, and
+  that is exactly the case where a manufactured reading does harm.
+- Geometry is bundled, not fetched. WDFW's `MajorFishingArea` MapServer has no
+  hydrography layer, so this is a new source either way; bundling sidesteps the
+  `exceededTransferLimit` guard and draws with no network.
+- The four default-covered counties (Pierce, Mason, Kitsap, Thurston) moved out
+  of Next Up prose and into `TASKS.md` as a tracked item, so "if desired" stops
+  being a reason it never gets looked at.
+
 
 ### 2026-09-02 (an invitation is only as good as the inbox it lands in)
 
