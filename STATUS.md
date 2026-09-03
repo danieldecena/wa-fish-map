@@ -72,17 +72,48 @@
 
 ## Next Up
 
-- Add Joseph and Pauline to the `Internal` TestFlight group once they activate
-  their App Store Connect invitations (both sent 2026-09-02, Developer role,
-  pending). Internal needs no review, so they install the moment they are in
-  the group. The `insideout` external public link stays as the fallback and
-  starts working on its own when Beta App Review clears.
+- Re-invite Pauline. Her invitation went to `romulopauline@yahoo.com` and she
+  reported she can no longer access that inbox, so it can never be activated.
+  Remove the pending row in Users and Access, ask her for the address her
+  iPhone's Apple Account uses (Settings -> her name), and re-send there. Any
+  other working inbox will dead-end the same way: the address has to be the
+  Apple Account itself.
+- Add Joseph and Pauline to the `Internal` TestFlight group once they activate.
+  Only activated users appear in the Add Testers dialog, which is why it listed
+  one name. Internal needs no review, so they install the moment they are in.
+- The `insideout` external public link (limit 5) stays as the fallback and
+  starts working on its own when Beta App Review clears build 1.0 (1).
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
 
 Everything else open lives in `TASKS.md`, which has no open items.
 
 ## Decision log
+
+### 2026-09-02 (an invitation is only as good as the inbox it lands in)
+
+- Pauline cannot activate her App Store Connect invitation: it was sent to
+  `romulopauline@yahoo.com`, an address she no longer has access to. Nothing in
+  App Store Connect reports this. Her row simply stays grey and pending, and
+  the Add Testers dialog keeps offering one name, which reads like a bug in the
+  group rather than a dead mailbox.
+- The generalisable part: the internal route's cost is not the invitation, it
+  is that the invitation must reach an inbox the person still reads *and* be
+  the Apple Account their iPhone signs in with. Two conditions, neither
+  visible from the console, both silent when unmet.
+- Also ruled out tonight, so they are not re-explored: Sandbox test accounts
+  (in-app purchases only), Sandbox Family Sharing (same), the Safari Web
+  Extension packager (wrong software kind), adding testers directly to a build
+  (still external, still needs review), and the Business tax/bank forms (they
+  enable payment, they do not create a legal entity, and the Free Apps
+  Agreement is already Active). None of these distribute an app.
+- `/Applications/Xcode.app` is Xcode 26.6 and cannot run on this macOS 27.0
+  beta; `Xcode-beta.app` (27.0) is what `xcode-select` points at and what every
+  build used. Re-downloading from the App Store cannot help, since the store
+  only ships the stable build. Left for the user to delete by hand (root-owned).
+- Xcode Cloud declined for now: it removes a constraint (one shared Mac) that a
+  single developer does not have, and it is metered past 25 compute hours.
+  Revisit when 90-day TestFlight expiry starts costing a manual rebuild.
 
 ### 2026-09-02 (TestFlight: both routes, because external made them wait)
 
