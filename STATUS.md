@@ -72,11 +72,11 @@
 
 ## Next Up
 
-- Send the brother the TestFlight public join link, but only once Beta App
-  Review approves build 1.0 (1). The link exists (insideout -> Testers ->
-  Public Link, limit 5, 0 joined) and App Store Connect refuses joins until
-  the group has an approved build. The URL is not recorded here on purpose:
-  anyone holding it can take one of the five seats. Build expires in 90 days.
+- Add Joseph and Pauline to the `Internal` TestFlight group once they activate
+  their App Store Connect invitations (both sent 2026-09-02, Developer role,
+  pending). Internal needs no review, so they install the moment they are in
+  the group. The `insideout` external public link stays as the fallback and
+  starts working on its own when Beta App Review clears.
 - Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
   Thurston left on the statewide default by design — add only if distinct).
 
@@ -84,7 +84,21 @@ Everything else open lives in `TASKS.md`, which has no open items.
 
 ## Decision log
 
-### 2026-09-02 (TestFlight: external, not internal)
+### 2026-09-02 (TestFlight: both routes, because external made them wait)
+
+- Decided: run internal testing *as well as* external. External was chosen
+  first and is still in flight, but App Store Connect will not let anyone join
+  a public link until Beta App Review approves the build, and the wait was the
+  thing being optimised against. Internal has no review at all.
+- Invited Joseph Decena and Pauline Romulo as App Store Connect users with the
+  `Developer` role. Both landed on `All Apps` access rather than WA Fish Map
+  only; accepted knowingly, since it is the account's only app. Revisit if a
+  second app ever ships.
+- Cost of this route, recorded so it is not rediscovered: each person needs an
+  Apple Account on the team and has to activate an emailed invitation, which
+  expires in about 7 days. That is exactly what the external route avoided.
+
+### 2026-09-02 (TestFlight: external chosen first)
 
 - Decided: put the brother in the `insideout` **external** group rather than
   invite him as an App Store Connect user with a `DEVELOPER` role. External
