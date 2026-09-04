@@ -97,50 +97,35 @@ attributes. That is the whole reason it composes differently from `matching(_:)`
 
 Quote declarations from the docs. Do not reconstruct them from memory.
 
-## Check the artifact before filing a manual step
+## Building this app: the runbook owns the how
 
-"Enable WeatherKit on the identifier" sat in Next Up as work to do. It had been
-done for some time, and the machine could prove it: Apple's portal cannot emit a
-provisioning profile carrying `com.apple.developer.weatherkit` unless the
-capability is enabled, and that profile was already embedded in the device build
-on disk. One `security cms -D -i ... | plutil -extract Entitlements` would have
-closed the item and skipped a documented 30-minute propagation wait.
+Any `xcodebuild`, `simctl` or `devicectl` run here goes through the **`ios-build`
+skill** first, routine ones included — its destination and exit-status rules
+prevent failures rather than only explaining them afterwards. Source lives in
+`~/.claude/skills/ios-build/`, and the same content is a maintained page at
+<https://claude.ai/code/artifact/c4d78867-cbb6-447b-a74f-5793fcced0c0>. Most of
+what is in it was paid for on this project. Do not re-derive it.
 
-Before writing an action item that lives in someone's browser — a portal toggle,
-an account setting, a propagation delay — ask what local artifact would already
-be different if it were done. Signed profiles, lockfiles, generated headers and
-build outputs are testimony about remote state. Read them first.
+Four are restated here in one line each, because a skill that has not loaded
+cannot warn you off the thing you are about to do:
 
-## An exit status must not travel through a pipe
+- **An exit status must not travel through a pipe.** `xcodebuild ... | tail`
+  reports tail's status, and a failed build once read as exit 0 here. Capture to
+  a file and take `rc=$?` from the command itself — `status` is read-only in zsh.
+  A wrapper's or a harness's exit code is not the build's either: one reported
+  `completed (exit code 0)` for a run whose log said `exit=65 ** TEST FAILED **`.
+- **An assertion that cannot match is not a passing assertion.** Two of three
+  assertions in a run reported as a control queried elements that could never
+  match anything, so they were incapable of failing. Green, and worthless. Watch
+  a check go red before you trust its green.
+- **Keep the error you caught.** `catch { }` rendering one fixed string kept
+  WeatherKit mislabelled as "needs a physical device" across nine sessions.
+  `401 {reason: NOT_ENABLED}` and a bare 401 are different causes wearing the
+  same status code, and only the preserved body separates them.
+- **Check the artifact before filing a manual step.** "Enable WeatherKit on the
+  identifier" sat in Next Up while a signed profile already on disk proved it was
+  done. Signed profiles, lockfiles and build outputs are testimony about remote
+  state — read them before writing an action item that lives in a browser.
 
-`xcodebuild ... | tail` reports tail's status, so a failed build was recorded as
-exit 0 and the session proceeded on a false green. Any pipeline whose result you
-intend to trust needs `set -o pipefail`, or an explicit `${PIPESTATUS[0]}` check.
-Prefer capturing to a file and reading the status from the command itself:
-
-    xcodebuild ... > /tmp/build.log 2>&1; status=$?
-    tail -40 /tmp/build.log
-    [ $status -eq 0 ] || exit $status
-
-## An assertion that cannot match is not a passing assertion
-
-A control run was reported as proving the harness worked. Two of its three
-assertions queried for elements that could never match anything, so they were
-incapable of failing — green, and worthless. Only the identifier lookup was real.
-
-A test that has never been seen to fail has not been tested. Before trusting a
-negative result, confirm the query matches something in the known-good case, or
-deliberately break the thing and watch the assertion go red. "It passed" and
-"it can distinguish" are different claims.
-
-## Keep the error you caught — its shape is the diagnosis
-
-`catch { }` that discards the error and renders one fixed string turned every
-distinct failure into the same mute message, which is what kept WeatherKit
-mislabelled as "needs a physical device" across nine sessions. Log the status
-code, the URL and the response body.
-
-The payoff is not just legibility. WeatherKit returns `401 {reason: NOT_ENABLED}`
-with a body when the capability is missing, and a bare 401 when the block is at
-account level. Same status code, different cause, and only the preserved body
-tells them apart. An error narrowed to its shape is usually most of the answer.
+The simulator here is named `iPhone`; use `-destination
+'platform=iOS Simulator,name=iPhone'` and never a cached UUID.
