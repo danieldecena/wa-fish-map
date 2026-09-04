@@ -6,7 +6,7 @@
 
 ## Completed
 
-- [x] Drain this project's 214 capture-inbox rows; the rest are other repos
+- [x] Drain this project's 214 capture-inbox rows, the rest are other repos — 03c254d
 - [x] Close the camera-guard pre-load residual
 - [x] Verify Pierce, Mason, Kitsap, Thurston freshwater vs the default
 - [x] Flag sites inside WDFW Marine Protected Areas (44, live, unused)
