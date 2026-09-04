@@ -1,5 +1,14 @@
 ## Tasks
 
+- [ ] [you] TestFlight: add both to the Internal group once they activate
+- [ ] Close the camera-guard pre-load residual
+- [ ] Drain the 1878-item capture inbox into TASKS.md and STATUS
+- [ ] [you] Re-invite Pauline at her Apple Account address
+- [ ] [you] GitHub Actions billing blocks PR #4 CI
+
+## Completed
+
+- [x] Verify Pierce, Mason, Kitsap, Thurston freshwater vs the default
 - [x] Flag sites inside WDFW Marine Protected Areas (44, live, unused)
 - [x] MKMapView migration: MapKit clustering, then chart tiles if a URL resolves
 - [x] XCUITest target: observe the verify badge, retire the unobservable claims
@@ -15,15 +24,9 @@
 - [x] TestFlight: external group insideout, build 1 submitted for Beta App Review
 - [x] TestFlight: public join link on insideout, tester limit 5
 - [x] TestFlight: invite Joseph and Pauline as Developer-role ASC users
-- [ ] [you] TestFlight: add both to the Internal group once they activate
 - [x] Rivers slice 1: decode lines, bundle rivers.json, draw them
 - [x] Rivers slice 2: USGS live flow colours the lines
 - [x] Rivers slice 3: tap a river for flow, temp and notes
-- [ ] Verify Pierce, Mason, Kitsap, Thurston freshwater vs the default
-- [ ] Close the camera-guard pre-load residual
-- [ ] Drain the 1878-item capture inbox into TASKS.md and STATUS
-- [ ] [you] Re-invite Pauline at her Apple Account address
-- [ ] [you] GitHub Actions billing blocks PR #4 CI
 - [x] Fix the UI query: containing() filters descendants, a StaticText is a leaf
 - [x] Device-sign the test bundles: build-for-testing on generic/platform=iOS — 24bbeff
 - [x] Log the swallowed WeatherKit error in PlanWeatherView — 24bbeff
@@ -40,17 +43,13 @@
 - [x] Tap zooms count as a user camera move; protected-area default is unavailable — 15c4b5c
 - [x] ContentUnavailableView for the load-failure state — 406d3dc
 - [x] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
-
 - [x] Waterbody-scoped notes: gate + data fix + rule — d26c4ca
-
 - [x] Tide predictions in site detail (NOAA CO-OPS)
 - [x] Species-first mode: picker, recolor, month scrubber
 - [x] Marker clustering at low zoom (477 pins unreadable statewide)
-
 - [x] Season/closure rating cap + verify badge — d78377b
 - [x] Thermal rating ramp, range dots, heat as tiling ranked cells — 3eb5a43
 - [x] Open the map on the user's location; location-denied hint — 07f4460
-
 - [x] Real dawn/dusk: solar times drive TimeOfDay — PENDING
 - [x] Fix rating color ramp + marker a11y + Dynamic Type fonts — 9045cc2
 - [x] Floating glass chrome on iPhone + disclaimer info button — 7f1b685
@@ -60,9 +59,6 @@
 - [x] Add GitHub Actions CI
 - [x] Guard ArcGIS truncation in app load
 - [x] Surface load failure in statusMessage
-
-## Completed
-
 - [x] Research coastal marine areas 1, 2, 2-1, 2-2, 3, 4
 - [x] Research strait marine areas 5, 6
 - [x] Research north Sound areas 7, 8-1, 8-2

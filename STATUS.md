@@ -129,13 +129,46 @@
   one name. Internal needs no review, so they install the moment they are in.
 - The `insideout` external public link (limit 5) stays as the fallback and
   starts working on its own when Beta App Review clears build 1.0 (1).
-- Verify remaining default-covered counties if desired (Pierce, Mason, Kitsap,
-  Thurston left on the statewide default by design — add only if distinct).
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-03 (four counties, checked against WDFW rather than recalled)
+
+- Decided: Pierce, Mason and Thurston get freshwater overrides; **Kitsap keeps
+  the statewide default on purpose.** Every species present in more than 15% of
+  Kitsap's 13 WDFW lowland lakes is already one of the statewide four (Rainbow
+  76%, Largemouth 53%, coastal cutthroat 30%). Recording that so the item is not
+  reopened as unfinished - a county with no entry is now an answer, not a gap.
+- The evidence is WDFW's own lake database, not recall. Its lowland-lakes view
+  takes `county[]` and `species` as term ids, so a species can be counted across
+  every lake in a county: Yellow Perch is in 73% of Thurston lakes, 60% of
+  Pierce, 40% of Mason and 7% of Kitsap. Rock Bass is the sharper signal - WDFW's
+  own species page names King, Pierce, Snohomish and Thurston and calls it "not
+  common in the state", which is exactly what a county tier is for.
+- King and Snohomish were scraped as the control. Without them there was no way
+  to tell a defensible bar from an arbitrary one, and they disagree: King's
+  Yellow Perch override sits at 100% of its lakes, Snohomish's Smallmouth at
+  10%. So the tier is editorial, not threshold-driven, and the new rows were
+  chosen to sit at or above the stronger of the two.
+- Fixed while verifying, both shipped defects rather than improvements:
+  - King's Yellow Perch peaked in Aug-Oct. WDFW says the bite is "best in the
+    summer after they finish spawning in April-May" and "begins to decline in
+    the fall". Corrected to Jun-Aug best, May/Sep good, and the new counties
+    carry the corrected months rather than inheriting the wrong ones.
+  - Spokane's Rainbow Trout note read "Liberty, Newman, and other lowland
+    lakes." Those are two specific Spokane County lakes, so the note was wrong
+    at every other freshwater site in the county - the same defect
+    `NoteScopeTests` was built for, in prose its regex does not match. This is
+    the second instance of the "Potholes" class, and it confirms the rule binds
+    the editor and not just the test.
+- Observed, not inferred: WDFW's live layer returns `CountyName` as a bare name,
+  and the four keys match exactly against 477 statewide sites (Pierce 15, Mason
+  23, Thurston 18, Kitsap 12). A key like "Pierce County" would have made the
+  override silently never fire. Suite: 171 tests in 26 suites pass, UI target 4
+  with 1 device-gated skip, `** TEST SUCCEEDED **`.
 
 ### 2026-09-03 (rivers are lines, and a line cannot be contained)
 
