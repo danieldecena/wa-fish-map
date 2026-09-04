@@ -231,8 +231,13 @@ struct FishingMapRepresentable: UIViewRepresentable {
                     guard coords.count >= 2 else { return nil }
                     let line = RiverPolyline(coordinates: coords, count: coords.count)
                     line.title = river.name
-                    line.color = parent.riverColors[river.id] ?? .gray
-                    line.width = river.lineWidth
+                    // An ungauged river recedes: same neutral, but lighter and
+                    // thinner, so it reads as hydrography while the gauged
+                    // mainstems carry the signal. 73% of drawn rivers have no
+                    // gauge, and at full weight they drown out the 27% that do.
+                    let rated = parent.riverColors[river.id]
+                    line.color = rated ?? Color.gray.opacity(0.45)
+                    line.width = rated == nil ? river.lineWidth * 0.6 : river.lineWidth
                     return line
                 }
             }

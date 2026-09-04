@@ -15,6 +15,11 @@ final class FishingMapModel {
     var guide: FisheryGuide?
     /// Bundled river geometry. Not a live layer — see `River`.
     var rivers: [River] = []
+    /// Each river's own flow history, bundled. Keyed by river name.
+    var riverStats: [String: RiverFlowStats] = [:]
+    /// Latest USGS reading per gauge. Empty until the live fetch lands, and
+    /// empty is *unknown*, never zero — an absent river stays neutral.
+    var riverFlows: [String: RiverFlow] = [:]
 
     /// Launch → containing marine area (by point-in-polygon). Absent for inland/lake
     /// launches, which have no marine area and therefore a neutral rating.
@@ -124,6 +129,7 @@ final class FishingMapModel {
         )
         loadGuide(bundle: bundle)
         loadRivers(bundle: bundle)
+        loadRiverStats(bundle: bundle)
         indexSitesToAreas()
         statusMessage = "Washington · offline sample"
     }
@@ -143,6 +149,7 @@ final class FishingMapModel {
         }
         loadGuide(bundle: bundle)
         loadRivers(bundle: bundle)
+        loadRiverStats(bundle: bundle)
         do {
             // Independent layers — fetch concurrently.
             async let marineData = client.data(from: MapScope.marineAreasURL)
@@ -182,6 +189,12 @@ final class FishingMapModel {
             // Piers load after the MPA layer, so their MPA index is built here.
             // Indexing inside the MPA block would always see zero piers.
             indexPiersToProtectedAreas()
+        }
+        // River flow is a live-only enhancement; a USGS outage leaves every
+        // river neutral rather than taking the map down.
+        if let flowData = try? await client.data(from: USGSFlowLoader.url),
+           let loaded = try? USGSFlowLoader.flows(from: flowData) {
+            riverFlows = loaded
         }
         isLoading = false
     }
@@ -240,6 +253,35 @@ final class FishingMapModel {
               let data = try? Data(contentsOf: url),
               let loaded = try? RiverLoader.rivers(from: data) else { return }
         rivers = loaded
+    }
+
+    private func loadRiverStats(bundle: Bundle) {
+        guard riverStats.isEmpty,
+              let url = bundle.url(forResource: "river_stats", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let loaded = try? RiverFlowStatsLoader.stats(from: data) else { return }
+        riverStats = loaded
+    }
+
+    /// The live reading for a river, found through the gauge its bundled
+    /// history names. Nil means no gauge, or no reading today — both render
+    /// neutral, and neither is a zero.
+    func flow(forRiver name: String) -> RiverFlow? {
+        guard let gauge = riverStats[name]?.gauge else { return nil }
+        return riverFlows[gauge]
+    }
+
+    /// Flow rating per river id for a given calendar day. The day is injected;
+    /// nothing in this path reads the clock.
+    func riverRatings(month: Int, day: Int) -> [String: FishingRating] {
+        var ratings: [String: FishingRating] = [:]
+        for (name, stats) in riverStats {
+            guard let discharge = riverFlows[stats.gauge]?.discharge,
+                  let rating = stats.rating(discharge: discharge, month: month, day: day)
+            else { continue }
+            ratings[name] = rating
+        }
+        return ratings
     }
 
     private func loadGuide(bundle: Bundle) {

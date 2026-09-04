@@ -17,7 +17,7 @@
 - [x] TestFlight: invite Joseph and Pauline as Developer-role ASC users
 - [ ] [you] TestFlight: add both to the Internal group once they activate
 - [x] Rivers slice 1: decode lines, bundle rivers.json, draw them
-- [ ] Rivers slice 2: USGS live flow colours the lines
+- [x] Rivers slice 2: USGS live flow colours the lines
 - [ ] Rivers slice 3: tap a river for flow, temp and notes
 - [ ] Verify Pierce, Mason, Kitsap, Thurston freshwater vs the default
 - [ ] Close the camera-guard pre-load residual

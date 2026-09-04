@@ -63,6 +63,21 @@
   the generator and `RiverTests.theBigRiversAreActuallyInTheBundle` over the
   shipped file, with `theColumbiaIsTheWholeRiverNotAFragment` asserting length
   because a fragment passes a name check.
+- River flow is live. `USGSFlowLoader` pulls every active Washington gauge's
+  discharge and water temperature in one keyless call, and `RiverFlowStats`
+  locates today's reading in that river's own day-of-year distribution, bundled
+  from USGS daily statistics by `scripts/build_river_stats.py` (77 rivers, the
+  Skagit backed by 101 years). **Verified against the source, not just on
+  screen**: Puyallup 208 cfs against a p10 of 298 draws Slow, Snoqualmie 123
+  mid-range draws Good, Skagit 5,370 just over its p10 of 5,320 draws Fair —
+  each colour traced from the live number through the right percentile row.
+- Flow deliberately cannot reach Prime. Normal flow means conditions are
+  workable, never that fish are in the river, so `.excellent` stays the seasonal
+  guide's word and red keeps one meaning. Both tails read Slow, because bony and
+  blown out are equally unfishable.
+- 57% of drawn river length is gauged (78% of mainstems, 13 of 14 marquee
+  rivers). The 208 ungauged rivers are mostly order-3 tributaries and render
+  lighter and thinner so the gauged mainstems carry the signal.
 - The muted basemap engages for rivers, confirmed by an A/B on the simulator
   rather than by reading the code: with the layer off the map is saturated green
   with deep blue water and black labels; with it on, terrain, water, roads and

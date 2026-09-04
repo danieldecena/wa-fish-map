@@ -163,8 +163,8 @@ struct MapCoordinatorTests {
         #expect(mapView.overlays(in: .aboveRoads).isEmpty)
     }
 
-    /// A river with no gauge reading draws neutral, and a rated one draws its
-    /// rating colour — the seam the flow slice fills in.
+    /// A river with no gauge reading recedes: same neutral hue, but lighter and
+    /// thinner, so the gauged mainstems carry the signal.
     @Test func aRatedRiverTakesItsColourAndAnUnratedOneStaysNeutral() {
         let mapView = MKMapView(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
         let rivers = [Self.river("Skagit River", order: 6, lon: -121.8, lat: 48.4),
@@ -175,8 +175,12 @@ struct MapCoordinatorTests {
 
         let lines = mapView.overlays(in: .aboveRoads).compactMap { $0 as? RiverPolyline }
         #expect(lines.count == 2)
-        #expect(lines.first { $0.title == "Skagit River" }?.color == .red)
-        #expect(lines.first { $0.title == "Sauk River" }?.color == .gray)
+        let skagit = try? #require(lines.first { $0.title == "Skagit River" })
+        let sauk = try? #require(lines.first { $0.title == "Sauk River" })
+        #expect(skagit?.color == .red)
+        #expect(sauk?.color == Color.gray.opacity(0.45))
+        // The recessive treatment is a width change too, not just a tint.
+        #expect((sauk?.width ?? 0) < (skagit?.width ?? 0))
     }
 
     /// MPAs load after the marine areas, and within one level MapKit draws in add

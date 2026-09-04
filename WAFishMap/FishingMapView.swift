@@ -59,6 +59,12 @@ struct FishingMapView: View {
         UITestSeam.planMonth ?? Calendar.current.component(.month, from: planDate)
     }
 
+    /// Day of the month from the plan date, paired with `currentMonth` to place
+    /// a reading in the right row of a river's day-of-year table.
+    private var currentDay: Int {
+        Calendar.current.component(.day, from: planDate)
+    }
+
     private var timeOfDay: TimeOfDay {
         if let solar = SolarTimes.compute(on: planDate, at: cameraCenter) {
             return TimeOfDay(date: planDate, solar: solar)
@@ -152,10 +158,14 @@ struct FishingMapView: View {
     }
 
     /// The user's toggle, plus the forced-on case where pins are hidden.
-    /// No river carries a rating yet: colour comes from live USGS flow, which is
-    /// its own slice. Empty means every river draws neutral, which is the honest
-    /// resting state rather than a stand-in.
-    private var riverColors: [String: Color] { [:] }
+    /// Flow colour per river. A river with no gauge, or a gauge that reported
+    /// nothing today, is simply absent here and draws neutral — the map never
+    /// invents a reading to fill a gap.
+    private var riverColors: [String: Color] {
+        guard showRivers else { return [:] }
+        return model.riverRatings(month: currentMonth, day: currentDay)
+            .mapValues(\.color)
+    }
 
     private var heatVisible: Bool {
         MapDetailLevel.showsHeat(userEnabled: showHeat, atCameraDistance: cameraDistance)
