@@ -129,6 +129,35 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-03 (the inbox was 11% ours, and none of ours was news)
+
+- Drained this project's share of the capture queue: 214 of 1,965 rows, now 0.
+  Backup at `~/.claude/pending-suggestions.tsv.bak-20260903-225852`; the queue
+  itself is down to 1,751.
+- Nothing was filed, and that is the result rather than a shortcut. All 214 rows
+  were read. Every finding is already in this decision log or is transient
+  narration ("PR #4 is open with 38 commits"), and every proposal is done, is
+  already a `TASKS.md` item, or was an instruction to the assistant mid-turn
+  ("Report the device result the moment it lands"). Two looked like live defects
+  and were checked against the code rather than assumed: Boston Harbor's
+  freshwater misclassification is fixed and asserted in `FishingMapModelTests`,
+  and the walleye "Prime at 11:59 PM" note names `bestTime`, which is display-only
+  and reaches `SiteDetailSheet` but never the rating.
+- The task was mis-scoped, which is why it looked enormous. The queue is
+  **global**, not this repo's: `~/.claude/pending-suggestions.tsv` spans 117
+  sessions across every project, and `inbox.py file` writes to `~/TASKS.md` by
+  default. Filing it here would have moved other repos' work into this one. What
+  is left is theirs to drain: 497 home, 461 unattributed, 190 headwaynurse, 169
+  `.claude`, 96 radio, 58 Tools.
+- The capture hook produces roughly one row per two assistant turns and nothing
+  consumed it, so the queue is a transcript rather than a backlog. Read for what
+  a session might have dropped, not as a list to work through.
+- Method note, because the first attempt reported nothing and looked like it
+  worked: `inbox.py` derives a row id from the line **including its trailing
+  newline**. Hashing the stripped line produced 214 plausible six-hex ids that
+  matched nothing. The tool refused on the first one, and the row count was
+  unchanged - which is the only reason it was caught.
+
 ### 2026-09-03 (the camera residual was never about the load)
 
 - Closed the "pre-load residual", and the description of it in Known broken was
