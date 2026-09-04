@@ -16,7 +16,7 @@
 - [x] TestFlight: public join link on insideout, tester limit 5
 - [x] TestFlight: invite Joseph and Pauline as Developer-role ASC users
 - [ ] [you] TestFlight: add both to the Internal group once they activate
-- [ ] Rivers slice 1: decode lines, bundle rivers.json, draw them
+- [x] Rivers slice 1: decode lines, bundle rivers.json, draw them
 - [ ] Rivers slice 2: USGS live flow colours the lines
 - [ ] Rivers slice 3: tap a river for flow, temp and notes
 - [ ] Verify Pierce, Mason, Kitsap, Thurston freshwater vs the default
@@ -72,7 +72,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-03 16:22.
+Plan approved 2026-09-03 20:35.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only

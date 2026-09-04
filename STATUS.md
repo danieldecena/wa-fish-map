@@ -53,8 +53,22 @@
   fix and passing after, so a green run means something.
 - `./scripts/verify_weatherkit_device.sh` is the one command that proves it:
   device pre-flight, build, sign, install, run, then confirm from the device.
-- The suite is 139 tests: 138 pass, 1 skips. The skip is
-  `testWindReadsARealValueOnDevice`, gated to hardware on purpose.
+- The suite is 152 tests: 148 Swift Testing in 23 suites plus 4 XCUITest, with
+  one skip. The skip is `testWindReadsARealValueOnDevice`, gated to hardware on
+  purpose.
+- Rivers draw. Slice 1 is **built and observed**, not inferred: `xcodebuild
+  test` exits 0, and each new test was confirmed to have run by name rather than
+  by the suite total moving. `rivers.json` carries 287 Washington rivers from
+  USGS NHD, and the FTYPE trap is guarded at both ends — `EXPECTED_RIVERS` in
+  the generator and `RiverTests.theBigRiversAreActuallyInTheBundle` over the
+  shipped file, with `theColumbiaIsTheWholeRiverNotAFragment` asserting length
+  because a fragment passes a name check.
+- The muted basemap engages for rivers, confirmed by an A/B on the simulator
+  rather than by reading the code: with the layer off the map is saturated green
+  with deep blue water and black labels; with it on, terrain, water, roads and
+  labels all drop back and the river lines become the heaviest linework on
+  screen. The first capture of this looked blank and was only map tiles still
+  loading — a second capture 25s later settled it.
 - Build 1 is installed from TestFlight. Apple reports the build
   `IN_BETA_TESTING`, attached to the internal group `Internal` (`f303ff11-…`),
   and `danieldecena@icloud.com` at state `INSTALLED` — the tester state is the
@@ -76,17 +90,6 @@
   increased."* The same branch passed three times at 02:45, 02:48 and 02:55 on
   2026-09-03; the block landed at 03:41. Do not re-debug the test suite over
   this - it is the Billing and plans section of the GitHub account.
-
-- The river layer (slice 1) is written but **has never been built or tested**.
-  Every Swift file below is unverified: `River`, `RiverLoader`, `RiverPolyline`,
-  the `syncRivers` pass, the `LineString`/`MultiLineString` cases on
-  `GeoJSONGeometry`, and the `showRivers` toggle. The `xcodebuild test` run was
-  the next command and the session was stopped before it. SourceKit reported
-  "cannot find type 'LonLat' in scope" against the new files, which is the
-  signature of index lag on a synchronized group rather than a real error — but
-  that is an inference, not an observation. Build it before trusting any of it.
-  The data half *is* verified: 287 rivers, anchors present, Oregon clipped,
-  byte-identical on re-run.
 
 ## Next Up
 
