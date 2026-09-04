@@ -1,13 +1,13 @@
 ## Tasks
 
 - [ ] [you] TestFlight: add both to the Internal group once they activate
-- [ ] Close the camera-guard pre-load residual
 - [ ] Drain the 1878-item capture inbox into TASKS.md and STATUS
 - [ ] [you] Re-invite Pauline at her Apple Account address
 - [ ] [you] GitHub Actions billing blocks PR #4 CI
 
 ## Completed
 
+- [x] Close the camera-guard pre-load residual
 - [x] Verify Pierce, Mason, Kitsap, Thurston freshwater vs the default
 - [x] Flag sites inside WDFW Marine Protected Areas (44, live, unused)
 - [x] MKMapView migration: MapKit clustering, then chart tiles if a URL resolves

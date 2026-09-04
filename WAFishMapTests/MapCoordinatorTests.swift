@@ -61,6 +61,48 @@ struct MapCoordinatorTests {
         ]])
     }
 
+    /// A representable whose camera flag writes somewhere a test can read back,
+    /// rather than into `.constant`. Everything the gesture guard does is a
+    /// write, so a constant binding cannot observe it at all.
+    private static func representable(
+        userMovedCamera: Binding<Bool>
+    ) -> FishingMapRepresentable {
+        FishingMapRepresentable(
+            annotations: [], areas: [], areaColors: [:], protectedAreas: [],
+            heatZones: [], rivers: [], riverColors: [:],
+            showRivers: false, showHeat: false, showAreaLabels: false,
+            pointsOfInterest: [],
+            selectedID: .constant(nil),
+            selectedRiverName: .constant(nil),
+            cameraDistance: .constant(0),
+            cameraCenter: .constant(LonLat(longitude: -122.5, latitude: 47.5)),
+            userMovedCamera: userMovedCamera,
+            focusRegion: .constant(nil)
+        )
+    }
+
+    /// `UIGestureRecognizer.state` is set by UIKit as a real touch progresses,
+    /// so a test has to supply it.
+    private final class StubGesture: UIGestureRecognizer {
+        private var stubbed: UIGestureRecognizer.State
+        init(_ state: UIGestureRecognizer.State) {
+            stubbed = state
+            super.init(target: nil, action: nil)
+        }
+        override var state: UIGestureRecognizer.State {
+            get { stubbed }
+            set { stubbed = newValue }
+        }
+    }
+
+    private static func flagBinding(_ store: FlagBox) -> Binding<Bool> {
+        Binding(get: { store.value }, set: { store.value = $0 })
+    }
+
+    private final class FlagBox {
+        var value = false
+    }
+
     private static let parked = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 47.60, longitude: -122.33),
         span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
@@ -207,5 +249,44 @@ struct MapCoordinatorTests {
         #expect(stack.count == 2)
         #expect(stack.first is ProtectedAreaPolygon)
         #expect(stack.last is RatedPolygon)
+    }
+
+    // MARK: The pre-load residual — a gesture has to claim the camera at once
+
+    /// `userGesture` used to defer the flag by a runloop turn. Every reader of
+    /// it is synchronous — the `onChange` that eases to a location fix, and the
+    /// initial fit — so a fix delivered in the same turn as the gesture read
+    /// `false` and yanked a camera the user had just moved. That window is what
+    /// "the pre-load residual" actually was, and it is not specific to the load
+    /// at all: any fix arriving inside one turn of a touch hit it.
+    @Test func aGestureClaimsTheCameraBeforeTheCallReturns() {
+        let flag = FlagBox()
+        let coordinator = FishingMapRepresentable.Coordinator(
+            Self.representable(userMovedCamera: Self.flagBinding(flag)))
+        coordinator.userGesture(StubGesture(.began))
+        #expect(flag.value, "a reader in this same runloop turn must see the claim")
+    }
+
+    /// Discrete recognizers only ever reach `.ended`, so the tap zooms have to
+    /// land through the same door as the pan.
+    @Test func aTapZoomClaimsTheCameraToo() {
+        let flag = FlagBox()
+        let coordinator = FishingMapRepresentable.Coordinator(
+            Self.representable(userMovedCamera: Self.flagBinding(flag)))
+        coordinator.userGesture(StubGesture(.ended))
+        #expect(flag.value)
+    }
+
+    /// The control. Without it, "claims the camera synchronously" could not be
+    /// told from "claims the camera for any recognizer at all" — and a guard
+    /// that always fires would suppress the recentre nobody asked to lose.
+    @Test func aRecognizerThatIsNotMovingTheCameraClaimsNothing() {
+        let flag = FlagBox()
+        let coordinator = FishingMapRepresentable.Coordinator(
+            Self.representable(userMovedCamera: Self.flagBinding(flag)))
+        for state in [UIGestureRecognizer.State.possible, .cancelled, .failed] {
+            coordinator.userGesture(StubGesture(state))
+            #expect(!flag.value, "\(state) is not a camera move")
+        }
     }
 }

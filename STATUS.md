@@ -103,12 +103,6 @@
 
 ## Known broken
 
-- The camera guard has a disclosed residual: a genuine user gesture made BEFORE
-  the WDFW load completes is misclassified as non-user, so a later location fix
-  would still recentre. Narrower than the bug it replaced, and documented in the
-  code. Narrower again as of the `isCameraMove` fix below: tap-driven zooms are
-  now recognised at all, so only the pre-load window remains.
-
 - PR #4's two CI checks are red for a reason that is not the code. Both jobs on
   run `33712289921` carry the annotation *"The job was not started because
   recent account payments have failed or your spending limit needs to be
@@ -134,6 +128,30 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-03 (the camera residual was never about the load)
+
+- Closed the "pre-load residual", and the description of it in Known broken was
+  wrong. The WDFW load had nothing to do with it. `userGesture` set
+  `userMovedCamera` through `DispatchQueue.main.async`, so the claim landed one
+  runloop turn after the touch, while every reader of the flag is synchronous -
+  the `onChange` that eases to a location fix, and the initial fit. Any fix
+  delivered in the same turn as a gesture read `false` and recentred a camera
+  the user had just moved. Pre-load was simply when a first fix is most likely,
+  not the condition.
+- Fixed by writing the flag synchronously. The hop is still correct in
+  `regionDidChangeAnimated` and stays there: MapKit can raise that from inside
+  `updateUIView`'s own `setRegion`, whereas UIKit dispatches a gesture action
+  outside SwiftUI's update pass, so there is nothing to hop off.
+- Observed failing first. The three new `MapCoordinatorTests` went red on the
+  two claims and green on the control before the fix, which is what separates
+  "claims the camera synchronously" from "claims it for any recognizer at all".
+  A constant binding cannot see a write, so the tests bind the flag to a box.
+  171 tests -> 174, all passing, `** TEST SUCCEEDED **`.
+- Standing lesson, since this is the second stale Known-broken entry this week:
+  a disclosed residual is a hypothesis with an expiry date. Reproduce it before
+  writing a fix for it - this one had been narrowed twice by unrelated commits
+  and its stated cause no longer matched the code at all.
 
 ### 2026-09-03 (four counties, checked against WDFW rather than recalled)
 

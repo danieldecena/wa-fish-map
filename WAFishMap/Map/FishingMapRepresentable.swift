@@ -472,10 +472,18 @@ struct FishingMapRepresentable: UIViewRepresentable {
             }
         }
 
+        /// Written synchronously, unlike `regionDidChangeAnimated` above. Every
+        /// reader of this flag is synchronous — the `onChange` that eases to a
+        /// location fix, and the initial fit — so deferring it by a runloop turn
+        /// left a window where a fix delivered in the same turn as the touch read
+        /// `false` and yanked a camera the user had just moved. UIKit dispatches a
+        /// gesture action outside SwiftUI's update pass, so there is nothing here
+        /// to hop off; the region callback needs the hop because MapKit can raise
+        /// it from inside `updateUIView`'s own `setRegion`.
         @objc func userGesture(_ recognizer: UIGestureRecognizer) {
             guard Coordinator.isCameraMove(recognizer.state) else { return }
             guard !parent.userMovedCamera else { return }
-            DispatchQueue.main.async { self.parent.userMovedCamera = true }
+            parent.userMovedCamera = true
         }
 
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
