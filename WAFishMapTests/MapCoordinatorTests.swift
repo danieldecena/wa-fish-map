@@ -46,6 +46,7 @@ struct MapCoordinatorTests {
             showAreaLabels: false,
             pointsOfInterest: [],
             selectedID: .constant(nil),
+            selectedRiverName: .constant(nil),
             cameraDistance: .constant(0),
             cameraCenter: .constant(LonLat(longitude: -122.5, latitude: 47.5)),
             userMovedCamera: .constant(userMovedCamera),

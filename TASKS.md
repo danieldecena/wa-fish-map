@@ -18,7 +18,7 @@
 - [ ] [you] TestFlight: add both to the Internal group once they activate
 - [x] Rivers slice 1: decode lines, bundle rivers.json, draw them
 - [x] Rivers slice 2: USGS live flow colours the lines
-- [ ] Rivers slice 3: tap a river for flow, temp and notes
+- [x] Rivers slice 3: tap a river for flow, temp and notes
 - [ ] Verify Pierce, Mason, Kitsap, Thurston freshwater vs the default
 - [ ] Close the camera-guard pre-load residual
 - [ ] Drain the 1878-item capture inbox into TASKS.md and STATUS
@@ -72,7 +72,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-03 20:35.
+Plan approved 2026-09-03 21:37.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only

@@ -82,6 +82,56 @@ struct RiverTests {
         #expect(width(4) < width(7))
     }
 
+    // MARK: Tap distance
+
+    /// A short east-west run at 47.5N, about 750m long.
+    private static let reach = River(
+        name: "Test River", streamOrder: 4, lengthKm: 1,
+        lines: [[LonLat(longitude: -122.000, latitude: 47.500),
+                 LonLat(longitude: -121.990, latitude: 47.500)]]
+    )
+
+    @Test func aPointOnTheLineIsEssentiallyZeroAway() throws {
+        let onIt = LonLat(longitude: -121.995, latitude: 47.500)
+        let distance = try #require(Self.reach.distanceMeters(to: onIt))
+        #expect(distance < 1)
+    }
+
+    /// The control for the test above. Without a point that is genuinely far,
+    /// "measures distance" cannot be told from "always returns zero".
+    @Test func aPointOffTheLineMeasuresTheRealGap() throws {
+        // 0.0090 degrees of latitude is almost exactly 1km.
+        let north = LonLat(longitude: -121.995, latitude: 47.509)
+        let distance = try #require(Self.reach.distanceMeters(to: north))
+        #expect(distance > 950 && distance < 1050, "got \(distance)m, expected ~1000m")
+    }
+
+    /// Past the end of a segment the answer is the distance to the endpoint,
+    /// not to the infinite line the segment sits on.
+    @Test func beyondTheEndItMeasuresToTheEndpoint() throws {
+        let east = LonLat(longitude: -121.980, latitude: 47.500)
+        let distance = try #require(Self.reach.distanceMeters(to: east))
+        // 0.010 degrees of longitude at 47.5N is about 750m.
+        #expect(distance > 700 && distance < 800, "got \(distance)m")
+    }
+
+    @Test func theNearestOfTwoRiversWins() throws {
+        let far = River(
+            name: "Far River", streamOrder: 4, lengthKm: 1,
+            lines: [[LonLat(longitude: -122.000, latitude: 47.600),
+                     LonLat(longitude: -121.990, latitude: 47.600)]]
+        )
+        let tap = LonLat(longitude: -121.995, latitude: 47.502)
+        let near = try #require(Self.reach.distanceMeters(to: tap))
+        let away = try #require(far.distanceMeters(to: tap))
+        #expect(near < away)
+    }
+
+    @Test func aRiverWithNoDrawableRunHasNoDistance() {
+        let empty = River(name: "Empty", streamOrder: 1, lengthKm: 0, lines: [])
+        #expect(empty.distanceMeters(to: LonLat(longitude: -122, latitude: 47.5)) == nil)
+    }
+
     // MARK: The shipped resource
 
     private static func bundled() throws -> [River] {

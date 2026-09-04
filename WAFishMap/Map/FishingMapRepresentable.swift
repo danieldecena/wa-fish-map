@@ -45,6 +45,9 @@ struct FishingMapRepresentable: UIViewRepresentable {
     let showAreaLabels: Bool
     let pointsOfInterest: [MKPointOfInterestCategory]
     @Binding var selectedID: String?
+    /// The tapped river, by name. Overlays are not selectable the way
+    /// annotations are, so this is driven by an explicit hit test.
+    @Binding var selectedRiverName: String?
     @Binding var cameraDistance: Double
     @Binding var cameraCenter: LonLat
     @Binding var userMovedCamera: Bool
@@ -72,6 +75,16 @@ struct FishingMapRepresentable: UIViewRepresentable {
         let doubleTap = UITapGestureRecognizer(target: context.coordinator,
                                                action: #selector(Coordinator.userGesture))
         doubleTap.numberOfTapsRequired = 2
+
+        // A river is an overlay, and MapKit only selects annotations, so
+        // tap-to-open is hand-rolled. Deliberately NOT wired to `userGesture`:
+        // selecting a river is not a camera move, and marking it as one would
+        // suppress the recentre-on-fix the user has not opted out of.
+        let riverTap = UITapGestureRecognizer(target: context.coordinator,
+                                              action: #selector(Coordinator.riverTap(_:)))
+        riverTap.delegate = context.coordinator
+        riverTap.require(toFail: doubleTap)
+        mapView.addGestureRecognizer(riverTap)
         let twoFingerTap = UITapGestureRecognizer(target: context.coordinator,
                                                   action: #selector(Coordinator.userGesture))
         twoFingerTap.numberOfTouchesRequired = 2
@@ -213,6 +226,42 @@ struct FishingMapRepresentable: UIViewRepresentable {
         /// Separate from `syncOverlays` for the same reason the heat cells are:
         /// rivers change only when the toggle or the colouring does, and folding
         /// them in would rebuild them on every camera-distance band change.
+        /// Fingertip tolerance. Points, converted to metres at the current zoom
+        /// so the target stays the same size on screen however far out the
+        /// camera is — a fixed metre radius is untappable statewide and
+        /// swallows the whole basin up close.
+        private static let tapTolerancePoints: CGFloat = 22
+
+        @objc func riverTap(_ recognizer: UITapGestureRecognizer) {
+            guard parent.showRivers, !parent.rivers.isEmpty,
+                  let mapView = recognizer.view as? MKMapView else { return }
+            let point = recognizer.location(in: mapView)
+
+            // A pin on top of a river belongs to the pin. MapKit's own selection
+            // handles that, and stealing the tap would make pins unopenable
+            // wherever they sit near water — which is everywhere here.
+            if let hit = mapView.hitTest(point, with: nil),
+               hit is MKAnnotationView || hit.superview is MKAnnotationView { return }
+
+            let tapped = mapView.convert(point, toCoordinateFrom: mapView)
+            let offset = mapView.convert(
+                CGPoint(x: point.x + Self.tapTolerancePoints, y: point.y),
+                toCoordinateFrom: mapView
+            )
+            let tolerance = MKMapPoint(tapped).distance(to: MKMapPoint(offset))
+            let target = LonLat(longitude: tapped.longitude, latitude: tapped.latitude)
+
+            let nearest = parent.rivers
+                .compactMap { river -> (String, Double)? in
+                    guard let distance = river.distanceMeters(to: target) else { return nil }
+                    return (river.name, distance)
+                }
+                .min { $0.1 < $1.1 }
+
+            guard let nearest, nearest.1 <= tolerance else { return }
+            parent.selectedRiverName = nearest.0
+        }
+
         func syncRivers(_ mapView: MKMapView) {
             let key = parent.showRivers
                 ? parent.rivers

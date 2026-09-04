@@ -63,6 +63,16 @@
   the generator and `RiverTests.theBigRiversAreActuallyInTheBundle` over the
   shipped file, with `theColumbiaIsTheWholeRiverNotAFragment` asserting length
   because a fragment passes a name check.
+- Tapping a river opens a sheet. Overlays are not selectable the way
+  annotations are, so `Coordinator.riverTap(_:)` hit-tests by hand: a 22-point
+  fingertip tolerance converted to metres at the current zoom, deferring to any
+  pin under the finger. `River.distanceMeters(to:)` is pure, so selection is
+  tested without a map, with a control (a point 1km off must read ~1000m, or
+  "measures distance" is indistinguishable from "always returns zero").
+- The river sheet distinguishes two silences that look identical: "no USGS gauge
+  on this river" is permanent, "has a gauge but it is not reporting right now"
+  is not. Flow and water temperature carry separate timestamps, because a gauge
+  can report discharge every 15 minutes and temperature hourly.
 - River flow is live. `USGSFlowLoader` pulls every active Washington gauge's
   discharge and water temperature in one keyless call, and `RiverFlowStats`
   locates today's reading in that river's own day-of-year distribution, bundled

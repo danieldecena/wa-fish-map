@@ -11,6 +11,9 @@ struct FishingMapView: View {
     @State private var selectedSpecies: String?
     @State private var showHeat = false
     @State private var showRivers = false
+    /// The tapped river, by name. Overlays are not selectable the way
+    /// annotations are, so the coordinator sets this from an explicit hit test.
+    @State private var selectedRiverName: String?
     @State private var showDisclaimer = false
     @State private var heatZones: [HeatZone] = []
     /// Camera altitude in meters; starts far out so area labels stay hidden until the
@@ -86,6 +89,7 @@ struct FishingMapView: View {
             showAreaLabels: cameraDistance < Self.areaLabelMaxDistance,
             pointsOfInterest: landmarkCategories,
             selectedID: $model.selectedSiteID,
+            selectedRiverName: $selectedRiverName,
             cameraDistance: $cameraDistance,
             cameraCenter: $cameraCenter,
             userMovedCamera: $userMovedCamera,
@@ -105,6 +109,15 @@ struct FishingMapView: View {
                 guide: model.guide,
                 planDate: planDate,
                 protectedAreaCheck: model.protectedAreaCheck(for: site)
+            )
+        })
+        .modifier(AdaptiveDetail(item: selectedRiverBinding) { river in
+            RiverDetailSheet(
+                river: river,
+                stats: model.riverStats[river.name],
+                flow: model.flow(forRiver: river.name),
+                guide: model.guide,
+                planDate: planDate
             )
         })
         .modifier(AdaptiveDetail(item: selectedPierBinding) { pier in
@@ -250,6 +263,15 @@ struct FishingMapView: View {
         .accessibilityLabel("Center on my location")
         .padding(.trailing, 10)
         .padding(.top, 6)
+    }
+
+    /// `River` is already `Identifiable` by name, so the sheet binds to the
+    /// river itself rather than to a wrapper around the name.
+    private var selectedRiverBinding: Binding<River?> {
+        Binding(
+            get: { model.rivers.first { $0.name == selectedRiverName } },
+            set: { selectedRiverName = $0?.name }
+        )
     }
 
     private var selectedSiteBinding: Binding<AccessSite?> {

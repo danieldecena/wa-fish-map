@@ -1,4 +1,5 @@
 import CoreLocation
+import Foundation
 
 /// A named Washington river, bundled as geometry rather than fetched. WDFW's
 /// MapServer has no hydrography layer, so this comes from the USGS NHD via
@@ -28,6 +29,43 @@ struct River: Identifiable, Equatable, Sendable {
         case 4...5: 1.8
         default: 2.8
         }
+    }
+
+    /// Metres from a coordinate to the nearest point on this river, or nil if it
+    /// has no drawable run. Pure, so tap-to-select is testable without a map.
+    ///
+    /// Equirectangular rather than great-circle: over the tens of metres a tap
+    /// tolerance spans, the error is far below a fingertip, and a river is a few
+    /// hundred segments to check on every tap.
+    func distanceMeters(to point: LonLat) -> Double? {
+        var best = Double.infinity
+        for line in lines {
+            for index in 0..<(line.count - 1) {
+                best = min(best, Self.distance(point, line[index], line[index + 1]))
+            }
+        }
+        return best.isFinite ? best : nil
+    }
+
+    private static let metresPerDegree = 111_320.0
+
+    /// Point-to-segment distance, projected flat around the point's latitude.
+    private static func distance(_ p: LonLat, _ a: LonLat, _ b: LonLat) -> Double {
+        let scale = cos(p.latitude * .pi / 180)
+        func project(_ c: LonLat) -> (x: Double, y: Double) {
+            ((c.longitude - p.longitude) * scale * metresPerDegree,
+             (c.latitude - p.latitude) * metresPerDegree)
+        }
+        let (ax, ay) = project(a)
+        let (bx, by) = project(b)
+        let (dx, dy) = (bx - ax, by - ay)
+        let lengthSquared = dx * dx + dy * dy
+        // A zero-length segment is just its endpoint; the clamp below would
+        // divide by zero.
+        guard lengthSquared > 0 else { return (ax * ax + ay * ay).squareRoot() }
+        let t = min(1, max(0, -(ax * dx + ay * dy) / lengthSquared))
+        let (cx, cy) = (ax + t * dx, ay + t * dy)
+        return (cx * cx + cy * cy).squareRoot()
     }
 
     struct Properties: Decodable {
