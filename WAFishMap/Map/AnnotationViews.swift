@@ -44,6 +44,10 @@ final class SiteMarkerView: MKMarkerAnnotationView {
         glyphImage = UIImage(systemName: Self.symbol(for: site.kind))
         // Faded gray: still tappable, so the details stay one tap away.
         alpha = site.isClosed ? 0.55 : 1
+        isAccessibilityElement = true
+        accessibilityLabel = site.title
+        accessibilityValue = site.spokenSummary
+        accessibilityTraits = .button
     }
 
     /// Outlined = a pale balloon with the rating colour moved to the glyph, so a
@@ -86,6 +90,17 @@ final class SiteClusterView: MKMarkerAnnotationView {
         SiteMarkerView.paint(self, tint: UIColor(Self.bestRating(of: members)?.color ?? .gray),
                              outlined: Self.closurePlausible(of: members))
         glyphText = "\(cluster.memberAnnotations.count)"
+        isAccessibilityElement = true
+        accessibilityLabel = "\(cluster.memberAnnotations.count) fishing spots"
+        accessibilityValue = Self.spokenSummary(of: members)
+        accessibilityTraits = .button
+    }
+
+    static func spokenSummary(of members: [SiteAnnotation]) -> String {
+        guard let best = bestRating(of: members) else { return "no seasonal guidance" }
+        return closurePlausible(of: members)
+            ? "best rated \(best.label), season may be closed, verify with WDFW"
+            : "best rated \(best.label)"
     }
 
     /// Pure, so it is unit-testable without a map: the strongest rating present.

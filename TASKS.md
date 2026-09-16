@@ -12,7 +12,8 @@
 - [ ] UI test: disclaimer and WDFW link on every sheet
 - [ ] Offline states render unavailable, never stale
 - [x] Opening map frames Washington with no WA location fix — d2a106a
-- [ ] Accessibility pass on pins, legend, sheets
+- [x] VoiceOver labels: pins, clusters, legends, rating badge
+- [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
 - [ ] Final data pass and updated stamp
 - [ ] [you] App name, subtitle, category, age rating
 - [ ] Privacy policy page (host is your call)
