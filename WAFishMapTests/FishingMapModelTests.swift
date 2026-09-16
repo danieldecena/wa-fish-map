@@ -203,3 +203,87 @@ enum FixtureBundle {
 }
 
 private final class BundleMarker: NSObject {}
+
+/// A failed or empty live read must render as unavailable, never as a value:
+/// "0 access sites", "clear of every MPA", or a silent missing layer.
+struct FailedReadTests {
+    struct LayerClient: HTTPGet {
+        var marine: Data?
+        var sites: Data?
+        var mpa: Data?
+        var piers: Data?
+        func data(from url: URL) async throws -> Data {
+            let s = url.absoluteString
+            let body: Data? = s.contains("/6/query") ? marine : s.contains("/0/query") ? sites
+                : s.contains("/4/query") ? mpa : s.contains("/1/query") ? piers : nil
+            guard let body else { throw WDFWLayerError.badHTTPStatus(500) }
+            return body
+        }
+    }
+
+    static let empty = Data(#"{"type":"FeatureCollection","features":[]}"#.utf8)
+    static let oneArea = Data("""
+    {"type":"FeatureCollection","features":[{"type":"Feature",
+    "geometry":{"type":"Polygon","coordinates":[[[-123.0,47.0],[-122.9,47.0],[-122.9,47.1],[-123.0,47.1],[-123.0,47.0]]]},
+    "properties":{"AreaName":"13","AreaTitle":"South Puget Sound","WAC":"x"}}]}
+    """.utf8)
+    static let oneSite = Data("""
+    {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[-122.00,47.65]},
+     "properties":{"FacilityName":"Elsewhere","CountyName":"King","Launch":1,"Directions":""}}]}
+    """.utf8)
+    static let oneMPA = Data("""
+    {"type":"FeatureCollection","features":[{"type":"Feature",
+    "geometry":{"type":"Polygon","coordinates":[[[-122.40,47.60],[-122.30,47.60],[-122.30,47.70],[-122.40,47.70],[-122.40,47.60]]]},
+    "properties":{"MPA_Name":"Golden Gardens","TypeOfMPA":"Marine Preserve","WAC":"w","DetailedInfoURL":"https://wdfw.wa.gov"}}]}
+    """.utf8)
+    static let onePier = Data("""
+    {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[-122.35,47.65]},
+     "properties":{"GeoWeb.dbo.Fish_MapsPiers_V.PierName":"Test Pier","GeoWeb.dbo.Fish_MapsPiers_V.CountyFIPSName":"King"}}]}
+    """.utf8)
+
+    @Test @MainActor func anEmptyAccessSiteLayerNeverReadsAsZeroLiveSites() async throws {
+        let bundle = try #require(FixtureBundle.loader)
+        let model = FishingMapModel()
+        await model.load(client: LayerClient(marine: Self.oneArea, sites: Self.empty), bundle: bundle)
+        #expect(!model.statusMessage.contains("0 access sites"))
+        #expect(model.statusMessage.contains("offline"))
+    }
+
+    /// The known-good half: the same client with a real site layer stays live.
+    @Test @MainActor func aNonEmptyLayerStaysLive() async throws {
+        let bundle = try #require(FixtureBundle.loader)
+        let model = FishingMapModel()
+        await model.load(client: LayerClient(marine: Self.oneArea, sites: Self.oneSite, mpa: Self.oneMPA, piers: Self.onePier),
+                         bundle: bundle)
+        #expect(model.statusMessage.contains("1 access sites · live"))
+        #expect(model.piersLoaded)
+        #expect(!model.statusMessage.contains("piers unavailable"))
+        #expect(model.protectedAreasLoaded)
+    }
+
+    @Test @MainActor func anEmptyMPALayerIsUnavailableNotClear() async throws {
+        let bundle = try #require(FixtureBundle.loader)
+        let model = FishingMapModel()
+        await model.load(client: LayerClient(marine: Self.oneArea, sites: Self.oneSite, mpa: Self.empty), bundle: bundle)
+        let site = try #require(model.accessSites.first)
+        #expect(!model.protectedAreasLoaded)
+        #expect(model.protectedAreaCheck(for: site) == .unavailable)
+    }
+
+    @Test @MainActor func aFailedPierFetchIsSaidOutLoud() async throws {
+        let bundle = try #require(FixtureBundle.loader)
+        let model = FishingMapModel()
+        await model.load(client: LayerClient(marine: Self.oneArea, sites: Self.oneSite, mpa: Self.oneMPA, piers: nil),
+                         bundle: bundle)
+        #expect(!model.piersLoaded)
+        #expect(model.statusMessage.contains("piers unavailable"))
+    }
+
+    @Test @MainActor func aFailedUSGSFetchIsRecordedAsNotLoaded() async throws {
+        let bundle = try #require(FixtureBundle.loader)
+        let model = FishingMapModel()
+        await model.load(client: LayerClient(marine: Self.oneArea, sites: Self.oneSite, mpa: Self.oneMPA, piers: Self.onePier),
+                         bundle: bundle)
+        #expect(!model.riverFlowsLoaded, "LayerClient throws for the USGS URL")
+    }
+}

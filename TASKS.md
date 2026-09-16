@@ -11,11 +11,11 @@
 - [x] Attribution: Apple Weather mark and data credits — c705807
 - [ ] UI test: disclaimer and WDFW link on every sheet
 - [ ] Weather: plan past last forecast hour shows last hour
-- [ ] Empty MPA layer reads as "clear" at every site
+- [x] Empty MPA layer reads as "clear" at every site
 - [ ] iPad buoy section keeps previous site's reading
-- [ ] USGS fetch failure blamed on "gauge not reporting"
-- [ ] Empty live WDFW layer shows "0 access sites"
-- [ ] Pier fetch failure is invisible (try? swallowed)
+- [x] USGS fetch failure blamed on "gauge not reporting"
+- [x] Empty live WDFW layer shows "0 access sites"
+- [x] Pier fetch failure is invisible (try? swallowed)
 - [ ] Weather cache has no age; refetch after ~1 h
 - [ ] Weather: cancelled fetch can write the old hour
 - [x] Opening map frames Washington with no WA location fix — d2a106a

@@ -7,6 +7,9 @@ struct RiverDetailSheet: View {
     let river: River
     let stats: RiverFlowStats?
     let flow: RiverFlow?
+    /// False when the USGS fetch failed, so a missing reading is not blamed on
+    /// the gauge.
+    var flowsLoaded = true
     let guide: FisheryGuide?
     let planDate: Date
 
@@ -88,6 +91,13 @@ struct RiverDetailSheet: View {
                 // permanent, "no reading right now" is not.
                 Text("No USGS gauge on this \(river.kind.rawValue), so there is nothing to report on its flow.")
                     .font(.subheadline).foregroundStyle(.secondary)
+            } else if !flowsLoaded {
+                Text("Couldn't reach USGS for a live reading. Check your connection and reopen.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                if let stats {
+                    Text("USGS gauge \(stats.gaugeName.capitalized)")
+                        .font(.caption2).foregroundStyle(.tertiary)
+                }
             } else {
                 Text("This river has a gauge, but it is not reporting right now.")
                     .font(.subheadline).foregroundStyle(.secondary)
