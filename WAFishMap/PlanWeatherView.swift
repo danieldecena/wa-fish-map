@@ -20,11 +20,11 @@ struct PlanWeatherView: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
-    /// One fetch per place-and-hour for the life of the process. The sheet is
-    /// rebuilt on every tap, so without this reopening the same site in the same
-    /// hour spends another call against the 500k/month quota for an answer that
-    /// cannot have changed.
-    @MainActor private static var cache: [String: PlanWeather] = [:]
+    /// One fetch per place-and-hour per `CachedPlanWeather.maxAge`. The sheet is
+    /// rebuilt on every tap, so without this reopening the same site spends
+    /// another call against the 500k/month quota; with no age at all it showed a
+    /// forecast WeatherKit had since revised.
+    @MainActor private static var cache: [String: CachedPlanWeather] = [:]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -119,10 +119,15 @@ struct PlanWeatherView: View {
     private static let log = Logger(subsystem: "com.danieldecena.WAFishMap", category: "weather")
 
     private func load() async {
+        // Captured once. `hourKey` and `planDate` read the view's current values,
+        // so after an await they can already belong to the next hour; the fetch
+        // must be filed under the place and hour it was asked for.
+        let key = hourKey
+        let plan = planDate
         failed = false
         outOfRange = false
-        if let hit = Self.cache[hourKey] {
-            weather = hit
+        if let hit = Self.cache[key], hit.isFresh(at: Date()) {
+            weather = hit.weather
             await loadAttribution()
             return
         }
@@ -130,20 +135,27 @@ struct PlanWeatherView: View {
         do {
             let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
             let forecast = try await WeatherService.shared.weather(for: location, including: .hourly)
-            guard let hour = PlanWeatherSelection.hour(covering: planDate, in: Array(forecast)) else {
+            // A superseded task (the user moved the plan or the site) must not
+            // write its answer over the newer one.
+            guard !Task.isCancelled else { return }
+            guard let hour = PlanWeatherSelection.hour(covering: plan, in: Array(forecast)) else {
                 outOfRange = true
                 return
             }
-            weather = PlanWeather(
+            let reading = PlanWeather(
                 hour: hour.date,
                 windSpeedMph: hour.wind.speed.converted(to: .milesPerHour).value,
                 windDirectionDegrees: hour.wind.direction.converted(to: .degrees).value,
                 precipitationChance: hour.precipitationChance,
                 temperatureFahrenheit: hour.temperature.converted(to: .fahrenheit).value
             )
-            Self.cache[hourKey] = weather
+            weather = reading
+            Self.cache[key] = CachedPlanWeather(weather: reading, fetchedAt: Date())
             await loadAttribution()
         } catch {
+            // Cancellation is not a failure; the task that replaced this one
+            // owns the section now.
+            guard !Task.isCancelled else { return }
             failed = true
             Self.log.error("WeatherKit hourly fetch failed: \(error, privacy: .public)")
         }

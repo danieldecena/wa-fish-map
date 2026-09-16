@@ -34,9 +34,31 @@ struct PlanWeatherTests {
     /// A forecast that does not reach the plan date says nothing. Substituting
     /// the closest available hour would answer a different question while looking
     /// like an answer to this one.
-    @Test func aPlanBeyondTheForecastReturnsNothingRatherThanTheClosestHour() {
+    @Test func aPlanBeforeTheForecastReturnsNothing() {
         let earlyOnly = [Hour(date: Self.at(1)), Hour(date: Self.at(2))]
         #expect(PlanWeatherSelection.hour(covering: Self.at(0), in: earlyOnly) == nil)
+    }
+
+    /// The other side, and the case the old rule got wrong: a plan after the
+    /// forecast's last hour read that last hour as if it were the plan's.
+    @Test func aPlanPastTheForecastReturnsNothingRatherThanTheLastHour() {
+        let earlyOnly = [Hour(date: Self.at(1)), Hour(date: Self.at(2))]
+        #expect(PlanWeatherSelection.hour(covering: Self.at(9), in: earlyOnly) == nil)
+    }
+
+    /// Known-good for the new bound: inside the last hour still reads it.
+    @Test func aPlanInsideTheLastHourStillReadsIt() {
+        let earlyOnly = [Hour(date: Self.at(1)), Hour(date: Self.at(2))]
+        #expect(PlanWeatherSelection.hour(covering: Self.at(2, minute: 59), in: earlyOnly)?.date == Self.at(2))
+    }
+
+    // MARK: Cache age
+
+    @Test func aCachedForecastIsFreshForAnHourAndNoLonger() {
+        let fetched = Self.at(12)
+        let cached = CachedPlanWeather(weather: weather(direction: 0), fetchedAt: fetched)
+        #expect(cached.isFresh(at: fetched.addingTimeInterval(59 * 60)))
+        #expect(!cached.isFresh(at: fetched.addingTimeInterval(61 * 60)))
     }
 
     @Test func anEmptyForecastReturnsNothing() {
