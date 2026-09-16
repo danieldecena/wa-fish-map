@@ -173,12 +173,15 @@ struct FishingMapRepresentable: UIViewRepresentable {
                 mpaSignature = mpaKey
                 mpaRebuilt = true
                 mapView.removeOverlays(mpaOverlays)
-                mpaOverlays = parent.protectedAreas.compactMap { mpa in
-                    let coords = mpa.mapCoordinates
-                    guard coords.count > 2 else { return nil }
-                    let polygon = ProtectedAreaPolygon(coordinates: coords, count: coords.count)
-                    polygon.title = mpa.name
-                    return polygon
+                // One polygon per ring, not just the largest, so a multi-part
+                // protected area (islands, disjoint pieces) actually all draws.
+                mpaOverlays = parent.protectedAreas.flatMap { mpa in
+                    mpa.ringsMapCoordinates.compactMap { coords -> ProtectedAreaPolygon? in
+                        guard coords.count > 2 else { return nil }
+                        let polygon = ProtectedAreaPolygon(coordinates: coords, count: coords.count)
+                        polygon.title = mpa.name
+                        return polygon
+                    }
                 }
                 mapView.addOverlays(mpaOverlays, level: .aboveRoads)
             }
@@ -193,12 +196,15 @@ struct FishingMapRepresentable: UIViewRepresentable {
                 if areaKey != areaSignature {
                     areaSignature = areaKey
                     mapView.removeOverlays(areaOverlays)
-                    areaOverlays = parent.areas.compactMap { area in
-                        let coords = area.mapCoordinates
-                        guard coords.count > 2 else { return nil }
-                        let polygon = RatedPolygon(coordinates: coords, count: coords.count)
-                        polygon.color = parent.areaColors[area.id] ?? .gray
-                        return polygon
+                    // One polygon per ring, not just the largest — a marine area
+                    // packs every island and disjoint part into extra rings.
+                    areaOverlays = parent.areas.flatMap { area in
+                        area.ringsMapCoordinates.compactMap { coords -> RatedPolygon? in
+                            guard coords.count > 2 else { return nil }
+                            let polygon = RatedPolygon(coordinates: coords, count: coords.count)
+                            polygon.color = parent.areaColors[area.id] ?? .gray
+                            return polygon
+                        }
                     }
                 } else {
                     mapView.removeOverlays(areaOverlays)

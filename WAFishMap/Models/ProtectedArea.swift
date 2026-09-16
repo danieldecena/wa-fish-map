@@ -20,7 +20,23 @@ struct ProtectedArea: Identifiable, Equatable, Sendable {
     let type: String
     let wac: String
     let detailURL: URL?
-    let polygon: [LonLat]
+    /// Every ring of the source geometry — see `MarineArea.rings`; the same
+    /// packing (multi-part Polygon, or MultiPolygon) shows up on this layer too.
+    let rings: [[LonLat]]
+
+    /// The largest ring by vertex count, ties keeping the first. Stands in
+    /// wherever a single ring is needed (predates multi-ring areas).
+    var polygon: [LonLat] {
+        var best = rings.first ?? []
+        for ring in rings.dropFirst() where ring.count > best.count { best = ring }
+        return best
+    }
+
+    /// One coordinate array per ring, for the map overlay — a fill per ring so
+    /// every disjoint part and island actually draws, not just the largest one.
+    var ringsMapCoordinates: [[CLLocationCoordinate2D]] {
+        rings.map { $0.map(\.clLocationCoordinate) }
+    }
 
     /// Live layer 4 stores the citation bare ("220-330-180"); render it as a WAC.
     var wacCitation: String {
@@ -85,9 +101,10 @@ struct ProtectedArea: Identifiable, Equatable, Sendable {
         polygon.map(\.clLocationCoordinate)
     }
 
-    /// Same ray-cast as `MarineArea.contains(_:)` — one shared implementation.
+    /// Same even-odd, multi-ring containment as `MarineArea.contains(_:)` — one
+    /// shared implementation.
     func contains(_ point: LonLat) -> Bool {
-        LonLat.polygon(polygon, contains: point)
+        LonLat.rings(rings, contains: point)
     }
 
     struct Properties: Decodable {
@@ -104,28 +121,41 @@ struct ProtectedArea: Identifiable, Equatable, Sendable {
         }
     }
 
+    /// Single-ring convenience — kept for callers (and tests) predating
+    /// multi-ring areas.
     init(name: String, type: String, wac: String, detailURL: URL?, polygon: [LonLat]) {
+        self.init(name: name, type: type, wac: wac, detailURL: detailURL, rings: [polygon])
+    }
+
+    init(name: String, type: String, wac: String, detailURL: URL?, rings: [[LonLat]]) {
         self.name = name
         self.type = type
         self.wac = wac
         self.detailURL = detailURL
-        self.polygon = polygon
+        self.rings = rings
     }
 
     init?(feature: GeoJSONFeature<Properties>) {
-        guard case .polygon(let rings) = feature.geometry,
-              let outer = rings.first,
-              let name = feature.properties.name, !name.isEmpty else { return nil }
-        let raw: [LonLat] = outer.compactMap { pair in
-            guard pair.count >= 2 else { return nil }
-            return LonLat(longitude: pair[0], latitude: pair[1])
+        guard let name = feature.properties.name, !name.isEmpty else { return nil }
+        let rawRings: [[[Double]]]
+        switch feature.geometry {
+        case .polygon(let rings): rawRings = rings
+        case .multiPolygon(let polygons): rawRings = polygons.flatMap { $0 }
+        default: return nil
         }
-        let coords = LonLat.droppingClosingVertex(raw)
-        guard coords.count >= 3 else { return nil }
+        let parsedRings: [[LonLat]] = rawRings.compactMap { ring in
+            let raw: [LonLat] = ring.compactMap { pair in
+                guard pair.count >= 2 else { return nil }
+                return LonLat(longitude: pair[0], latitude: pair[1])
+            }
+            let coords = LonLat.droppingClosingVertex(raw)
+            return coords.count >= 3 ? coords : nil
+        }
+        guard !parsedRings.isEmpty else { return nil }
         self.name = name
         type = feature.properties.type ?? ""
         wac = feature.properties.wac ?? ""
         detailURL = feature.properties.detailURL.flatMap(URL.init(string:))
-        polygon = coords
+        rings = parsedRings
     }
 }

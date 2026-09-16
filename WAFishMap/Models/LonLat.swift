@@ -27,6 +27,18 @@ struct LonLat: Equatable, Hashable, Sendable {
         return inside
     }
 
+    /// Even-odd containment across every ring of a multi-ring geometry: a point
+    /// is inside if it lies inside an odd number of rings. That single rule
+    /// handles disjoint parts (each ring adds its own "inside") and holes (the
+    /// hole ring flips it back out) without needing to know which ring is an
+    /// outer boundary and which is a hole. Reuses `polygon(_:contains:)` per
+    /// ring rather than a fresh ray-cast.
+    static func rings(_ rings: [[LonLat]], contains point: LonLat) -> Bool {
+        rings.reduce(false) { result, ring in
+            polygon(ring, contains: point) ? !result : result
+        }
+    }
+
     static func droppingClosingVertex(_ coords: [LonLat]) -> [LonLat] {
         guard coords.count >= 2, coords.first == coords.last else { return coords }
         return Array(coords.dropLast())

@@ -133,6 +133,39 @@ struct ProtectedAreaTests {
         #expect(mpa.contains(LonLat(longitude: -122.35, latitude: 47.65)))
     }
 
+    /// 11 of the 44 live protected areas are multi-ring Polygons — a second ring
+    /// must still match, not just the first (largest) one.
+    @Test func decodesAMultiRingProtectedAreaAndMatchesTheSecondRing() throws {
+        let json = """
+        {"type":"FeatureCollection","features":[{"type":"Feature",
+        "geometry":{"type":"Polygon","coordinates":[
+          [[-1,-1],[1,-1],[1,1],[-1,1],[-1,-1]],
+          [[10,10],[12,10],[12,12],[10,12],[10,10]]
+        ]},
+        "properties":{"MPA_Name":"Two Parts","TypeOfMPA":"Marine Preserve","WAC":"","DetailedInfoURL":null}}]}
+        """
+        let areas = try WDFWLayerLoader.protectedAreas(from: Data(json.utf8))
+        let mpa = try #require(areas.first)
+        #expect(mpa.contains(LonLat(longitude: 11, latitude: 11)))
+    }
+
+    /// 2 of the 44 live protected areas are MultiPolygon, which used to decode
+    /// as `.other` and drop the area entirely.
+    @Test func decodesAMultiPolygonProtectedArea() throws {
+        let json = """
+        {"type":"FeatureCollection","features":[{"type":"Feature",
+        "geometry":{"type":"MultiPolygon","coordinates":[
+          [[[-1,-1],[1,-1],[1,1],[-1,1],[-1,-1]]],
+          [[[10,10],[12,10],[12,12],[10,12],[10,10]]]
+        ]},
+        "properties":{"MPA_Name":"Multi","TypeOfMPA":"Conservation Area","WAC":"","DetailedInfoURL":null}}]}
+        """
+        let areas = try WDFWLayerLoader.protectedAreas(from: Data(json.utf8))
+        #expect(areas.count == 1)
+        let mpa = try #require(areas.first)
+        #expect(mpa.contains(LonLat(longitude: 11, latitude: 11)))
+    }
+
     @Test func aTruncatedLayerIsRejectedRatherThanShownAsComplete() {
         let json = #"{"type":"FeatureCollection","exceededTransferLimit":true,"features":[]}"#
         #expect(throws: WDFWLayerError.truncatedResponse) {

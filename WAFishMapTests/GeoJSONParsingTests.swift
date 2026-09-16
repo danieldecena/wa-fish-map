@@ -52,6 +52,27 @@ struct GeoJSONParsingTests {
         #expect(area.mapCoordinates[0].longitude == -122.91)
     }
 
+    /// ArcGIS emits some marine areas as MultiPolygon (two of the live layer-4
+    /// protected areas today, and marine areas could too) — this must decode
+    /// and contain a point in either part, not just the first.
+    @Test func marineAreaDecodesMultiPolygonAndMatchesEitherPart() throws {
+        let json = """
+        {"type":"FeatureCollection","features":[{"type":"Feature",
+        "geometry":{"type":"MultiPolygon","coordinates":[
+          [[[-1,-1],[1,-1],[1,1],[-1,1],[-1,-1]]],
+          [[[10,10],[12,10],[12,12],[10,12],[10,10]]]
+        ]},
+        "properties":{"AreaName":"MP","AreaTitle":"Multi","WAC":"0"}}]}
+        """.data(using: .utf8)!
+
+        let areas = try WDFWLayerLoader.marineAreas(from: json)
+        #expect(areas.count == 1)
+        let area = areas[0]
+        #expect(area.contains(LonLat(longitude: 0, latitude: 0)))
+        #expect(area.contains(LonLat(longitude: 11, latitude: 11)))
+        #expect(!area.contains(LonLat(longitude: 5, latitude: 5)))
+    }
+
     @Test func marineAreaSkipsNonPolygonFeatures() throws {
         let json = """
         {"type":"FeatureCollection","features":[
