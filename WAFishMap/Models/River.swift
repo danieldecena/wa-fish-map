@@ -16,6 +16,11 @@ struct River: Identifiable, Equatable, Sendable {
     let lengthKm: Double
     /// NHD splits a river into runs, so a river is many lines, not one.
     let lines: [[LonLat]]
+    /// Bounds of every run, for `nearest`'s prefilter.
+    let minLatitude: Double
+    let maxLatitude: Double
+    let minLongitude: Double
+    let maxLongitude: Double
 
     var mapLines: [[CLLocationCoordinate2D]] {
         lines.map { $0.map(\.clLocationCoordinate) }
@@ -56,8 +61,16 @@ struct River: Identifiable, Equatable, Sendable {
     /// at a confluence.
     static func nearest(to point: LonLat, within meters: Double, in rivers: [River]) -> River? {
         var best: (river: River, distance: Double)?
+        // Most rivers are nowhere near the point; the box rejects them without
+        // walking their segments. Measured 0.9 s for 540 sites unfiltered.
+        let latSlack = meters / metresPerDegree
+        let lonSlack = meters / (metresPerDegree * cos(point.latitude * .pi / 180))
         for river in rivers {
-            guard let d = river.distanceMeters(to: point), d <= meters else { continue }
+            guard point.latitude >= river.minLatitude - latSlack,
+                  point.latitude <= river.maxLatitude + latSlack,
+                  point.longitude >= river.minLongitude - lonSlack,
+                  point.longitude <= river.maxLongitude + lonSlack,
+                  let d = river.distanceMeters(to: point), d <= meters else { continue }
             if best == nil || d < best!.distance { best = (river, d) }
         }
         return best?.river
@@ -95,6 +108,11 @@ struct River: Identifiable, Equatable, Sendable {
         self.streamOrder = streamOrder
         self.lengthKm = lengthKm
         self.lines = lines
+        let points = lines.joined()
+        minLatitude = points.map(\.latitude).min() ?? .infinity
+        maxLatitude = points.map(\.latitude).max() ?? -.infinity
+        minLongitude = points.map(\.longitude).min() ?? .infinity
+        maxLongitude = points.map(\.longitude).max() ?? -.infinity
     }
 
     init?(feature: GeoJSONFeature<Properties>) {
@@ -112,9 +130,7 @@ struct River: Identifiable, Equatable, Sendable {
             return points.count >= 2 ? points : nil
         }
         guard !parsed.isEmpty else { return nil }
-        name = feature.properties.name
-        streamOrder = feature.properties.streamOrder
-        lengthKm = feature.properties.lengthKm
-        lines = parsed
+        self.init(name: feature.properties.name, streamOrder: feature.properties.streamOrder,
+                  lengthKm: feature.properties.lengthKm, lines: parsed)
     }
 }

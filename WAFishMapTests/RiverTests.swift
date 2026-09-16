@@ -153,6 +153,15 @@ struct RiverTests {
         #expect(River.nearest(to: far, within: 150, in: [Self.reach]) == nil)
     }
 
+    /// The bounding-box prefilter must be widened by the match distance, or a
+    /// ramp just past a river's end, off both of its axes, is thrown away.
+    @Test func aPointPastARiversCornerStillMatches() {
+        // ~75m east of the east end and ~78m north: ~108m away, outside the
+        // line's own bounds on both axes.
+        let ramp = LonLat(longitude: -121.989, latitude: 47.5007)
+        #expect(River.nearest(to: ramp, within: 150, in: [Self.reach])?.name == "Test River")
+    }
+
     /// Two rivers in range: the nearer one wins, whatever the array order.
     @Test func theNearerRiverWinsAtAConfluence() {
         // ~167m from Test River, ~56m from Other River (0.002 deg lat apart).
