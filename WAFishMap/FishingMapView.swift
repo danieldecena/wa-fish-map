@@ -235,22 +235,12 @@ struct FishingMapView: View {
         }
         var points: [(coord: LonLat, weight: Double)] = []
         for site in model.accessSites {
-            points.append((site.coordinate, heatWeight(rating(for: site))))
+            points.append((site.coordinate, HeatMap.weight(for: rating(for: site))))
         }
         for pier in model.piers {
-            points.append((pier.coordinate, heatWeight(rating(for: pier))))
+            points.append((pier.coordinate, HeatMap.weight(for: rating(for: pier))))
         }
         heatZones = HeatMap.zones(points: points, cellDegrees: Self.heatCellDegrees(cameraDistance))
-    }
-
-    /// Density counts every spot; better-rated spots weigh more so hot zones favor quality.
-    private func heatWeight(_ rating: FishingRating?) -> Double {
-        switch rating {
-        case .excellent: 2.0
-        case .good: 1.6
-        case .fair: 1.2
-        default: 1.0
-        }
     }
 
     /// Ease to the user once, and only when it helps: a fix outside Washington
@@ -425,6 +415,9 @@ struct FishingMapView: View {
                 Button { showDisclaimer.toggle() } label: {
                     Image(systemName: "info.circle")
                         .font(.caption)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
+                        .padding(-15)
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel("About this guidance")

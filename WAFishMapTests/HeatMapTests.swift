@@ -85,4 +85,41 @@ struct HeatMapTests {
         #expect(ColorRamp.densityBand(0.6) == 2)
         #expect(ColorRamp.densityBand(1.0) == 3)   // top value clamps into the last band
     }
+
+    @Test func weightRewardsOnlyRatedSpots() {
+        #expect(HeatMap.weight(for: .excellent) == 3)
+        #expect(HeatMap.weight(for: .good) == 2)
+        #expect(HeatMap.weight(for: .fair) == 1)
+        #expect(HeatMap.weight(for: .poor) == 0)
+        #expect(HeatMap.weight(for: nil) == 0)
+    }
+
+    @Test func poorOnlyCellDrawsNothingAgainstARatedNeighbor() {
+        // A cell of only poor/unrated points has weight 0, so it draws no zone at
+        // all once the grid keys collapse points into cells only when they carry
+        // weight — a fair-or-better neighbor still ranks above it.
+        let points: [(coord: LonLat, weight: Double)] = [
+            (LonLat(longitude: -122.90, latitude: 47.10), HeatMap.weight(for: .poor)),
+            (LonLat(longitude: -122.89, latitude: 47.11), HeatMap.weight(for: nil)),
+            (LonLat(longitude: -117.40, latitude: 47.60), HeatMap.weight(for: .fair)),
+        ]
+        let zones = HeatMap.zones(points: points, cellDegrees: 0.15)
+        let poorCellZone = zones.first { $0.center.longitude < -120 }
+        #expect(poorCellZone != nil)
+        #expect(ColorRamp.densityBand(poorCellZone!.intensity) == 0)
+    }
+
+    @Test func manyPoorPointsDoNotOutrankOneExcellentPoint() {
+        var points: [(coord: LonLat, weight: Double)] = []
+        for i in 0..<50 {
+            points.append((LonLat(longitude: -122.90 + Double(i) * 0.001, latitude: 47.10), HeatMap.weight(for: .poor)))
+        }
+        points.append((LonLat(longitude: -117.40, latitude: 47.60), HeatMap.weight(for: .excellent)))
+        let zones = HeatMap.zones(points: points, cellDegrees: 0.15)
+        let excellentCellZone = zones.first { $0.center.longitude < -120 }
+        let poorCellZone = zones.first { $0.center.longitude > -120 }
+        #expect(excellentCellZone != nil)
+        #expect(poorCellZone != nil)
+        #expect(excellentCellZone!.intensity > poorCellZone!.intensity)
+    }
 }

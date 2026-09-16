@@ -27,6 +27,18 @@ struct HeatZone: Equatable, Sendable, Identifiable {
 }
 
 enum HeatMap {
+    /// Contribution of one rated point to the density overlay. Poor and unrated
+    /// points contribute nothing, so the heat layer shows only where rated spots
+    /// are, never raw access-point density (no catch/visitation heatmap).
+    static func weight(for rating: FishingRating?) -> Double {
+        switch rating {
+        case .excellent: 2.0
+        case .good: 1.6
+        case .fair: 1.2
+        case .poor, nil: 1.0
+        }
+    }
+
     /// Bucket weighted points into a lon/lat grid and emit one zone per non-empty cell.
     ///
     /// Intensity is the cell's RANK among all cells, not its share of the densest
