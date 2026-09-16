@@ -47,6 +47,22 @@ struct River: Identifiable, Equatable, Sendable {
         return best.isFinite ? best : nil
     }
 
+    /// How close a launch must sit to a river's line to count as on it. Ramps sit
+    /// back from NHD's centreline; much wider and a lakeside launch catches the
+    /// neighbouring river.
+    static let waterbodyMatchMeters: Double = 150
+
+    /// The closest river within `meters` of `point`, or nil. The nearer river wins
+    /// at a confluence.
+    static func nearest(to point: LonLat, within meters: Double, in rivers: [River]) -> River? {
+        var best: (river: River, distance: Double)?
+        for river in rivers {
+            guard let d = river.distanceMeters(to: point), d <= meters else { continue }
+            if best == nil || d < best!.distance { best = (river, d) }
+        }
+        return best?.river
+    }
+
     private static let metresPerDegree = 111_320.0
 
     /// Point-to-segment distance, projected flat around the point's latitude.

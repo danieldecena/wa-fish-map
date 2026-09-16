@@ -132,6 +132,34 @@ struct RiverTests {
         #expect(empty.distanceMeters(to: LonLat(longitude: -122, latitude: 47.5)) == nil)
     }
 
+    // MARK: Nearest river
+
+    private static let other = River(
+        name: "Other River", streamOrder: 3, lengthKm: 1,
+        lines: [[LonLat(longitude: -122.000, latitude: 47.5020),
+                 LonLat(longitude: -121.990, latitude: 47.5020)]]
+    )
+
+    @Test func aPointBesideARiverMatchesIt() {
+        // ~55m north of Test River.
+        let ramp = LonLat(longitude: -121.995, latitude: 47.5005)
+        #expect(River.nearest(to: ramp, within: 150, in: [Self.reach])?.name == "Test River")
+    }
+
+    /// The control: without a point that must NOT match, "matches" is
+    /// indistinguishable from "always returns the first river".
+    @Test func aPointAKilometreOffMatchesNothing() {
+        let far = LonLat(longitude: -121.995, latitude: 47.509)
+        #expect(River.nearest(to: far, within: 150, in: [Self.reach]) == nil)
+    }
+
+    /// Two rivers in range: the nearer one wins, whatever the array order.
+    @Test func theNearerRiverWinsAtAConfluence() {
+        // ~167m from Test River, ~56m from Other River (0.002 deg lat apart).
+        let point = LonLat(longitude: -121.995, latitude: 47.5015)
+        #expect(River.nearest(to: point, within: 300, in: [Self.reach, Self.other])?.name == "Other River")
+    }
+
     // MARK: The shipped resource
 
     private static func bundled() throws -> [River] {
