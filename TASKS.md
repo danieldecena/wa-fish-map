@@ -6,13 +6,13 @@
 - [ ] Spokane River row gated on WDFW, docs, verify
 - [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
 - [ ] Final data pass and updated stamp
-- [ ] [you] App name, subtitle, category, age rating
-- [ ] Privacy policy page (host is your call) — draft in docs/app-store/privacy-policy.md
-- [ ] Store description, keywords, review notes — draft in docs/app-store/listing-draft.md
-- [ ] App Store screenshots from uiTesting fixtures — scripts/app_store_screenshots.sh
-- [ ] [you] App Privacy questionnaire
-- [ ] Archive and upload release build
-- [ ] [you] Submit for App Store review
+- [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
+- [x] Privacy policy page hosted — https://danieldecena.github.io/wa-fish-map/privacy.html
+- [x] Store description, keywords, review notes — pasted in ASC version (see listing-draft checklist)
+- [ ] App Store screenshots in ASC (0 of 10) — PNGs in docs/app-store/screenshots/; resume when app ready
+- [x] [you] App Privacy questionnaire — Precise Location / App Functionality / not linked / not tracking
+- [x] Archive and upload release build — ASC build 2 (1.0)
+- [ ] [you] Submit for App Store review — paused until app done
 - [ ] [you] Release to the App Store
 - [ ] Layered OS27 app icon (3 SVG layers, Icon Composer)
 - [ ] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
@@ -153,7 +153,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-16 06:42.
+Plan approved 2026-09-16 11:59.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
@@ -162,7 +162,7 @@ when launched via `cb` (--allow-dangerously-skip-permissions); `yolo`
 
 Only if Claude Code actually closed:
 
-    claude --resume 8123ea0f-02ee-4e94-b62e-5da21d103501
+    claude --resume 4e357a8b-dc36-4446-96db-9f46a2997f27
 
 (`-c` resumes the most recent session; bare `--resume` opens a searchable picker.)
 <!-- /resume-footer -->
