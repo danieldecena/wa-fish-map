@@ -8,6 +8,7 @@ build/
 .swiftpm/
 .build/
 .ios-build/
+buildServer.json
 
 # graphify knowledge graph (build artifact, rebuilt by post-commit hook)
 graphify-out/
