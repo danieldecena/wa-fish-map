@@ -51,7 +51,7 @@ struct FishingMapRepresentable: UIViewRepresentable {
     @Binding var selectedID: String?
     /// The tapped river, by name. Overlays are not selectable the way
     /// annotations are, so this is driven by an explicit hit test.
-    @Binding var selectedRiverName: String?
+    @Binding var selectedRiverID: River.ID?
     @Binding var cameraDistance: Double
     @Binding var cameraCenter: LonLat
     @Binding var userMovedCamera: Bool
@@ -303,12 +303,12 @@ struct FishingMapRepresentable: UIViewRepresentable {
             let nearest = parent.rivers
                 .compactMap { river -> (String, Double)? in
                     guard let distance = river.distanceMeters(to: target) else { return nil }
-                    return (river.name, distance)
+                    return (river.id, distance)
                 }
                 .min { $0.1 < $1.1 }
 
             guard let nearest, nearest.1 <= tolerance else { return }
-            parent.selectedRiverName = nearest.0
+            parent.selectedRiverID = nearest.0
         }
 
         func syncRivers(_ mapView: MKMapView) {

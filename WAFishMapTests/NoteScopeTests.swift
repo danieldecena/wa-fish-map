@@ -62,7 +62,9 @@ struct NoteScopeTests {
         let freshwater = try #require(bundledGuide().freshwater)
         let bundle = try #require(FixtureBundle.loader)
         let url = try #require(bundle.url(forResource: "rivers", withExtension: "json"))
-        let names = Set(try RiverLoader.rivers(from: Data(contentsOf: url)).map(\.name))
+        // Creeks are drawn but never resolve a waterbody, so their names must
+        // not make a note look reachable.
+        let names = Set(try RiverLoader.rivers(from: Data(contentsOf: url)).filter { $0.kind == .river }.map(\.name))
         #expect(names.count > 200, "rivers.json did not load; the gate would pass vacuously")
         let orphans = Self.unreachableWaterbodyKeys(in: freshwater, riverNames: names)
         #expect(orphans.isEmpty, "waterbody notes no site can reach: \(orphans.joined(separator: ", "))")

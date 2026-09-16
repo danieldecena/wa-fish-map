@@ -21,6 +21,14 @@ struct WaterbodyResolverTests {
         #expect(Self.guide.waterbody(forFacility: "Lakeside Ramp", at: Self.nearRiver, rivers: [Self.river]) == "Test Lake")
     }
 
+    /// A creek's name repeats across the state, so it must never become a
+    /// waterbody key, even with the ramp sitting right on it.
+    @Test func aRampOnACreekResolvesToNothing() {
+        let creek = River(name: "Rock Creek", streamOrder: 3, lengthKm: 1,
+                          lines: Self.river.lines, id: "Rock Creek@-122.000,47.500", kind: .creek)
+        #expect(Self.guide.waterbody(forFacility: "Unknown Ramp", at: Self.nearRiver, rivers: [creek]) == nil)
+    }
+
     @Test func anUncuratedRampFarFromEveryRiverResolvesToNothing() {
         let far = LonLat(longitude: -121.995, latitude: 47.509)
         #expect(Self.guide.waterbody(forFacility: "Unknown Ramp", at: far, rivers: [Self.river]) == nil)
