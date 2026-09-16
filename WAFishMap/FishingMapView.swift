@@ -57,22 +57,24 @@ struct FishingMapView: View {
         .marina, .park, .campground, .nationalPark, .parking, .publicTransport, .gasStation
     ]
 
-    /// Month from the selected plan date drives every rating on the map.
+    /// Month from the selected plan date drives every rating on the map. Pacific,
+    /// matching `TidePredictionsView`/`DaylightView` — the map's own solar and
+    /// tide math must key off the same local day, not the device's time zone.
     private var currentMonth: Int {
-        UITestSeam.planMonth ?? Calendar.current.component(.month, from: planDate)
+        UITestSeam.planMonth ?? Calendar.pacific.component(.month, from: planDate)
     }
 
     /// Day of the month from the plan date, paired with `currentMonth` to place
     /// a reading in the right row of a river's day-of-year table.
     private var currentDay: Int {
-        Calendar.current.component(.day, from: planDate)
+        Calendar.pacific.component(.day, from: planDate)
     }
 
     private var timeOfDay: TimeOfDay {
-        if let solar = SolarTimes.compute(on: planDate, at: cameraCenter) {
+        if let solar = SolarTimes.compute(on: planDate, at: cameraCenter, calendar: .pacific) {
             return TimeOfDay(date: planDate, solar: solar)
         }
-        return TimeOfDay(hour: Calendar.current.component(.hour, from: planDate))
+        return TimeOfDay(hour: Calendar.pacific.component(.hour, from: planDate))
     }
 
     var body: some View {
@@ -390,11 +392,19 @@ struct FishingMapView: View {
                 .buttonStyle(.borderless)
                 .accessibilityLabel("About this guidance")
                 .popover(isPresented: $showDisclaimer, arrowEdge: .bottom) {
-                    Text("Tap a launch for what's biting. Guidance only — verify seasons in the Fish Washington app.")
-                        .font(.caption)
-                        .padding()
-                        .frame(maxWidth: 280)
-                        .presentationCompactAdaptation(.popover)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Tap a launch for what's biting. Guidance only — verify seasons in the Fish Washington app.")
+                            .font(.caption)
+                        if let urlString = model.guide?.wdfwURL, let url = URL(string: urlString) {
+                            Link(destination: url) {
+                                Label("Verify seasons & limits at WDFW", systemImage: "exclamationmark.shield")
+                                    .font(.caption.weight(.semibold))
+                            }
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: 280)
+                    .presentationCompactAdaptation(.popover)
                 }
             }
             if location.isDenied {

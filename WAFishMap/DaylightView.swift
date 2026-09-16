@@ -12,11 +12,7 @@ struct DaylightView: View {
 
     /// Pacific, matching `TidePredictionsView` — the day-of-year the solar
     /// equations key off must be the local day, not the machine's.
-    private static let calendar: Calendar = {
-        var c = Calendar.current
-        c.timeZone = TimeZone(identifier: "America/Los_Angeles") ?? .current
-        return c
-    }()
+    private static let calendar: Calendar = .pacific
 
     private static let time: DateFormatter = {
         let f = DateFormatter()

@@ -7,11 +7,7 @@ struct TidePredictionsView: View {
     let isMarine: Bool
     var client: HTTPGet = URLSessionHTTPGet()
     var bundle: Bundle = .main
-    var calendar: Calendar = {
-        var c = Calendar.current
-        c.timeZone = TimeZone(identifier: "America/Los_Angeles") ?? .current
-        return c
-    }()
+    var calendar: Calendar = .pacific
 
     @State private var table: TideTable?
     @State private var failed = false
