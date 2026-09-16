@@ -7,7 +7,7 @@
 - [ ] App Store screenshots in ASC (0 of 10) — PNGs in docs/app-store/screenshots/; resume when app ready
 - [x] [you] App Privacy questionnaire — Precise Location / App Functionality / not linked / not tracking
 - [x] Archive and upload release build — ASC build 2 (1.0)
-- [ ] Archive and upload build 3 (carries the data pass)
+- [ ] Archive and upload build 4 (carries data batch 2)
 - [ ] [you] Submit for App Store review — paused until app done
 - [ ] [you] Release to the App Store
 
@@ -17,6 +17,8 @@
 - [ ] Shared simulator relaunches test host mid-run
 
 ## Completed
+
+- [x] Build 3 uploaded to ASC (data batch 1, from a47cc87)
 
 - [x] Data pass second batch: omissions sourced, unsupported calls settled
 
