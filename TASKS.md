@@ -48,6 +48,16 @@
 - [x] Merge PR 5 run_sim script — merged 2026-09-16
 - [x] Review PR 4 MKMapView migration branch
 
+- [x] Outline markers where a closure is plausible — 3ba2b1e
+- [x] All-species colour: mean of top three species — 6fc64b8
+- [x] Fade WDFW-closed piers; Directions in Maps — d2ece00
+- [x] Fish icon sized by typical weight in sheets — 721937e
+- [ ] Dockton Park Pier (Maury Is.) reads Freshwater: area miss
+- [ ] Verify species typical weights against WDFW/NOAA
+- [ ] Watch the fish-size icon and Closed badge on screen
+- [ ] MapCoordinatorTests recentre test hung 10 min under load
+- [ ] Inland pins all Good in Sept: statewide list is uniform
+
 ## Completed
 
 - [x] Drain this project's 214 capture-inbox rows, the rest are other repos — 03c254d
@@ -112,7 +122,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-16 04:36.
+Plan approved 2026-09-16 06:42.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
@@ -121,7 +131,7 @@ when launched via `cb` (--allow-dangerously-skip-permissions); `yolo`
 
 Only if Claude Code actually closed:
 
-    claude --resume 55b638ba-ed81-401a-a592-25beebf32971
+    claude --resume 8123ea0f-02ee-4e94-b62e-5da21d103501
 
 (`-c` resumes the most recent session; bare `--resume` opens a searchable picker.)
 <!-- /resume-footer -->
