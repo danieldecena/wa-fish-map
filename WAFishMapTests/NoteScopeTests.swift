@@ -16,7 +16,7 @@ struct NoteScopeTests {
     /// "Lake Washington", "Green River", and "Rufus Woods"; does not match the
     /// generic "Lowland lakes" or "warm-water bite", which are true anywhere.
     /// "Potholes" cannot be prose-matched — that one is on the data editor.
-    static let waterbodyPattern = /\b([A-Z][a-z]+)\s+(Lake|River|Bay|Sound|Creek|Reservoir|Woods)\b|\b(Lake|Mount)\s+[A-Z][a-z]+/
+    static var waterbodyPattern: Regex<(Substring, Substring?, Substring?, Substring?)> { /\b([A-Z][a-z]+)\s+(Lake|River|Bay|Sound|Creek|Reservoir|Woods)\b|\b(Lake|Mount)\s+[A-Z][a-z]+/ }
 
     private func offenders(in species: [SpeciesSeason], scope: String) -> [String] {
         species.compactMap { s in

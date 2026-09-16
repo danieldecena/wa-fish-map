@@ -120,7 +120,7 @@ struct TidePredictionTests {
         #expect(table.extremes[0].kind == .high)
     }
 
-    @Test func loadKeyDiffersByCoordinateSameDay() {
+    @Test @MainActor func loadKeyDiffersByCoordinateSameDay() {
         let a = LonLat(longitude: -122.3393, latitude: 47.6026)
         let b = LonLat(longitude: -124.602, latitude: 48.370)
         let day = date(2026, 8, 31, 9, 0)
@@ -129,7 +129,7 @@ struct TidePredictionTests {
         #expect(keyA != keyB)
     }
 
-    @Test func loadKeySameCoordinateSameDayDifferentHours() {
+    @Test @MainActor func loadKeySameCoordinateSameDayDifferentHours() {
         let a = LonLat(longitude: -122.3393, latitude: 47.6026)
         let morning = date(2026, 8, 31, 1, 0)
         let evening = date(2026, 8, 31, 23, 0)
@@ -138,7 +138,7 @@ struct TidePredictionTests {
         #expect(keyMorning == keyEvening)
     }
 
-    @Test func loadKeyDiffersByDaySameCoordinate() {
+    @Test @MainActor func loadKeyDiffersByDaySameCoordinate() {
         let a = LonLat(longitude: -122.3393, latitude: 47.6026)
         let day1 = date(2026, 8, 31, 9, 0)
         let day2 = date(2026, 9, 1, 9, 0)

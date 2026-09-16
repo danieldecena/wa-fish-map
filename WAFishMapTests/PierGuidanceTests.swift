@@ -87,7 +87,7 @@ struct PierGuidanceTests {
                 return Data(PierGuidanceTests.empty.utf8)
             }
         }
-        let model = await FishingMapModel()
+        let model = FishingMapModel()
         await model.load(
             client: FailingMPAClient(pierData: Data(Self.pierLayer(lon: -122.35, lat: 47.65).utf8)),
             bundle: .main

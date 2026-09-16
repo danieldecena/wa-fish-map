@@ -189,10 +189,10 @@ struct ShippedSeasonRiskTests {
     /// month ranges, never slash dates — so those idioms alone let every possible
     /// reason string pass. Proven below against a known-bad and a known-good sample.
     private static let monthNames = "Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|June|July|August|September|October|November|December"
-    private static let datePattern = try! Regex(
+    private static var datePattern: Regex<(Substring, Substring?, Substring?, Substring?, Substring?)> { try! Regex(
         #"(\#(monthNames))\s*-\s*(\#(monthNames))|(\#(monthNames))\s+\d{1,2}|mid-(\#(monthNames))"#,
         as: (Substring, Substring?, Substring?, Substring?, Substring?).self
-    ).ignoresCase()
+    ).ignoresCase() }
 
     @Test func dateDetectorFiresOnKnownBadSample() {
         #expect(try "Open May 1-Jun 15".firstMatch(of: Self.datePattern) != nil)

@@ -26,6 +26,11 @@ enum USGSFlowLoader {
     /// bundled history names.
     static func flows(from data: Data) throws -> [String: RiverFlow] {
         let payload = try JSONDecoder().decode(USGSInstantaneousValues.self, from: data)
+        // USGS stamps its samples with a numeric offset and fractional seconds
+        // ("2026-09-03T20:30:00.000-07:00"), which the default configuration rejects.
+        // Local rather than a shared static: ISO8601DateFormatter is not Sendable.
+        let timestamps = ISO8601DateFormatter()
+        timestamps.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
         struct Partial {
             var name = ""
@@ -45,7 +50,7 @@ enum USGSFlowLoader {
             // every such river at the bottom of its own distribution and paint
             // it Slow, which is a fabricated observation, not a missing one.
             guard let reading = Double(sample.value), reading > -1000 else { continue }
-            let at = ISO8601DateFormatter.usgs.date(from: sample.dateTime)
+            let at = timestamps.date(from: sample.dateTime)
 
             var partial = partials[gauge] ?? Partial()
             partial.name = series.sourceInfo.siteName
@@ -74,14 +79,4 @@ enum USGSFlowLoader {
             )
         }
     }
-}
-
-private extension ISO8601DateFormatter {
-    /// USGS stamps its samples with a numeric offset and fractional seconds
-    /// ("2026-09-03T20:30:00.000-07:00"), which the default configuration rejects.
-    static let usgs: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
 }

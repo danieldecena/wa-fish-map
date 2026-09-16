@@ -112,7 +112,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-16 07:28.
+Plan approved 2026-09-16 07:45.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
@@ -121,7 +121,7 @@ when launched via `cb` (--allow-dangerously-skip-permissions); `yolo`
 
 Only if Claude Code actually closed:
 
-    claude --resume 2d366680-293d-4d5e-b8d5-d6072da11d3c
+    claude --resume ac3a2d04-4e28-4768-be4c-70143228eebc
 
 (`-c` resumes the most recent session; bare `--resume` opens a searchable picker.)
 <!-- /resume-footer -->
