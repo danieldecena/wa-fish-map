@@ -14,7 +14,7 @@
 - [ ] [you] Submit for App Store review — paused until app done
 - [ ] [you] Release to the App Store
 
-- [ ] MapCoordinatorTests recentre test hung 10 min under load
+- [x] MapCoordinatorTests recentre test hung 10 min under load
 - [ ] Inland pins all Good in Sept: statewide list is uniform
 - [ ] Grant walleye: per-reservoir rows, drop county row
 - [ ] Shared simulator relaunches test host mid-run
