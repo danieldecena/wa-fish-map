@@ -122,7 +122,8 @@ current counts rather than trusting a number written here.
   launch, symbolicated with the build's dSYM, inlined frames resolved per
   address with `atos -i`. Main-thread CPU: `indexWaterbodies` 31 ms (28 ms of
   it `Lake.match`), `indexSitesToAreas` 8 ms, `indexPiersToAreas` 1 ms, about
-  40 ms against ~210 ms on the simulator. Bigger launch costs are decoding:
+  40 ms in all. (The simulator timings above are not a baseline for this:
+  `indexSitesToAreas` was timed there before its fix and not after.) Bigger launch costs are decoding:
   GeoJSON collections 82 ms, protected areas 56 ms, USGS flows 54 ms, rivers
   43 ms. Control: `loadRiverStats`, which xctrace named itself, read 33 ms both
   ways. Not measured: an A12 phone, the oldest that can run the app,
