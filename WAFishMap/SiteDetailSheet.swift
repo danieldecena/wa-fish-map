@@ -201,6 +201,46 @@ struct ProtectedAreaSection: View {
     }
 }
 
+/// WDFW's own facts for the lake a launch sits on. Everything here is WDFW's
+/// per-lake data, so it is true of the whole lake and bypasses the scoped notes
+/// in `fisheries.json`.
+struct LakeFactsSection: View {
+    let lake: Lake
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Lake facts (WDFW)").font(.headline)
+            Text(lake.name).font(.subheadline.weight(.semibold))
+            if let acres = lake.acres {
+                Label("\(acres.formatted(.number.precision(.fractionLength(0...1)))) acres", systemImage: "ruler")
+            }
+            if let elevation = lake.elevationFeet {
+                Label("\(elevation.formatted()) ft elevation", systemImage: "mountain.2")
+            }
+            if let ramp = lake.boatRamp {
+                Label("Boat ramp: \(ramp)", systemImage: "ferry")
+            }
+            if let access = lake.shorelineAccess {
+                Label("Shoreline access: \(access)", systemImage: "figure.fishing")
+            }
+            if let management = lake.management {
+                Label(management, systemImage: "building.columns")
+            }
+            if !lake.species.isEmpty {
+                Label("WDFW lists: \(lake.species.joined(separator: ", "))", systemImage: "fish")
+            }
+            if let urlString = lake.websiteURL, let url = URL(string: urlString) {
+                Link("WDFW lake page", destination: url)
+            }
+            Text("From WDFW's lowland lakes map (2014). Species listed are not a stocking or season guarantee.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .font(.subheadline)
+        .accessibilityIdentifier("lakeFactsSection")
+    }
+}
+
 /// Detail shown when a launch/shore marker is tapped.
 struct SiteDetailSheet: View {
     let site: AccessSite
@@ -213,6 +253,8 @@ struct SiteDetailSheet: View {
     /// agrees with the pin colour, which is already species-aware
     /// (`FishingMapModel.rating(for:month:species:)`).
     var species: String? = nil
+    /// The WDFW lake this launch sits on, when `Lake.match` found exactly one.
+    var lake: Lake? = nil
 
     private var month: Int { PlanClock.month(for: planDate) }
     private var rating: FishingRating? { fishery?.rating(inMonth: month, species: species) }
@@ -226,6 +268,7 @@ struct SiteDetailSheet: View {
                     facilitySection
                     DirectionsButton(name: site.facilityName, coordinate: site.coordinate)
                     amenitiesSection
+                    if let lake { LakeFactsSection(lake: lake) }
                     DaylightView(coordinate: site.coordinate, planDate: planDate)
                     TidePredictionsView(
                         coordinate: site.coordinate,
