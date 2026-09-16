@@ -7,6 +7,7 @@ import MapKit
 /// which discrete tap recognizers never enter. A user who zoomed by tapping was
 /// still treated as not having moved the camera, so a late location fix yanked
 /// the map away from them.
+@MainActor
 struct CameraGestureTests {
     typealias Coordinator = FishingMapRepresentable.Coordinator
 
