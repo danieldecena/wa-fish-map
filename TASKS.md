@@ -1,5 +1,7 @@
 ## Tasks
 - [ ] Recenter button uses live location, not launch fix
+- [ ] Directions link uses unified Maps URL on iOS 18.4+
+- [ ] Glass effect on MA area labels (iOS 26)
 
 - [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
