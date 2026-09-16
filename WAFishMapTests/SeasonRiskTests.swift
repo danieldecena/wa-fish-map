@@ -163,6 +163,31 @@ struct SeasonRiskResolutionTests {
             try FisheryLoader.guide(from: noAreas)
         }
     }
+
+    @Test func closurePlausibleForANamedSpeciesFollowsItsRiskMonths() throws {
+        let area = try #require(FisheryLoader.guide(from: json).area(named: "13"))
+        #expect(area.closurePlausible(inMonth: 1, species: "Chinook Salmon"))
+        #expect(!area.closurePlausible(inMonth: 3, species: "Chinook Salmon"))
+        #expect(!area.closurePlausible(inMonth: 1, species: "Rainbow Trout"))
+        #expect(!area.closurePlausible(inMonth: 1, species: "Not Listed"))
+    }
+
+    @Test func closurePlausibleForAllNeedsEveryTopSpeciesFlagged() throws {
+        // Unflagged trout is Prime in January, so the spot is not in doubt.
+        let mixed = try #require(FisheryLoader.guide(from: json).area(named: "13"))
+        #expect(!mixed.closurePlausible(inMonth: 1, species: nil))
+
+        let onlyChinook = """
+        {
+          "updated": "2026-08-31", "disclaimer": "d", "wdfwURL": "u",
+          "seasonRisk": [{ "match": "Chinook", "months": [1], "reason": "r" }],
+          "areas": [{ "areaName": "13",
+            "species": [{ "species": "Chinook Salmon", "bestMonths": [1] }] }]
+        }
+        """.data(using: .utf8)!
+        let flagged = try #require(FisheryLoader.guide(from: onlyChinook).area(named: "13"))
+        #expect(flagged.closurePlausible(inMonth: 1, species: nil))
+    }
 }
 
 struct ShippedSeasonRiskTests {

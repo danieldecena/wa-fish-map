@@ -40,8 +40,16 @@ final class SiteMarkerView: MKMarkerAnnotationView {
     /// nil and MapKit silently falls back to a default pin.
     private func apply(_ annotation: MKAnnotation?) {
         guard let site = annotation as? SiteAnnotation else { return }
-        markerTintColor = UIColor(site.rating?.color ?? .gray)
+        Self.paint(self, tint: UIColor(site.rating?.color ?? .gray), outlined: site.closurePlausible)
         glyphImage = UIImage(systemName: Self.symbol(for: site.kind))
+    }
+
+    /// Outlined = a pale balloon with the rating colour moved to the glyph, so a
+    /// "season may be closed, verify" spot keeps its colour and its tap target.
+    /// Both branches set both tints: views are reused across annotations.
+    static func paint(_ view: MKMarkerAnnotationView, tint: UIColor, outlined: Bool) {
+        view.markerTintColor = outlined ? .systemBackground : tint
+        view.glyphTintColor = outlined ? tint : .white
     }
 
     static func symbol(for kind: SiteAnnotation.Kind) -> String {
@@ -73,13 +81,22 @@ final class SiteClusterView: MKMarkerAnnotationView {
     private func apply(_ annotation: MKAnnotation?) {
         guard let cluster = annotation as? MKClusterAnnotation else { return }
         let members = cluster.memberAnnotations.compactMap { $0 as? SiteAnnotation }
-        markerTintColor = UIColor(Self.bestRating(of: members)?.color ?? .gray)
+        SiteMarkerView.paint(self, tint: UIColor(Self.bestRating(of: members)?.color ?? .gray),
+                             outlined: Self.closurePlausible(of: members))
         glyphText = "\(cluster.memberAnnotations.count)"
     }
 
     /// Pure, so it is unit-testable without a map: the strongest rating present.
     static func bestRating(of members: [SiteAnnotation]) -> FishingRating? {
         members.compactMap(\.rating).max()
+    }
+
+    /// Outlined only when every member carrying the cluster's colour is outlined;
+    /// one solid member at that rating is a spot worth going to.
+    static func closurePlausible(of members: [SiteAnnotation]) -> Bool {
+        let best = bestRating(of: members)
+        let leaders = members.filter { $0.rating == best }
+        return !leaders.isEmpty && leaders.allSatisfy(\.closurePlausible)
     }
 }
 

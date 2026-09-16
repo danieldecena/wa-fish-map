@@ -31,3 +31,21 @@ struct SiteAnnotationTests {
         #expect(abs(a.coordinate.latitude - 47.40) < 0.0001)
     }
 }
+
+struct ClusterClosureTests {
+    private func pin(_ rating: FishingRating?, flagged: Bool) -> SiteAnnotation {
+        SiteAnnotation(
+            pier: FishingPier(name: "P", countyName: "King", websiteURL: "",
+                              coordinate: LonLat(longitude: -122.33, latitude: 47.40)),
+            rating: rating, closurePlausible: flagged
+        )
+    }
+
+    @Test func outlinedWhenEveryTopRatedMemberIsFlagged() {
+        #expect(SiteClusterView.closurePlausible(of: [pin(.good, flagged: true), pin(.fair, flagged: false)]))
+    }
+
+    @Test func solidWhenAnyTopRatedMemberIsUnflagged() {
+        #expect(!SiteClusterView.closurePlausible(of: [pin(.good, flagged: true), pin(.good, flagged: false)]))
+    }
+}

@@ -129,6 +129,14 @@ final class FishingMapModel {
         fishery(for: pier)?.rating(inMonth: month, species: species)
     }
 
+    func closurePlausible(for site: AccessSite, month: Int, species: String? = nil) -> Bool {
+        fishery(for: site)?.closurePlausible(inMonth: month, species: species) ?? false
+    }
+
+    func closurePlausible(for pier: FishingPier, month: Int, species: String? = nil) -> Bool {
+        fishery(for: pier)?.closurePlausible(inMonth: month, species: species) ?? false
+    }
+
     enum Resource: String {
         case marineAreas = "marine-areas.sample"
         case accessSites = "access-sites.sample"

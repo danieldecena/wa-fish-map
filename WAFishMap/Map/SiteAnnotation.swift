@@ -9,24 +9,29 @@ final class SiteAnnotation: NSObject, MKAnnotation {
     let title: String?
     let rating: FishingRating?
     let kind: Kind
+    /// The rating rests on a season that may be closed this month. Drawn as an
+    /// outlined marker: never gray, which already means "no guidance".
+    let closurePlausible: Bool
 
     enum Kind: CaseIterable {
         case launch, shore, pier
     }
 
-    init(site: AccessSite, rating: FishingRating?) {
+    init(site: AccessSite, rating: FishingRating?, closurePlausible: Bool = false) {
         self.id = site.id
         self.coordinate = site.mapCoordinate
         self.title = site.facilityName
         self.rating = rating
         self.kind = site.hasLaunch ? .launch : .shore
+        self.closurePlausible = closurePlausible
     }
 
-    init(pier: FishingPier, rating: FishingRating? = nil) {
+    init(pier: FishingPier, rating: FishingRating? = nil, closurePlausible: Bool = false) {
         self.id = pier.id
         self.coordinate = pier.mapCoordinate
         self.title = pier.name
         self.rating = rating
         self.kind = .pier
+        self.closurePlausible = closurePlausible
     }
 }

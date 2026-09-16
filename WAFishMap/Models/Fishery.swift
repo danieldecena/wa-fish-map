@@ -156,6 +156,19 @@ struct AreaFishery: Decodable, Equatable, Sendable {
         return rating(inMonth: month)
     }
 
+    /// True when the rating for `month` rests on a species whose season may be
+    /// closed, so the map can say "verify" without claiming a closure. For All,
+    /// only when every species at the top rating carries the risk; one unflagged
+    /// species at that rating means the spot is worth going to regardless.
+    func closurePlausible(inMonth month: Int, species name: String?) -> Bool {
+        if let name {
+            return species.first { $0.species == name }?.riskMonths.contains(month) ?? false
+        }
+        let top = rating(inMonth: month)
+        let leaders = species.filter { $0.rating(inMonth: month) == top }
+        return !leaders.isEmpty && leaders.allSatisfy { $0.riskMonths.contains(month) }
+    }
+
     /// Species worth targeting this month, best first (excludes off-season species).
     /// Ties break on declaration order so the list is stable across renders.
     func inSeason(month: Int) -> [SpeciesSeason] {
