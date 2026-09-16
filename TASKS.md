@@ -4,7 +4,7 @@
 - [ ] [you] Re-invite Pauline at her Apple Account address
 - [ ] [you] GitHub Actions billing blocks PR #4 CI
 - [ ] [you] Merge PR 4 once CI runs green
-- [ ] River nearest-match within 150 m
+- [x] River nearest-match within 150 m — b68d7b6
 - [ ] Waterbody resolver: curated list then river
 - [ ] Model index for site and pier waterbodies
 - [ ] Reachability gate accepts river names
