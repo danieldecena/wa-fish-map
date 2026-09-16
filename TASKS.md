@@ -1,24 +1,8 @@
 ## Tasks
 
-- [x] Resolve the two stashes on the PR 4 branch — 6e21fb5
-- [x] Merge main into PR 4, suite green — b996199
-- [x] Map popover WDFW link, species-aware sheets, Pacific calendar
-- [x] WDFW 15s timeout + concurrent piers fetch — 6deea4d
-- [x] Keep every ring of marine/protected areas, punch holes — 63fc7fe
-- [x] Tide table reloads on site change — 0386a21
-- [x] Strict concurrency warnings on (28 found) — d5fc9e2
-- [x] Cache ring groups; Pacific calendar + species in all sheets — 22fe6c1
-- [x] Fix the 28 strict-concurrency warnings (1 in USGSFlowLoader)
-- [x] Cursor: install swiftlang.swift-vscode + remove CodeLLDB
-- [x] Generate buildServer.json for Cursor (xcode-build-server)
 - [ ] Profile launch indexing in Instruments (A7)
 - [ ] [you] TestFlight: add both to the Internal group once they activate
 - [ ] [you] Re-invite Pauline at her Apple Account address
-- [x] Merge PR 4 (CI billing-blocked; verified locally) — 13c45d4
-- [x] River nearest-match within 150 m — b68d7b6
-- [x] Waterbody resolver: curated list then river
-- [x] Model index for site and pier waterbodies
-- [x] Reachability gate accepts river names
 - [ ] Spokane River row gated on WDFW, docs, verify
 - [x] Verify flow stats against USGS source
 - [x] Seed or hide the Oregon marine polygon (hidden)
@@ -39,16 +23,45 @@
 - [ ] [you] Submit for App Store review
 - [ ] [you] Release to the App Store
 - [ ] Layered OS27 app icon (3 SVG layers, Icon Composer)
-- [x] ContentUnavailableView for the load-failure state — 406d3dc
 - [ ] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
+
+- [ ] Dockton Park Pier (Maury Is.) reads Freshwater: area miss
+- [ ] Verify species typical weights against WDFW/NOAA
+- [ ] Watch the fish-size icon and Closed badge on screen
+- [ ] MapCoordinatorTests recentre test hung 10 min under load
+- [ ] Inland pins all Good in Sept: statewide list is uniform
+
+## Completed
+
+### 2026-09-16 — cleared from Tasks
+
+- [x] Fix the 28 strict-concurrency warnings (1 in USGSFlowLoader)
+- [x] Model index for site and pier waterbodies
+- [x] Resolve the two stashes on the PR 4 branch — 6e21fb5
+- [x] Merge main into PR 4, suite green — b996199
+- [x] Map popover WDFW link, species-aware sheets, Pacific calendar
+- [x] WDFW 15s timeout + concurrent piers fetch — 6deea4d
+- [x] Keep every ring of marine/protected areas, punch holes — 63fc7fe
+- [x] Tide table reloads on site change — 0386a21
+- [x] Strict concurrency warnings on (28 found) — d5fc9e2
+- [x] Cache ring groups; Pacific calendar + species in all sheets — 22fe6c1
+- [x] Cursor: install swiftlang.swift-vscode + remove CodeLLDB
+- [x] Generate buildServer.json for Cursor (xcode-build-server)
+- [x] Merge PR 4 (CI billing-blocked; verified locally) — 13c45d4
+- [x] River nearest-match within 150 m — b68d7b6
+- [x] Waterbody resolver: curated list then river
+- [x] Reachability gate accepts river names
+- [x] ContentUnavailableView for the load-failure state — 406d3dc
 - [x] run_sim: resolve -d name to a udid before build — 34217d4
 - [x] run_sim: guard against mid-build simulator shutdown — 34217d4
 - [x] run_sim: verified end-to-end run with screenshot — 34217d4
 - [x] Restore PR 4 build on phone after review-branch trial
 - [x] Merge PR 5 run_sim script — merged 2026-09-16
 - [x] Review PR 4 MKMapView migration branch
-
-## Completed
+- [x] Outline markers where a closure is plausible — 3ba2b1e
+- [x] All-species colour: mean of top three species — 6fc64b8
+- [x] Fade WDFW-closed piers; Directions in Maps — d2ece00
+- [x] Fish icon sized by typical weight in sheets — 721937e
 
 - [x] Drain this project's 214 capture-inbox rows, the rest are other repos — 03c254d
 - [x] Close the camera-guard pre-load residual
@@ -112,7 +125,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-16 04:36.
+Plan approved 2026-09-16 06:42.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
@@ -121,7 +134,7 @@ when launched via `cb` (--allow-dangerously-skip-permissions); `yolo`
 
 Only if Claude Code actually closed:
 
-    claude --resume 55b638ba-ed81-401a-a592-25beebf32971
+    claude --resume 8123ea0f-02ee-4e94-b62e-5da21d103501
 
 (`-c` resumes the most recent session; bare `--resume` opens a searchable picker.)
 <!-- /resume-footer -->

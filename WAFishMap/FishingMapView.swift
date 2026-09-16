@@ -203,8 +203,14 @@ struct FishingMapView: View {
 
     /// Sites and piers as MapKit annotations, ratings resolved up front.
     private var siteAnnotations: [SiteAnnotation] {
-        model.accessSites.map { SiteAnnotation(site: $0, rating: rating(for: $0)) }
-            + model.piers.map { SiteAnnotation(pier: $0, rating: rating(for: $0)) }
+        model.accessSites.map {
+            SiteAnnotation(site: $0, rating: rating(for: $0),
+                           closurePlausible: model.closurePlausible(for: $0, month: currentMonth, species: selectedSpecies))
+        }
+            + model.piers.map {
+                SiteAnnotation(pier: $0, rating: rating(for: $0),
+                               closurePlausible: model.closurePlausible(for: $0, month: currentMonth, species: selectedSpecies))
+            }
     }
 
     private var areaColors: [String: Color] {

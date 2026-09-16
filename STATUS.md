@@ -116,6 +116,40 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-16 (map legibility: outlines, breadth colour, closed piers, directions, fish size)
+
+- Decided: "season may be closed" draws as an outlined marker (pale balloon,
+  rating colour on the glyph), never gray. Gray already means no guidance, and
+  the app holds no authoritative closure data. For All, outlined only when every
+  top-rated species (or cluster member) is flagged. 3ba2b1e.
+- Decided: the All-species colour is the rounded mean of the top three species,
+  not the max. September painted every marine area Prime (each has 1-4 peak
+  species) and every statewide-inland launch Prime via Cutthroat. Per-species
+  ratings unchanged. Inland pins now read uniformly Good in September because
+  the statewide freshwater list is the same everywhere; that is data, not code. 6fc64b8.
+- Decided: WDFW flags closed piers only by "(CLOSED)" in the pier name (3 live:
+  Anacortes Municipal, Harper, Luhr's Beach Dock). Those pins fade gray and carry
+  no rating; the sheet shows a Closed badge. Launch "Closed to vehicles <dates>"
+  text stays free text in the sheet, not parsed ("4th Friday in April"). d2ece00.
+- Decided: directions use a maps.apple.com driving link, not MKMapItem, whose
+  coordinate init is iOS 26 only (target is 18). Observed: Maps opened a driving
+  route to Dockton Park Pier incl. the Tahlequah ferry. Return to the app is
+  iOS's own top-left "< WAFishMap" breadcrumb; the sheet is still open on return.
+- Decided: species rows show `fish.fill` sized log-scale by a hand-entered,
+  unverified typical weight (SpeciesSize.swift); shellfish/squid get none. Not
+  yet seen on screen: the shared simulator was being driven by another session. 721937e.
+- Season open/close sources (research, not built): WDFW emergency-rule RSS feed
+  and date-range rule search; the annual pamphlet (PDF, July 1-June 30); no
+  season fields found in WDFW ArcGIS layers checked; Fish Washington app has no
+  public API; reuse terms unconfirmed. Any use must stay "verify with WDFW".
+- Water emphasis (answered, not built): the Rivers/Heat toggles already mute the
+  basemap; rivers.json carries 287 named rivers only, so "full streams" needs a
+  new hydrography source (USGS NHD / WA DNR), a data-size decision.
+- Observed: the shared iPhone 17 Pro simulator is used by another session's test
+  runs (crash reports from a HeatMapTests test that does not exist here), and
+  MapCoordinatorTests' recentre test hung 10 minutes in a full run. Run targeted
+  suites, or give each worktree its own simulator.
+
 ### 2026-09-16 (privacy manifest declares nothing, on purpose)
 
 - Decided: `WAFishMap/PrivacyInfo.xcprivacy` is all-empty: no tracking, no

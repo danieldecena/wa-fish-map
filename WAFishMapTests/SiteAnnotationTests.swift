@@ -31,3 +31,60 @@ struct SiteAnnotationTests {
         #expect(abs(a.coordinate.latitude - 47.40) < 0.0001)
     }
 }
+
+struct ClusterClosureTests {
+    private func pin(_ rating: FishingRating?, flagged: Bool) -> SiteAnnotation {
+        SiteAnnotation(
+            pier: FishingPier(name: "P", countyName: "King", websiteURL: "",
+                              coordinate: LonLat(longitude: -122.33, latitude: 47.40)),
+            rating: rating, closurePlausible: flagged
+        )
+    }
+
+    @Test func outlinedWhenEveryTopRatedMemberIsFlagged() {
+        #expect(SiteClusterView.closurePlausible(of: [pin(.good, flagged: true), pin(.fair, flagged: false)]))
+    }
+
+    @Test func solidWhenAnyTopRatedMemberIsUnflagged() {
+        #expect(!SiteClusterView.closurePlausible(of: [pin(.good, flagged: true), pin(.good, flagged: false)]))
+    }
+}
+
+struct ClosedPierTests {
+    private func pier(_ name: String) -> FishingPier {
+        FishingPier(name: name, countyName: "Kitsap", websiteURL: "",
+                    coordinate: LonLat(longitude: -122.5, latitude: 47.5))
+    }
+
+    @Test func aPierNamedClosedIsClosedAndCarriesNoRating() {
+        let closed = pier("Harper Pier (Yukon Harbor) (CLOSED)")
+        #expect(closed.isClosed)
+        let a = SiteAnnotation(pier: closed, rating: .excellent, closurePlausible: true)
+        #expect(a.isClosed)
+        #expect(a.rating == nil)
+        #expect(!a.closurePlausible)
+    }
+
+    @Test func anOpenPierKeepsItsRating() {
+        let open = pier("Des Moines Pier")
+        #expect(!open.isClosed)
+        #expect(SiteAnnotation(pier: open, rating: .good).rating == .good)
+    }
+
+    @Test func aClosedPierDoesNotColourItsCluster() {
+        let members = [SiteAnnotation(pier: pier("A (CLOSED)"), rating: .excellent),
+                       SiteAnnotation(pier: pier("B"), rating: .fair)]
+        #expect(SiteClusterView.bestRating(of: members) == .fair)
+    }
+}
+
+struct DirectionsButtonTests {
+    @Test func theLinkAsksAppleMapsForDrivingDirectionsToTheSpot() throws {
+        let url = try #require(DirectionsButton.url(
+            name: "Harper Pier", coordinate: LonLat(longitude: -122.52, latitude: 47.51)))
+        let items = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
+        #expect(url.host == "maps.apple.com")
+        #expect(items.first { $0.name == "daddr" }?.value == "47.51,-122.52")
+        #expect(items.first { $0.name == "dirflg" }?.value == "d")
+    }
+}

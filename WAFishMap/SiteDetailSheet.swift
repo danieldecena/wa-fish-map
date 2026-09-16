@@ -19,6 +19,35 @@ struct RatingBadge: View {
     }
 }
 
+/// Opens Apple Maps with driving directions to the spot. A maps.apple.com
+/// link, not `MKMapItem`: its coordinate initializer is iOS 26 only and the
+/// placemark one is deprecated there, while this app targets iOS 18.
+struct DirectionsButton: View {
+    let name: String
+    let coordinate: LonLat
+
+    static func url(name: String, coordinate: LonLat) -> URL? {
+        var components = URLComponents(string: "https://maps.apple.com/")
+        components?.queryItems = [
+            URLQueryItem(name: "daddr", value: "\(coordinate.latitude),\(coordinate.longitude)"),
+            URLQueryItem(name: "dirflg", value: "d"),
+            URLQueryItem(name: "q", value: name),
+        ]
+        return components?.url
+    }
+
+    var body: some View {
+        if let url = Self.url(name: name, coordinate: coordinate) {
+            Link(destination: url) {
+                Label("Directions in Maps", systemImage: "car.fill")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .accessibilityIdentifier("directionsButton")
+        }
+    }
+}
+
 /// Shared "what's biting" list, used by both the launch and pier detail sheets.
 struct BitingNowView: View {
     let fishery: AreaFishery?
@@ -46,6 +75,19 @@ struct BitingNowView: View {
                             // and the badge inside stops being queryable.
                             Text(s.species).font(.subheadline.weight(.semibold))
                                 .accessibilityIdentifier("speciesName")
+                            if let size = SpeciesSize.typical(for: s.species) {
+                                Spacer(minLength: 8)
+                                VStack(spacing: 0) {
+                                    FishSilhouette(form: size.form)
+                                        .fill(.secondary)
+                                        .frame(width: size.iconPointSize * 1.15,
+                                               height: size.iconPointSize * 1.15 * size.form.aspect)
+                                        .frame(width: 56, height: 36)
+                                    Text(size.range).font(.caption2).foregroundStyle(.secondary)
+                                }
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel("Typical size \(size.range)")
+                            }
                         }
                         if s.riskMonths.contains(month) {
                             Label("Season varies — verify", systemImage: "exclamationmark.triangle")
@@ -178,6 +220,7 @@ struct SiteDetailSheet: View {
                 VStack(alignment: .leading, spacing: 18) {
                     header
                     facilitySection
+                    DirectionsButton(name: site.facilityName, coordinate: site.coordinate)
                     amenitiesSection
                     DaylightView(coordinate: site.coordinate, planDate: planDate)
                     TidePredictionsView(
@@ -295,8 +338,21 @@ struct PierDetailSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     HStack(spacing: 10) {
-                        RatingBadge(rating: rating)
+                        if pier.isClosed {
+                            Label("Closed", systemImage: "xmark.octagon.fill")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 8).padding(.vertical, 3)
+                                .background(.gray, in: Capsule())
+                                .accessibilityIdentifier("closedBadge")
+                        } else {
+                            RatingBadge(rating: rating)
+                        }
                         Text("Public fishing pier").font(.subheadline).foregroundStyle(.secondary)
+                    }
+                    if pier.isClosed {
+                        Text("WDFW lists this pier as closed. Check the WDFW page before you go.")
+                            .font(.subheadline).foregroundStyle(.secondary)
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         Label("\(pier.countyName) County", systemImage: "mappin.and.ellipse")
@@ -309,6 +365,7 @@ struct PierDetailSheet: View {
                         }
                     }
                     .font(.subheadline)
+                    DirectionsButton(name: pier.name, coordinate: pier.coordinate)
                     DaylightView(coordinate: pier.coordinate, planDate: planDate)
                     TidePredictionsView(
                         coordinate: pier.coordinate,
