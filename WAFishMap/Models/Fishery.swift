@@ -181,6 +181,13 @@ struct FreshwaterGuide: Decodable, Sendable {
         waterbodySites?.first { $0.value.contains(facility) }?.key
     }
 
+    /// Curated list first, so a lake ramp near an inlet river keeps the lake;
+    /// otherwise the river the site sits on.
+    func waterbody(forFacility facility: String, at point: LonLat, rivers: [River]) -> String? {
+        waterbody(forFacility: facility)
+            ?? River.nearest(to: point, within: River.waterbodyMatchMeters, in: rivers)?.name
+    }
+
     /// The two waterbody fields default to nil so the older two-field form keeps
     /// compiling — the tier is additive, and a guide without it behaves exactly
     /// as it did before.
