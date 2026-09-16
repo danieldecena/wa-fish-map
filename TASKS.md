@@ -3,6 +3,25 @@
 - [ ] [you] TestFlight: add both to the Internal group once they activate
 - [ ] [you] Re-invite Pauline at her Apple Account address
 - [ ] [you] GitHub Actions billing blocks PR #4 CI
+- [ ] [you] Merge PR 4 once CI runs green
+- [ ] Waterbody tier keyed off river polylines
+- [ ] Stamp the remaining 6 flow-stat gates
+- [ ] Seed or hide the Oregon marine polygon
+- [ ] Add PrivacyInfo privacy manifest
+- [ ] Audit location permission strings
+- [ ] Attribution: Apple Weather mark and data credits
+- [ ] UI test: disclaimer and WDFW link on every sheet
+- [ ] Offline states render unavailable, never stale
+- [ ] Accessibility pass on pins, legend, sheets
+- [ ] Final data pass and updated stamp
+- [ ] [you] App name, subtitle, category, age rating
+- [ ] Privacy policy page (host is your call)
+- [ ] Store description, keywords, review notes
+- [ ] App Store screenshots from uiTesting fixtures
+- [ ] [you] App Privacy questionnaire
+- [ ] Archive and upload release build
+- [ ] [you] Submit for App Store review
+- [ ] [you] Release to the App Store
 
 ## Completed
 
@@ -68,7 +87,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-03 21:37.
+Plan approved 2026-09-16 01:12.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
@@ -77,7 +96,7 @@ when launched via `cb` (--allow-dangerously-skip-permissions); `yolo`
 
 Only if Claude Code actually closed:
 
-    claude --resume 2bdd9db8-c592-44cd-b9aa-5f33989a3980
+    claude --resume fdc9e5b5-c265-4d80-a25d-7e9a56ff4fc8
 
 (`-c` resumes the most recent session; bare `--resume` opens a searchable picker.)
 <!-- /resume-footer -->

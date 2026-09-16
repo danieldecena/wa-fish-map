@@ -112,24 +112,22 @@
 
 ## Next Up
 
-- **No `[code]` slice is open.** Every remaining item is `[you]`-blocked and
-  genuinely so, audited rather than assumed: Pauline's re-invite needs an
-  address only she can give, the TestFlight group needs both testers to
-  activate first, and the CI block is a payment method. They live in
-  `TASKS.md`; this section stays empty of them on purpose.
-- The `insideout` external public link (limit 5) is the fallback and starts
-  working on its own when Beta App Review clears build 1.0 (1). Nothing to do.
-- Next build slice is a choice, not a repair. The app has no known defect: 174
-  tests pass, rivers ship, and the freshwater tiers are WDFW-checked. Candidates
-  worth weighing when picking it up: a waterbody tier keyed off the river
-  polylines (noted as out of scope during the river work, `Fishery.swift:180`
-  still holds one hand-curated row), or the 6-of-13 flow-stat gates that remain
-  unstamped as a data-coverage push.
+- **Phase 1 of the App Store plan:** waterbody tier keyed off the river
+  polylines, then the 6 unstamped flow-stat gates, then the Oregon polygon.
+- Phase 0 runs in parallel and is waiting on you: GitHub billing, then merge PR #4.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-16 (finished means a public App Store release)
+
+- Decided: the project's end state is a public App Store release, not a private
+  TestFlight beta. The plan runs in four phases: feature-complete, release hardening
+  (privacy manifest, attribution, offline states, accessibility), store listing,
+  then ship. Its 19 new items are in `TASKS.md`. Plan file:
+  `~/.claude-work/plans/twinkling-gliding-neumann.md`.
 
 ### 2026-09-03 (the inbox was 11% ours, and none of ours was news)
 
