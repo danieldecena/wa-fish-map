@@ -118,7 +118,8 @@ struct FishingMapView: View {
                 guide: model.guide,
                 planDate: planDate,
                 protectedAreaCheck: model.protectedAreaCheck(for: site),
-                species: selectedSpecies
+                species: selectedSpecies,
+                lake: model.lake(for: site)
             )
         })
         .modifier(AdaptiveDetail(item: selectedRiverBinding) { river in

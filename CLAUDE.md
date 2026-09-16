@@ -32,6 +32,10 @@ their best/good months. It drives:
 - the tap-a-launch detail sheet (`SiteDetailSheet.swift`): NOAA high/low tides
   for the nearest station, what's biting now, best months, and the "Before you go"
   alerts block.
+- the sheet's "Lake facts (WDFW)" section, from bundled `lakes.json`
+  (`scripts/build_lakes.py`), matched by `Lake.match`. It refuses ambiguous and
+  name-contradicted matches, because showing the wrong lake breaks the scope
+  promise below.
 
 Editing rules:
 

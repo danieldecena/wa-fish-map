@@ -113,11 +113,16 @@
 - **Weather and buoy failure states**, the rest of the same audit: forecast
   cache never expires, a cancelled fetch can save the wrong hour, a plan past the
   forecast silently shows the last hour, iPad buoy keeps the previous reading.
+- Silver Lake -> North Silver Lake lake-facts match is unverified against WDFW.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-16 (lake facts on the launch sheet)
+
+- Decided: lake facts from WDFW's 2014 lakes points, matched by acreage reach + name check; distance alone matched Lyle Lake to Herman Lake.
 
 ### 2026-09-16 (camera, clusters, creeks, failed reads)
 
