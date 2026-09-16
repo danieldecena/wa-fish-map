@@ -13,10 +13,12 @@
 
 - [ ] MapCoordinatorTests recentre test hung 10 min under load
 - [ ] Inland pins all Good in Sept: statewide list is uniform
-- [ ] Source and add data-pass omissions (shrimp, perch, crappie)
+- [ ] Grant walleye: per-reservoir rows, drop county row
 - [ ] Shared simulator relaunches test host mid-run
 
 ## Completed
+
+- [x] Data pass second batch: omissions sourced, unsupported calls settled
 
 - [x] Layered app icon — 439e377 (render checked 2026-09-16)
 - [x] Fix app icon via generator script — 86f630f

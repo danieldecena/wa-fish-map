@@ -114,6 +114,26 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-16 (data pass, second batch)
+
+- Decided: applied the settled UNSUPPORTED calls and the sourced additions from
+  `docs/research/2026-09-16-datapass-{unsupported-verdicts,additions}.md`.
+  Removed the statewide kokanee row (65/653 lakes) and the Grant and Okanogan
+  smallmouth rows; Area 13 squid best Dec-Jan, Area 9 squid good from
+  September; reworded the Area 2-2 fall Chinook note (its source is a
+  secondary report, so it defers to WDFW). Added Area 7 spot shrimp, summer
+  hatchery Chinook in Areas 10 and 11, halibut in Areas 9 and 1, Area 6 summer
+  squid and Area 1 black rockfish.
+- Corrected four agent-proposed rows against their own sources before applying
+  (Area 10 Chinook had no June/September, Area 7 shrimp no July, Area 9 halibut
+  June is open, Area 1 rockfish months had no source). Two halibut notes were
+  reworded because `noSpeciesNoteStatesADate` rejects "Aug-Sep".
+- Not added: Area 12 summer Chinook (south of Ayock Point only; the map cannot
+  split Area 12), Area 7 summer Chinook (no dated source), statewide perch and
+  crappie (fail the statewide rule), Area 2 surfperch (no month source), spot
+  shrimp in 8-1 to 13 (closed 2025 and 2026). Grant walleye stays but rates at
+  trout-only lakes; per-reservoir rows filed as a task.
+
 ### 2026-09-16 (final data pass against WDFW)
 
 - Decided: a month a fishery is closed, or release-only for that species, is
