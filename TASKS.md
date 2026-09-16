@@ -1,5 +1,5 @@
 ## Tasks
-- [ ] Recenter button uses live location, not launch fix
+- [x] Recenter button uses live location, not launch fix -- #33
 - [ ] Directions link uses unified Maps URL on iOS 18.4+
 - [ ] Glass effect on MA area labels (iOS 26)
 
@@ -16,7 +16,8 @@
 
 - [x] MapCoordinatorTests recentre test hung 10 min under load
 - [ ] Inland pins all Good in Sept: statewide list is uniform
-- [ ] Grant walleye: per-reservoir rows, drop county row
+- [x] Grant walleye: per-reservoir rows, drop county row
+- [ ] Baker Lake sockeye row reaches no WDFW launch
 - [ ] Shared simulator relaunches test host mid-run
 
 ## Completed
