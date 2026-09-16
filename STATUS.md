@@ -2,8 +2,8 @@
 
 ## Confirmed working
 
-- `fisheries.json` now seeds all 16 statewide marine areas (1-8-2 + 9-13; only
-  the "Oregon" polygon is unseeded) plus 11 freshwater counties. WDFW-checked
+- `fisheries.json` now seeds all 16 statewide marine areas (1-8-2 + 9-13; the
+  "Oregon" polygon is filtered out of the map, not seeded) plus 11 freshwater counties. WDFW-checked
   2026-08-30.
 - `fisheries.json` v1 Puget Sound seed cross-checked against WDFW; corrections
   applied (see decision log).
@@ -116,13 +116,22 @@
 ## Next Up
 
 - **Phase 1 of the App Store plan:** the waterbody river tier is done; next are
-  the 6 unstamped flow-stat gates, then the Oregon polygon.
+  the 6 unstamped flow-stat gates (on PR #7); the Oregon polygon is hidden.
 - Phase 0 runs in parallel and is waiting on you: GitHub billing, then merge PR #4.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-16 (the Oregon marine polygon is hidden, not seeded)
+
+- Decided: drop WDFW's "Oregon" area (North of Falcon, WAC field "Oregon's
+  Rules") in `MapScope.filter(marineAreas:)`. Oregon regulates those waters, so
+  seeding Washington guidance there would be wrong, and the user confirmed the
+  app is Washington only. Matched on `areaName`, not a WAC prefix, so a WDFW
+  format change cannot empty the whole layer. `MapScopeTests` failed with the
+  filter reverted and passed with it; unit suite 208/31 passed, rc=0.
 
 ### 2026-09-16 (the waterbody river tier, and the Spokane row refused)
 

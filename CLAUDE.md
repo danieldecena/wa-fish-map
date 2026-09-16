@@ -5,7 +5,8 @@ Native MapKit app. Geography overlay + curated seasonal guidance.
 ## Scope
 
 **Statewide, live.** `WAFishMap/Models/MapScope.swift` queries WDFW for *all* marine
-areas (`where=1=1`, layer 6) and *all* launches (`where=1=1`, layer 0) — no
+areas (`where=1=1`, layer 6; the "Oregon" North of Falcon area is dropped in
+`MapScope.filter` because Oregon regulates it, so the app is Washington only) and *all* launches (`where=1=1`, layer 0) — no
 county/area filter. The camera opens auto-fit (`position = .automatic`), then eases once to a regional
 span around the user's first location fix — but only if that fix is inside the
 Washington bounding box and the user has not already moved the camera. A fix

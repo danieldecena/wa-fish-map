@@ -15,8 +15,12 @@ struct MapScopeTests {
             areaName: "11", areaTitle: "Tacoma - Vashon Island", wac: "220-311-010",
             coordinates: thirteen.coordinates
         )
-        // Statewide: every marine area is kept.
-        #expect(Set(MapScope.filter(marineAreas: [thirteen, eleven]).map(\.areaName)) == ["13", "11"])
+        let oregon = MarineArea(
+            areaName: "Oregon", areaTitle: "North of Falcon", wac: "Oregon's Rules",
+            coordinates: thirteen.coordinates
+        )
+        // Statewide: every Washington marine area is kept; Oregon's waters are not ours to rate.
+        #expect(Set(MapScope.filter(marineAreas: [thirteen, oregon, eleven]).map(\.areaName)) == ["13", "11"])
 
         let boston = AccessSite(
             facilityName: "Boston Harbor", countyName: "Thurston", hasLaunch: true,
