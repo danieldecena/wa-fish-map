@@ -108,17 +108,45 @@
 
 ## Next Up
 
-- **PR #18** (failed/empty data reads show as unavailable) is open and needs
-  review; its new status-bar and river-sheet wording is not yet seen on screen.
-- **Weather and buoy failure states**, the rest of the same audit: forecast
-  cache never expires, a cancelled fetch can save the wrong hour, a plan past the
-  forecast silently shows the last hour, iPad buoy keeps the previous reading.
+- **PR #22** (same-name rivers split, buoy reload, guidance on every sheet,
+  indexing speedup) is open and needs review and merge.
 - Silver Lake -> North Silver Lake lake-facts match is unverified against WDFW.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-16 (same-name rivers split; guidance tests merged in)
+
+- Decided: a river name splits into separate features where its NHD pieces
+  sit more than 40 km apart (unrelated rivers 77-236 km; gaps inside one
+  river at most 24.6 km). Split runs get creek-style ids; only the run
+  nearest the name's USGS gauge is `gauged` and owns flow stats and colour.
+  Split rivers, like creeks, never resolve a waterbody note. 6 names -> 13
+  runs; 1302 of 1312 features unchanged. The 4 new tests fail with
+  `isSplit` forced false. 956fcde.
+- Decided: took the site/pier/river/popover guidance UI tests from the
+  unmerged `test/guidance-on-every-sheet` branch but not its heat change,
+  which zero-weights poor and unrated spots: a product change, not a fix.
+  Its river preselect was renamed to `River.ID` for the MKMapView view.
+- Observed: Harper Pier (CLOSED) draws a gray pin and a gray Closed badge
+  on live data. The iPad buoy reload fix is unit-green but not seen on an
+  iPad (one simulator at a time).
+- Observed: no `Simulator.app` exists in either installed Xcode; the running
+  Simulator window was launched from a since-replaced bundle, so it cannot be
+  reopened by path or bundle id. An auto-commit hook also committed session
+  work under its own messages twice (efb3a8b, cd6ef01).
+
+### 2026-09-16 (launch indexing measured)
+- Decided: filter rivers once per `indexWaterbodies` pass, not per site. Measured
+  with a throwaway Swift Testing timer on the real bundled rivers (1,312), lakes
+  (653) and guide, plus 480 synthetic inland launches, iPhone 17 Pro simulator on
+  Apple silicon (not an A7 device), 5 runs: `indexWaterbodies` min 142.3 / median
+  146.4 ms before, 100.8 / 102.3 ms after; `indexSitesToAreas` 107.7 / 109.9 ms.
+  The per-site `filter` alone was 36.7 / 37.1 ms, about 25% of the pass.
+  Resolved counts unchanged (256 waterbodies, 215 lakes). `indexSitesToAreas`
+  got the same fix afterwards (6be7588), not re-timed. The timer ran 2.5 s, so it was not kept; A7 profiling stays open.
 
 ### 2026-09-16 (lake facts on the launch sheet)
 
@@ -332,119 +360,3 @@ current counts rather than trusting a number written here.
   a disclosed residual is a hypothesis with an expiry date. Reproduce it before
   writing a fix for it - this one had been narrowed twice by unrelated commits
   and its stated cause no longer matched the code at all.
-
-### 2026-09-03 (four counties, checked against WDFW rather than recalled)
-
-- Decided: Pierce, Mason and Thurston get freshwater overrides; **Kitsap keeps
-  the statewide default on purpose.** Every species present in more than 15% of
-  Kitsap's 13 WDFW lowland lakes is already one of the statewide four (Rainbow
-  76%, Largemouth 53%, coastal cutthroat 30%). Recording that so the item is not
-  reopened as unfinished - a county with no entry is now an answer, not a gap.
-- The evidence is WDFW's own lake database, not recall. Its lowland-lakes view
-  takes `county[]` and `species` as term ids, so a species can be counted across
-  every lake in a county: Yellow Perch is in 73% of Thurston lakes, 60% of
-  Pierce, 40% of Mason and 7% of Kitsap. Rock Bass is the sharper signal - WDFW's
-  own species page names King, Pierce, Snohomish and Thurston and calls it "not
-  common in the state", which is exactly what a county tier is for.
-- King and Snohomish were scraped as the control. Without them there was no way
-  to tell a defensible bar from an arbitrary one, and they disagree: King's
-  Yellow Perch override sits at 100% of its lakes, Snohomish's Smallmouth at
-  10%. So the tier is editorial, not threshold-driven, and the new rows were
-  chosen to sit at or above the stronger of the two.
-- Fixed while verifying, both shipped defects rather than improvements:
-  - King's Yellow Perch peaked in Aug-Oct. WDFW says the bite is "best in the
-    summer after they finish spawning in April-May" and "begins to decline in
-    the fall". Corrected to Jun-Aug best, May/Sep good, and the new counties
-    carry the corrected months rather than inheriting the wrong ones.
-  - Spokane's Rainbow Trout note read "Liberty, Newman, and other lowland
-    lakes." Those are two specific Spokane County lakes, so the note was wrong
-    at every other freshwater site in the county - the same defect
-    `NoteScopeTests` was built for, in prose its regex does not match. This is
-    the second instance of the "Potholes" class, and it confirms the rule binds
-    the editor and not just the test.
-- Observed, not inferred: WDFW's live layer returns `CountyName` as a bare name,
-  and the four keys match exactly against 477 statewide sites (Pierce 15, Mason
-  23, Thurston 18, Kitsap 12). A key like "Pierce County" would have made the
-  override silently never fire. Suite: 171 tests in 26 suites pass, UI target 4
-  with 1 device-gated skip, `** TEST SUCCEEDED **`.
-
-### 2026-09-03 (rivers are lines, and a line cannot be contained)
-
-- Decided: add rivers to the map in three slices - draw them, colour them by
-  live USGS flow, then make them tappable. The design is in
-  `~/.claude/plans/sorted-conjuring-hollerith.md`.
-- The structural reason this is not a small change: every fishable thing in the
-  app is a *point* inside a *polygon*, and `MarineArea.contains(_:)` is how a
-  point earns its colour. A river is a line that crosses counties and holds
-  different fish at the mouth than at the headwaters, so no containment test can
-  answer what it is worth today.
-- Colour comes from live USGS flow, not curated guidance. Rivers close by river,
-  by reach, by run, sometimes mid-week by emergency rule, so an editorial rating
-  on a river is a far stronger claim than the same rating on a marine area.
-  Flow is a fact that holds whether or not the river is open, which is the same
-  standing tides and NDBC wave height already have.
-- Flow reuses the existing blue-amber-orange-red ramp rather than minting a
-  fourth colour vocabulary. The mapping is deliberately non-monotonic: blown out
-  and bone dry both read Slow, the fishable window reads Prime.
-- Ungauged named rivers draw neutral gray, the colour that already means "no
-  rating available" on inland launches. Borrowing the nearest basin gauge was
-  rejected - a tributary can fish well on a day its mainstem is unfishable, and
-  that is exactly the case where a manufactured reading does harm.
-- Geometry is bundled, not fetched. WDFW's `MajorFishingArea` MapServer has no
-  hydrography layer, so this is a new source either way; bundling sidesteps the
-  `exceededTransferLimit` guard and draws with no network.
-- The four default-covered counties (Pierce, Mason, Kitsap, Thurston) moved out
-  of Next Up prose and into `TASKS.md` as a tracked item, so "if desired" stops
-  being a reason it never gets looked at.
-
-
-### 2026-09-02 (an invitation is only as good as the inbox it lands in)
-
-- Pauline cannot activate her App Store Connect invitation: it was sent to
-  `romulopauline@yahoo.com`, an address she no longer has access to. Nothing in
-  App Store Connect reports this. Her row simply stays grey and pending, and
-  the Add Testers dialog keeps offering one name, which reads like a bug in the
-  group rather than a dead mailbox.
-- The generalisable part: the internal route's cost is not the invitation, it
-  is that the invitation must reach an inbox the person still reads *and* be
-  the Apple Account their iPhone signs in with. Two conditions, neither
-  visible from the console, both silent when unmet.
-- Also ruled out tonight, so they are not re-explored: Sandbox test accounts
-  (in-app purchases only), Sandbox Family Sharing (same), the Safari Web
-  Extension packager (wrong software kind), adding testers directly to a build
-  (still external, still needs review), and the Business tax/bank forms (they
-  enable payment, they do not create a legal entity, and the Free Apps
-  Agreement is already Active). None of these distribute an app.
-- `/Applications/Xcode.app` is Xcode 26.6 and cannot run on this macOS 27.0
-  beta; `Xcode-beta.app` (27.0) is what `xcode-select` points at and what every
-  build used. Re-downloading from the App Store cannot help, since the store
-  only ships the stable build. Left for the user to delete by hand (root-owned).
-- Xcode Cloud declined for now: it removes a constraint (one shared Mac) that a
-  single developer does not have, and it is metered past 25 compute hours.
-  Revisit when 90-day TestFlight expiry starts costing a manual rebuild.
-
-### 2026-09-02 (TestFlight: both routes, because external made them wait)
-
-- Decided: run internal testing *as well as* external. External was chosen
-  first and is still in flight, but App Store Connect will not let anyone join
-  a public link until Beta App Review approves the build, and the wait was the
-  thing being optimised against. Internal has no review at all.
-- Invited Joseph Decena and Pauline Romulo as App Store Connect users with the
-  `Developer` role. Both landed on `All Apps` access rather than WA Fish Map
-  only; accepted knowingly, since it is the account's only app. Revisit if a
-  second app ever ships.
-- Cost of this route, recorded so it is not rediscovered: each person needs an
-  Apple Account on the team and has to activate an emailed invitation, which
-  expires in about 7 days. That is exactly what the external route avoided.
-
-
-### 2026-09-16 (launch indexing measured)
-- Decided: filter rivers once per `indexWaterbodies` pass, not per site. Measured
-  with a throwaway Swift Testing timer on the real bundled rivers (1,312), lakes
-  (653) and guide, plus 480 synthetic inland launches, iPhone 17 Pro simulator on
-  Apple silicon (not an A7 device), 5 runs: `indexWaterbodies` min 142.3 / median
-  146.4 ms before, 100.8 / 102.3 ms after; `indexSitesToAreas` 107.7 / 109.9 ms.
-  The per-site `filter` alone was 36.7 / 37.1 ms, about 25% of the pass.
-  Resolved counts unchanged (256 waterbodies, 215 lakes). `indexSitesToAreas`
-  still filters per site through `marineArea(at:facility:)`; same fix applies if
-  it matters. The timer ran 2.5 s, so it was not kept; A7 profiling stays open.
