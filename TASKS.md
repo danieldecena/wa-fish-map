@@ -1,6 +1,5 @@
 ## Tasks
 
-- [ ] Profile launch indexing in Instruments (A7)
 - [ ] Spokane River row gated on WDFW, docs, verify
 - [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
 - [ ] Final data pass and updated stamp
@@ -20,6 +19,8 @@
 - [ ] Shared simulator relaunches test host mid-run
 
 ## Completed
+
+- [x] Profile launch indexing on iPhone 16 Pro (A7 impossible)
 
 ### 2026-09-16 — cleared from Tasks (goal run)
 
