@@ -63,10 +63,14 @@ if ! xcrun simctl get_app_container "$udid" "$BUNDLE_ID" >/dev/null 2>&1; then
 fi
 xcrun simctl privacy "$udid" grant location "$BUNDLE_ID" 2>/dev/null || true
 xcrun simctl location "$udid" set 47.29,-122.52 2>/dev/null || true
+xcrun simctl status_bar "$udid" override --time 9:41 --dataNetwork wifi --wifiBars 3 \
+  --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
 
+# The regional map loads 477 live WDFW sites; 4 s caught it mid-load with the
+# footer spinner showing, so give the first frame time to settle.
 shot() {
-  local name="$1"
-  sleep 4
+  local name="$1" wait="${2:-4}"
+  sleep "$wait"
   xcrun simctl io "$udid" screenshot "$outdir/$name.png"
   echo "[ok] $outdir/$name.png"
 }
@@ -74,7 +78,7 @@ shot() {
 # 1) Live regional map
 xcrun simctl terminate "$udid" "$BUNDLE_ID" 2>/dev/null || true
 xcrun simctl launch "$udid" "$BUNDLE_ID" >/dev/null
-shot "01-map-regional"
+shot "01-map-regional" 15
 
 # 2) Site detail via UI-test seam (Boston Harbor + guidance footer)
 xcrun simctl terminate "$udid" "$BUNDLE_ID" 2>/dev/null || true
