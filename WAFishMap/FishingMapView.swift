@@ -70,6 +70,12 @@ struct FishingMapView: View {
         Calendar.pacific.component(.day, from: planDate)
     }
 
+    /// Year from the plan date — drives odd/even-year species (Pink Salmon) via
+    /// `model.setPlanYear`. Same Pacific rule as `currentMonth`/`currentDay`.
+    private var currentYear: Int {
+        PlanClock.year(for: planDate)
+    }
+
     private var timeOfDay: TimeOfDay {
         if let solar = SolarTimes.compute(on: planDate, at: cameraCenter, calendar: .pacific) {
             return TimeOfDay(date: planDate, solar: solar)
@@ -159,11 +165,16 @@ struct FishingMapView: View {
         .task {
             location.requestIfNeeded()
             await model.load()
+            model.setPlanYear(currentYear)
             recomputeHeatZones()
         }
         .onChange(of: heatVisible) { recomputeHeatZones() }
         .onChange(of: Self.heatCellDegrees(cameraDistance)) { recomputeHeatZones() }
         .onChange(of: currentMonth) { recomputeHeatZones() }
+        .onChange(of: currentYear) {
+            model.setPlanYear(currentYear)
+            recomputeHeatZones()
+        }
         .onChange(of: selectedSpecies) { recomputeHeatZones() }
         .onChange(of: location.fix?.latitude) { recenterOnFixIfAppropriate() }
     }

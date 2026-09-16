@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-03",
+  "updated": "2026-09-16",
   "disclaimer": "Seasonal guidance only — NOT official regulations. Runs, open seasons, areas, and limits change year to year and can close with little notice. Statewide first-pass data; inland areas without an entry show a neutral rating. Bait/gear are general suggestions. Always confirm current rules in the WDFW Fish Washington app before you fish.",
   "wdfwURL": "https://wdfw.wa.gov/fishing/regulations",
   "seasonRisk": [
@@ -610,6 +610,7 @@
           ],
           "bait": "Small pink hoochies and jigs",
           "note": "Strong on odd-numbered years.",
+          "years": "odd",
           "bestTime": "Dawn & dusk"
         },
         {
@@ -1189,6 +1190,7 @@
           ],
           "bait": "Small pink hoochies and jigs",
           "note": "Odd-numbered years.",
+          "years": "odd",
           "bestTime": "Dawn & dusk"
         },
         {
@@ -1311,6 +1313,7 @@
           ],
           "bait": "Pink hoochies and jigs",
           "note": "Odd-numbered years.",
+          "years": "odd",
           "bestTime": "Dawn & dusk"
         },
         {
@@ -1382,6 +1385,7 @@
           ],
           "bait": "Pink hoochies and jigs",
           "note": "Odd-numbered years.",
+          "years": "odd",
           "bestTime": "Dawn & dusk"
         },
         {
@@ -1437,6 +1441,7 @@
           ],
           "bait": "Pink hoochies and jigs",
           "note": "Odd years; Skagit-bound schools.",
+          "years": "odd",
           "bestTime": "Dawn & dusk"
         },
         {
@@ -1525,6 +1530,7 @@
           ],
           "bait": "Pink hoochies and jigs",
           "note": "Odd years; retention is sometimes restricted here.",
+          "years": "odd",
           "bestTime": "Dawn & dusk"
         },
         {

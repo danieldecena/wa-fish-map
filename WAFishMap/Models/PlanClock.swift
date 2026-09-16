@@ -13,4 +13,11 @@ enum PlanClock {
     static func day(for planDate: Date) -> Int {
         Calendar.pacific.component(.day, from: planDate)
     }
+
+    /// Year for an odd/even-year species (Pink Salmon), same Pacific-local rule
+    /// as `month`/`day` — a device outside the Pacific zone must not roll the
+    /// year over at the wrong instant.
+    static func year(for planDate: Date) -> Int {
+        Calendar.pacific.component(.year, from: planDate)
+    }
 }

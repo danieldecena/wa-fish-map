@@ -44,8 +44,14 @@ struct SpeciesSeason: Decodable, Equatable, Sendable {
     /// neighbours are not. The central table cannot express that; this is the
     /// escape hatch, applied case by case as it is discovered.
     let seasonRiskOverride: String?
+    /// `"odd"` or `"even"` for a species whose run alternates years (Pink Salmon).
+    /// `nil` means no parity — every year rates the same.
+    let years: String?
+    /// Stamped at load from `years` against the plan year — like `riskMonths`, never
+    /// decoded from the row directly. `rating(inMonth:)` returns `.poor` while set.
+    var offYear = false
 
-    init(species: String, bestMonths: [Int], goodMonths: [Int] = [], bait: String? = nil, bestTime: String? = nil, note: String? = nil, seasonRiskOverride: String? = nil) {
+    init(species: String, bestMonths: [Int], goodMonths: [Int] = [], bait: String? = nil, bestTime: String? = nil, note: String? = nil, seasonRiskOverride: String? = nil, years: String? = nil) {
         self.species = species
         self.bestMonths = bestMonths
         self.goodMonths = goodMonths
@@ -53,11 +59,12 @@ struct SpeciesSeason: Decodable, Equatable, Sendable {
         self.bestTime = bestTime
         self.note = note
         self.seasonRiskOverride = seasonRiskOverride
+        self.years = years
     }
 
     private enum CodingKeys: String, CodingKey {
         case species, bestMonths, goodMonths, bait, bestTime, note
-        case seasonRisk
+        case seasonRisk, years
     }
 
     init(from decoder: Decoder) throws {
@@ -69,6 +76,7 @@ struct SpeciesSeason: Decodable, Equatable, Sendable {
         bestTime = try c.decodeIfPresent(String.self, forKey: .bestTime)
         note = try c.decodeIfPresent(String.self, forKey: .note)
         seasonRiskOverride = try c.decodeIfPresent(String.self, forKey: .seasonRisk)
+        years = try c.decodeIfPresent(String.self, forKey: .years)
     }
 
     /// A copy carrying the resolved season-risk flag.
@@ -76,6 +84,18 @@ struct SpeciesSeason: Decodable, Equatable, Sendable {
         var copy = self
         copy.riskMonths = months
         copy.riskReason = reason
+        return copy
+    }
+
+    /// A copy stamped for a given plan year: `offYear` is set when this row's
+    /// `years` parity does not match. A row without `years` is never off-year.
+    func resolvingYear(_ year: Int) -> SpeciesSeason {
+        var copy = self
+        switch years?.lowercased() {
+        case "odd": copy.offYear = year % 2 == 0
+        case "even": copy.offYear = year % 2 != 0
+        default: copy.offYear = false
+        }
         return copy
     }
 
@@ -92,8 +112,11 @@ struct SpeciesSeason: Decodable, Equatable, Sendable {
     }
 
     /// This species' rating in a given month: peak → good → shoulder → off, then
-    /// clamped to `.fair` in a month where a closure is plausible.
+    /// clamped to `.fair` in a month where a closure is plausible. An off-year
+    /// species (an odd/even-year run resolved against the wrong year) rates
+    /// `.poor` outright — the run isn't there, whatever the month.
     func rating(inMonth month: Int) -> FishingRating {
+        guard !offYear else { return .poor }
         let base: FishingRating
         if bestMonths.contains(month) {
             base = .excellent
@@ -154,6 +177,10 @@ struct AreaFishery: Decodable, Equatable, Sendable {
 
     func resolvingSeasonRisk(_ table: [SeasonRisk]) -> AreaFishery {
         AreaFishery(areaName: areaName, species: species.map { $0.resolvingSeasonRisk(table) })
+    }
+
+    func resolvingYear(_ year: Int) -> AreaFishery {
+        AreaFishery(areaName: areaName, species: species.map { $0.resolvingYear(year) })
     }
 }
 
@@ -237,6 +264,17 @@ struct FreshwaterGuide: Decodable, Sendable {
             waterbodySites: waterbodySites
         )
     }
+
+    /// Every tier is stamped, same reasoning as `resolvingSeasonRisk` — a tier
+    /// left out would let an off-year species keep rating Prime there.
+    func resolvingYear(_ year: Int) -> FreshwaterGuide {
+        FreshwaterGuide(
+            species: species.map { $0.resolvingYear(year) },
+            byCounty: byCounty?.mapValues { $0.map { $0.resolvingYear(year) } },
+            byWaterbody: byWaterbody?.mapValues { $0.map { $0.resolvingYear(year) } },
+            waterbodySites: waterbodySites
+        )
+    }
 }
 
 /// Top-level bundle of curated guidance. Static, offline, editorial — not a live feed.
@@ -305,6 +343,20 @@ struct FisheryGuide: Decodable, Sendable {
             wdfwURL: wdfwURL,
             areas: areas.map { $0.resolvingSeasonRisk(seasonRisk) },
             freshwater: freshwater?.resolvingSeasonRisk(seasonRisk),
+            seasonRisk: seasonRisk
+        )
+    }
+
+    /// Stamp every species with its resolved off-year flag for `year`. Cheap and
+    /// idempotent — safe to call again whenever the plan year changes, and the
+    /// caller (`FishingMapModel`) only calls it when the year actually changed.
+    func resolvingYear(_ year: Int) -> FisheryGuide {
+        FisheryGuide(
+            updated: updated,
+            disclaimer: disclaimer,
+            wdfwURL: wdfwURL,
+            areas: areas.map { $0.resolvingYear(year) },
+            freshwater: freshwater?.resolvingYear(year),
             seasonRisk: seasonRisk
         )
     }
