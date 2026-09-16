@@ -4,11 +4,11 @@ Paste into App Store Connect. Adjust tone if needed; keep the guidance-vs-regula
 
 ## Name (30 chars)
 
-`WAFishMap`
+`WA Fish Map`
 
 ## Subtitle (30 chars)
 
-`WA launches & seasonal timing`
+`Launches & seasonal timing`
 
 ## Category
 
@@ -27,7 +27,7 @@ Statewide WA launches, piers, and rivers with clear seasonal timing — and a on
 ## Description
 
 ```
-WAFishMap helps you plan a fishing day in Washington.
+WA Fish Map helps you plan a fishing day in Washington.
 
 See boat launches and piers statewide on a live map, color-coded by curated seasonal timing. Filter by species and plan date. Tap a spot for what’s biting now, best months, tides (marine), river flow where gauged, and plan-time wind and rain from Apple Weather.
 
@@ -60,7 +60,7 @@ Same host or leave blank for 1.0.
 ## Review notes (for App Review)
 
 ```
-WAFishMap is a map of Washington fishing access with editorial seasonal timing.
+WA Fish Map is a map of Washington fishing access with editorial seasonal timing.
 
 • Location is optional (When In Use) to center the map; deny still shows statewide data.
 • WeatherKit is used only for plan-time wind/precip on a selected site.
