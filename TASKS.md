@@ -26,6 +26,7 @@
 - [x] Audit location permission strings — 74cb109
 - [x] Attribution: Apple Weather mark and data credits — c705807
 - [ ] UI test: disclaimer and WDFW link on every sheet
+- [ ] Brainstorm pier habitat rings (crab at pilings, cast-out)
 - [ ] Offline states render unavailable, never stale
 - [x] Opening map frames Washington with no WA location fix — d2a106a
 - [ ] Accessibility pass on pins, legend, sheets
