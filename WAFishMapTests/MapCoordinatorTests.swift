@@ -253,7 +253,7 @@ struct MapCoordinatorTests {
         let skagit = try? #require(lines.first { $0.title == "Skagit River" })
         let sauk = try? #require(lines.first { $0.title == "Sauk River" })
         #expect(skagit?.color == .red)
-        #expect(sauk?.color == Color.gray.opacity(0.45))
+        #expect(sauk?.color == FishingMapRepresentable.Coordinator.unratedRiverColor)
         // The recessive treatment is a width change too, not just a tint.
         #expect((sauk?.width ?? 0) < (skagit?.width ?? 0))
     }

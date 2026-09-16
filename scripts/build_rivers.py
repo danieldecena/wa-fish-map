@@ -81,7 +81,8 @@ EXPECTED_RIVERS = {
 }
 
 # Creeks with real fisheries that the old River-only build omitted.
-EXPECTED_CREEKS = {"Crab Creek", "Salmon Creek"}
+EXPECTED_CREEKS = {"Crab Creek", "Salmon Creek", "Clover Creek", "Issaquah Creek",
+                   "Chambers Creek", "Kennedy Creek"}
 
 DEFAULT_OUT = Path(__file__).resolve().parent.parent / "WAFishMap/Resources/rivers.json"
 
@@ -90,12 +91,20 @@ RIVER_WHERE = "FTYPE IN ('StreamRiver','ArtificialPath','Connector') AND GNIS_NA
 
 # Creeks are where most of the state's named, fished water is: the small-scale
 # layer carries ~21,000 named creek segments against ~9,400 river ones, and a
-# "River"-only build drew none of them (2026-09-16). Order 3 and up keeps the
-# creeks with real flow and skips the headwater trickles.
+# "River"-only build drew none of them (2026-09-16).
+#
+# No stream-order filter in the query. Filtering segments by order drops a
+# creek's low-order upper reaches before its length is summed, which silently
+# removed Clover Creek (one 20.9 km run) and Issaquah Creek. Order is judged on
+# the whole run in build_creeks instead.
 CREEK_WHERE = (
     "FTYPE IN ('StreamRiver','ArtificialPath','Connector') "
-    "AND GNIS_NAME LIKE '% Creek' AND StreamOrde >= 3"
+    "AND GNIS_NAME LIKE '% Creek'"
 )
+
+# A run's highest order must reach this. Order 2 keeps small salmon creeks
+# (Kennedy, Big Beef, Minter) and still skips headwater trickles.
+MIN_CREEK_ORDER = 2
 
 # A creek shorter than this once split into its own connected run is dropped.
 MIN_CREEK_KM = 10.0
@@ -295,9 +304,10 @@ def build_creeks(features: list[dict], rings: list[list[list[float]]]) -> list[d
         for group in connected_runs(parts):
             lines = sorted(parts[i][0] for i in group)
             length = sum(parts[i][2] for i in group)
-            if length < MIN_CREEK_KM or not touches_state(lines, rings):
+            order = max(parts[i][1] for i in group)
+            if length < MIN_CREEK_KM or order < MIN_CREEK_ORDER or not touches_state(lines, rings):
                 continue
-            runs.append((lines, max(parts[i][1] for i in group), length))
+            runs.append((lines, order, length))
         runs.sort(key=lambda run: run[0][0][0])
         for number, (lines, order, length) in enumerate(runs, start=1):
             first = lines[0][0]

@@ -53,7 +53,7 @@ struct RiverDetailSheet: View {
 
     @ViewBuilder private var conditionsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("River conditions").font(.headline)
+            Text("\(river.kind.rawValue.capitalized) conditions").font(.headline)
 
             if let stats, let discharge = flow?.discharge {
                 Text("\(Int(discharge.rounded())) cfs")
@@ -86,7 +86,7 @@ struct RiverDetailSheet: View {
             } else if stats == nil {
                 // Distinguishing these two matters: "no gauge exists" is
                 // permanent, "no reading right now" is not.
-                Text("No USGS gauge on this river, so there is nothing to report on its flow.")
+                Text("No USGS gauge on this \(river.kind.rawValue), so there is nothing to report on its flow.")
                     .font(.subheadline).foregroundStyle(.secondary)
             } else {
                 Text("This river has a gauge, but it is not reporting right now.")

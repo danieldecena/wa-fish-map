@@ -41,8 +41,8 @@
 - [ ] MapCoordinatorTests recentre test hung 10 min under load
 - [ ] Inland pins all Good in Sept: statewide list is uniform
 - [x] Look at creeks on screen with Rivers on (PR #17)
-- [ ] Creek sheet says "No USGS gauge on this river"
-- [ ] Creek filter drops small fished creeks (order<3, <10 km)
+- [x] Creek sheet says "No USGS gauge on this river"
+- [x] Creek filter drops small fished creeks (order<3, <10 km)
 - [ ] Confirm PR #17 "unstable" is the CI billing block
 - [ ] Same-name rivers still merge (two Green Rivers)
 - [ ] Shared simulator relaunches test host mid-run

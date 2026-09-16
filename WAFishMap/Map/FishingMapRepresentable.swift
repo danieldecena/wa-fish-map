@@ -311,6 +311,8 @@ struct FishingMapRepresentable: UIViewRepresentable {
             parent.selectedRiverID = nearest.0
         }
 
+        static let unratedRiverColor = Color.gray.opacity(0.75)
+
         func syncRivers(_ mapView: MKMapView) {
             let key = parent.showRivers
                 ? parent.rivers
@@ -331,11 +333,12 @@ struct FishingMapRepresentable: UIViewRepresentable {
                     line.title = river.name
                     // An ungauged river recedes: same neutral, but lighter and
                     // thinner, so it reads as hydrography while the gauged
-                    // mainstems carry the signal. 73% of drawn rivers have no
-                    // gauge, and at full weight they drown out the 27% that do.
+                    // mainstems carry the signal. Recedes, not vanishes: at
+                    // 45% opacity and 0.6 pt, creeks on the muted basemap were
+                    // invisible, which read as missing data (2026-09-16).
                     let rated = parent.riverColors[river.id]
-                    line.color = rated ?? Color.gray.opacity(0.45)
-                    line.width = rated == nil ? river.lineWidth * 0.6 : river.lineWidth
+                    line.color = rated ?? Self.unratedRiverColor
+                    line.width = rated == nil ? max(river.lineWidth * 0.6, 1.2) : river.lineWidth
                     return line
                 }
             }
