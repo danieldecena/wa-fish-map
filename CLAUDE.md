@@ -110,7 +110,7 @@ Any `xcodebuild`, `simctl` or `devicectl` run here goes through the **`ios-build
 skill** first, routine ones included — its destination and exit-status rules
 prevent failures rather than only explaining them afterwards. Source lives in
 `~/.claude/skills/ios-build/`, and the same content is a maintained page at
-<https://claude.ai/code/artifact/c4d78867-cbb6-447b-a74f-5793fcced0c0>. Most of
+<https://claude.ai/artifact/RJoLzPweAJdNpxc4YmQT5y>. Most of
 what is in it was paid for on this project. Do not re-derive it.
 
 Four are restated here in one line each, because a skill that has not loaded
