@@ -22,9 +22,9 @@
 - [ ] Spokane River row gated on WDFW, docs, verify
 - [x] Verify flow stats against USGS source
 - [x] Seed or hide the Oregon marine polygon (hidden)
-- [ ] Add PrivacyInfo privacy manifest
-- [ ] Audit location permission strings
-- [ ] Attribution: Apple Weather mark and data credits
+- [x] Add PrivacyInfo privacy manifest — 492a874
+- [x] Audit location permission strings — 74cb109
+- [x] Attribution: Apple Weather mark and data credits — c705807
 - [ ] UI test: disclaimer and WDFW link on every sheet
 - [ ] Offline states render unavailable, never stale
 - [ ] Accessibility pass on pins, legend, sheets
