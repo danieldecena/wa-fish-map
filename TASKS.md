@@ -21,7 +21,7 @@
 - [x] Opening map frames Washington with no WA location fix — d2a106a
 - [x] VoiceOver labels: pins, clusters, legends, rating badge
 - [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
-- [ ] No location fix: map stays on North America, never frames WA
+- [x] No location fix: map stays on North America, never frames WA — #16, #17
 - [ ] Final data pass and updated stamp
 - [ ] [you] App name, subtitle, category, age rating
 - [ ] Privacy policy page (host is your call)
@@ -43,12 +43,14 @@
 - [x] Look at creeks on screen with Rivers on (PR #17)
 - [x] Creek sheet says "No USGS gauge on this river"
 - [x] Creek filter drops small fished creeks (order<3, <10 km)
-- [ ] Confirm PR #17 "unstable" is the CI billing block
+- [x] Confirm PR #17 "unstable" is the CI billing block (moot: merged, checks pass)
 - [ ] Same-name rivers still merge (two Green Rivers)
 - [ ] Shared simulator relaunches test host mid-run
 - [x] Review and merge PR #17 — 9b3a4fb
 - [ ] Key river stats/flow by id before any creek gets a gauge
 - [ ] Filter rivers once in indexWaterbodies, not per site
+- [ ] See "piers unavailable" and USGS wording on screen (PR #18)
+- [ ] [you] Review and merge PR #18
 
 ## Completed
 
