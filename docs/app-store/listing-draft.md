@@ -27,7 +27,7 @@ https://danieldecena.github.io/wa-fish-map/privacy.html
 ## Support URL
 
 ```
-https://danieldecena.github.io/wa-fish-map/privacy.html
+https://danieldecena.github.io/wa-fish-map/support.html
 ```
 
 ## Promotional text (170 chars, optional)
@@ -58,20 +58,28 @@ Washington waters only. Always confirm seasons and limits with WDFW.
 ## Keywords (100 chars)
 
 ```
-fishing,Washington,WDFW,boat launch,pier,salmon,Puget Sound,tides,river,map
+fishing,Washington,trout,lakes,boat launch,pier,salmon,Puget Sound,tides,river,map
 ```
 
 ## Review notes (for App Review)
 
 ```
-WA Fish Map is a map of Washington fishing access with editorial seasonal timing.
+WA Fish Map is a free map of public fishing access in Washington State (boat launches, piers, lakes, rivers) with editorial seasonal timing. No sign-in is needed.
 
-• Location is optional (When In Use) to center the map; deny still shows statewide data.
-• WeatherKit is used only for plan-time wind/precip on a selected site (coordinates sent to Apple for that forecast).
-• No accounts, no tracking, no user-generated content.
-• Ratings are guidance, not regulations; every detail sheet links to WDFW.
-• To see guidance: launch the app, tap any colored launch pin (or use -uiTesting which opens Boston Harbor).
-• Privacy policy: https://danieldecena.github.io/wa-fish-map/privacy.html
+How to review
+1. Launch the app. Location is optional; declining still shows the whole state. Outside Washington the map opens statewide: zoom in on Puget Sound (Seattle/Tacoma) to see colored pins.
+2. Tap any colored pin to open its detail sheet: what's biting now, best months, tides (marine sites), river flow (gauged rivers), sunrise/sunset, and Apple Weather wind and rain for the planned hour.
+3. Tap "All species" at the top to filter, or the date and time pills to plan another day. Pins recolor.
+4. In the bottom bar, "Rivers" draws river lines and "Heat" shows the density of well-timed spots.
+
+Data and scope
+- Access sites, marine areas and lakes come from public Washington Department of Fish and Wildlife (WDFW) map services; tides from NOAA; river flow from USGS; weather from WeatherKit. The app is not affiliated with or endorsed by WDFW.
+- Ratings are editorial timing guidance, not regulations. Every detail sheet shows a disclaimer and links to WDFW to confirm seasons and limits.
+- Sites WDFW lists as closed are labeled "Closed".
+
+Privacy
+- No accounts, ads, analytics or tracking. Device location stays on the device and only centers the map. Weather and directions use the selected site's coordinates, not the user's. App Privacy: Data Not Collected.
+- Privacy policy: https://danieldecena.github.io/wa-fish-map/privacy.html
 ```
 
 ## App Privacy questionnaire (ASC) — fill exactly
@@ -87,19 +95,21 @@ Do **not** declare tracking domains. WeatherKit is Apple’s framework; you are 
 
 ## Screenshots
 
-Generated under `docs/app-store/screenshots/` via `scripts/app_store_screenshots.sh`. Upload 6.7" and 6.1" sets in ASC (scale/crop in Preview if needed).
+ASC holds 6 on the iPhone 6.5" slot (1284x2778): Tacoma, Boston Harbor sheet, Seattle, San Juans, Spokane, Hood Canal. The four live regional maps were captured 2026-09-16 on the simulator with `simctl location` set per region, then resized with `sips -z 2778 1284`. iPhone-only, so no iPad set is required.
 
 ## Checklist
 
-Paused 2026-09-16 — resume when the app build is ready for review (screenshots + Submit).
+Submitted 2026-09-16 3:18 PM: iOS App 1.0 (6), Waiting for Review, manual release.
 
 - [x] Privacy policy live at HTTPS
 - [x] Listing copy ready to paste
 - [x] App Privacy answers documented
-- [x] Release archive uploaded to ASC (2026-09-16; build **2** / 1.0 attached)
+- [x] Release archive uploaded to ASC (2026-09-16; build **6** / 1.0 attached, iPhone-only)
 - [x] ASC App Information: name, subtitle, category Navigation
 - [x] ASC App Privacy: policy URL
 - [x] ASC App Privacy: Data Not Collected, published 2026-09-16 (next upload must carry the matching manifest)
 - [x] ASC Version: promo / description / keywords / support URL / copyright; review notes
-- [ ] Attach screenshots (ASC still 0 of 10) — sized copies in `/tmp/asc-shots/` and `docs/app-store/screenshots/`
-- [ ] Save → Add for Review → Submit for Review
+- [x] Attach screenshots (6 of 10, 6.5" slot)
+- [x] Pricing, Content Rights, Age Rating
+- [x] Save -> Add for Review -> Submit for Review (2026-09-16)
+- [ ] Release after approval

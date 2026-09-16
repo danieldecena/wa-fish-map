@@ -114,6 +114,21 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-16 (1.0 (6) submitted for App Store review)
+
+- Decided: ship iPhone-only (#43, `TARGETED_DEVICE_FAMILY = 1` on the app
+  target). ASC blocked Add for Review on missing 13-inch iPad screenshots, and
+  the iPad layout was never verified. Test targets stay 1,2.
+- Decided: build 6 archived from the #43 branch with release Xcode; the archived
+  app reads `UIDeviceFamily [1]` and empty `NSPrivacyCollectedDataTypes`. ASC
+  refused 5 (-19232) and accepted 6.
+- Submitted 1.0 (6) at 3:18 PM, observed as Waiting for Review, manual release.
+  ASC App Privacy published as Data Not Collected (observed after reload).
+- ASC listing changed: support URL -> `support.html` (live, carries the contact
+  email Guideline 1.5 needs); keyword "WDFW" replaced by "trout,lakes"; review
+  notes rewritten (the old ones pointed reviewers at `-uiTesting`, which they
+  cannot set). `docs/app-store/listing-draft.md` now matches ASC.
+
 ### 2026-09-16 (build 4 uploaded; Apple API review items landed)
 
 - Decided: build 4 archived from main 66c16ba with release Xcode and uploaded;
