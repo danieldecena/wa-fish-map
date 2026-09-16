@@ -69,17 +69,43 @@ print(udid)
 }
 
 booted_udid() {
+  # Only iOS devices: a booted watch or iPad sim from another session is not a
+  # valid build destination for this scheme.
   xcrun simctl list devices booted --json | python3 -c '
 import json, sys
-for devices in json.load(sys.stdin)["devices"].values():
+for runtime, devices in json.load(sys.stdin)["devices"].items():
+    if ".iOS-" not in runtime:
+        continue
     for device in devices:
         print(device["udid"])
         sys.exit()
 '
 }
 
+# xcodebuild -destination "id=..." takes only a UDID, so a name passed to -d
+# has to be resolved here; the newest iOS runtime wins when several carry it.
+resolve_device() {
+  xcrun simctl list devices available --json | python3 -c '
+import json, re, sys
+want = sys.argv[1]
+candidates = []
+for runtime, devices in json.load(sys.stdin)["devices"].items():
+    match = re.search(r"iOS-([\d-]+)$", runtime)
+    version = tuple(int(part) for part in match.group(1).split("-")) if match else ()
+    for device in devices:
+        if device["udid"] == want:
+            print(want)
+            sys.exit()
+        if match and device["name"] == want:
+            candidates.append((version, device["udid"]))
+if not candidates:
+    sys.exit("no available simulator named or identified by %r" % want)
+print(max(candidates)[1])
+' "$1"
+}
+
 if [[ -n "$device" ]]; then
-  udid="$device"
+  udid="$(resolve_device "$device")"
 elif udid="$(booted_udid)" && [[ -n "$udid" ]]; then
   echo "[ok] reusing booted simulator"
 else
@@ -109,10 +135,18 @@ fi
 
 # --- install, locate, launch ------------------------------------------------
 
+# The build can run for minutes, long enough for another session to shut the
+# device down (observed 2026-09-16: install failed with SimError 405 Shutdown).
+xcrun simctl bootstatus "$udid" -b >/dev/null
+
 xcrun simctl install "$udid" "$app"
 echo "[ok] installed $BUNDLE_ID"
 
 if [[ -n "$location" ]]; then
+  # The fix only reaches the app once it holds location permission, and a
+  # fresh simulator has not granted it — without this the camera stays on the
+  # statewide auto-fit no matter what fix is set (observed 2026-09-16).
+  xcrun simctl privacy "$udid" grant location "$BUNDLE_ID"
   # simctl location landed in Xcode 14; tolerate its absence rather than
   # failing a build that is otherwise fine.
   if xcrun simctl location "$udid" set "$location" 2>/dev/null; then
