@@ -377,7 +377,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = WAFishMap;
+				INFOPLIST_KEY_CFBundleDisplayName = "WA Fish Map";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Shows where you are on the map and opens it near you, so you can spot the launches and piers closest to you. Your location stays on this device.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -410,7 +410,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = WAFishMap;
+				INFOPLIST_KEY_CFBundleDisplayName = "WA Fish Map";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Shows where you are on the map and opens it near you, so you can spot the launches and piers closest to you. Your location stays on this device.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

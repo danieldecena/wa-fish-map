@@ -235,6 +235,18 @@ current counts rather than trusting a number written here.
   sends the user's position means updating the manifest and the App Privacy
   answers together. Verified the file ships in the built .app.
 
+### 2026-09-16 (privacy manifest matches ASC Location answers)
+
+- Supersedes the empty collected-types decision above for nutrition-label
+  consistency. ASC App Privacy declares Precise Location, App Functionality,
+  not linked, not tracking. `PrivacyInfo.xcprivacy` now declares the same
+  `NSPrivacyCollectedDataTypePreciseLocation` entry. Required-reason API
+  array stays empty (still no UserDefaults / file-timestamp / boot-time /
+  disk-space). WeatherKit and map providers receive coordinates needed for
+  the request (plan site or area/station), not a retained user profile — same
+  story as `docs/app-store/privacy-policy.md` and the live GitHub Pages URL.
+  Tracking remains false; no tracking domains.
+
 ### 2026-09-16 (the Oregon marine polygon is hidden, not seeded)
 
 - Decided: drop WDFW's "Oregon" area (North of Falcon, WAC field "Oregon's
