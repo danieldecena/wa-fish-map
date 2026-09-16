@@ -27,6 +27,10 @@
 - [x] Attribution: Apple Weather mark and data credits — c705807
 - [ ] UI test: disclaimer and WDFW link on every sheet
 - [ ] Brainstorm pier habitat rings (crab at pilings, cast-out)
+- [ ] Release builds: no demo data, show Try Again
+- [ ] Popover: data sources, not-affiliated, policy link
+- [ ] Footer: not for navigation or safety decisions
+- [ ] Ship iPhone-only (TARGETED_DEVICE_FAMILY = 1)
 - [ ] Offline states render unavailable, never stale
 - [x] Opening map frames Washington with no WA location fix — d2a106a
 - [ ] Accessibility pass on pins, legend, sheets
