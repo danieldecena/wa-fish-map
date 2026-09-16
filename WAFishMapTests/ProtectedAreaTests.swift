@@ -195,6 +195,14 @@ struct ProtectedAreaTests {
         }
     }
 
+    /// A real marine area nowhere near the test sites. An empty marine layer is
+    /// now a failed read and falls back to the bundle, so the stubs serve one.
+    static let farArea = """
+    {"type":"FeatureCollection","features":[{"type":"Feature",
+    "geometry":{"type":"Polygon","coordinates":[[[-123.0,47.0],[-122.9,47.0],[-122.9,47.1],[-123.0,47.1],[-123.0,47.0]]]},
+    "properties":{"AreaName":"13","AreaTitle":"South Puget Sound","WAC":"x"}}]}
+    """
+
     @Test @MainActor func aSiteInsideAnMPAResolvesToIt() async throws {
         let sites = """
         {"type":"FeatureCollection","features":[
@@ -213,7 +221,7 @@ struct ProtectedAreaTests {
         let empty = #"{"type":"FeatureCollection","features":[]}"#
         let model = FishingMapModel()
         await model.load(
-            client: StubClient(marineData: Data(empty.utf8),
+            client: StubClient(marineData: Data(Self.farArea.utf8),
                                siteData: Data(sites.utf8),
                                mpaData: Data(mpas.utf8)),
             bundle: .main
@@ -233,6 +241,9 @@ struct ProtectedAreaTests {
         func data(from url: URL) async throws -> Data {
             if url.absoluteString.contains("/4/query") { throw WDFWLayerError.badHTTPStatus(500) }
             if url.absoluteString.contains("/0/query") { return siteData }
+            // A real marine layer: an empty one would fall back to the bundled
+            // sample and the test would quietly run against sample sites.
+            if url.absoluteString.contains("/6/query") { return Data(ProtectedAreaTests.farArea.utf8) }
             return Data(#"{"type":"FeatureCollection","features":[]}"#.utf8)
         }
     }
@@ -247,6 +258,7 @@ struct ProtectedAreaTests {
         let model = FishingMapModel()
         await model.load(client: FailingMPAClient(siteData: Data(Self.oneSite.utf8)), bundle: .main)
         let site = try #require(model.accessSites.first)
+        #expect(site.facilityName == "Elsewhere", "loaded the bundled sample, not the stub")
         #expect(!model.protectedAreasLoaded)
         #expect(model.protectedAreaCheck(for: site) == .unavailable)
     }
@@ -260,6 +272,9 @@ struct ProtectedAreaTests {
                 return Data(#"{"type":"FeatureCollection","exceededTransferLimit":true,"features":[]}"#.utf8)
             }
             if url.absoluteString.contains("/0/query") { return siteData }
+            // A real marine layer: an empty one would fall back to the bundled
+            // sample and the test would quietly run against sample sites.
+            if url.absoluteString.contains("/6/query") { return Data(ProtectedAreaTests.farArea.utf8) }
             return Data(#"{"type":"FeatureCollection","features":[]}"#.utf8)
         }
     }
@@ -268,18 +283,24 @@ struct ProtectedAreaTests {
         let model = FishingMapModel()
         await model.load(client: TruncatedMPAClient(siteData: Data(Self.oneSite.utf8)), bundle: .main)
         let site = try #require(model.accessSites.first)
+        #expect(site.facilityName == "Elsewhere", "loaded the bundled sample, not the stub")
         #expect(model.protectedAreaCheck(for: site) == .unavailable)
     }
 
     /// The known-good half: a layer that loads and simply has nothing at this site
-    /// is `clear`, not `unavailable`.
+    /// is `clear`, not `unavailable`. The MPA sits well away from the site; an
+    /// *empty* layer is a failed read now (see FailedReadTests).
     @Test @MainActor func aLoadedLayerWithNoMatchIsClearNotUnavailable() async throws {
-        let empty = #"{"type":"FeatureCollection","features":[]}"#
+        let farMPA = """
+        {"type":"FeatureCollection","features":[{"type":"Feature",
+        "geometry":{"type":"Polygon","coordinates":[[[-122.40,47.60],[-122.30,47.60],[-122.30,47.70],[-122.40,47.70],[-122.40,47.60]]]},
+        "properties":{"MPA_Name":"Golden Gardens","TypeOfMPA":"Marine Preserve","WAC":"w","DetailedInfoURL":"https://wdfw.wa.gov"}}]}
+        """
         let model = FishingMapModel()
         await model.load(
-            client: StubClient(marineData: Data(empty.utf8),
+            client: StubClient(marineData: Data(Self.farArea.utf8),
                                siteData: Data(Self.oneSite.utf8),
-                               mpaData: Data(empty.utf8)),
+                               mpaData: Data(farMPA.utf8)),
             bundle: .main
         )
         let site = try #require(model.accessSites.first)

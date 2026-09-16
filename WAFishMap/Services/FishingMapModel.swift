@@ -52,6 +52,11 @@ final class FishingMapModel {
     /// and the second must never render as the first.
     private(set) var protectedAreasLoaded = false
 
+    /// Same rule for the two live-only layers. False means the fetch failed or
+    /// never ran, so an empty `piers` or a missing flow reading is unknown, not none.
+    private(set) var piersLoaded = false
+    private(set) var riverFlowsLoaded = false
+
     /// The Marine Protected Area a site sits inside, if any. Only meaningful once
     /// `protectedAreasLoaded`; callers wanting the three-way answer use
     /// `protectedAreaCheck(for:)`.
@@ -177,8 +182,13 @@ final class FishingMapModel {
             // Independent layers — fetch concurrently.
             async let marineData = client.data(from: MapScope.marineAreasURL)
             async let siteData = client.data(from: MapScope.accessSitesURL)
-            marineAreas = MapScope.filter(marineAreas: try WDFWLayerLoader.marineAreas(from: await marineData))
-            accessSites = MapScope.filter(accessSites: try WDFWLayerLoader.accessSites(from: await siteData))
+            let liveAreas = MapScope.filter(marineAreas: try WDFWLayerLoader.marineAreas(from: await marineData))
+            let liveSites = MapScope.filter(accessSites: try WDFWLayerLoader.accessSites(from: await siteData))
+            // An empty layer used to render as "0 access sites · live WDFW data".
+            // It takes the same fallback as a failed fetch instead.
+            guard !liveAreas.isEmpty, !liveSites.isEmpty else { throw WDFWLayerError.emptyLayer }
+            marineAreas = liveAreas
+            accessSites = liveSites
             indexSitesToAreas()
             indexWaterbodies()
             statusMessage = "Washington · \(accessSites.count) access sites · live WDFW data"
@@ -202,7 +212,11 @@ final class FishingMapModel {
         // the sheet says the check could not run.
         do {
             let mpaData = try await client.data(from: MapScope.protectedAreasURL)
-            protectedAreas = try WDFWLayerLoader.protectedAreas(from: mpaData)
+            let loaded = try WDFWLayerLoader.protectedAreas(from: mpaData)
+            // Washington has 44 MPAs; an empty layer is a failed read, and
+            // reading it as "clear" would clear every site in the state.
+            guard !loaded.isEmpty else { throw WDFWLayerError.emptyLayer }
+            protectedAreas = loaded
             indexSitesToProtectedAreas()
             protectedAreasLoaded = true
         } catch {
@@ -212,8 +226,9 @@ final class FishingMapModel {
             protectedAreasLoaded = false
         }
         if let pierData = await pierFetch,
-           let loaded = try? WDFWLayerLoader.piers(from: pierData) {
+           let loaded = try? WDFWLayerLoader.piers(from: pierData), !loaded.isEmpty {
             piers = loaded
+            piersLoaded = true
             indexPiersToAreas()
             indexWaterbodies()
             // Piers load after the MPA layer, so their MPA index is built here.
@@ -223,8 +238,14 @@ final class FishingMapModel {
         // River flow is a live-only enhancement; a USGS outage leaves every
         // river neutral rather than taking the map down.
         if let flowData = try? await client.data(from: USGSFlowLoader.url),
-           let loaded = try? USGSFlowLoader.flows(from: flowData) {
+           let loaded = try? USGSFlowLoader.flows(from: flowData), !loaded.isEmpty {
             riverFlows = loaded
+            riverFlowsLoaded = true
+        }
+        // Piers load after the headline status is set, so a failure is appended
+        // here rather than dropped.
+        if !piersLoaded && !accessSites.isEmpty {
+            statusMessage += " · piers unavailable"
         }
         isLoading = false
     }

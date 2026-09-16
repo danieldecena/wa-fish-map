@@ -126,6 +126,7 @@ struct FishingMapView: View {
                 river: river,
                 stats: model.riverStats[river.name],
                 flow: model.flow(forRiver: river.name),
+                flowsLoaded: model.riverFlowsLoaded,
                 guide: model.guide,
                 planDate: planDate
             )

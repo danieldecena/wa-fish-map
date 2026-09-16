@@ -108,17 +108,31 @@
 
 ## Next Up
 
-- **Map never frames Washington without a location fix** (seen 2026-09-16 with
-  location cleared). Every good framing today coincided with a fix, so the initial
-  fit in `FishingMapRepresentable` may never run. Reproduce with
-  `simctl location clear` before touching code.
-- Branch `claude/goal-followups` (shore snap, VoiceOver labels, cluster scale) is
-  pushed with no PR yet.
+- **PR #18** (failed/empty data reads show as unavailable) is open and needs
+  review; its new status-bar and river-sheet wording is not yet seen on screen.
+- **Weather and buoy failure states**, the rest of the same audit: forecast
+  cache never expires, a cancelled fetch can save the wrong hour, a plan past the
+  forecast silently shows the last hour, iPad buoy keeps the previous reading.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-16 (camera, clusters, creeks, failed reads)
+
+- Decided: the camera is bounded to Washington (cameraBoundary plus a 3,200 km
+  zoom-out cap; 1,600 km cut off the coast). Clusters draw a fixed 1.2x, chosen
+  over main's count-based scaling. #17, 9b3a4fb.
+- Decided: creeks ship split into connected runs with unique ids (same-name
+  creeks are separate features) and never resolve a waterbody. Stream order is
+  judged per run, not per segment, which had silently dropped Clover and
+  Issaquah creeks. 1,025 creeks. Unrated water drew at 45% gray / 0.6 pt and was
+  invisible, which read as missing data; now 75% / 1.2 pt floor. #17.
+- Decided: an empty WDFW layer, MPA layer, pier fetch or USGS fetch is a failed
+  read, never "0 sites", "clear" or "gauge not reporting". Mutation-checked. #18.
+- Closed: "map never frames Washington without a fix" (#16, #17) and the
+  `claude/goal-followups` branch (merged as #14).
 
 ### 2026-09-16 (shore snap, VoiceOver labels, cluster scale)
 

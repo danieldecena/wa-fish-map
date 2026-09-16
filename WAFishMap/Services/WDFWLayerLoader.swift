@@ -6,6 +6,10 @@ enum WDFWLayerError: Error, Equatable {
     /// The server hit its transfer limit and silently dropped features; treating the
     /// partial layer as complete would be worse than falling back.
     case truncatedResponse
+    /// The layer decoded but held no features. Every layer the app reads is
+    /// statewide and never legitimately empty, so an empty one is a failed
+    /// read, not "Washington has no access sites".
+    case emptyLayer
 }
 
 protocol HTTPGet: Sendable {
