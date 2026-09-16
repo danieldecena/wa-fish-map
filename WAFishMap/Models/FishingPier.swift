@@ -11,6 +11,10 @@ struct FishingPier: Identifiable, Equatable, Sendable {
 
     var mapCoordinate: CLLocationCoordinate2D { coordinate.clLocationCoordinate }
 
+    /// WDFW marks a closed pier only in its name, e.g. "Harper Pier (Yukon
+    /// Harbor) (CLOSED)"; the layer has no status field.
+    var isClosed: Bool { name.range(of: "(closed)", options: .caseInsensitive) != nil }
+
     struct Properties: Decodable {
         let name: String
         let countyName: String

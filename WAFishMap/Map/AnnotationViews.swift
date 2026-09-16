@@ -42,6 +42,8 @@ final class SiteMarkerView: MKMarkerAnnotationView {
         guard let site = annotation as? SiteAnnotation else { return }
         Self.paint(self, tint: UIColor(site.rating?.color ?? .gray), outlined: site.closurePlausible)
         glyphImage = UIImage(systemName: Self.symbol(for: site.kind))
+        // Faded gray: still tappable, so the details stay one tap away.
+        alpha = site.isClosed ? 0.55 : 1
     }
 
     /// Outlined = a pale balloon with the rating colour moved to the glyph, so a
