@@ -27,7 +27,7 @@ https://danieldecena.github.io/wa-fish-map/privacy.html
 ## Support URL
 
 ```
-https://danieldecena.github.io/wa-fish-map/privacy.html
+https://danieldecena.github.io/wa-fish-map/support.html
 ```
 
 ## Promotional text (170 chars, optional)
