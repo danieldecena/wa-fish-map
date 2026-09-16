@@ -161,6 +161,8 @@ struct GuidanceFooter: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.yellow.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("guidanceFooter")
     }
 }
 
@@ -432,5 +434,6 @@ struct PierDetailSheet: View {
             .navigationTitle(pier.name)
             .navigationBarTitleDisplayMode(.inline)
         }
+        .accessibilityIdentifier("pierDetailSheet")
     }
 }
