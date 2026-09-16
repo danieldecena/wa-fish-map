@@ -48,12 +48,19 @@ struct Lake: Decodable, Identifiable, Equatable, Sendable {
         "upper", "lower", "north", "south", "east", "west", "of",
     ]
 
+    /// Ignored when looking for a shared name, but they must still agree: they
+    /// name a different lake. "Silver Lake" passed as North Silver Lake, a
+    /// separate 71-acre lake 144 m further from the Spokane County launch.
+    static let qualifierWords: Set<String> = ["upper", "lower", "north", "south", "east", "west"]
+
     /// A launch named for a lake must name *this* lake. Distance alone matched
     /// Lyle Lake's launch to Herman Lake. Loose on purpose: Steel/Steele,
     /// Saint/St. and Tim/Tims are one lake each.
     static func namesAgree(facility: String, lake: String) -> Bool {
         guard facility.range(of: #"\b(lake|lakes|pond|ponds|reservoir)\b"#,
                              options: [.regularExpression, .caseInsensitive]) != nil else { return true }
+        guard Set(words(facility)).intersection(qualifierWords)
+                == Set(words(lake)).intersection(qualifierWords) else { return false }
         let facilityTokens = tokens(facility)
         let lakeTokens = tokens(lake)
         // "North Lake" is all ignored words; compare it whole instead.
