@@ -82,10 +82,8 @@ struct DirectionsButtonTests {
     @Test func theLinkAsksAppleMapsForDrivingDirectionsToTheSpot() throws {
         let url = try #require(DirectionsButton.url(
             name: "Harper Pier", coordinate: LonLat(longitude: -122.52, latitude: 47.51)))
-        let items = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
-        #expect(url.host == "maps.apple.com")
-        #expect(items.first { $0.name == "daddr" }?.value == "47.51,-122.52")
-        #expect(items.first { $0.name == "dirflg" }?.value == "d")
+        #expect(url.absoluteString
+            == "https://maps.apple.com/directions?destination=47.51,-122.52&mode=driving")
     }
 }
 
