@@ -163,9 +163,13 @@ struct SiteDetailSheet: View {
     let guide: FisheryGuide?
     let planDate: Date
     var protectedAreaCheck: ProtectedAreaCheck = .unavailable
+    /// The map's species filter, if any. Threaded through so the header badge
+    /// agrees with the pin colour, which is already species-aware
+    /// (`FishingMapModel.rating(for:month:species:)`).
+    var species: String? = nil
 
     private var month: Int { UITestSeam.planMonth ?? Calendar.current.component(.month, from: planDate) }
-    private var rating: FishingRating? { fishery?.rating(inMonth: month) }
+    private var rating: FishingRating? { fishery?.rating(inMonth: month, species: species) }
     private var inSeason: [SpeciesSeason] { fishery?.inSeason(month: month) ?? [] }
 
     var body: some View {
