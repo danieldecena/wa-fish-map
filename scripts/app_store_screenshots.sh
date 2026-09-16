@@ -63,6 +63,7 @@ if ! xcrun simctl get_app_container "$udid" "$BUNDLE_ID" >/dev/null 2>&1; then
 fi
 xcrun simctl privacy "$udid" grant location "$BUNDLE_ID" 2>/dev/null || true
 xcrun simctl location "$udid" set 47.29,-122.52 2>/dev/null || true
+trap 'xcrun simctl status_bar "$udid" clear' EXIT
 xcrun simctl status_bar "$udid" override --time 9:41 --dataNetwork wifi --wifiBars 3 \
   --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
 
