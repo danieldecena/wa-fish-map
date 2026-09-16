@@ -1,6 +1,6 @@
 import Foundation
 
-/// The two launch arguments a UI test may set, and nothing else.
+/// The three launch arguments a UI test may set, and nothing else.
 ///
 /// The verify badge was shipped "proven by tests and by reading the diff, not by
 /// observation" because there was no way to assert anything on screen. Observing
@@ -12,8 +12,12 @@ import Foundation
 /// `-uiTesting` loads the bundled fixture instead of the network and preselects
 /// the first site, so the detail sheet is up without synthesising a tap.
 /// `-planMonth n` pins the month the ratings are computed for.
+/// `-uiTestingDetail site|pier|river` picks which detail sheet opens instead of
+/// the site sheet. Added so "every sheet carries the disclaimer and a WDFW link"
+/// can be observed on all three sheets: tapping pins on a clustered map is the
+/// moving target this seam exists to avoid.
 ///
-/// Deliberately not a general test harness: two arguments, read in two places.
+/// Deliberately not a general test harness: three arguments, each read in one place.
 enum UITestSeam {
     static var isActive: Bool {
         ProcessInfo.processInfo.arguments.contains("-uiTesting")
@@ -30,6 +34,19 @@ enum UITestSeam {
               (1...12).contains(month)
         else { return nil }
         return month
+    }
+
+    enum Detail: String {
+        case site, pier, river
+    }
+
+    /// The sheet from `-uiTestingDetail`, or `nil` when unset or unrecognised,
+    /// which reads as the site sheet. Same rule as `planMonth`: a typo is not
+    /// quietly mapped to a sheet the test did not ask for.
+    static var detail: Detail? {
+        let args = ProcessInfo.processInfo.arguments
+        guard let flag = args.firstIndex(of: "-uiTestingDetail") else { return nil }
+        return args[safe: flag + 1].flatMap(Detail.init(rawValue:))
     }
 }
 

@@ -10,6 +10,9 @@ final class FishingMapModel {
     var statusMessage = "Loading…"
     var isLoading = true
     var selectedSiteID: AccessSite.ID?
+    /// A river for the view to open on launch. Set only under a UI test, because
+    /// the river selection is view state the model cannot reach directly.
+    var initialRiverName: String?
 
     /// Curated seasonal guidance (bundled, offline), resolved for `planYear`. See
     /// `Fishery.swift`. Every existing call site keeps reading this unchanged.
@@ -132,6 +135,7 @@ final class FishingMapModel {
     enum Resource: String {
         case marineAreas = "marine-areas.sample"
         case accessSites = "access-sites.sample"
+        case piers = "piers.sample"
     }
 
     func loadFromBundle(bundle: Bundle) throws {
@@ -156,7 +160,17 @@ final class FishingMapModel {
         if UITestSeam.isActive {
             do {
                 try loadFromBundle(bundle: bundle)
-                selectedSiteID = accessSites.first?.id
+                // Piers come only from the network in real use, so the bundled
+                // sample is loaded here and nowhere else: the offline fallback a
+                // user sees stays exactly as it was.
+                piers = try WDFWLayerLoader.piers(from: Self.data(.piers, in: bundle))
+                indexPiersToAreas()
+                indexWaterbodies()
+                switch UITestSeam.detail ?? .site {
+                case .site: selectedSiteID = accessSites.first?.id
+                case .pier: selectedSiteID = piers.first?.id
+                case .river: initialRiverName = rivers.first?.name
+                }
             } catch {
                 statusMessage = "Couldn't load WDFW data — check your connection"
             }
