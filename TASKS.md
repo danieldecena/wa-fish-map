@@ -21,7 +21,7 @@
 - [x] Reachability gate accepts river names
 - [ ] Spokane River row gated on WDFW, docs, verify
 - [x] Verify flow stats against USGS source
-- [ ] Seed or hide the Oregon marine polygon
+- [x] Seed or hide the Oregon marine polygon (hidden)
 - [ ] Add PrivacyInfo privacy manifest
 - [ ] Audit location permission strings
 - [ ] Attribution: Apple Weather mark and data credits
