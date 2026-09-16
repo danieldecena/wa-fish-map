@@ -10,7 +10,14 @@
 - [x] Audit location permission strings — 74cb109
 - [x] Attribution: Apple Weather mark and data credits — c705807
 - [ ] UI test: disclaimer and WDFW link on every sheet
-- [ ] Offline states render unavailable, never stale
+- [ ] Weather: plan past last forecast hour shows last hour
+- [ ] Empty MPA layer reads as "clear" at every site
+- [ ] iPad buoy section keeps previous site's reading
+- [ ] USGS fetch failure blamed on "gauge not reporting"
+- [ ] Empty live WDFW layer shows "0 access sites"
+- [ ] Pier fetch failure is invisible (try? swallowed)
+- [ ] Weather cache has no age; refetch after ~1 h
+- [ ] Weather: cancelled fetch can write the old hour
 - [x] Opening map frames Washington with no WA location fix — d2a106a
 - [x] VoiceOver labels: pins, clusters, legends, rating badge
 - [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
@@ -28,7 +35,7 @@
 - [ ] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
 
 - [x] Shore snap: saltwater piers/launches no longer freshwater
-- [ ] Verify species typical weights against WDFW/NOAA
+- [x] Verify species weights (7 adjusted; 6 no source found)
 - [x] Watch fish silhouettes on screen (Dash Point, Crescent Lake)
 - [ ] Watch the Closed badge in a closed pier sheet
 - [ ] MapCoordinatorTests recentre test hung 10 min under load
