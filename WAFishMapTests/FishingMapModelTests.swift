@@ -108,6 +108,17 @@ struct FishingMapModelTests {
         #expect(model.areaName(for: saltShore) == "13")
     }
 
+    @Test @MainActor func aLakeLaunchIsIndexedToItsLake() {
+        let model = FishingMapModel()
+        model.lakes = [LakeTests.lake("Lake Dolloff", -122.2836, 47.3228, acres: 21.0)]
+        let site = AccessSite(facilityName: "Lake Dolloff", countyName: "King", hasLaunch: true,
+                              launchSurface: .concrete, hasRestrooms: false, directions: "",
+                              coordinate: LonLat(longitude: -122.284561, latitude: 47.323529))
+        model.accessSites = [site]
+        model.indexWaterbodies()
+        #expect(model.lake(for: site)?.name == "Lake Dolloff")
+    }
+
     struct StubClient: HTTPGet {
         var marineData: Data
         var siteData: Data

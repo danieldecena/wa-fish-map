@@ -30,6 +30,16 @@ final class FishingMapModel {
     /// empty is *unknown*, never zero — an absent river stays neutral.
     var riverFlows: [String: RiverFlow] = [:]
 
+    /// Bundled WDFW lake facts. Not a live layer — see `Lake`.
+    var lakes: [Lake] = []
+    /// Inland launch → the one WDFW lake it sits on. Precomputed like
+    /// `siteWaterbody`: matching scans every lake.
+    private(set) var siteLake: [AccessSite.ID: Lake] = [:]
+
+    func lake(for site: AccessSite) -> Lake? {
+        siteLake[site.id]
+    }
+
     /// Launch → marine area (point-in-polygon, else within the shore snap). Absent for inland/lake
     /// launches, which have no marine area and therefore a neutral rating.
     private(set) var siteAreaName: [AccessSite.ID: String] = [:]
@@ -157,6 +167,7 @@ final class FishingMapModel {
         loadGuide(bundle: bundle)
         loadRivers(bundle: bundle)
         loadRiverStats(bundle: bundle)
+        loadLakes(bundle: bundle)
         indexSitesToAreas()
         indexWaterbodies()
         statusMessage = "Washington · offline sample"
@@ -178,6 +189,7 @@ final class FishingMapModel {
         loadGuide(bundle: bundle)
         loadRivers(bundle: bundle)
         loadRiverStats(bundle: bundle)
+        loadLakes(bundle: bundle)
         do {
             // Independent layers — fetch concurrently.
             async let marineData = client.data(from: MapScope.marineAreasURL)
@@ -322,6 +334,12 @@ final class FishingMapModel {
             piersMap[pier.id] = freshwater?.waterbody(forFacility: pier.name, at: pier.coordinate, rivers: rivers)
         }
         pierWaterbody = piersMap
+
+        var lakeMap: [AccessSite.ID: Lake] = [:]
+        for site in accessSites where siteAreaName[site.id] == nil {
+            lakeMap[site.id] = Lake.match(facilityName: site.facilityName, at: site.coordinate, in: lakes)
+        }
+        siteLake = lakeMap
     }
 
     /// Loads the curated guide from the bundle. Absence is non-fatal — the map still
@@ -342,6 +360,14 @@ final class FishingMapModel {
               let data = try? Data(contentsOf: url),
               let loaded = try? RiverFlowStatsLoader.stats(from: data) else { return }
         riverStats = loaded
+    }
+
+    private func loadLakes(bundle: Bundle) {
+        guard lakes.isEmpty,
+              let url = bundle.url(forResource: "lakes", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let loaded = try? LakeLoader.lakes(from: data) else { return }
+        lakes = loaded
     }
 
     /// The live reading for a river, found through the gauge its bundled
