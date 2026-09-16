@@ -86,6 +86,7 @@ struct FishingMapView: View {
     var body: some View {
         FishingMapRepresentable(
             annotations: showsPins ? siteAnnotations : [],
+            fitAnnotations: siteAnnotations,
             areas: model.marineAreas,
             areaColors: areaColors,
             protectedAreas: model.protectedAreas,

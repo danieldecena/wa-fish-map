@@ -24,6 +24,7 @@ struct MapCoordinatorTests {
 
     private static func representable(
         annotations: [SiteAnnotation] = [],
+        fitAnnotations: [SiteAnnotation]? = nil,
         areas: [MarineArea] = [],
         areaColors: [String: Color] = [:],
         protectedAreas: [ProtectedArea] = [],
@@ -35,6 +36,7 @@ struct MapCoordinatorTests {
     ) -> FishingMapRepresentable {
         FishingMapRepresentable(
             annotations: annotations,
+            fitAnnotations: fitAnnotations ?? annotations,
             areas: areas,
             areaColors: areaColors,
             protectedAreas: protectedAreas,
@@ -68,7 +70,7 @@ struct MapCoordinatorTests {
         userMovedCamera: Binding<Bool>
     ) -> FishingMapRepresentable {
         FishingMapRepresentable(
-            annotations: [], areas: [], areaColors: [:], protectedAreas: [],
+            annotations: [], fitAnnotations: [], areas: [], areaColors: [:], protectedAreas: [],
             heatZones: [], rivers: [], riverColors: [:],
             showRivers: false, showHeat: false, showAreaLabels: false,
             pointsOfInterest: [],
@@ -132,6 +134,21 @@ struct MapCoordinatorTests {
             Self.representable(annotations: Self.farAnnotations, userMovedCamera: true))
         coordinator.syncAnnotations(mapView)
         #expect(abs(mapView.centerCoordinate.longitude - Self.parked.center.longitude) < 0.05)
+    }
+
+    /// The camera opens far out, where the detail level hides every pin, so the
+    /// drawn annotations stay empty. Fitting to those meant the fit never ran and
+    /// the map sat on MapKit's whole-country default whenever no Washington fix
+    /// zoomed it in. The fit has to frame the sites whether or not they are drawn,
+    /// and must not draw them to do it.
+    @Test func theInitialFitFramesTheSitesEvenWhilePinsAreHidden() {
+        let mapView = MKMapView(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
+        mapView.setRegion(Self.parked, animated: false)
+        let coordinator = FishingMapRepresentable.Coordinator(
+            Self.representable(annotations: [], fitAnnotations: Self.farAnnotations))
+        coordinator.syncAnnotations(mapView)
+        #expect(abs(mapView.centerCoordinate.longitude - Self.parked.center.longitude) > 1.0)
+        #expect(!mapView.annotations.contains { $0 is SiteAnnotation })
     }
 
     /// The regression: CoreLocation answers first, the coordinator eases to the
