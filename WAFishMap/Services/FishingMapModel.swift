@@ -107,14 +107,17 @@ final class FishingMapModel {
     }
 
     /// Resolved guidance for a launch (uses the precomputed area index for its marine
-    /// lookup), otherwise the freshwater table for its county.
+    /// lookup), otherwise the freshwater table for its county, narrowed to the
+    /// species WDFW lists for the lake it sits on. The pin colour and the sheet
+    /// both read this, so they cannot disagree.
     func fishery(for site: AccessSite) -> AreaFishery? {
         if let area = areaName(for: site), let marine = guide?.area(named: area) {
             return marine
         }
         return guide?.freshwater?.fishery(
             county: site.countyName,
-            waterbody: siteWaterbody[site.id]
+            waterbody: siteWaterbody[site.id],
+            lakeSpecies: siteLake[site.id]?.species
         )
     }
 
