@@ -10,6 +10,9 @@ final class FishingMapModel {
     var statusMessage = "Loading…"
     var isLoading = true
     var selectedSiteID: AccessSite.ID?
+    /// A river for the view to open on launch. Set only under a UI test, because
+    /// the river selection is view state the model cannot reach directly.
+    var initialRiverID: River.ID?
 
     /// Curated seasonal guidance (bundled, offline), resolved for `planYear`. See
     /// `Fishery.swift`. Every existing call site keeps reading this unchanged.
@@ -155,6 +158,7 @@ final class FishingMapModel {
     enum Resource: String {
         case marineAreas = "marine-areas.sample"
         case accessSites = "access-sites.sample"
+        case piers = "piers.sample"
     }
 
     func loadFromBundle(bundle: Bundle) throws {
@@ -180,7 +184,17 @@ final class FishingMapModel {
         if UITestSeam.isActive {
             do {
                 try loadFromBundle(bundle: bundle)
-                selectedSiteID = accessSites.first?.id
+                // Piers come only from the network in real use, so the bundled
+                // sample is loaded here and nowhere else: the offline fallback a
+                // user sees stays exactly as it was.
+                piers = try WDFWLayerLoader.piers(from: Self.data(.piers, in: bundle))
+                indexPiersToAreas()
+                indexWaterbodies()
+                switch UITestSeam.detail ?? .site {
+                case .site: selectedSiteID = accessSites.first?.id
+                case .pier: selectedSiteID = piers.first?.id
+                case .river: initialRiverID = rivers.first?.id
+                }
             } catch {
                 statusMessage = "Couldn't load WDFW data — check your connection"
             }
@@ -266,8 +280,9 @@ final class FishingMapModel {
     /// shore snap (`MarineArea.matching`).
     func indexSitesToAreas() {
         var map: [AccessSite.ID: String] = [:]
+        let riversOnly = rivers.filter(\.resolvesWaterbody)
         for site in accessSites {
-            if let area = marineArea(at: site.coordinate, facility: site.facilityName) {
+            if let area = marineArea(at: site.coordinate, facility: site.facilityName, riversOnly: riversOnly) {
                 map[site.id] = area.areaName
             }
         }
@@ -300,8 +315,9 @@ final class FishingMapModel {
     /// shore snap (`MarineArea.matching`).
     private func indexPiersToAreas() {
         var map: [FishingPier.ID: String] = [:]
+        let riversOnly = rivers.filter(\.resolvesWaterbody)
         for pier in piers {
-            if let area = marineArea(at: pier.coordinate, facility: pier.name) {
+            if let area = marineArea(at: pier.coordinate, facility: pier.name, riversOnly: riversOnly) {
                 map[pier.id] = area.areaName
             }
         }
@@ -311,10 +327,10 @@ final class FishingMapModel {
     /// Containment always wins; the shore snap does not. A river-mouth or slough
     /// ramp just outside a polygon (Palix River 10 m, Hat Slough 39 m) keeps its
     /// river or lake rows rather than being snapped into the marine area.
-    private func marineArea(at point: LonLat, facility: String) -> MarineArea? {
+    private func marineArea(at point: LonLat, facility: String, riversOnly: [River]) -> MarineArea? {
         if let inside = marineAreas.first(where: { $0.contains(point) }) { return inside }
         let freshwater = guide?.freshwater
-        if let waterbody = freshwater?.waterbody(forFacility: facility, at: point, rivers: rivers),
+        if let waterbody = freshwater?.waterbody(forFacility: facility, at: point, riversOnly: riversOnly),
            freshwater?.byWaterbody?[waterbody]?.isEmpty == false {
             return nil
         }
@@ -324,14 +340,15 @@ final class FishingMapModel {
     /// Must run after the guide, rivers and marine-area indexes are in place.
     func indexWaterbodies() {
         let freshwater = guide?.freshwater
+        let riversOnly = rivers.filter(\.resolvesWaterbody)
         var sites: [AccessSite.ID: String] = [:]
         for site in accessSites where siteAreaName[site.id] == nil {
-            sites[site.id] = freshwater?.waterbody(forFacility: site.facilityName, at: site.coordinate, rivers: rivers)
+            sites[site.id] = freshwater?.waterbody(forFacility: site.facilityName, at: site.coordinate, riversOnly: riversOnly)
         }
         siteWaterbody = sites
         var piersMap: [FishingPier.ID: String] = [:]
         for pier in piers where pierAreaName[pier.id] == nil {
-            piersMap[pier.id] = freshwater?.waterbody(forFacility: pier.name, at: pier.coordinate, rivers: rivers)
+            piersMap[pier.id] = freshwater?.waterbody(forFacility: pier.name, at: pier.coordinate, riversOnly: riversOnly)
         }
         pierWaterbody = piersMap
 
@@ -378,15 +395,26 @@ final class FishingMapModel {
         return riverFlows[gauge]
     }
 
+    /// Flow history for this feature, or nil when the name's gauge is on a
+    /// different river of the same name.
+    func stats(for river: River) -> RiverFlowStats? {
+        river.ownsNameGauge ? riverStats[river.name] : nil
+    }
+
+    func flow(for river: River) -> RiverFlow? {
+        river.ownsNameGauge ? flow(forRiver: river.name) : nil
+    }
+
     /// Flow rating per river id for a given calendar day. The day is injected;
     /// nothing in this path reads the clock.
     func riverRatings(month: Int, day: Int) -> [String: FishingRating] {
         var ratings: [String: FishingRating] = [:]
-        for (name, stats) in riverStats {
-            guard let discharge = riverFlows[stats.gauge]?.discharge,
+        for river in rivers {
+            guard let stats = stats(for: river),
+                  let discharge = riverFlows[stats.gauge]?.discharge,
                   let rating = stats.rating(discharge: discharge, month: month, day: day)
             else { continue }
-            ratings[name] = rating
+            ratings[river.id] = rating
         }
         return ratings
     }

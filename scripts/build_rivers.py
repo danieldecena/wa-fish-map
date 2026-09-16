@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 import urllib.error
 import urllib.parse
@@ -111,6 +112,21 @@ MIN_CREEK_KM = 10.0
 
 # Endpoints closer than this (degrees, ~10 m) belong to the same run.
 JOIN_DEGREES = 0.0001
+
+# Rivers are merged by name, but ten names cover unrelated rivers: two Green
+# Rivers (King and Cowlitz), two Whites, three Clearwaters, 77-236 km apart.
+# Pieces of one name further apart than this become separate features. NHD also
+# leaves gaps inside a single river (the Chehalis has a 24.6 km one), which must
+# stay merged, so the threshold sits between the two (measured 2026-09-16).
+RIVER_SPLIT_KM = 40.0
+
+# Anchors for the split, checked like EXPECTED_RIVERS: a threshold that drifted
+# either way fails the build instead of shipping silently.
+EXPECTED_SPLIT = {"Green River", "White River"}
+EXPECTED_WHOLE = {"Chehalis River", "Yakima River", "Skykomish River"}
+
+RIVER_STATS = Path(__file__).resolve().parent.parent / "WAFishMap/Resources/river_stats.json"
+USGS_SITE = "https://waterservices.usgs.gov/nwis/site/"
 
 
 def fetch_page(offset: int, where: str = RIVER_WHERE) -> dict:
@@ -213,44 +229,125 @@ def round_line(line: list[list[float]]) -> list[list[float]]:
     return deduped
 
 
+def km_between(a: list[float], b: list[float]) -> float:
+    """Equirectangular; over tens of km in Washington the error is a few metres."""
+    mid = math.radians((a[1] + b[1]) / 2)
+    dx = math.radians(b[0] - a[0]) * math.cos(mid)
+    dy = math.radians(b[1] - a[1])
+    return 6371.0 * math.hypot(dx, dy)
+
+
+def gap_runs(lines: list[list[list[float]]], km: float) -> list[list[int]]:
+    """Group a river's lines whose endpoints lie within `km` of each other."""
+    parent = list(range(len(lines)))
+
+    def find(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    ends = [(line[0], line[-1]) for line in lines]
+    for i in range(len(lines)):
+        for j in range(i + 1, len(lines)):
+            if find(i) == find(j):
+                continue
+            if any(km_between(p, q) <= km for p in ends[i] for q in ends[j]):
+                parent[find(i)] = find(j)
+    groups: dict[int, list[int]] = {}
+    for index in range(len(lines)):
+        groups.setdefault(find(index), []).append(index)
+    return list(groups.values())
+
+
 def build(features: list[dict], rings: list[list[list[float]]]) -> dict:
-    rivers: dict[str, dict] = {}
+    rivers: dict[str, list[tuple[list[list[float]], int, float]]] = {}
     for feature in features:
         props = feature.get("properties") or {}
         name = (props.get("GNIS_NAME") or "").strip()
         geometry = feature.get("geometry")
         if not name or not geometry:
             continue
-        river = rivers.setdefault(name, {"lines": [], "order": 0, "lengthKm": 0.0})
-        for line in segments(geometry):
-            if len(line) >= 2:
-                river["lines"].append(round_line(line))
-        river["order"] = max(river["order"], int(props.get("StreamOrde") or 0))
-        river["lengthKm"] += float(props.get("LENGTHKM") or 0.0)
+        lines = [round_line(line) for line in segments(geometry) if len(line) >= 2]
+        lines = [line for line in lines if len(line) >= 2]
+        if not lines:
+            continue
+        share = float(props.get("LENGTHKM") or 0.0) / len(lines)
+        for line in lines:
+            rivers.setdefault(name, []).append((line, int(props.get("StreamOrde") or 0), share))
 
     out = []
     for name in sorted(rivers):
-        river = rivers[name]
-        lines = [line for line in river["lines"] if len(line) >= 2]
-        if not lines or river["lengthKm"] < MIN_LENGTH_KM:
-            continue
-        if not touches_state(lines, rings):
-            continue
-        lines.sort()
-        out.append(
-            {
-                "type": "Feature",
-                "geometry": {"type": "MultiLineString", "coordinates": lines},
-                "properties": {
-                    "id": name,
-                    "kind": "river",
-                    "name": name,
-                    "streamOrder": river["order"],
-                    "lengthKm": round(river["lengthKm"], 1),
-                },
-            }
-        )
+        parts = rivers[name]
+        runs = []
+        for group in gap_runs([part[0] for part in parts], RIVER_SPLIT_KM):
+            lines = sorted(parts[i][0] for i in group)
+            length = sum(parts[i][2] for i in group)
+            order = max(parts[i][1] for i in group)
+            if length < MIN_LENGTH_KM or not touches_state(lines, rings):
+                continue
+            runs.append((lines, order, length))
+        runs.sort(key=lambda run: run[0][0][0])
+        for lines, order, length in runs:
+            first = lines[0][0]
+            out.append(
+                {
+                    "type": "Feature",
+                    "geometry": {"type": "MultiLineString", "coordinates": lines},
+                    "properties": {
+                        # A name that still covers one river keeps the name as its
+                        # id; unrelated rivers sharing it are told apart the way
+                        # creeks are, by where the run starts.
+                        "id": name if len(runs) == 1 else f"{name}@{first[0]:.3f},{first[1]:.3f}",
+                        "kind": "river",
+                        "name": name,
+                        "streamOrder": order,
+                        "lengthKm": round(length, 1),
+                    },
+                }
+            )
     return {"type": "FeatureCollection", "features": out}
+
+
+def fetch_gauge_points(gauges: list[str]) -> dict[str, list[float]]:
+    query = urllib.parse.urlencode(
+        {"format": "rdb", "sites": ",".join(sorted(gauges)), "siteOutput": "basic"}
+    )
+    with urllib.request.urlopen(f"{USGS_SITE}?{query}", timeout=120) as response:
+        text = response.read().decode()
+    rows = [line.split("\t") for line in text.splitlines() if line and not line.startswith("#")]
+    header, body = rows[0], rows[2:]
+    site, lat, lon = header.index("site_no"), header.index("dec_lat_va"), header.index("dec_long_va")
+    return {row[site]: [float(row[lon]), float(row[lat])] for row in body}
+
+
+def mark_gauged_runs(features: list[dict]) -> None:
+    """Flow history is keyed by river name and comes from one gauge. When a name
+    was split, only the run that gauge sits on may carry it; the others would be
+    coloured by a different river's water."""
+    by_name: dict[str, list[dict]] = {}
+    for feature in features:
+        by_name.setdefault(feature["properties"]["name"], []).append(feature)
+    split = {name: runs for name, runs in by_name.items() if len(runs) > 1}
+    stats = json.loads(RIVER_STATS.read_text())["rivers"]
+    gauges = {name: stats[name]["gauge"] for name in split if name in stats}
+    if not gauges:
+        return
+    points = fetch_gauge_points(list(gauges.values()))
+    for name, gauge in gauges.items():
+        if gauge not in points:
+            raise SystemExit(f"USGS returned no location for {name}'s gauge {gauge}")
+        runs = split[name]
+
+        def distance(feature: dict, at: list[float] = points[gauge]) -> float:
+            return min(
+                km_between(point, at)
+                for line in feature["geometry"]["coordinates"]
+                for point in line
+            )
+
+        nearest = min(runs, key=distance)
+        nearest["properties"]["gauged"] = True
 
 
 def connected_runs(parts: list[tuple[list[list[float]], int, float]]) -> list[list[int]]:
@@ -346,6 +443,17 @@ def main() -> int:
 
     collection = build(features, rings)
     found = {feature["properties"]["name"] for feature in collection["features"]}
+    run_counts: dict[str, int] = {}
+    for feature in collection["features"]:
+        run_counts[feature["properties"]["name"]] = run_counts.get(feature["properties"]["name"], 0) + 1
+    wrong_split = sorted(name for name in EXPECTED_SPLIT if run_counts.get(name, 0) < 2)
+    wrong_whole = sorted(name for name in EXPECTED_WHOLE if run_counts.get(name, 0) != 1)
+    if wrong_split or wrong_whole:
+        raise SystemExit(
+            f"RIVER_SPLIT_KM drifted: not split {wrong_split}, wrongly split {wrong_whole}"
+        )
+    print(f"Locating gauges for {sum(1 for n in run_counts.values() if n > 1)} split rivers…", file=sys.stderr)
+    mark_gauged_runs(collection["features"])
 
     print("Fetching NHD small-scale named creeks…", file=sys.stderr)
     try:

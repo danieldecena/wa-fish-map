@@ -24,7 +24,7 @@ struct RiverDetailSheet: View {
     /// Rows curated for this exact waterbody. Most rivers have none — the tier
     /// holds one row today — and none is the honest answer, not a gap to fill.
     private var waterbodySpecies: [SpeciesSeason] {
-        river.kind == .river ? guide?.freshwater?.byWaterbody?[river.name] ?? [] : []
+        river.resolvesWaterbody ? guide?.freshwater?.byWaterbody?[river.name] ?? [] : []
     }
 
     var body: some View {

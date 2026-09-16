@@ -11,10 +11,26 @@ import Foundation
 struct River: Identifiable, Equatable, Sendable {
     /// Unique per drawn feature. A river's id is its name; a creek's adds where
     /// its run starts, because Washington has many unrelated creeks per name
-    /// ("Rock Creek" is six separate features).
+    /// ("Rock Creek" is six separate features). A river name that covers
+    /// unrelated rivers (two Green Rivers) is split the same way.
     let id: String
     let name: String
     let kind: Kind
+    /// Set by the build on the one run of a split river that its USGS gauge
+    /// sits on. Meaningless for a river that was not split.
+    let gauged: Bool
+
+    /// One of several unrelated rivers sharing this name.
+    var isSplit: Bool { kind == .river && id != name }
+
+    /// Only a whole, uniquely named river can be a waterbody key. Creeks and
+    /// split rivers share their name with unrelated water.
+    var resolvesWaterbody: Bool { kind == .river && !isSplit }
+
+    /// Whether data keyed by the river's *name* (flow history, a gauge, a
+    /// waterbody note) is true of this feature. A split run is only the right
+    /// river for its gauge, and never for a note, which cannot say which one.
+    var ownsNameGauge: Bool { kind == .river && (!isSplit || gauged) }
 
     enum Kind: String, Sendable {
         case river, creek
@@ -92,12 +108,14 @@ struct River: Identifiable, Equatable, Sendable {
         let name: String
         let streamOrder: Int
         let lengthKm: Double
+        let gauged: Bool?
     }
 
     init(name: String, streamOrder: Int, lengthKm: Double, lines: [[LonLat]],
-         id: String? = nil, kind: Kind = .river) {
+         id: String? = nil, kind: Kind = .river, gauged: Bool = false) {
         self.id = id ?? name
         self.kind = kind
+        self.gauged = gauged
         self.name = name
         self.streamOrder = streamOrder
         self.lengthKm = lengthKm
@@ -127,6 +145,7 @@ struct River: Identifiable, Equatable, Sendable {
         self.init(name: feature.properties.name, streamOrder: feature.properties.streamOrder,
                   lengthKm: feature.properties.lengthKm, lines: parsed,
                   id: feature.properties.id,
-                  kind: feature.properties.kind.flatMap(Kind.init(rawValue:)) ?? .river)
+                  kind: feature.properties.kind.flatMap(Kind.init(rawValue:)) ?? .river,
+                  gauged: feature.properties.gauged ?? false)
     }
 }

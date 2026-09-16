@@ -125,8 +125,8 @@ struct FishingMapView: View {
         .modifier(AdaptiveDetail(item: selectedRiverBinding) { river in
             RiverDetailSheet(
                 river: river,
-                stats: model.riverStats[river.name],
-                flow: model.flow(forRiver: river.name),
+                stats: model.stats(for: river),
+                flow: model.flow(for: river),
                 flowsLoaded: model.riverFlowsLoaded,
                 guide: model.guide,
                 planDate: planDate
@@ -170,6 +170,7 @@ struct FishingMapView: View {
             // Before `load`: it publishes the guide ahead of its network awaits.
             model.setPlanYear(currentYear)
             await model.load()
+            if let river = model.initialRiverID { selectedRiverID = river }
             recomputeHeatZones()
         }
         .onChange(of: heatVisible) { recomputeHeatZones() }
@@ -438,6 +439,7 @@ struct FishingMapView: View {
                 .buttonStyle(.borderless)
                 .accessibilityLabel("About this guidance")
                 .accessibilityHint("Opens guidance disclaimer and WDFW link")
+                .accessibilityIdentifier("guidanceInfoButton")
                 .popover(isPresented: $showDisclaimer, arrowEdge: .bottom) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Tap a launch for what's biting. Guidance only — verify seasons in the Fish Washington app.")
@@ -450,6 +452,7 @@ struct FishingMapView: View {
                                 Label("Verify seasons & limits at WDFW", systemImage: "exclamationmark.shield")
                                     .font(.caption.weight(.semibold))
                             }
+                            .accessibilityIdentifier("wdfwLink")
                         }
                     }
                     .padding()

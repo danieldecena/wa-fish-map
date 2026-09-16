@@ -4,30 +4,9 @@
 - [ ] [you] TestFlight: add both to the Internal group once they activate
 - [ ] [you] Re-invite Pauline at her Apple Account address
 - [ ] Spokane River row gated on WDFW, docs, verify
-- [x] Verify flow stats against USGS source
-- [x] Seed or hide the Oregon marine polygon (hidden)
-- [x] Add PrivacyInfo privacy manifest — 492a874
-- [x] Audit location permission strings — 74cb109
-- [x] Attribution: Apple Weather mark and data credits — c705807
-- [ ] UI test: disclaimer and WDFW link on every sheet
-- [x] Weather: plan past last forecast hour shows last hour
-- [x] Empty MPA layer reads as "clear" at every site
-- [ ] iPad buoy section keeps previous site's reading
-- [x] USGS fetch failure blamed on "gauge not reporting"
-- [x] Empty live WDFW layer shows "0 access sites"
-- [x] Pier fetch failure is invisible (try? swallowed)
-- [x] Weather cache has no age; refetch after ~1 h
-- [x] Weather: cancelled fetch can write the old hour
-- [x] Opening map frames Washington with no WA location fix — d2a106a
-- [x] VoiceOver labels: pins, clusters, legends, rating badge
 - [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
-- [x] No location fix: map stays on North America, never frames WA — #16, #17
 - [ ] Final data pass and updated stamp
 - [ ] [you] App name, subtitle, category, age rating
-- [x] Info button 44pt hit target + navigation disclaimer in chrome/footer
-- [x] Draft privacy policy + App Store listing copy — docs/app-store/
-- [x] Screenshot helper script — scripts/app_store_screenshots.sh
-- [x] Merge weather hour/cache/cancel fixes — PR #19
 - [ ] Privacy policy page (host is your call) — draft in docs/app-store/privacy-policy.md
 - [ ] Store description, keywords, review notes — draft in docs/app-store/listing-draft.md
 - [ ] App Store screenshots from uiTesting fixtures — scripts/app_store_screenshots.sh
@@ -38,25 +17,49 @@
 - [ ] Layered OS27 app icon (3 SVG layers, Icon Composer)
 - [ ] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
 
+- [ ] MapCoordinatorTests recentre test hung 10 min under load
+- [ ] Inland pins all Good in Sept: statewide list is uniform
+- [ ] Shared simulator relaunches test host mid-run
+
+## Completed
+
+### 2026-09-16 — cleared from Tasks (goal run)
+
+- [x] Verify flow stats against USGS source
+- [x] Seed or hide the Oregon marine polygon (hidden)
+- [x] Add PrivacyInfo privacy manifest — 492a874
+- [x] Audit location permission strings — 74cb109
+- [x] Attribution: Apple Weather mark and data credits — c705807
+- [x] UI test: disclaimer and WDFW link on every sheet
+- [x] Weather: plan past last forecast hour shows last hour
+- [x] Empty MPA layer reads as "clear" at every site
+- [x] iPad buoy section keeps previous site's reading
+- [x] USGS fetch failure blamed on "gauge not reporting"
+- [x] Empty live WDFW layer shows "0 access sites"
+- [x] Pier fetch failure is invisible (try? swallowed)
+- [x] Weather cache has no age; refetch after ~1 h
+- [x] Weather: cancelled fetch can write the old hour
+- [x] Opening map frames Washington with no WA location fix — d2a106a
+- [x] VoiceOver labels: pins, clusters, legends, rating badge
+- [x] No location fix: map stays on North America, never frames WA — #16, #17
+- [x] Info button 44pt hit target + navigation disclaimer in chrome/footer
+- [x] Draft privacy policy + App Store listing copy — docs/app-store/
+- [x] Screenshot helper script — scripts/app_store_screenshots.sh
+- [x] Merge weather hour/cache/cancel fixes — PR #19
 - [x] Shore snap: saltwater piers/launches no longer freshwater
 - [x] Verify species weights (7 adjusted; 6 no source found)
 - [x] Watch fish silhouettes on screen (Dash Point, Crescent Lake)
-- [ ] Watch the Closed badge in a closed pier sheet
-- [ ] MapCoordinatorTests recentre test hung 10 min under load
-- [ ] Inland pins all Good in Sept: statewide list is uniform
+- [x] Watch the Closed badge in a closed pier sheet
 - [x] Look at creeks on screen with Rivers on (PR #17)
 - [x] Creek sheet says "No USGS gauge on this river"
 - [x] Creek filter drops small fished creeks (order<3, <10 km)
 - [x] Confirm PR #17 "unstable" is the CI billing block (moot: merged, checks pass)
-- [ ] Same-name rivers still merge (two Green Rivers)
-- [ ] Shared simulator relaunches test host mid-run
+- [x] Same-name rivers still merge (two Green Rivers)
 - [x] Review and merge PR #17 — 9b3a4fb
-- [ ] Key river stats/flow by id before any creek gets a gauge
-- [ ] Filter rivers once in indexWaterbodies, not per site
+- [x] Key river stats/flow by id before any creek gets a gauge
+- [x] Filter rivers once in indexWaterbodies, not per site
 - [x] Live load shows no false "piers unavailable" (PR #18)
-- [ ] [you] Review and merge PR #18
-
-## Completed
+- [x] [you] Review and merge PR #18
 
 ### 2026-09-16 — cleared from Tasks
 

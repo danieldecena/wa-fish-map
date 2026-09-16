@@ -145,9 +145,11 @@ struct GuidanceFooter: View {
                     Label("Verify seasons & limits at WDFW", systemImage: "exclamationmark.shield")
                         .font(.subheadline.weight(.semibold))
                 }
+                .accessibilityIdentifier("wdfwLink")
             }
             if let disclaimer = guide?.disclaimer {
                 Text(disclaimer).font(.caption).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("guidanceDisclaimer")
             }
             Text("Not for navigation or safety decisions.")
                 .font(.caption)
@@ -159,6 +161,8 @@ struct GuidanceFooter: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.yellow.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("guidanceFooter")
     }
 }
 
@@ -430,5 +434,6 @@ struct PierDetailSheet: View {
             .navigationTitle(pier.name)
             .navigationBarTitleDisplayMode(.inline)
         }
+        .accessibilityIdentifier("pierDetailSheet")
     }
 }

@@ -27,7 +27,7 @@ struct BuoyConditionsView: View {
                     .accessibilityIdentifier("buoySection")
                 content
             }
-            .task(id: stationKey) { await load() }
+            .task(id: siteKey) { await load() }
         }
     }
 
@@ -78,8 +78,10 @@ struct BuoyConditionsView: View {
         }
     }
 
-    /// Re-fetches when the sheet moves to a site near a different buoy.
-    private var stationKey: String { station?.id ?? "\(coordinate.longitude),\(coordinate.latitude)" }
+    /// Keyed on the site, not the station: the iPad detail column keeps this view
+    /// alive across sites, and a key that became the station id once loaded
+    /// never changed again, so the previous site's reading stayed on screen.
+    private var siteKey: String { "\(coordinate.longitude),\(coordinate.latitude)" }
 
     private static let age: RelativeDateTimeFormatter = {
         let f = RelativeDateTimeFormatter()
@@ -88,7 +90,10 @@ struct BuoyConditionsView: View {
     }()
 
     private func load() async {
-        guard isMarine, observation == nil, !failed else { return }
+        guard isMarine else { return }
+        station = nil
+        observation = nil
+        failed = false
         do {
             let stations = try NDBCLoader.loadStations(from: bundle)
             guard let nearest = NDBCLoader.nearest(to: coordinate, in: stations) else {
@@ -97,8 +102,11 @@ struct BuoyConditionsView: View {
             }
             station = nearest
             let data = try await client.data(from: NDBCLoader.observationsURL(stationID: nearest.id))
+            guard !Task.isCancelled else { return }
             observation = try NDBCLoader.decodeLatest(data, stationID: nearest.id)
         } catch {
+            // A fetch superseded by a site change is not a failed read.
+            guard !Task.isCancelled else { return }
             failed = true
         }
     }

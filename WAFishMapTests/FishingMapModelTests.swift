@@ -35,6 +35,30 @@ struct FishingMapModelTests {
         #expect(model.guide?.area(named: "7")?.rating(inMonth: 8, species: "Pink Salmon") == .poor)
     }
 
+    /// One gauge, two rivers with its name: only the run the gauge sits on is
+    /// coloured, and colours are keyed by feature id, not name.
+    @Test @MainActor func aSplitRiverColoursOnlyTheRunItsGaugeSitsOn() {
+        let model = FishingMapModel()
+        let line = [[LonLat(longitude: -122.3, latitude: 47.4), LonLat(longitude: -122.2, latitude: 47.4)]]
+        let gauged = River(name: "Green River", streamOrder: 5, lengthKm: 90, lines: line,
+                           id: "Green River@-122.300,47.400", gauged: true)
+        let other = River(name: "Green River", streamOrder: 4, lengthKm: 40, lines: line,
+                          id: "Green River@-122.600,46.400")
+        model.rivers = [gauged, other]
+        model.riverStats = ["Green River": RiverFlowStats(
+            gauge: "12113000", gaugeName: "GREEN RIVER NEAR AUBURN, WA", hasTemp: false,
+            beginYear: 1937, endYear: 2026, percentiles: ["p10", "p25", "p50", "p75", "p90"],
+            months: ["9": [[1000, 2000, 3000, 4000, 5000]]])]
+        model.riverFlows = ["12113000": RiverFlow(gauge: "12113000", gaugeName: "GREEN RIVER NEAR AUBURN, WA",
+                                                  discharge: 3000, dischargeAt: nil,
+                                                  waterTempC: nil, waterTempAt: nil)]
+        let ratings = model.riverRatings(month: 9, day: 1)
+        #expect(Set(ratings.keys) == [gauged.id])
+        #expect(model.stats(for: other) == nil)
+        #expect(model.flow(for: other) == nil)
+        #expect(model.flow(for: gauged)?.discharge == 3000)
+    }
+
     @Test @MainActor func launchesAreMappedToTheirMarineAreaByPolygon() async throws {
         let model = FishingMapModel()
         let bundle = try #require(FixtureBundle.loader)
