@@ -116,8 +116,8 @@ struct HeatMapTests {
         }
         points.append((LonLat(longitude: -117.40, latitude: 47.60), HeatMap.weight(for: .excellent)))
         let zones = HeatMap.zones(points: points, cellDegrees: 0.15)
-        let excellentCellZone = zones.first { $0.center.longitude < -120 }
-        let poorCellZone = zones.first { $0.center.longitude > -120 }
+        let poorCellZone = zones.first { $0.center.longitude < -120 }
+        let excellentCellZone = zones.first { $0.center.longitude > -120 }
         #expect(excellentCellZone != nil)
         #expect(poorCellZone != nil)
         #expect(excellentCellZone!.intensity > poorCellZone!.intensity)

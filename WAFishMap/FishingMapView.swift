@@ -417,7 +417,6 @@ struct FishingMapView: View {
                         .font(.caption)
                         .frame(minWidth: 44, minHeight: 44)
                         .contentShape(Rectangle())
-                        .padding(-15)
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel("About this guidance")

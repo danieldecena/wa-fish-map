@@ -32,10 +32,10 @@ enum HeatMap {
     /// are, never raw access-point density (no catch/visitation heatmap).
     static func weight(for rating: FishingRating?) -> Double {
         switch rating {
-        case .excellent: 2.0
-        case .good: 1.6
-        case .fair: 1.2
-        case .poor, nil: 1.0
+        case .excellent: 3
+        case .good: 2
+        case .fair: 1
+        case .poor, nil: 0
         }
     }
 

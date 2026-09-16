@@ -1,0 +1,20 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.72703013153246,
+          47.10036318022307
+        ]
+      },
+      "properties": {
+        "GeoWeb.dbo.Fish_MapsPiers_V.PierName": "Luhr's Beach Dock (CLOSED)",
+        "GeoWeb.dbo.Fish_MapsPiers_V.CountyFIPSName": "Thurston",
+        "GeoWeb.dbo.Fish_MapsPiers_V.WebsiteURL": "http://wdfw.wa.gov/fishing/piers/52"
+      }
+    }
+  ]
+}
