@@ -6,7 +6,8 @@
 - [ ] [you] App Store screenshots in ASC (0 of 10) — PNGs in docs/app-store/screenshots/; resume when app ready
 - [x] [you] App Privacy questionnaire — Precise Location / App Functionality / not linked / not tracking
 - [x] Archive and upload release build — ASC build 2 (1.0)
-- [ ] [you] Decide privacy label: Precise Location collected?
+- [x] [you] ASC App Privacy: set Location to Data Not Collected
+- [ ] [you] Upload a build with PR #41's manifest before submitting
 - [ ] [you] Submit for App Store review — paused until app done
 - [ ] [you] Release to the App Store
 
