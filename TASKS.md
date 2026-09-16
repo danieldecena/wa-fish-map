@@ -9,8 +9,6 @@
 - [x] Archive and upload release build — ASC build 2 (1.0)
 - [ ] [you] Submit for App Store review — paused until app done
 - [ ] [you] Release to the App Store
-- [ ] Layered OS27 app icon (3 SVG layers, Icon Composer)
-- [ ] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
 
 - [ ] MapCoordinatorTests recentre test hung 10 min under load
 - [ ] Inland pins all Good in Sept: statewide list is uniform
@@ -18,6 +16,9 @@
 - [ ] Shared simulator relaunches test host mid-run
 
 ## Completed
+
+- [x] Layered app icon — 439e377 (render checked 2026-09-16)
+- [x] Fix app icon via generator script — 86f630f
 
 - [x] Final data pass against WDFW (3 reports in docs/research)
 - [x] Spokane River row refused (logged 2026-09-16)
