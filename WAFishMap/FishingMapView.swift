@@ -130,7 +130,8 @@ struct FishingMapView: View {
                 isMarine: model.isMarine(pier),
                 guide: model.guide,
                 planDate: planDate,
-                protectedAreaCheck: model.protectedAreaCheck(for: pier)
+                protectedAreaCheck: model.protectedAreaCheck(for: pier),
+                species: selectedSpecies
             )
         })
         .overlay {
