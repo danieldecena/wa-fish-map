@@ -25,6 +25,11 @@ final class FishingMapModel {
     /// launches, which have no marine area and therefore a neutral rating.
     private(set) var siteAreaName: [AccessSite.ID: String] = [:]
 
+    /// Inland launch → the waterbody it sits on (curated list, else nearest river).
+    /// Precomputed: resolving scans river geometry, too slow for every pin render.
+    private(set) var siteWaterbody: [AccessSite.ID: String] = [:]
+    private(set) var pierWaterbody: [FishingPier.ID: String] = [:]
+
     /// Pier → containing marine area, same point-in-polygon index as launches so pier
     /// markers and heat zones don't re-scan every polygon on each render.
     private(set) var pierAreaName: [FishingPier.ID: String] = [:]
@@ -82,7 +87,7 @@ final class FishingMapModel {
         }
         return guide?.freshwater?.fishery(
             county: site.countyName,
-            waterbody: guide?.freshwater?.waterbody(forFacility: site.facilityName)
+            waterbody: siteWaterbody[site.id]
         )
     }
 
@@ -105,7 +110,7 @@ final class FishingMapModel {
         }
         return guide?.freshwater?.fishery(
             county: pier.countyName,
-            waterbody: guide?.freshwater?.waterbody(forFacility: pier.name)
+            waterbody: pierWaterbody[pier.id]
         )
     }
 
@@ -131,6 +136,7 @@ final class FishingMapModel {
         loadRivers(bundle: bundle)
         loadRiverStats(bundle: bundle)
         indexSitesToAreas()
+        indexWaterbodies()
         statusMessage = "Washington · offline sample"
     }
 
@@ -157,6 +163,7 @@ final class FishingMapModel {
             marineAreas = MapScope.filter(marineAreas: try WDFWLayerLoader.marineAreas(from: await marineData))
             accessSites = MapScope.filter(accessSites: try WDFWLayerLoader.accessSites(from: await siteData))
             indexSitesToAreas()
+            indexWaterbodies()
             statusMessage = "Washington · \(accessSites.count) access sites · live WDFW data"
         } catch {
             do {
@@ -186,6 +193,7 @@ final class FishingMapModel {
            let loaded = try? WDFWLayerLoader.piers(from: pierData) {
             piers = loaded
             indexPiersToAreas()
+            indexWaterbodies()
             // Piers load after the MPA layer, so their MPA index is built here.
             // Indexing inside the MPA block would always see zero piers.
             indexPiersToProtectedAreas()
@@ -241,6 +249,21 @@ final class FishingMapModel {
             }
         }
         pierAreaName = map
+    }
+
+    /// Must run after the guide, rivers and marine-area indexes are in place.
+    func indexWaterbodies() {
+        let freshwater = guide?.freshwater
+        var sites: [AccessSite.ID: String] = [:]
+        for site in accessSites where siteAreaName[site.id] == nil {
+            sites[site.id] = freshwater?.waterbody(forFacility: site.facilityName, at: site.coordinate, rivers: rivers)
+        }
+        siteWaterbody = sites
+        var piersMap: [FishingPier.ID: String] = [:]
+        for pier in piers where pierAreaName[pier.id] == nil {
+            piersMap[pier.id] = freshwater?.waterbody(forFacility: pier.name, at: pier.coordinate, rivers: rivers)
+        }
+        pierWaterbody = piersMap
     }
 
     /// Loads the curated guide from the bundle. Absence is non-fatal — the map still
