@@ -27,10 +27,21 @@ struct DirectionsButton: View {
     let name: String
     let coordinate: LonLat
 
+    /// iOS 18.4 adopted Apple's unified Maps URLs. Its `/directions` path lists no
+    /// name parameter, so the spot's name rides only on the legacy link.
     static func url(name: String, coordinate: LonLat) -> URL? {
+        let destination = "\(coordinate.latitude),\(coordinate.longitude)"
+        if #available(iOS 18.4, *) {
+            var components = URLComponents(string: "https://maps.apple.com/directions")
+            components?.queryItems = [
+                URLQueryItem(name: "destination", value: destination),
+                URLQueryItem(name: "mode", value: "driving"),
+            ]
+            return components?.url
+        }
         var components = URLComponents(string: "https://maps.apple.com/")
         components?.queryItems = [
-            URLQueryItem(name: "daddr", value: "\(coordinate.latitude),\(coordinate.longitude)"),
+            URLQueryItem(name: "daddr", value: destination),
             URLQueryItem(name: "dirflg", value: "d"),
             URLQueryItem(name: "q", value: name),
         ]

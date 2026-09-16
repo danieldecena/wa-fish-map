@@ -58,6 +58,12 @@ struct FishingMapRepresentable: UIViewRepresentable {
     /// A one-shot camera move requested by the view (the recentre-on-fix ease).
     /// The coordinator applies it and clears it.
     @Binding var focusRegion: MKCoordinateRegion?
+    /// Set by the recentre button. The coordinator resolves where to go (the
+    /// map's live user location, else `locationFix`) and clears it.
+    @Binding var recenterRequested: Bool
+    /// The one-shot CoreLocation fix. Only a fallback for the recentre button,
+    /// because it is never refreshed after launch.
+    let locationFix: CLLocationCoordinate2D?
 
     /// Washington's bounding box (45.5-49.1 N, 124.9-116.9 W), the same box
     /// `FishingMapView` uses to decide whether a location fix is in the state.
@@ -131,6 +137,7 @@ struct FishingMapRepresentable: UIViewRepresentable {
         context.coordinator.syncAnnotations(mapView)
         context.coordinator.syncSelection(mapView)
         context.coordinator.applyFocusRegionIfNeeded(mapView)
+        context.coordinator.applyRecenterIfNeeded(mapView)
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -511,6 +518,32 @@ struct FishingMapRepresentable: UIViewRepresentable {
                 self.parent.focusRegion = nil
                 mapView.setRegion(region, animated: true)
             }
+        }
+
+        /// Recentre on where the user is now. `requestLocation()` delivers one fix
+        /// and stops, so `locationFix` is wherever the app launched; the map keeps
+        /// `userLocation` current for as long as `showsUserLocation` is on.
+        func applyRecenterIfNeeded(_ mapView: MKMapView) {
+            guard parent.recenterRequested else { return }
+            let center = Self.recenterCoordinate(live: mapView.userLocation.location?.coordinate,
+                                                 fix: parent.locationFix)
+            if center != nil { hasAppliedFocusRegion = true }
+            DispatchQueue.main.async {
+                self.parent.recenterRequested = false
+                guard let center else { return }
+                self.parent.userMovedCamera = true
+                mapView.setRegion(MKCoordinateRegion(
+                    center: center,
+                    span: MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)
+                ), animated: true)
+            }
+        }
+
+        /// The live map location wins; the launch fix is only for before the map
+        /// has one. Nil when neither exists, and the button does nothing.
+        static func recenterCoordinate(live: CLLocationCoordinate2D?,
+                                       fix: CLLocationCoordinate2D?) -> CLLocationCoordinate2D? {
+            live ?? fix
         }
 
         func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {

@@ -196,12 +196,11 @@
         {
           "species": "Market Squid",
           "bestMonths": [
-            11,
             12,
             1
           ],
           "goodMonths": [
-            10,
+            11,
             2
           ],
           "bait": "Glow squid jigs under a light",
@@ -307,6 +306,20 @@
           "goodMonths": [],
           "bait": "Heavy jigs near rocky structure",
           "bestTime": "Daytime at slack current"
+        },
+        {
+          "species": "Chinook Salmon (summer hatchery)",
+          "bestMonths": [
+            7,
+            8
+          ],
+          "goodMonths": [
+            6,
+            9
+          ],
+          "bait": "Cut-plug herring, or flasher and squid trolled deep",
+          "note": "Marked-hatchery-only openers announced by WDFW; check current dates and marking rules.",
+          "bestTime": "Early morning"
         }
       ]
     },
@@ -398,6 +411,17 @@
           "goodMonths": [],
           "bait": "Heavy jigs near structure",
           "bestTime": "Daytime at slack current"
+        },
+        {
+          "species": "Chinook Salmon (summer hatchery)",
+          "bestMonths": [
+            7,
+            8
+          ],
+          "goodMonths": [],
+          "bait": "Cut-plug herring, or flasher and squid trolled deep",
+          "note": "Marked-hatchery-only openers announced by WDFW; check current dates and marking rules.",
+          "bestTime": "Early morning"
         }
       ]
     },
@@ -509,6 +533,7 @@
             1
           ],
           "goodMonths": [
+            9,
             10,
             2
           ],
@@ -573,6 +598,21 @@
           "goodMonths": [],
           "bait": "Heavy jigs near structure",
           "bestTime": "Daytime at slack current"
+        },
+        {
+          "species": "Halibut",
+          "bestMonths": [
+            5,
+            6
+          ],
+          "goodMonths": [
+            4,
+            8,
+            9
+          ],
+          "bait": "Herring, octopus, or jigs on bottom",
+          "note": "WDFW-announced days in a spring window and a late-summer reopener, quota-dependent.",
+          "bestTime": "Slack tide"
         }
       ]
     },
@@ -677,6 +717,36 @@
           ],
           "bait": "Sand shrimp or Gulp on a high-low rig from the surf",
           "bestTime": "Incoming tide, morning & evening"
+        },
+        {
+          "species": "Halibut",
+          "bestMonths": [
+            5
+          ],
+          "goodMonths": [
+            6,
+            8,
+            9
+          ],
+          "bait": "Herring or jigs on bottom",
+          "note": "Spring window and a late-summer reopener, quota-dependent; confirm dates with WDFW.",
+          "bestTime": "Slack tide"
+        },
+        {
+          "species": "Black Rockfish",
+          "bestMonths": [
+            5,
+            6,
+            7
+          ],
+          "goodMonths": [
+            4,
+            8,
+            9
+          ],
+          "bait": "Jigs or bait on rocky structure",
+          "note": "Coastal bottomfish season set annually; copper, quillback and vermilion rockfish are release-only part of the year here.",
+          "bestTime": "Daylight, slack tide preferred"
         }
       ]
     },
@@ -858,7 +928,7 @@
             8
           ],
           "bait": "Trolled spinners or herring",
-          "note": "Grays Harbor terminal run; marine area is often Chinook-release, best in the rivers.",
+          "note": "Grays Harbor terminal run; North Bay is mark-selective, hatchery Chinook only. Confirm current rules and dates with WDFW.",
           "bestTime": "First light through mid-morning"
         },
         {
@@ -1255,6 +1325,19 @@
           ],
           "bait": "Baited crab pot",
           "bestTime": "Daytime around slack tide"
+        },
+        {
+          "species": "Market Squid",
+          "bestMonths": [
+            7
+          ],
+          "goodMonths": [
+            6,
+            8
+          ],
+          "bait": "Squid jigs under a light at night",
+          "note": "Port Angeles City Pier summer run, a different timing from the Sound's winter squid.",
+          "bestTime": "After dark"
         }
       ]
     },
@@ -1322,6 +1405,17 @@
           ],
           "bait": "Baited crab pot",
           "bestTime": "Daytime around slack tide"
+        },
+        {
+          "species": "Spot Shrimp",
+          "bestMonths": [
+            5,
+            6
+          ],
+          "goodMonths": [],
+          "bait": "Baited pots, 200-300 ft",
+          "note": "Short WDFW-announced openers in late spring and early summer; check current dates.",
+          "bestTime": "Morning soak, midday pull"
         }
       ]
     },
@@ -1541,21 +1635,6 @@
         "bestTime": "Early morning & dusk; night in summer"
       },
       {
-        "species": "Kokanee",
-        "bestMonths": [
-          5,
-          6,
-          7
-        ],
-        "goodMonths": [
-          4,
-          8
-        ],
-        "bait": "Trolled pink hoochie/dodger tipped with corn",
-        "note": "Troll deeper as water warms.",
-        "bestTime": "Early morning, before the sun is high"
-      },
-      {
         "species": "Cutthroat Trout",
         "bestMonths": [
           4,
@@ -1592,36 +1671,6 @@
       ],
       "Grant": [
         {
-          "species": "Walleye",
-          "bestMonths": [
-            6,
-            7,
-            8
-          ],
-          "goodMonths": [
-            5,
-            9
-          ],
-          "bait": "Bottom-walker + worm harness, crankbaits",
-          "note": "The county's big reservoirs; best post-spawn in summer.",
-          "bestTime": "Dawn, dusk & after dark"
-        },
-        {
-          "species": "Smallmouth Bass",
-          "bestMonths": [
-            5,
-            6,
-            7
-          ],
-          "goodMonths": [
-            4,
-            8,
-            9
-          ],
-          "bait": "Tube jigs, crankbaits, drop-shot",
-          "bestTime": "Morning & evening"
-        },
-        {
           "species": "Rainbow Trout",
           "bestMonths": [
             4,
@@ -1651,20 +1700,6 @@
           ],
           "bait": "PowerBait, worms, spoons",
           "bestTime": "Early morning & evening"
-        },
-        {
-          "species": "Smallmouth Bass",
-          "bestMonths": [
-            5,
-            6,
-            7
-          ],
-          "goodMonths": [
-            8,
-            9
-          ],
-          "bait": "Tube jigs, crankbaits",
-          "bestTime": "Morning & evening"
         }
       ],
       "King": [
@@ -1812,6 +1847,74 @@
           "bestTime": "First light to mid-morning",
           "note": "Opens on a set summer date regardless of how many fish are in the lake; sockeye reach it by the Baker River trap-and-haul. Confirm dates with WDFW."
         }
+      ],
+      "Potholes Reservoir": [
+        {
+          "species": "Walleye",
+          "bestMonths": [
+            6,
+            7,
+            8
+          ],
+          "goodMonths": [
+            5,
+            9
+          ],
+          "bait": "Bottom-walker + worm harness, crankbaits",
+          "note": "WDFW lists walleye in this warmwater-emphasis reservoir; its level rises and falls with irrigation.",
+          "bestTime": "Dawn, dusk & after dark"
+        }
+      ],
+      "Moses Lake": [
+        {
+          "species": "Walleye",
+          "bestMonths": [
+            6,
+            7,
+            8
+          ],
+          "goodMonths": [
+            5,
+            9
+          ],
+          "bait": "Bottom-walker + worm harness, crankbaits",
+          "note": "WDFW lists walleye in this warmwater-emphasis lake.",
+          "bestTime": "Dawn, dusk & after dark"
+        }
+      ],
+      "Banks Lake": [
+        {
+          "species": "Walleye",
+          "bestMonths": [
+            6,
+            7,
+            8
+          ],
+          "goodMonths": [
+            5,
+            9
+          ],
+          "bait": "Bottom-walker + worm harness, crankbaits",
+          "note": "WDFW lists walleye in this large warmwater-emphasis reservoir.",
+          "bestTime": "Dawn, dusk & after dark"
+        }
+      ],
+      "Billy Clapp Lake": [
+        {
+          "species": "Walleye",
+          "bestMonths": [
+            6,
+            7,
+            8
+          ],
+          "goodMonths": [
+            5,
+            9
+          ],
+          "bait": "Bottom-walker + worm harness, crankbaits",
+          "note": "WDFW lists walleye in this warmwater-emphasis reservoir; it is drawn down each fall for irrigation.",
+          "bestTime": "Dawn, dusk & after dark"
+        }
       ]
     },
     "waterbodySites": {
@@ -1820,6 +1923,29 @@
         "Baker Lake Resort",
         "Horseshoe Cove",
         "Kulshan Campground"
+      ],
+      "Potholes Reservoir": [
+        "Blythe",
+        "Glen Williams",
+        "Lind Coulee Bridge",
+        "Lind Coulee East",
+        "Lind Coulee Island",
+        "Lind Coulee Point",
+        "Medicare Beach",
+        "Sampson's Pit"
+      ],
+      "Moses Lake": [
+        "Moses Lake"
+      ],
+      "Banks Lake": [
+        "Ankeny N",
+        "Ankeny S",
+        "Barker Canyon",
+        "Million Dollar Mile N",
+        "Million Dollar Mile S"
+      ],
+      "Billy Clapp Lake": [
+        "Billy Clapp Lake"
       ]
     }
   }
