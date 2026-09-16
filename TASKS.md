@@ -1,19 +1,17 @@
 ## Tasks
 
-- [ ] Fix the 28 strict-concurrency warnings (1 in USGSFlowLoader)
 - [ ] Profile launch indexing in Instruments (A7)
 - [ ] [you] TestFlight: add both to the Internal group once they activate
 - [ ] [you] Re-invite Pauline at her Apple Account address
-- [ ] [you] GitHub Actions billing blocks PR #4 CI
-- [ ] Model index for site and pier waterbodies
 - [ ] Spokane River row gated on WDFW, docs, verify
-- [ ] Stamp the remaining 6 flow-stat gates
-- [ ] Seed or hide the Oregon marine polygon
-- [ ] Add PrivacyInfo privacy manifest
-- [ ] Audit location permission strings
-- [ ] Attribution: Apple Weather mark and data credits
+- [x] Verify flow stats against USGS source
+- [x] Seed or hide the Oregon marine polygon (hidden)
+- [x] Add PrivacyInfo privacy manifest — 492a874
+- [x] Audit location permission strings — 74cb109
+- [x] Attribution: Apple Weather mark and data credits — c705807
 - [ ] UI test: disclaimer and WDFW link on every sheet
 - [ ] Offline states render unavailable, never stale
+- [x] Opening map frames Washington with no WA location fix — d2a106a
 - [ ] Accessibility pass on pins, legend, sheets
 - [ ] Final data pass and updated stamp
 - [ ] [you] App name, subtitle, category, age rating
@@ -37,6 +35,8 @@
 
 ### 2026-09-16 — cleared from Tasks
 
+- [x] Fix the 28 strict-concurrency warnings (1 in USGSFlowLoader)
+- [x] Model index for site and pier waterbodies
 - [x] Resolve the two stashes on the PR 4 branch — 6e21fb5
 - [x] Merge main into PR 4, suite green — b996199
 - [x] Map popover WDFW link, species-aware sheets, Pacific calendar

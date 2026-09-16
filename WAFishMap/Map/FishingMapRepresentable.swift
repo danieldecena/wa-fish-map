@@ -29,6 +29,10 @@ final class ProtectedAreaPolygon: MKPolygon {}
 /// marine-area polygons, "MA n" labels, heat cells, site/pier pins, the user dot.
 struct FishingMapRepresentable: UIViewRepresentable {
     let annotations: [SiteAnnotation]
+    /// Every site, drawn or not. The opening camera frames these: at the far
+    /// zoom the map starts at, the detail level hides all pins, so `annotations`
+    /// is empty exactly when the fit is needed.
+    let fitAnnotations: [SiteAnnotation]
     let areas: [MarineArea]
     /// Rating colour per `MarineArea.id`; the polygon fill/stroke.
     let areaColors: [String: Color]
@@ -391,10 +395,16 @@ struct FishingMapRepresentable: UIViewRepresentable {
             // top of a camera the user or a location fix has already claimed.
             // CoreLocation regularly answers before the WDFW fetch, and the fit
             // used to erase the recentre with no second chance to reapply it.
-            if !hasDoneInitialFit && !parent.annotations.isEmpty
+            // Framed from coordinates rather than `showAnnotations`, which would
+            // add every pin to a map zoomed out past the level that hides them.
+            if !hasDoneInitialFit && !parent.fitAnnotations.isEmpty
                 && !parent.userMovedCamera && parent.focusRegion == nil && !hasAppliedFocusRegion {
                 hasDoneInitialFit = true
-                mapView.showAnnotations(parent.annotations, animated: false)
+                let rect = parent.fitAnnotations
+                    .map { MKMapRect(origin: MKMapPoint($0.coordinate), size: MKMapSize(width: 0, height: 0)) }
+                    .reduce(MKMapRect.null) { $0.union($1) }
+                mapView.setVisibleMapRect(rect, edgePadding: UIEdgeInsets(top: 40, left: 40, bottom: 40, right: 40),
+                                          animated: false)
             }
         }
 

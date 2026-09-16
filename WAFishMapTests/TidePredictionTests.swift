@@ -2,6 +2,7 @@ import Foundation
 import Testing
 @testable import WAFishMap
 
+@MainActor
 struct TidePredictionTests {
     private static let pacific: Calendar = {
         var c = Calendar(identifier: .gregorian)

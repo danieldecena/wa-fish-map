@@ -2,8 +2,8 @@
 
 ## Confirmed working
 
-- `fisheries.json` now seeds all 16 statewide marine areas (1-8-2 + 9-13; only
-  the "Oregon" polygon is unseeded) plus 11 freshwater counties. WDFW-checked
+- `fisheries.json` now seeds all 16 statewide marine areas (1-8-2 + 9-13; the
+  "Oregon" polygon is filtered out of the map, not seeded) plus 11 freshwater counties. WDFW-checked
   2026-08-30.
 - `fisheries.json` v1 Puget Sound seed cross-checked against WDFW; corrections
   applied (see decision log).
@@ -106,18 +106,10 @@
 
 ## Known broken
 
-- PR #4's two CI checks are red for a reason that is not the code. Both jobs on
-  run `33712289921` carry the annotation *"The job was not started because
-  recent account payments have failed or your spending limit needs to be
-  increased."* The same branch passed three times at 02:45, 02:48 and 02:55 on
-  2026-09-03; the block landed at 03:41. Do not re-debug the test suite over
-  this - it is the Billing and plans section of the GitHub account.
-
 ## Next Up
 
-- **Phase 1 of the App Store plan:** the waterbody river tier is done; next are
-  the 6 unstamped flow-stat gates, then the Oregon polygon.
-- Phase 0 runs in parallel and is waiting on you: GitHub billing, then merge PR #4.
+- **Phase 1 of the App Store plan:** the waterbody river tier and the USGS flow-stat
+  check are done, and the Oregon polygon is hidden.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
@@ -157,6 +149,58 @@ current counts rather than trusting a number written here.
   runs (crash reports from a HeatMapTests test that does not exist here), and
   MapCoordinatorTests' recentre test hung 10 minutes in a full run. Run targeted
   suites, or give each worktree its own simulator.
+
+### 2026-09-16 (privacy manifest declares nothing, on purpose)
+
+- Decided: `WAFishMap/PrivacyInfo.xcprivacy` is all-empty: no tracking, no
+  collected data, no required-reason APIs. Grep found no UserDefaults, file
+  timestamp, boot-time or disk-space calls, and no third-party packages. The
+  user's location never leaves the device: WeatherKit is queried with the
+  launch site's coordinate, and WDFW/NOAA/USGS/NDBC requests carry only fixed
+  queries or station ids. Adding any of those APIs, an SDK, or a request that
+  sends the user's position means updating the manifest and the App Privacy
+  answers together. Verified the file ships in the built .app.
+
+### 2026-09-16 (the Oregon marine polygon is hidden, not seeded)
+
+- Decided: drop WDFW's "Oregon" area (North of Falcon, WAC field "Oregon's
+  Rules") in `MapScope.filter(marineAreas:)`. Oregon regulates those waters, so
+  seeding Washington guidance there would be wrong, and the user confirmed the
+  app is Washington only. Matched on `areaName`, not a WAC prefix, so a WDFW
+  format change cannot empty the whole layer. `MapScopeTests` failed with the
+  filter reverted and passed with it; unit suite 208/31 passed, rc=0.
+
+### 2026-09-16 (GitHub Actions billing dropped)
+
+- Decided: removed the GitHub Actions billing item from TASKS, Known broken and
+  Next Up at Daniel's request. PR #4 already merged (13c45d4); CI stays unrun
+  until billing is revisited.
+
+### 2026-09-16 (strict-concurrency warnings cleared)
+- Decided: clear them with isolation annotations, not code changes. The
+  immutable statics (USGS date formatter, two test regexes) are
+  `nonisolated(unsafe)`; test suites calling main-actor statics and the XCUITest
+  class are `@MainActor`. Clean build-for-testing: 0 concurrency warnings, 5
+  unrelated lint warnings left. Unit suite 198/29 passed, rc=0 (`30fd9d9`).
+- `indexWaterbodies()` cost on the live bundle is still unmeasured (plan Step 5):
+  three simulator attempts died to contention (server died, boot timeout,
+  shutting down). The instrumented build sits detached in `../wa-fish-map-timing`.
+- The project CLAUDE.md names the simulator `iPhone`; no such device exists now,
+  only `iPhone 17 Pro`.
+
+### 2026-09-16 (flow stats checked against USGS, not just on screen)
+
+- Decided: "Stamp the remaining 6 flow-stat gates" was never defined (coined once
+  on 2026-09-03). Redefined as a source check and built as
+  `scripts/verify_river_stats.py`: every bundled percentile row compared with
+  nwis/stat, and each river's live reading traced to the band it draws.
+- First run: 69 of 77 rivers matched exactly; 8 had drifted because USGS rolled in
+  water year 2026 (Chehalis 1/15 p50 5320 -> 5180). Regenerated `river_stats.json`,
+  same 77 rivers and same gauges; re-run 0 drift. The stale table was the failing
+  input, the regenerated one the passing input.
+- Swift resource tests not re-run (simulator held by another session); their
+  invariants (12 months, 5 ascending percentiles, >=10 years, 10 Feb-28-only
+  gauges) were checked on the new file in Python.
 
 ### 2026-09-16 (the waterbody river tier, and the Spokane row refused)
 

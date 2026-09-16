@@ -7,7 +7,7 @@ enum MapScope {
 
     private static let mapServer = "https://geodataservices.wdfw.wa.gov/arcgis/rest/services/FP_Projects/MajorFishingArea/MapServer"
 
-    /// All 17 marine-area polygons statewide.
+    /// All 17 marine-area polygons in the layer (16 Washington + Oregon, dropped in `filter`).
     static var marineAreasURL: URL {
         var components = URLComponents(string: "\(mapServer)/6/query")!
         components.queryItems = [
@@ -61,9 +61,11 @@ enum MapScope {
         return components.url!
     }
 
-    /// Statewide: keep every marine area.
+    /// Statewide, Washington only. The layer also carries a WDFW "Oregon" area
+    /// (North of Falcon, WAC "Oregon's Rules"): Oregon regulates it, so the app
+    /// has no guidance to give there and must not rate or link it to WDFW.
     static func filter(marineAreas: [MarineArea]) -> [MarineArea] {
-        marineAreas
+        marineAreas.filter { $0.areaName != "Oregon" }
     }
 
     /// Statewide: keep every water-access site (launches and shore access alike).

@@ -5,7 +5,8 @@ Native MapKit app. Geography overlay + curated seasonal guidance.
 ## Scope
 
 **Statewide, live.** `WAFishMap/Models/MapScope.swift` queries WDFW for *all* marine
-areas (`where=1=1`, layer 6) and *all* launches (`where=1=1`, layer 0) — no
+areas (`where=1=1`, layer 6; the "Oregon" North of Falcon area is dropped in
+`MapScope.filter` because Oregon regulates it, so the app is Washington only) and *all* launches (`where=1=1`, layer 0) — no
 county/area filter. The camera opens auto-fit (`position = .automatic`), then eases once to a regional
 span around the user's first location fix — but only if that fix is inside the
 Washington bounding box and the user has not already moved the camera. A fix
@@ -110,7 +111,7 @@ Any `xcodebuild`, `simctl` or `devicectl` run here goes through the **`ios-build
 skill** first, routine ones included — its destination and exit-status rules
 prevent failures rather than only explaining them afterwards. Source lives in
 `~/.claude/skills/ios-build/`, and the same content is a maintained page at
-<https://claude.ai/code/artifact/c4d78867-cbb6-447b-a74f-5793fcced0c0>. Most of
+<https://claude.ai/artifact/RJoLzPweAJdNpxc4YmQT5y>. Most of
 what is in it was paid for on this project. Do not re-derive it.
 
 Four are restated here in one line each, because a skill that has not loaded
