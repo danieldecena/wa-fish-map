@@ -303,31 +303,28 @@ struct FishingMapView: View {
     }
 
     private var dateControl: some View {
-        HStack(spacing: 10) {
-            Image(systemName: timeOfDay.symbol)
-                .foregroundStyle(timeOfDay.isPrimeLight ? .green : .secondary)
-            DatePicker("Plan for", selection: $planDate)
-                .labelsHidden()
-            speciesMenu
-            Spacer(minLength: 4)
-            // Measured against actual width, not size class: narrow regular contexts
-            // (iPad split view, Mac windows) crushed the hint and wrapped the button.
-            ViewThatFits(in: .horizontal) {
+        // The compact DatePicker's date and time pills ignore controlSize, so on
+        // an iPhone one row overflowed the screen and pushed the card off both
+        // edges. Measured against actual width, not size class: narrow regular
+        // contexts (iPad split view, Mac windows) need the two-row form too.
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 10) {
+                planPicker
+                speciesMenu
+                Spacer(minLength: 4)
+                timeOfDayHint
+                nowButton
+            }
+            VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 10) {
-                    VStack(alignment: .trailing, spacing: 1) {
-                        Text(timeOfDay.label).font(.caption2.weight(.semibold))
-                        Text(timeOfDay.lightHint)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
+                    planPicker
+                    Spacer(minLength: 4)
                     nowButton
                 }
                 HStack(spacing: 10) {
-                    Text(timeOfDay.label)
-                        .font(.caption2.weight(.semibold))
-                        .fixedSize()
-                    nowButton
+                    speciesMenu
+                    Spacer(minLength: 4)
+                    timeOfDayHint
                 }
             }
         }
@@ -338,6 +335,30 @@ struct FishingMapView: View {
         .frame(maxWidth: sizeClass == .regular ? 560 : .infinity, alignment: .leading)
         .modifier(GlassCard())
         .padding(sizeClass == .regular ? 12 : 8)
+    }
+
+    private var planPicker: some View {
+        HStack(spacing: 10) {
+            Image(systemName: timeOfDay.symbol)
+                .foregroundStyle(timeOfDay.isPrimeLight ? .green : .secondary)
+            DatePicker("Plan for", selection: $planDate)
+                .labelsHidden()
+        }
+    }
+
+    private var timeOfDayHint: some View {
+        ViewThatFits(in: .horizontal) {
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(timeOfDay.label).font(.caption2.weight(.semibold))
+                Text(timeOfDay.lightHint)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            Text(timeOfDay.label)
+                .font(.caption2.weight(.semibold))
+                .fixedSize()
+        }
     }
 
     private var nowButton: some View {

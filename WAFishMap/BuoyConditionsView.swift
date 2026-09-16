@@ -23,7 +23,7 @@ struct BuoyConditionsView: View {
                 // On the header text, not the enclosing VStack: an identifier on a
                 // container collapses it into one accessibility element and hides
                 // the rows inside from a UI test.
-                Text("On the water").font(.headline)
+                Text("On the water").font(DS.TypeScale.sectionTitle)
                     .accessibilityIdentifier("buoySection")
                 content
             }
@@ -34,7 +34,7 @@ struct BuoyConditionsView: View {
     @ViewBuilder private var content: some View {
         if let observation, let station, !observation.isEmpty {
             Label(station.name, systemImage: "dot.radiowaves.up.forward")
-                .font(.caption)
+                .font(DS.TypeScale.meta)
                 .foregroundStyle(.secondary)
             if let wave = observation.waveHeightMeters {
                 reading("Wave height",
@@ -47,20 +47,20 @@ struct BuoyConditionsView: View {
                         at: temp.observed)
             }
             Text("Latest NDBC buoy observation, not a forecast.")
-                .font(.caption2)
+                .font(DS.TypeScale.fineprint)
                 .foregroundStyle(.tertiary)
         } else if observation != nil {
             // The station answered and reported neither number. Saying so beats
             // rendering nothing, which reads as "nothing to report".
             Text("The nearest buoy isn't reporting waves or water temperature right now.")
-                .font(.subheadline)
+                .font(DS.TypeScale.supporting)
                 .foregroundStyle(.secondary)
         } else if failed {
             Text("Buoy conditions unavailable right now.")
-                .font(.subheadline)
+                .font(DS.TypeScale.supporting)
                 .foregroundStyle(.secondary)
             Link("Check NDBC", destination: URL(string: "https://www.ndbc.noaa.gov")!)
-                .font(.caption)
+                .font(DS.TypeScale.meta)
         } else {
             ProgressView()
         }
@@ -68,11 +68,11 @@ struct BuoyConditionsView: View {
 
     private func reading(_ label: String, _ value: String, at observed: Date) -> some View {
         HStack {
-            Text(label).font(.subheadline)
+            Text(label).font(DS.TypeScale.supporting)
             Spacer()
             Text(value).font(.subheadline.monospacedDigit())
             Text(Self.age.localizedString(for: observed, relativeTo: .now))
-                .font(.caption2)
+                .font(DS.TypeScale.fineprint)
                 .foregroundStyle(.tertiary)
                 .frame(width: 74, alignment: .trailing)
         }

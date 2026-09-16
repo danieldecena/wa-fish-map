@@ -46,28 +46,28 @@ struct RiverDetailSheet: View {
             RatingBadge(rating: rating)
             Spacer()
             Text("\(river.lengthKm, specifier: "%.0f") km in Washington")
-                .font(.caption)
+                .font(DS.TypeScale.meta)
                 .foregroundStyle(.secondary)
         }
     }
 
     @ViewBuilder private var conditionsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("River conditions").font(.headline)
+            Text("River conditions").font(DS.TypeScale.sectionTitle)
 
             if let stats, let discharge = flow?.discharge {
                 Text("\(Int(discharge.rounded())) cfs")
                     .font(.title2.weight(.semibold))
                     .accessibilityIdentifier("riverDischarge")
                 if let summary = stats.summary(discharge: discharge, month: month, day: day) {
-                    Text(summary).font(.subheadline)
+                    Text(summary).font(DS.TypeScale.supporting)
                 }
                 // Timestamps are per-series: a gauge can report flow every 15
                 // minutes and temperature hourly, so one "as of" would date one
                 // of them wrongly.
                 if let at = flow?.dischargeAt {
                     Label(Self.stamp(at), systemImage: "clock")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(DS.TypeScale.meta).foregroundStyle(.secondary)
                 }
                 if let tempC = flow?.waterTempC, let tempF = flow?.waterTempF {
                     Divider()
@@ -75,25 +75,25 @@ struct RiverDetailSheet: View {
                         .font(.subheadline.weight(.medium))
                     if let at = flow?.waterTempAt {
                         Label(Self.stamp(at), systemImage: "clock")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(DS.TypeScale.meta).foregroundStyle(.secondary)
                     }
                 }
                 Divider()
                 Text("USGS gauge \(stats.gaugeName.capitalized), \(stats.yearsOfRecord) years of record")
-                    .font(.caption2).foregroundStyle(.tertiary)
+                    .font(DS.TypeScale.fineprint).foregroundStyle(.tertiary)
                 Text("Compared against this river's own flow for the time of year, not against other rivers.")
-                    .font(.caption2).foregroundStyle(.tertiary)
+                    .font(DS.TypeScale.fineprint).foregroundStyle(.tertiary)
             } else if stats == nil {
                 // Distinguishing these two matters: "no gauge exists" is
                 // permanent, "no reading right now" is not.
                 Text("No USGS gauge on this river, so there is nothing to report on its flow.")
-                    .font(.subheadline).foregroundStyle(.secondary)
+                    .font(DS.TypeScale.supporting).foregroundStyle(.secondary)
             } else {
                 Text("This river has a gauge, but it is not reporting right now.")
-                    .font(.subheadline).foregroundStyle(.secondary)
+                    .font(DS.TypeScale.supporting).foregroundStyle(.secondary)
                 if let stats {
                     Text("USGS gauge \(stats.gaugeName.capitalized)")
-                        .font(.caption2).foregroundStyle(.tertiary)
+                        .font(DS.TypeScale.fineprint).foregroundStyle(.tertiary)
                 }
             }
         }
@@ -101,19 +101,19 @@ struct RiverDetailSheet: View {
 
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("What's biting").font(.headline)
+            Text("What's biting").font(DS.TypeScale.sectionTitle)
             ForEach(waterbodySpecies, id: \.species) { species in
                 VStack(alignment: .leading, spacing: 2) {
                     HStack {
                         RatingBadge(rating: species.rating(inMonth: month))
-                        Text(species.species).font(.subheadline.weight(.semibold))
+                        Text(species.species).font(DS.TypeScale.itemTitle)
                     }
                     if species.riskMonths.contains(month) {
                         Label("Season varies — verify", systemImage: "exclamationmark.triangle")
-                            .font(.caption2).foregroundStyle(.secondary)
+                            .font(DS.TypeScale.fineprint).foregroundStyle(.secondary)
                     }
                     if let note = species.note {
-                        Text(note).font(.caption).foregroundStyle(.secondary)
+                        Text(note).font(DS.TypeScale.meta).foregroundStyle(.secondary)
                     }
                 }
             }

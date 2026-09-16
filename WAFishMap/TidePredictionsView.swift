@@ -15,7 +15,7 @@ struct TidePredictionsView: View {
     var body: some View {
         if isMarine {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Tides").font(.headline)
+                Text("Tides").font(DS.TypeScale.sectionTitle)
                 content
             }
             .task(id: taskKey) { await load() }
@@ -26,32 +26,32 @@ struct TidePredictionsView: View {
         if let table {
             Link(destination: table.noaaURL) {
                 Label(table.station.name, systemImage: "water.waves")
-                    .font(.caption)
+                    .font(DS.TypeScale.meta)
             }
             ForEach(Array(table.extremes.enumerated()), id: \.offset) { index, extreme in
                 let isNext = index == table.indexOfNext(after: planDate)
                 HStack {
                     Text(extreme.kind.label)
-                        .font(.subheadline.weight(isNext ? .semibold : .regular))
+                        .font(DS.TypeScale.tideRow(isNext: isNext))
                     Spacer()
                     Text(Self.time.string(from: extreme.time))
-                        .font(.subheadline.monospacedDigit())
+                        .font(DS.TypeScale.tideValue)
                     Text(String(format: "%.1f ft", extreme.heightFeet))
-                        .font(.subheadline.monospacedDigit())
+                        .font(DS.TypeScale.tideValue)
                         .frame(width: 56, alignment: .trailing)
                 }
                 .foregroundStyle(isNext ? .primary : .secondary)
             }
             Text("NOAA predictions at the nearest station. Not a tide book.")
-                .font(.caption2)
+                .font(DS.TypeScale.fineprint)
                 .foregroundStyle(.tertiary)
         } else if failed {
             Text("Tides unavailable right now.")
-                .font(.subheadline)
+                .font(DS.TypeScale.supporting)
                 .foregroundStyle(.secondary)
             Link("Check NOAA tide predictions",
                  destination: URL(string: "https://tidesandcurrents.noaa.gov")!)
-                .font(.caption)
+                .font(DS.TypeScale.meta)
         } else {
             ProgressView()
                 .controlSize(.small)

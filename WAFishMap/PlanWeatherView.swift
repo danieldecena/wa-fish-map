@@ -28,7 +28,7 @@ struct PlanWeatherView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Wind & rain").font(.headline)
+            Text("Wind & rain").font(DS.TypeScale.sectionTitle)
                 .accessibilityIdentifier("planWeatherSection")
             content
         }
@@ -38,25 +38,25 @@ struct PlanWeatherView: View {
     @ViewBuilder private var content: some View {
         if let weather {
             HStack {
-                Label("Wind", systemImage: "wind").font(.subheadline)
+                Label("Wind", systemImage: "wind").font(DS.TypeScale.supporting)
                 Spacer()
                 Text("\(weather.windCompassPoint) \(Int(weather.windSpeedMph.rounded())) mph")
                     .font(.subheadline.monospacedDigit())
             }
             HStack {
-                Label("Rain", systemImage: "cloud.rain").font(.subheadline)
+                Label("Rain", systemImage: "cloud.rain").font(DS.TypeScale.supporting)
                 Spacer()
                 Text("\(Int((weather.precipitationChance * 100).rounded()))%")
                     .font(.subheadline.monospacedDigit())
             }
             HStack {
-                Label("Air", systemImage: "thermometer.medium").font(.subheadline)
+                Label("Air", systemImage: "thermometer.medium").font(DS.TypeScale.supporting)
                 Spacer()
                 Text("\(Int(weather.temperatureFahrenheit.rounded())) °F")
                     .font(.subheadline.monospacedDigit())
             }
             Text("Forecast for \(Self.hourLabel.string(from: weather.hour)), not an observation.")
-                .font(.caption2)
+                .font(DS.TypeScale.fineprint)
                 .foregroundStyle(.tertiary)
             attributionMark
         } else if outOfRange {
@@ -64,11 +64,11 @@ struct PlanWeatherView: View {
             // point — falling back to the nearest available hour would answer a
             // question the user did not ask.
             Text("The forecast doesn't reach that date yet.")
-                .font(.subheadline)
+                .font(DS.TypeScale.supporting)
                 .foregroundStyle(.secondary)
         } else if failed {
             Text("Wind and rain unavailable right now.")
-                .font(.subheadline)
+                .font(DS.TypeScale.supporting)
                 .foregroundStyle(.secondary)
         } else {
             ProgressView()
@@ -90,10 +90,10 @@ struct PlanWeatherView: View {
                     ) { image in
                         image.resizable().scaledToFit()
                     } placeholder: {
-                        Text(attribution.serviceName).font(.caption2)
+                        Text(attribution.serviceName).font(DS.TypeScale.fineprint)
                     }
                     .frame(height: 12)
-                    Image(systemName: "chevron.right").font(.system(size: 8))
+                    Image(systemName: "chevron.right").font(DS.TypeScale.fineprint).imageScale(.small)
                 }
                 .foregroundStyle(.tertiary)
             }

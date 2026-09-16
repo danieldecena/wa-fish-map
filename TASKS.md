@@ -29,9 +29,10 @@
 - [ ] UI test: disclaimer and WDFW link on every sheet
 - [ ] Offline states render unavailable, never stale
 - [ ] Accessibility pass on pins, legend, sheets
-- [ ] Rating colors onto DS.Rating tokens
+- [x] Rating colors onto DS.Rating tokens -- 7b0e660
 - [ ] Detail sheets onto DS.Surface and DS.TypeScale
 - [ ] Map chrome onto DS tokens after odd-year merge
+- [ ] Fix top plan bar overflowing on iPhone
 - [ ] Final data pass and updated stamp
 - [ ] [you] App name, subtitle, category, age rating
 - [ ] Privacy policy page (host is your call)

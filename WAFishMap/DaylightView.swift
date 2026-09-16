@@ -24,7 +24,7 @@ struct DaylightView: View {
     var body: some View {
         if let solar = SolarTimes.compute(on: planDate, at: coordinate, calendar: Self.calendar) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Daylight").font(.headline)
+                Text("Daylight").font(DS.TypeScale.sectionTitle)
                 row("Sunrise", "sunrise", solar.sunrise)
                 row("Sunset", "sunset", solar.sunset)
             }
@@ -34,7 +34,7 @@ struct DaylightView: View {
     private func row(_ label: String, _ symbol: String, _ time: Date) -> some View {
         HStack {
             Label(label, systemImage: symbol)
-                .font(.subheadline)
+                .font(DS.TypeScale.supporting)
             Spacer()
             Text(Self.time.string(from: time))
                 .font(.subheadline.monospacedDigit())
