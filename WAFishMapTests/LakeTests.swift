@@ -74,4 +74,36 @@ struct LakeTests {
         #expect(Lake.match(facilityName: "Herman Lake", at: lyleLaunch, in: [herman]) != nil)
         #expect(Lake.match(facilityName: "Lyle Lake", at: lyleLaunch, in: [herman]) == nil)
     }
+
+    // MARK: The shipped resource
+
+    private static func bundled() throws -> [Lake] {
+        let bundle = try #require(FixtureBundle.loader)
+        let url = try #require(bundle.url(forResource: "lakes", withExtension: "json"))
+        return try LakeLoader.lakes(from: Data(contentsOf: url))
+    }
+
+    @Test func theBundleHoldsTheStatewideLakeList() throws {
+        let lakes = try Self.bundled()
+        #expect(lakes.count >= 600)
+        let dolloff = try #require(lakes.first { $0.name == "Lake Dolloff" })
+        #expect(dolloff.county == "King")
+        #expect(!dolloff.species.isEmpty)
+    }
+
+    /// Real WDFW launch coordinates (layer 0, 2026-09-16) against the shipped
+    /// lakes. Three launches within 2 km of each other in Federal Way, and the
+    /// two probe mismatches from eastern Washington.
+    @Test(arguments: [
+        ("Lake Dolloff", -122.284561, 47.323529, "Lake Dolloff" as String?),
+        ("Steel Lake", -122.300005, 47.325877, "Steele Lake"),
+        ("North Lake", -122.289173, 47.308077, "North Lake"),
+        ("Lyle Lake", -119.203165, 46.895406, nil),
+        ("Corral Lake", -119.311142, 46.969255, nil),
+    ])
+    func realLaunchesMatchTheirOwnLake(facility: String, lon: Double, lat: Double, expected: String?) throws {
+        let lakes = try Self.bundled()
+        let matched = Lake.match(facilityName: facility, at: LonLat(longitude: lon, latitude: lat), in: lakes)
+        #expect(matched?.name == expected)
+    }
 }
