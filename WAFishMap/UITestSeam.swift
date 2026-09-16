@@ -17,7 +17,7 @@ import Foundation
 /// can be observed on all three sheets: tapping pins on a clustered map is the
 /// moving target this seam exists to avoid.
 ///
-/// Deliberately not a general test harness: three arguments, each read in one place.
+/// Deliberately not a general test harness: three arguments.
 enum UITestSeam {
     static var isActive: Bool {
         ProcessInfo.processInfo.arguments.contains("-uiTesting")
