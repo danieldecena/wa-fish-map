@@ -5,7 +5,7 @@
 - [ ] [you] GitHub Actions billing blocks PR #4 CI
 - [ ] [you] Merge PR 4 once CI runs green
 - [x] River nearest-match within 150 m — b68d7b6
-- [ ] Waterbody resolver: curated list then river
+- [x] Waterbody resolver: curated list then river
 - [ ] Model index for site and pier waterbodies
 - [ ] Reachability gate accepts river names
 - [ ] Spokane River row gated on WDFW, docs, verify
