@@ -1,5 +1,25 @@
 {
   "enabledPlugins": {
     "swift-lsp@claude-plugins-official": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp get *)",
+      "Bash(claude mcp list)",
+      "Bash(claude plugin list *)",
+      "Bash(git check-ignore *)",
+      "Bash(git merge-base *)",
+      "Bash(git rev-list *)",
+      "Bash(plutil -p *)",
+      "Bash(shasum *)",
+      "Bash(tmux list-panes *)",
+      "Bash(tmux ls)",
+      "Bash(xcrun devicectl device info *)",
+      "Bash(xcrun simctl bootstatus *)",
+      "Bash(xcrun simctl list *)",
+      "mcp__claude-in-chrome__find",
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot"
+    ]
   }
 }
