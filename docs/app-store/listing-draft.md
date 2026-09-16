@@ -99,7 +99,7 @@ Paused 2026-09-16 — resume when the app build is ready for review (screenshots
 - [x] Release archive uploaded to ASC (2026-09-16; build **2** / 1.0 attached)
 - [x] ASC App Information: name, subtitle, category Navigation
 - [x] ASC App Privacy: policy URL
-- [ ] ASC App Privacy: change Location to Data Not Collected; publish when prompted
+- [x] ASC App Privacy: Data Not Collected, published 2026-09-16 (next upload must carry the matching manifest)
 - [x] ASC Version: promo / description / keywords / support URL / copyright; review notes
 - [ ] Attach screenshots (ASC still 0 of 10) — sized copies in `/tmp/asc-shots/` and `docs/app-store/screenshots/`
 - [ ] Save → Add for Review → Submit for Review
