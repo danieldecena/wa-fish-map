@@ -88,3 +88,42 @@ struct DirectionsButtonTests {
         #expect(items.first { $0.name == "dirflg" }?.value == "d")
     }
 }
+
+struct PinSpokenSummaryTests {
+    private func pier(_ name: String) -> FishingPier {
+        FishingPier(name: name, countyName: "King", websiteURL: "",
+                    coordinate: LonLat(longitude: -122.4, latitude: 47.3))
+    }
+
+    @Test func aRatedPinSaysWhatItIsAndItsRating() {
+        #expect(SiteAnnotation(pier: pier("Redondo Pier"), rating: .good).spokenSummary
+            == "Fishing pier, rated Good")
+    }
+
+    @Test func theOutlineIsSpokenToo() {
+        let a = SiteAnnotation(pier: pier("Redondo Pier"), rating: .fair, closurePlausible: true)
+        #expect(a.spokenSummary == "Fishing pier, rated Fair, season may be closed, verify with WDFW")
+    }
+
+    @Test func aClosedPierSaysClosedAndNothingElse() {
+        let a = SiteAnnotation(pier: pier("Harper Pier (CLOSED)"), rating: .excellent, closurePlausible: true)
+        #expect(a.spokenSummary == "Fishing pier, closed per WDFW")
+    }
+
+    @Test func anUnratedPinSaysSoRatherThanNothing() {
+        #expect(SiteAnnotation(pier: pier("Lake Pier")).spokenSummary == "Fishing pier, no seasonal guidance")
+    }
+
+    /// One fixed step up for every cluster (chosen over count-based sizing on
+    /// 2026-09-16): larger than a single pin, modest enough not to cover water.
+    @Test func aClusterIsOneModestSizeUpFromAPin() {
+        #expect(SiteClusterView.scale > 1)
+        #expect(SiteClusterView.scale <= 1.3)
+    }
+
+    @Test func aClusterReadsItsBestRating() {
+        let members = [SiteAnnotation(pier: pier("A"), rating: .fair), SiteAnnotation(pier: pier("B"), rating: .good)]
+        #expect(SiteClusterView.spokenSummary(of: members) == "best rated Good")
+        #expect(SiteClusterView.spokenSummary(of: [SiteAnnotation(pier: pier("C"))]) == "no seasonal guidance")
+    }
+}

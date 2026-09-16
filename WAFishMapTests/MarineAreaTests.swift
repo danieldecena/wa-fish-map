@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import WAFishMap
 
@@ -74,5 +75,52 @@ struct MarineAreaTests {
     @Test func singleRingBehaviourIsUnchanged() {
         #expect(square.contains(LonLat(longitude: 0, latitude: 0)))
         #expect(!square.contains(LonLat(longitude: 2, latitude: 2)))
+    }
+}
+
+/// The shore snap: WDFW polygons stop at the shoreline and a pier or ramp is
+/// recorded at its landward end, just outside.
+struct MarineAreaShoreSnapTests {
+    /// A 0.1° square near Puget Sound's latitude, so metres are realistic.
+    static func square(_ name: String, west: Double) -> MarineArea {
+        MarineArea(areaName: name, areaTitle: name, wac: "", coordinates: [
+            LonLat(longitude: west, latitude: 47.3), LonLat(longitude: west + 0.1, latitude: 47.3),
+            LonLat(longitude: west + 0.1, latitude: 47.4), LonLat(longitude: west, latitude: 47.4),
+        ])
+    }
+    let a = square("A", west: -122.6)
+    let b = square("B", west: -122.3)
+    /// 1° of longitude at 47.35°N is about 75.4 km.
+    let metresPerLonDegree = 111_320.0 * cos(47.35 * .pi / 180)
+
+    @Test func aPointJustOutsideTheShoreSnapsToThatArea() throws {
+        let tenMetresEast = LonLat(longitude: -122.5 + 10 / metresPerLonDegree, latitude: 47.35)
+        #expect(!a.contains(tenMetresEast))
+        #expect(try #require(MarineArea.matching(tenMetresEast, in: [a, b])).areaName == "A")
+    }
+
+    @Test func aPointFarInlandMatchesNothing() {
+        let halfKilometreEast = LonLat(longitude: -122.5 + 500 / metresPerLonDegree, latitude: 47.35)
+        #expect(MarineArea.matching(halfKilometreEast, in: [a, b]) == nil)
+    }
+
+    @Test func theSnapStopsAtItsTolerance() {
+        let inside = LonLat(longitude: -122.5 + 140 / metresPerLonDegree, latitude: 47.35)
+        let outside = LonLat(longitude: -122.5 + 160 / metresPerLonDegree, latitude: 47.35)
+        #expect(MarineArea.matching(inside, in: [a]) != nil)
+        #expect(MarineArea.matching(outside, in: [a]) == nil)
+    }
+
+    @Test func containmentBeatsANearerNeighboursEdge() throws {
+        let c = Self.square("C", west: -122.5)   // shares A's east edge
+        let justInsideC = LonLat(longitude: -122.5 + 5 / metresPerLonDegree, latitude: 47.35)
+        #expect(try #require(MarineArea.matching(justInsideC, in: [a, c])).areaName == "C")
+    }
+
+    @Test func theNearestAreaWinsBetweenTwoShores() throws {
+        // A's east edge is -122.5, B's west edge is -122.3; this point is nearer B.
+        let nearB = LonLat(longitude: -122.3 - 20 / metresPerLonDegree, latitude: 47.35)
+        let farA = Self.square("A2", west: -122.3 - 0.1 - 100 / metresPerLonDegree)
+        #expect(try #require(MarineArea.matching(nearB, in: [farA, b])).areaName == "B")
     }
 }

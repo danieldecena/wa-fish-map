@@ -17,6 +17,24 @@ final class SiteAnnotation: NSObject, MKAnnotation {
 
     enum Kind: CaseIterable {
         case launch, shore, pier
+
+        var spokenName: String {
+            switch self {
+            case .launch: "Boat launch"
+            case .shore: "Shore access"
+            case .pier: "Fishing pier"
+            }
+        }
+    }
+
+    /// What VoiceOver reads after the pin's name. The pin's colour and outline
+    /// carry the rating and the closure flag, and neither reaches a VoiceOver
+    /// user without this.
+    var spokenSummary: String {
+        if isClosed { return "\(kind.spokenName), closed per WDFW" }
+        var parts = [kind.spokenName, rating.map { "rated \($0.label)" } ?? "no seasonal guidance"]
+        if closurePlausible { parts.append("season may be closed, verify with WDFW") }
+        return parts.joined(separator: ", ")
     }
 
     init(site: AccessSite, rating: FishingRating?, closurePlausible: Bool = false) {

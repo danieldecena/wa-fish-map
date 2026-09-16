@@ -8,6 +8,47 @@ struct LonLat: Equatable, Hashable, Sendable {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
 
+    static let metresPerDegree = 111_320.0
+
+    /// Point-to-segment distance in metres, projected flat around the point's
+    /// latitude. Shared by river matching and the marine-area shore snap.
+    static func distanceMeters(from p: LonLat, toSegment a: LonLat, _ b: LonLat) -> Double {
+        let scale = cos(p.latitude * .pi / 180)
+        func project(_ c: LonLat) -> (x: Double, y: Double) {
+            ((c.longitude - p.longitude) * scale * metresPerDegree,
+             (c.latitude - p.latitude) * metresPerDegree)
+        }
+        let (ax, ay) = project(a)
+        let (bx, by) = project(b)
+        let (dx, dy) = (bx - ax, by - ay)
+        let lengthSquared = dx * dx + dy * dy
+        // A zero-length segment is just its endpoint; the clamp below would
+        // divide by zero.
+        guard lengthSquared > 0 else { return (ax * ax + ay * ay).squareRoot() }
+        let t = min(1, max(0, -(ax * dx + ay * dy) / lengthSquared))
+        let (cx, cy) = (ax + t * dx, ay + t * dy)
+        return (cx * cx + cy * cy).squareRoot()
+    }
+
+    /// A ring's lat/lon box, so a distance query can skip rings nowhere near.
+    struct Bounds: Equatable, Sendable {
+        let minLatitude, maxLatitude, minLongitude, maxLongitude: Double
+
+        init(_ ring: [LonLat]) {
+            minLatitude = ring.map(\.latitude).min() ?? 0
+            maxLatitude = ring.map(\.latitude).max() ?? 0
+            minLongitude = ring.map(\.longitude).min() ?? 0
+            maxLongitude = ring.map(\.longitude).max() ?? 0
+        }
+
+        func contains(_ p: LonLat, slackMeters: Double) -> Bool {
+            let latSlack = slackMeters / LonLat.metresPerDegree
+            let lonSlack = slackMeters / (LonLat.metresPerDegree * cos(p.latitude * .pi / 180))
+            return p.latitude >= minLatitude - latSlack && p.latitude <= maxLatitude + latSlack
+                && p.longitude >= minLongitude - lonSlack && p.longitude <= maxLongitude + lonSlack
+        }
+    }
+
     /// Ray-casting point-in-polygon test against an outer ring. Shared by
     /// `MarineArea` and `ProtectedArea` — two copies of this is how they drift.
     static func polygon(_ ring: [LonLat], contains point: LonLat) -> Bool {

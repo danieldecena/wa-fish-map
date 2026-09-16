@@ -10,9 +10,18 @@
 - [x] Audit location permission strings — 74cb109
 - [x] Attribution: Apple Weather mark and data credits — c705807
 - [ ] UI test: disclaimer and WDFW link on every sheet
-- [ ] Offline states render unavailable, never stale
+- [ ] Weather: plan past last forecast hour shows last hour
+- [ ] Empty MPA layer reads as "clear" at every site
+- [ ] iPad buoy section keeps previous site's reading
+- [ ] USGS fetch failure blamed on "gauge not reporting"
+- [ ] Empty live WDFW layer shows "0 access sites"
+- [ ] Pier fetch failure is invisible (try? swallowed)
+- [ ] Weather cache has no age; refetch after ~1 h
+- [ ] Weather: cancelled fetch can write the old hour
 - [x] Opening map frames Washington with no WA location fix — d2a106a
-- [ ] Accessibility pass on pins, legend, sheets
+- [x] VoiceOver labels: pins, clusters, legends, rating badge
+- [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
+- [ ] No location fix: map stays on North America, never frames WA
 - [ ] Final data pass and updated stamp
 - [ ] [you] App name, subtitle, category, age rating
 - [ ] Privacy policy page (host is your call)
@@ -25,9 +34,10 @@
 - [ ] Layered OS27 app icon (3 SVG layers, Icon Composer)
 - [ ] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
 
-- [ ] Dockton Park Pier (Maury Is.) reads Freshwater: area miss
-- [ ] Verify species typical weights against WDFW/NOAA
-- [ ] Watch the fish-size icon and Closed badge on screen
+- [x] Shore snap: saltwater piers/launches no longer freshwater
+- [x] Verify species weights (7 adjusted; 6 no source found)
+- [x] Watch fish silhouettes on screen (Dash Point, Crescent Lake)
+- [ ] Watch the Closed badge in a closed pier sheet
 - [ ] MapCoordinatorTests recentre test hung 10 min under load
 - [ ] Inland pins all Good in Sept: statewide list is uniform
 

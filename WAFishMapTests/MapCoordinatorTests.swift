@@ -151,6 +151,21 @@ struct MapCoordinatorTests {
         #expect(!mapView.annotations.contains { $0 is SiteAnnotation })
     }
 
+    /// The real app's order: the first update runs before the WDFW fetch, with
+    /// nothing drawn and nothing to fit. The sites then land while pins are still
+    /// hidden, so the drawn list is empty both times and its signature does not
+    /// change. The fit sat behind that signature check and never ran, leaving the
+    /// map on MapKit's continent default whenever no Washington fix arrived.
+    @Test func theInitialFitRunsWhenSitesArriveAfterAnEmptyUpdateWithPinsHidden() {
+        let mapView = MKMapView(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
+        mapView.setRegion(Self.parked, animated: false)
+        let coordinator = FishingMapRepresentable.Coordinator(Self.representable())
+        coordinator.syncAnnotations(mapView)
+        coordinator.parent = Self.representable(annotations: [], fitAnnotations: Self.farAnnotations)
+        coordinator.syncAnnotations(mapView)
+        #expect(abs(mapView.centerCoordinate.longitude - Self.parked.center.longitude) > 1.0)
+    }
+
     /// The regression: CoreLocation answers first, the coordinator eases to the
     /// fix, then the WDFW annotations land. The fit must not re-frame statewide.
     @Test func aRecentreThatAlreadyLandedSurvivesTheAnnotationsArriving() {

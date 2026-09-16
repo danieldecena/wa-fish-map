@@ -30,7 +30,7 @@ final class FishingMapModel {
     /// empty is *unknown*, never zero — an absent river stays neutral.
     var riverFlows: [String: RiverFlow] = [:]
 
-    /// Launch → containing marine area (by point-in-polygon). Absent for inland/lake
+    /// Launch → marine area (point-in-polygon, else within the shore snap). Absent for inland/lake
     /// launches, which have no marine area and therefore a neutral rating.
     private(set) var siteAreaName: [AccessSite.ID: String] = [:]
 
@@ -229,11 +229,12 @@ final class FishingMapModel {
         isLoading = false
     }
 
-    /// Match every launch to the marine area whose polygon contains it (first wins).
-    private func indexSitesToAreas() {
+    /// Match every launch to its marine area: containing polygon first, else the
+    /// shore snap (`MarineArea.matching`).
+    func indexSitesToAreas() {
         var map: [AccessSite.ID: String] = [:]
         for site in accessSites {
-            if let area = marineAreas.first(where: { $0.contains(site.coordinate) }) {
+            if let area = marineArea(at: site.coordinate, facility: site.facilityName) {
                 map[site.id] = area.areaName
             }
         }
@@ -262,15 +263,29 @@ final class FishingMapModel {
         pierProtectedArea = map
     }
 
-    /// Match every pier to the marine area whose polygon contains it (first wins).
+    /// Match every pier to its marine area: containing polygon first, else the
+    /// shore snap (`MarineArea.matching`).
     private func indexPiersToAreas() {
         var map: [FishingPier.ID: String] = [:]
         for pier in piers {
-            if let area = marineAreas.first(where: { $0.contains(pier.coordinate) }) {
+            if let area = marineArea(at: pier.coordinate, facility: pier.name) {
                 map[pier.id] = area.areaName
             }
         }
         pierAreaName = map
+    }
+
+    /// Containment always wins; the shore snap does not. A river-mouth or slough
+    /// ramp just outside a polygon (Palix River 10 m, Hat Slough 39 m) keeps its
+    /// river or lake rows rather than being snapped into the marine area.
+    private func marineArea(at point: LonLat, facility: String) -> MarineArea? {
+        if let inside = marineAreas.first(where: { $0.contains(point) }) { return inside }
+        let freshwater = guide?.freshwater
+        if let waterbody = freshwater?.waterbody(forFacility: facility, at: point, rivers: rivers),
+           freshwater?.byWaterbody?[waterbody]?.isEmpty == false {
+            return nil
+        }
+        return MarineArea.matching(point, in: marineAreas)
     }
 
     /// Must run after the guide, rivers and marine-area indexes are in place.

@@ -14,8 +14,11 @@ elsewhere keeps the statewide framing, since the data is Washington-only.
 `cameraCenter` is only a pre-load fallback. Do not paste `where=` strings into
 the view.
 
-Launches carry no marine-area code, so each is matched to its area by point-in-polygon
-(`MarineArea.contains(_:)`, indexed in `FishingMapModel.indexSitesToAreas`). Inland/lake
+Launches and piers carry no marine-area code, so each is matched to its area by
+`MarineArea.matching(_:in:)`: point-in-polygon first, else the nearest area within
+150 m (`shoreSnapMeters`). WDFW draws areas to the shoreline and records a pier or
+ramp at its landward end, so containment alone read 29 of 63 piers as freshwater.
+Indexed in `FishingMapModel.indexSitesToAreas`/`indexPiersToAreas`. Inland/lake
 launches match no area → **neutral (gray) rating**, by design.
 
 ## Seasonal guidance
