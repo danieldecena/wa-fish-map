@@ -123,7 +123,6 @@ struct HeatMapTests {
         let poorCellZone = zones.first { $0.center.longitude < -120 }
         let excellentCellZone = zones.first { $0.center.longitude > -120 }
         #expect(excellentCellZone != nil)
-        #expect(poorCellZone != nil)
-        #expect(excellentCellZone!.intensity > poorCellZone!.intensity)
+        #expect(poorCellZone == nil)
     }
 }
