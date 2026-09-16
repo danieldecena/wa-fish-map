@@ -75,6 +75,18 @@ struct BitingNowView: View {
                             // and the badge inside stops being queryable.
                             Text(s.species).font(.subheadline.weight(.semibold))
                                 .accessibilityIdentifier("speciesName")
+                            if let size = SpeciesSize.typical(for: s.species) {
+                                Spacer(minLength: 8)
+                                VStack(spacing: 0) {
+                                    Image(systemName: "fish.fill")
+                                        .font(.system(size: size.iconPointSize))
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 52, height: 48)
+                                    Text(size.range).font(.caption2).foregroundStyle(.secondary)
+                                }
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel("Typical size \(size.range)")
+                            }
                         }
                         if s.riskMonths.contains(month) {
                             Label("Season varies — verify", systemImage: "exclamationmark.triangle")
