@@ -1,4 +1,7 @@
 ## Tasks
+- [ ] Recenter button uses live location, not launch fix
+- [ ] Directions link uses unified Maps URL on iOS 18.4+
+- [ ] Glass effect on MA area labels (iOS 26)
 
 - [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
@@ -11,7 +14,7 @@
 - [ ] [you] Submit for App Store review — paused until app done
 - [ ] [you] Release to the App Store
 
-- [ ] MapCoordinatorTests recentre test hung 10 min under load
+- [x] MapCoordinatorTests recentre test hung 10 min under load
 - [ ] Inland pins all Good in Sept: statewide list is uniform
 - [ ] Grant walleye: per-reservoir rows, drop county row
 - [ ] Shared simulator relaunches test host mid-run
