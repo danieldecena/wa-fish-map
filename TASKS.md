@@ -1,4 +1,7 @@
 ## Tasks
+- [ ] Recenter button uses live location, not launch fix
+- [ ] Directions link uses unified Maps URL on iOS 18.4+
+- [ ] Glass effect on MA area labels (iOS 26)
 
 - [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
@@ -7,16 +10,20 @@
 - [ ] App Store screenshots in ASC (0 of 10) — PNGs in docs/app-store/screenshots/; resume when app ready
 - [x] [you] App Privacy questionnaire — Precise Location / App Functionality / not linked / not tracking
 - [x] Archive and upload release build — ASC build 2 (1.0)
-- [ ] Archive and upload build 3 (carries the data pass)
+- [ ] Archive and upload build 4 (carries data batch 2)
 - [ ] [you] Submit for App Store review — paused until app done
 - [ ] [you] Release to the App Store
 
-- [ ] MapCoordinatorTests recentre test hung 10 min under load
+- [x] MapCoordinatorTests recentre test hung 10 min under load
 - [ ] Inland pins all Good in Sept: statewide list is uniform
-- [ ] Source and add data-pass omissions (shrimp, perch, crappie)
+- [ ] Grant walleye: per-reservoir rows, drop county row
 - [ ] Shared simulator relaunches test host mid-run
 
 ## Completed
+
+- [x] Build 3 uploaded to ASC (data batch 1, from a47cc87)
+
+- [x] Data pass second batch: omissions sourced, unsupported calls settled
 
 - [x] Layered app icon — 439e377 (render checked 2026-09-16)
 - [x] Fix app icon via generator script — 86f630f
