@@ -108,6 +108,8 @@
 
 ## Next Up
 
+- **Branch `test/guidance-on-every-sheet`:** rerun the four guidance UI tests on
+  37950a4 once the simulator is free; then status-bar screenshot and river proof-of-fail.
 - **Phase 1 of the App Store plan:** the waterbody river tier and the USGS flow-stat
   check are done, and the Oregon polygon is hidden.
 
@@ -115,6 +117,16 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-16 (heat drops zero-weight points; shared simulator clobbered UI run)
+
+- Decided: `HeatMap.zones` skips weight-0 points. A lone poor-only cell ranked
+  hottest and drew in the top band; multi-cell poor cells were already alpha 0.
+  Proven red without the fix, 213 unit tests green with it (37950a4).
+- Decided: UI run 12's pier/river/popover failures are not code evidence. The
+  installed app lacked `uiTestingDetail` and the pier fixture while this branch's
+  build had both; a concurrent session's xcodebuild on the same simulator and
+  bundle id replaced it. Rerun before trusting either colour.
 
 ### 2026-09-16 (privacy manifest declares nothing, on purpose)
 
