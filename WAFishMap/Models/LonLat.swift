@@ -46,7 +46,7 @@ struct LonLat: Equatable, Hashable, Sendable {
 
     /// One outer boundary and the holes cut out of it — ready for
     /// `MKPolygon(coordinates:count:interiorPolygons:)`.
-    struct RingGroup {
+    struct RingGroup: Equatable, Sendable {
         let outer: [LonLat]
         var holes: [[LonLat]]
     }
@@ -72,14 +72,18 @@ struct LonLat: Equatable, Hashable, Sendable {
             return containingCount % 2 == 1
         }
 
-        let outerIndices = rings.indices.filter { !isHole($0) }
+        // Computed once per ring up front — this used to be recomputed for
+        // every ring by both the outer-index filter and the hole loop below.
+        let holeFlags = rings.indices.map(isHole)
+        let outerIndices = rings.indices.filter { !holeFlags[$0] }
+        let outerAreas = Dictionary(uniqueKeysWithValues: outerIndices.map { ($0, area(rings[$0])) })
         var groups = outerIndices.map { RingGroup(outer: rings[$0], holes: []) }
 
-        for holeIndex in rings.indices where isHole(holeIndex) {
+        for holeIndex in rings.indices where holeFlags[holeIndex] {
             guard let vertex = rings[holeIndex].first else { continue }
             let candidates = outerIndices.enumerated()
                 .filter { polygon(rings[$0.element], contains: vertex) }
-            guard let smallest = candidates.min(by: { area(rings[$0.element]) < area(rings[$1.element]) })
+            guard let smallest = candidates.min(by: { outerAreas[$0.element, default: 0] < outerAreas[$1.element, default: 0] })
             else {
                 // No outer claims it — shouldn't happen for well-formed WDFW
                 // data, but surfacing it as its own outer beats silently

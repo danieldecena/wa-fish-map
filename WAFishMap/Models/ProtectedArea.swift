@@ -23,6 +23,10 @@ struct ProtectedArea: Identifiable, Equatable, Sendable {
     /// Every ring of the source geometry — see `MarineArea.rings`; the same
     /// packing (multi-part Polygon, or MultiPolygon) shows up on this layer too.
     let rings: [[LonLat]]
+    /// `rings` grouped into outer boundaries and their holes, computed once at
+    /// init — see `MarineArea.ringGroups` for why this must not be recomputed
+    /// on every rating-colour change.
+    let ringGroups: [LonLat.RingGroup]
 
     /// The largest ring by vertex count, ties keeping the first. Stands in
     /// wherever a single ring is needed (predates multi-ring areas).
@@ -127,6 +131,7 @@ struct ProtectedArea: Identifiable, Equatable, Sendable {
         self.wac = wac
         self.detailURL = detailURL
         self.rings = rings
+        self.ringGroups = LonLat.groupRings(rings)
     }
 
     init?(feature: GeoJSONFeature<Properties>) {
@@ -151,5 +156,6 @@ struct ProtectedArea: Identifiable, Equatable, Sendable {
         wac = feature.properties.wac ?? ""
         detailURL = feature.properties.detailURL.flatMap(URL.init(string:))
         rings = parsedRings
+        ringGroups = LonLat.groupRings(parsedRings)
     }
 }

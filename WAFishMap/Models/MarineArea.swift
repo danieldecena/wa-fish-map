@@ -11,6 +11,12 @@ struct MarineArea: Identifiable, Equatable, Sendable {
     /// them alike under the even-odd rule, so which part a ring came from
     /// doesn't matter.
     let rings: [[LonLat]]
+    /// `rings` grouped into outer boundaries and their holes, computed once at
+    /// init. Ring geometry never changes with the rating colour, so overlay
+    /// rebuilds triggered by a month/species change reuse this instead of
+    /// re-running the hole/area classification (up to 286 rings) on every
+    /// colour change, on the main thread, inside `updateUIView`.
+    let ringGroups: [LonLat.RingGroup]
 
     /// The largest ring by vertex count. Stands in wherever a single ring is
     /// needed (the label centroid below, and any caller predating multi-ring
@@ -66,6 +72,7 @@ struct MarineArea: Identifiable, Equatable, Sendable {
         self.areaTitle = areaTitle
         self.wac = wac
         self.rings = rings
+        self.ringGroups = LonLat.groupRings(rings)
     }
 
     init?(feature: GeoJSONFeature<Properties>) {
@@ -88,5 +95,6 @@ struct MarineArea: Identifiable, Equatable, Sendable {
         areaTitle = feature.properties.areaTitle
         wac = feature.properties.wac ?? ""
         rings = parsedRings
+        ringGroups = LonLat.groupRings(parsedRings)
     }
 }

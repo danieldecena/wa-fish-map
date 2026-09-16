@@ -194,7 +194,7 @@ struct FishingMapRepresentable: UIViewRepresentable {
                 // multi-part protected area (islands, disjoint pieces) actually
                 // all draws — with its holes cut out rather than filled solid.
                 mpaOverlays = parent.protectedAreas.flatMap { mpa in
-                    LonLat.groupRings(mpa.rings).compactMap { group -> ProtectedAreaPolygon? in
+                    mpa.ringGroups.compactMap { group -> ProtectedAreaPolygon? in
                         guard let geometry = Self.overlayGeometry(for: group) else { return nil }
                         let polygon = ProtectedAreaPolygon(coordinates: geometry.outer, count: geometry.outer.count,
                                                             interiorPolygons: geometry.holes.isEmpty ? nil : geometry.holes)
@@ -219,7 +219,7 @@ struct FishingMapRepresentable: UIViewRepresentable {
                     // marine area packs every island and disjoint part into
                     // extra rings, with its holes cut out rather than filled solid.
                     areaOverlays = parent.areas.flatMap { area in
-                        LonLat.groupRings(area.rings).compactMap { group -> RatedPolygon? in
+                        area.ringGroups.compactMap { group -> RatedPolygon? in
                             guard let geometry = Self.overlayGeometry(for: group) else { return nil }
                             let polygon = RatedPolygon(coordinates: geometry.outer, count: geometry.outer.count,
                                                        interiorPolygons: geometry.holes.isEmpty ? nil : geometry.holes)
