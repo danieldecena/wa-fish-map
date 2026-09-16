@@ -32,12 +32,6 @@ struct ProtectedArea: Identifiable, Equatable, Sendable {
         return best
     }
 
-    /// One coordinate array per ring, for the map overlay — a fill per ring so
-    /// every disjoint part and island actually draws, not just the largest one.
-    var ringsMapCoordinates: [[CLLocationCoordinate2D]] {
-        rings.map { $0.map(\.clLocationCoordinate) }
-    }
-
     /// Live layer 4 stores the citation bare ("220-330-180"); render it as a WAC.
     var wacCitation: String {
         let trimmed = wac.trimmingCharacters(in: .whitespaces)

@@ -161,6 +161,23 @@ struct FishingMapRepresentable: UIViewRepresentable {
 
         // MARK: Overlays
 
+        /// The pieces a ring group needs to build an `MKPolygon` with
+        /// `interiorPolygons` wired in, so a genuine hole renders as a cutout
+        /// rather than an opaque fill. `nil` when the outer ring is degenerate.
+        /// Shared by the marine-area and protected-area overlay builders below —
+        /// they differ only in the concrete `MKPolygon` subclass they construct.
+        private static func overlayGeometry(
+            for group: LonLat.RingGroup
+        ) -> (outer: [CLLocationCoordinate2D], holes: [MKPolygon])? {
+            guard group.outer.count > 2 else { return nil }
+            let interior = group.holes.compactMap { hole -> MKPolygon? in
+                guard hole.count > 2 else { return nil }
+                let coords = hole.map(\.clLocationCoordinate)
+                return MKPolygon(coordinates: coords, count: coords.count)
+            }
+            return (group.outer.map(\.clLocationCoordinate), interior)
+        }
+
         /// Two independent overlay sets. They were one, and because the heat
         /// zones are recomputed at every camera-distance band, a zoom that
         /// crossed a band tore down and re-added the marine-area polygons too —
@@ -173,12 +190,14 @@ struct FishingMapRepresentable: UIViewRepresentable {
                 mpaSignature = mpaKey
                 mpaRebuilt = true
                 mapView.removeOverlays(mpaOverlays)
-                // One polygon per ring, not just the largest, so a multi-part
-                // protected area (islands, disjoint pieces) actually all draws.
+                // One polygon per outer ring, not just the largest, so a
+                // multi-part protected area (islands, disjoint pieces) actually
+                // all draws — with its holes cut out rather than filled solid.
                 mpaOverlays = parent.protectedAreas.flatMap { mpa in
-                    mpa.ringsMapCoordinates.compactMap { coords -> ProtectedAreaPolygon? in
-                        guard coords.count > 2 else { return nil }
-                        let polygon = ProtectedAreaPolygon(coordinates: coords, count: coords.count)
+                    LonLat.groupRings(mpa.rings).compactMap { group -> ProtectedAreaPolygon? in
+                        guard let geometry = Self.overlayGeometry(for: group) else { return nil }
+                        let polygon = ProtectedAreaPolygon(coordinates: geometry.outer, count: geometry.outer.count,
+                                                            interiorPolygons: geometry.holes.isEmpty ? nil : geometry.holes)
                         polygon.title = mpa.name
                         return polygon
                     }
@@ -196,12 +215,14 @@ struct FishingMapRepresentable: UIViewRepresentable {
                 if areaKey != areaSignature {
                     areaSignature = areaKey
                     mapView.removeOverlays(areaOverlays)
-                    // One polygon per ring, not just the largest — a marine area
-                    // packs every island and disjoint part into extra rings.
+                    // One polygon per outer ring, not just the largest — a
+                    // marine area packs every island and disjoint part into
+                    // extra rings, with its holes cut out rather than filled solid.
                     areaOverlays = parent.areas.flatMap { area in
-                        area.ringsMapCoordinates.compactMap { coords -> RatedPolygon? in
-                            guard coords.count > 2 else { return nil }
-                            let polygon = RatedPolygon(coordinates: coords, count: coords.count)
+                        LonLat.groupRings(area.rings).compactMap { group -> RatedPolygon? in
+                            guard let geometry = Self.overlayGeometry(for: group) else { return nil }
+                            let polygon = RatedPolygon(coordinates: geometry.outer, count: geometry.outer.count,
+                                                       interiorPolygons: geometry.holes.isEmpty ? nil : geometry.holes)
                             polygon.color = parent.areaColors[area.id] ?? .gray
                             return polygon
                         }

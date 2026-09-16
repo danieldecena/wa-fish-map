@@ -26,12 +26,6 @@ struct MarineArea: Identifiable, Equatable, Sendable {
         coordinates.map(\.clLocationCoordinate)
     }
 
-    /// One coordinate array per ring, for the map overlay — a fill per ring so
-    /// every disjoint part and island actually draws, not just the largest one.
-    var ringsMapCoordinates: [[CLLocationCoordinate2D]] {
-        rings.map { $0.map(\.clLocationCoordinate) }
-    }
-
     /// Rough centroid (average of the largest ring's vertices) — used to place the area label.
     var center: CLLocationCoordinate2D {
         let coords = coordinates
