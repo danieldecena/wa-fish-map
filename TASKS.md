@@ -48,10 +48,10 @@
 - [x] Creek sheet says "No USGS gauge on this river"
 - [x] Creek filter drops small fished creeks (order<3, <10 km)
 - [x] Confirm PR #17 "unstable" is the CI billing block (moot: merged, checks pass)
-- [ ] Same-name rivers still merge (two Green Rivers)
+- [x] Same-name rivers still merge (two Green Rivers)
 - [ ] Shared simulator relaunches test host mid-run
 - [x] Review and merge PR #17 — 9b3a4fb
-- [ ] Key river stats/flow by id before any creek gets a gauge
+- [x] Key river stats/flow by id before any creek gets a gauge
 - [ ] Filter rivers once in indexWaterbodies, not per site
 - [x] Live load shows no false "piers unavailable" (PR #18)
 - [ ] [you] Review and merge PR #18
