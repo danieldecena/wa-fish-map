@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-01",
+  "updated": "2026-09-03",
   "disclaimer": "Seasonal guidance only — NOT official regulations. Runs, open seasons, areas, and limits change year to year and can close with little notice. Statewide first-pass data; inland areas without an entry show a neutral rating. Bait/gear are general suggestions. Always confirm current rules in the WDFW Fish Washington app before you fish.",
   "wdfwURL": "https://wdfw.wa.gov/fishing/regulations",
   "seasonRisk": [
@@ -1776,16 +1776,15 @@
         {
           "species": "Yellow Perch",
           "bestMonths": [
-            8,
-            9,
-            10
+            6,
+            7,
+            8
           ],
           "goodMonths": [
-            7,
-            11,
-            12
+            5,
+            9
           ],
-          "bait": "Worm or small perch jig on the bottom",
+          "bait": "Worm on a small hook, or a small jig tipped with wax worms or shrimp",
           "note": "Common in the county's lowland lakes; schools move deep in fall and winter.",
           "bestTime": "Midday through afternoon"
         },
@@ -1850,7 +1849,7 @@
             10
           ],
           "bait": "PowerBait, worms, spoons",
-          "note": "Liberty, Newman, and other lowland lakes.",
+          "note": "Stocked lowland lakes across the county.",
           "bestTime": "Early morning & evening"
         }
       ],
@@ -2055,6 +2054,127 @@
           "note": "Alpine lakes; best after ice-out through summer.",
           "bestTime": "Morning & evening"
         }
+      ],
+      "Pierce": [
+        {
+          "species": "Yellow Perch",
+          "bestMonths": [
+            6,
+            7,
+            8
+          ],
+          "goodMonths": [
+            5,
+            9
+          ],
+          "bait": "Worm on a small hook, or a small jig tipped with wax worms or shrimp",
+          "note": "Widespread in the county's lowland lakes; schools hold near the drop-off and move deeper as the water cools.",
+          "bestTime": "Midday through afternoon"
+        },
+        {
+          "species": "Black Crappie",
+          "bestMonths": [
+            4,
+            5,
+            6
+          ],
+          "goodMonths": [
+            3,
+            7
+          ],
+          "bait": "Small tube jigs or curly-tail grubs, worked slowly",
+          "note": "Holds on submerged structure in the county's lowland lakes; the bite improves through spring and peaks at the spawn, around 55F water.",
+          "bestTime": "Early morning & evening"
+        },
+        {
+          "species": "Rock Bass",
+          "bestMonths": [
+            6,
+            7,
+            8
+          ],
+          "goodMonths": [
+            5,
+            9
+          ],
+          "bait": "Small jigs, worms or spinners worked tight to rock and timber",
+          "note": "Uncommon statewide but established in this county's lowland lakes; aggressive for its 6-10 inches and a good fish on light tackle.",
+          "bestTime": "Morning & evening"
+        }
+      ],
+      "Thurston": [
+        {
+          "species": "Yellow Perch",
+          "bestMonths": [
+            6,
+            7,
+            8
+          ],
+          "goodMonths": [
+            5,
+            9
+          ],
+          "bait": "Worm on a small hook, or a small jig tipped with wax worms or shrimp",
+          "note": "In most of the county's lowland lakes; schools hold near the drop-off and move deeper as the water cools.",
+          "bestTime": "Midday through afternoon"
+        },
+        {
+          "species": "Rock Bass",
+          "bestMonths": [
+            6,
+            7,
+            8
+          ],
+          "goodMonths": [
+            5,
+            9
+          ],
+          "bait": "Small jigs, worms or spinners worked tight to rock and timber",
+          "note": "Uncommon statewide but established in this county's lowland lakes; aggressive for its 6-10 inches and a good fish on light tackle.",
+          "bestTime": "Morning & evening"
+        }
+      ],
+      "Mason": [
+        {
+          "species": "Yellow Perch",
+          "bestMonths": [
+            6,
+            7,
+            8
+          ],
+          "goodMonths": [
+            5,
+            9
+          ],
+          "bait": "Worm on a small hook, or a small jig tipped with wax worms or shrimp",
+          "note": "In the county's lowland lakes alongside the trout; schools hold near the drop-off and move deeper as the water cools.",
+          "bestTime": "Midday through afternoon"
+        }
+      ]
+    },
+    "byWaterbody": {
+      "Baker Lake": [
+        {
+          "species": "Sockeye Salmon",
+          "bestMonths": [
+            7,
+            8
+          ],
+          "goodMonths": [
+            6
+          ],
+          "bait": "Small pink or red hoochies behind a dodger, trolled slow",
+          "bestTime": "First light to mid-morning",
+          "note": "Baker Lake sockeye run on a WDFW trap-and-haul quota, so the fishery opens only when enough fish are passed above the dams."
+        }
+      ]
+    },
+    "waterbodySites": {
+      "Baker Lake": [
+        "Baker Lake",
+        "Baker Lake Resort",
+        "Horseshoe Cove",
+        "Kulshan Campground"
       ]
     }
   }

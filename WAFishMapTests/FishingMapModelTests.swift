@@ -33,6 +33,29 @@ struct FishingMapModelTests {
         #expect(model.rating(for: inland, month: 8) != nil)
     }
 
+    @Test @MainActor func anInlandLaunchBesideARiverGetsTheRiversRows() throws {
+        let model = FishingMapModel()
+        let river = River(name: "Test River", streamOrder: 4, lengthKm: 1,
+                          lines: [[LonLat(longitude: -117.40, latitude: 47.66),
+                                   LonLat(longitude: -117.39, latitude: 47.66)]])
+        let row = SpeciesSeason(species: "Redband Trout", bestMonths: [8], note: "river row")
+        model.guide = FisheryGuide(updated: "t", disclaimer: "d", wdfwURL: "https://wdfw.wa.gov",
+                                   areas: [], freshwater: FreshwaterGuide(species: [], byWaterbody: ["Test River": [row]]),
+                                   seasonRisk: [])
+        model.rivers = [river]
+        let onRiver = AccessSite(facilityName: "River Ramp", countyName: "Spokane", hasLaunch: true,
+                                 launchSurface: .gravel, hasRestrooms: false, directions: "",
+                                 coordinate: LonLat(longitude: -117.395, latitude: 47.6605))
+        let offRiver = AccessSite(facilityName: "Dry Ramp", countyName: "Spokane", hasLaunch: true,
+                                  launchSurface: .gravel, hasRestrooms: false, directions: "",
+                                  coordinate: LonLat(longitude: -117.395, latitude: 47.67))
+        model.accessSites = [onRiver, offRiver]
+        model.indexWaterbodies()
+        #expect(model.siteWaterbody[onRiver.id] == "Test River")
+        #expect(model.siteWaterbody[offRiver.id] == nil)
+        #expect(model.fishery(for: onRiver)?.species.first?.note == "river row")
+    }
+
     struct StubClient: HTTPGet {
         var marineData: Data
         var siteData: Data

@@ -6,20 +6,64 @@ final class FishingMapModel {
     var marineAreas: [MarineArea] = []
     var accessSites: [AccessSite] = []
     var piers: [FishingPier] = []
+    var protectedAreas: [ProtectedArea] = []
     var statusMessage = "Loading…"
     var isLoading = true
     var selectedSiteID: AccessSite.ID?
 
     /// Curated seasonal guidance (bundled, offline). See `Fishery.swift`.
     var guide: FisheryGuide?
+    /// Bundled river geometry. Not a live layer — see `River`.
+    var rivers: [River] = []
+    /// Each river's own flow history, bundled. Keyed by river name.
+    var riverStats: [String: RiverFlowStats] = [:]
+    /// Latest USGS reading per gauge. Empty until the live fetch lands, and
+    /// empty is *unknown*, never zero — an absent river stays neutral.
+    var riverFlows: [String: RiverFlow] = [:]
 
     /// Launch → containing marine area (by point-in-polygon). Absent for inland/lake
     /// launches, which have no marine area and therefore a neutral rating.
     private(set) var siteAreaName: [AccessSite.ID: String] = [:]
 
+    /// Inland launch → the waterbody it sits on (curated list, else nearest river).
+    /// Precomputed: resolving scans river geometry, too slow for every pin render.
+    private(set) var siteWaterbody: [AccessSite.ID: String] = [:]
+    private(set) var pierWaterbody: [FishingPier.ID: String] = [:]
+
     /// Pier → containing marine area, same point-in-polygon index as launches so pier
     /// markers and heat zones don't re-scan every polygon on each render.
     private(set) var pierAreaName: [FishingPier.ID: String] = [:]
+    private(set) var pierProtectedArea: [FishingPier.ID: ProtectedArea] = [:]
+
+    /// Site → the Marine Protected Area whose polygon contains it (first match).
+    private(set) var siteProtectedArea: [AccessSite.ID: ProtectedArea] = [:]
+
+    /// True once the MPA layer has actually been read. An empty `protectedAreas`
+    /// on its own cannot tell "checked, nothing here" from "the check never ran",
+    /// and the second must never render as the first.
+    private(set) var protectedAreasLoaded = false
+
+    /// The Marine Protected Area a site sits inside, if any. Only meaningful once
+    /// `protectedAreasLoaded`; callers wanting the three-way answer use
+    /// `protectedAreaCheck(for:)`.
+    func protectedArea(for site: AccessSite) -> ProtectedArea? {
+        siteProtectedArea[site.id]
+    }
+
+    /// Inside an MPA, clear of every MPA, or unable to say.
+    func protectedAreaCheck(for site: AccessSite) -> ProtectedAreaCheck {
+        guard protectedAreasLoaded else { return .unavailable }
+        if let mpa = siteProtectedArea[site.id] { return .inside(mpa) }
+        return .clear
+    }
+
+    /// Inside an MPA, clear of every MPA, or unable to say — piers sit in the
+    /// same water as launches, so the same restriction applies to them.
+    func protectedAreaCheck(for pier: FishingPier) -> ProtectedAreaCheck {
+        guard protectedAreasLoaded else { return .unavailable }
+        if let mpa = pierProtectedArea[pier.id] { return .inside(mpa) }
+        return .clear
+    }
 
     var selectedSite: AccessSite? {
         accessSites.first { $0.id == selectedSiteID }
@@ -41,7 +85,10 @@ final class FishingMapModel {
         if let area = areaName(for: site), let marine = guide?.area(named: area) {
             return marine
         }
-        return guide?.freshwater?.fishery(county: site.countyName)
+        return guide?.freshwater?.fishery(
+            county: site.countyName,
+            waterbody: siteWaterbody[site.id]
+        )
     }
 
     /// The launch's current-month rating, or nil when no guidance applies — the UI
@@ -61,7 +108,10 @@ final class FishingMapModel {
         if let area = pierAreaName[pier.id], let marine = guide?.area(named: area) {
             return marine
         }
-        return guide?.freshwater?.fishery(county: pier.countyName)
+        return guide?.freshwater?.fishery(
+            county: pier.countyName,
+            waterbody: pierWaterbody[pier.id]
+        )
     }
 
     /// A pier's current-month rating, resolved the same way as launches so piers are
@@ -83,12 +133,29 @@ final class FishingMapModel {
             accessSites: try WDFWLayerLoader.accessSites(from: Self.data(.accessSites, in: bundle))
         )
         loadGuide(bundle: bundle)
+        loadRivers(bundle: bundle)
+        loadRiverStats(bundle: bundle)
         indexSitesToAreas()
+        indexWaterbodies()
         statusMessage = "Washington · offline sample"
     }
 
     func load(client: HTTPGet = URLSessionHTTPGet(), bundle: Bundle = .main) async {
+        // Under a UI test the network is not a dependency worth having: the run
+        // asserts what the sheet renders, not that WDFW is up. The fixture also
+        // fixes which site is selected, so the sheet is on screen without a tap.
+        if UITestSeam.isActive {
+            do {
+                try loadFromBundle(bundle: bundle)
+                selectedSiteID = accessSites.first?.id
+            } catch {
+                statusMessage = "Couldn't load WDFW data — check your connection"
+            }
+            return
+        }
         loadGuide(bundle: bundle)
+        loadRivers(bundle: bundle)
+        loadRiverStats(bundle: bundle)
         do {
             // Independent layers — fetch concurrently.
             async let marineData = client.data(from: MapScope.marineAreasURL)
@@ -96,6 +163,7 @@ final class FishingMapModel {
             marineAreas = MapScope.filter(marineAreas: try WDFWLayerLoader.marineAreas(from: await marineData))
             accessSites = MapScope.filter(accessSites: try WDFWLayerLoader.accessSites(from: await siteData))
             indexSitesToAreas()
+            indexWaterbodies()
             statusMessage = "Washington · \(accessSites.count) access sites · live WDFW data"
         } catch {
             do {
@@ -106,11 +174,40 @@ final class FishingMapModel {
                 statusMessage = "Couldn't load WDFW data — check your connection"
             }
         }
-        // Piers are a live-only enhancement; absence is non-fatal.
-        if let pierData = try? await client.data(from: MapScope.piersURL),
+        // Piers are a live-only enhancement; absence is non-fatal. This fetch
+        // (`async let`) starts before the MPA fetch below rather than after it —
+        // the two layers don't depend on each other, only the indexing below
+        // needs the MPA result first. The MPA fetch itself is sequential `await`,
+        // not concurrent with this one.
+        async let pierFetch = try? await client.data(from: MapScope.piersURL)
+        // Marine Protected Areas are a live-only overlay; a failure is non-fatal
+        // for the load but is not silent — `protectedAreasLoaded` stays false and
+        // the sheet says the check could not run.
+        do {
+            let mpaData = try await client.data(from: MapScope.protectedAreasURL)
+            protectedAreas = try WDFWLayerLoader.protectedAreas(from: mpaData)
+            indexSitesToProtectedAreas()
+            protectedAreasLoaded = true
+        } catch {
+            protectedAreas = []
+            siteProtectedArea = [:]
+            pierProtectedArea = [:]
+            protectedAreasLoaded = false
+        }
+        if let pierData = await pierFetch,
            let loaded = try? WDFWLayerLoader.piers(from: pierData) {
             piers = loaded
             indexPiersToAreas()
+            indexWaterbodies()
+            // Piers load after the MPA layer, so their MPA index is built here.
+            // Indexing inside the MPA block would always see zero piers.
+            indexPiersToProtectedAreas()
+        }
+        // River flow is a live-only enhancement; a USGS outage leaves every
+        // river neutral rather than taking the map down.
+        if let flowData = try? await client.data(from: USGSFlowLoader.url),
+           let loaded = try? USGSFlowLoader.flows(from: flowData) {
+            riverFlows = loaded
         }
         isLoading = false
     }
@@ -126,6 +223,28 @@ final class FishingMapModel {
         siteAreaName = map
     }
 
+    /// Match every site to the Marine Protected Area containing it (first wins).
+    private func indexSitesToProtectedAreas() {
+        var map: [AccessSite.ID: ProtectedArea] = [:]
+        for site in accessSites {
+            if let mpa = protectedAreas.first(where: { $0.contains(site.coordinate) }) {
+                map[site.id] = mpa
+            }
+        }
+        siteProtectedArea = map
+    }
+
+    /// Match every pier to the Marine Protected Area containing it (first wins).
+    private func indexPiersToProtectedAreas() {
+        var map: [FishingPier.ID: ProtectedArea] = [:]
+        for pier in piers {
+            if let mpa = protectedAreas.first(where: { $0.contains(pier.coordinate) }) {
+                map[pier.id] = mpa
+            }
+        }
+        pierProtectedArea = map
+    }
+
     /// Match every pier to the marine area whose polygon contains it (first wins).
     private func indexPiersToAreas() {
         var map: [FishingPier.ID: String] = [:]
@@ -137,8 +256,62 @@ final class FishingMapModel {
         pierAreaName = map
     }
 
+    /// Must run after the guide, rivers and marine-area indexes are in place.
+    func indexWaterbodies() {
+        let freshwater = guide?.freshwater
+        var sites: [AccessSite.ID: String] = [:]
+        for site in accessSites where siteAreaName[site.id] == nil {
+            sites[site.id] = freshwater?.waterbody(forFacility: site.facilityName, at: site.coordinate, rivers: rivers)
+        }
+        siteWaterbody = sites
+        var piersMap: [FishingPier.ID: String] = [:]
+        for pier in piers where pierAreaName[pier.id] == nil {
+            piersMap[pier.id] = freshwater?.waterbody(forFacility: pier.name, at: pier.coordinate, rivers: rivers)
+        }
+        pierWaterbody = piersMap
+    }
+
     /// Loads the curated guide from the bundle. Absence is non-fatal — the map still
     /// works, ratings just fall back to neutral.
+    /// Loads the bundled river geometry. Absence is non-fatal, like the guide —
+    /// the map still draws every launch, it just draws no rivers.
+    private func loadRivers(bundle: Bundle) {
+        guard rivers.isEmpty,
+              let url = bundle.url(forResource: "rivers", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let loaded = try? RiverLoader.rivers(from: data) else { return }
+        rivers = loaded
+    }
+
+    private func loadRiverStats(bundle: Bundle) {
+        guard riverStats.isEmpty,
+              let url = bundle.url(forResource: "river_stats", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let loaded = try? RiverFlowStatsLoader.stats(from: data) else { return }
+        riverStats = loaded
+    }
+
+    /// The live reading for a river, found through the gauge its bundled
+    /// history names. Nil means no gauge, or no reading today — both render
+    /// neutral, and neither is a zero.
+    func flow(forRiver name: String) -> RiverFlow? {
+        guard let gauge = riverStats[name]?.gauge else { return nil }
+        return riverFlows[gauge]
+    }
+
+    /// Flow rating per river id for a given calendar day. The day is injected;
+    /// nothing in this path reads the clock.
+    func riverRatings(month: Int, day: Int) -> [String: FishingRating] {
+        var ratings: [String: FishingRating] = [:]
+        for (name, stats) in riverStats {
+            guard let discharge = riverFlows[stats.gauge]?.discharge,
+                  let rating = stats.rating(discharge: discharge, month: month, day: day)
+            else { continue }
+            ratings[name] = rating
+        }
+        return ratings
+    }
+
     private func loadGuide(bundle: Bundle) {
         guard guide == nil,
               let url = bundle.url(forResource: "fisheries", withExtension: "json"),

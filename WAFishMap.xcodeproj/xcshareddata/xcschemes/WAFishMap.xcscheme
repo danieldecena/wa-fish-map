@@ -41,6 +41,17 @@
                ReferencedContainer = "container:WAFishMap.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A10000000000000000000042"
+               BuildableName = "WAFishMapUITests.xctest"
+               BlueprintName = "WAFishMapUITests"
+               ReferencedContainer = "container:WAFishMap.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

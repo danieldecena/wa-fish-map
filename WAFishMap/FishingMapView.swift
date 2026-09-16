@@ -5,22 +5,21 @@ struct FishingMapView: View {
     @State private var model = FishingMapModel()
     @Environment(\.openURL) private var openURL
     @State private var location = LocationProvider()
-    @State private var position: MapCameraPosition = .automatic
     /// Date/time the user is planning for. Defaults to now; the month drives ratings.
     @State private var planDate = Date()
     /// `nil` is All species (best in the area). Exact name from the guide otherwise.
     @State private var selectedSpecies: String?
     @State private var showHeat = false
+    @State private var showRivers = false
+    /// The tapped river, by name. Overlays are not selectable the way
+    /// annotations are, so the coordinator sets this from an explicit hit test.
+    @State private var selectedRiverName: String?
     @State private var showDisclaimer = false
     @State private var heatZones: [HeatZone] = []
     /// Camera altitude in meters; starts far out so area labels stay hidden until the
     /// first camera event. Below the threshold the "MA n" capsules stop overlapping.
     @State private var cameraDistance: Double = .greatestFiniteMagnitude
     private static let areaLabelMaxDistance: Double = 600_000
-    /// Above this altitude a site is a bare colored dot. Balloon pins carry a
-    /// glyph and a shadow that are unreadable at range and mat together.
-    private static let pinDetailMaxDistance: Double = 150_000
-
     /// Grid cell size, in degrees, for the density overlay. A fixed size cannot
     /// work at every zoom: 0.15 was a chessboard up close, and 0.06 was specks
     /// from statewide. Coarser as the camera pulls back keeps the cell roughly
@@ -38,22 +37,10 @@ struct FishingMapView: View {
     /// Set once the user pans or zooms. A fix that lands afterwards must not yank
     /// the camera out from under them.
     @State private var userMovedCamera = false
-    /// With `position = .automatic`, MapKit fires a genuine `.onEnd` camera-change
-    /// event of its own once before any data exists, and fires a SECOND one when
-    /// `accessSites` populates from the network and the camera re-fits to it.
-    /// Exempting only the first such event (an ordinal count) let that second,
-    /// still-programmatic re-fit set `userMovedCamera` before CoreLocation had
-    /// even answered — the recentre-on-fix animation then never ran.
-    ///
-    /// `MapCameraUpdateContext` has no "gesture vs. programmatic" reason in the
-    /// SwiftUI Map API, so instead of counting events this keys off the data load
-    /// itself: `.beforeLoad` events are MapKit's own initial fit, `load()` flips
-    /// the phase to `.awaitingPostLoadRefit` the instant `accessSites` is set
-    /// (synchronously, before SwiftUI's next render can trigger the re-fit's
-    /// `.onEnd`), that one re-fit event is consumed to reach `.settled`, and only
-    /// an event in `.settled` is a real user gesture.
-    private enum CameraGuardPhase { case beforeLoad, awaitingPostLoadRefit, settled }
-    @State private var cameraGuardPhase: CameraGuardPhase = .beforeLoad
+    /// A one-shot camera move handed to the representable (the recentre-on-fix
+    /// ease). MapKit's own delegate reports real pan/pinch touches, so the
+    /// three-phase `CameraGuardPhase` machine this replaced is gone.
+    @State private var focusRegion: MKCoordinateRegion?
     /// Washington's bounding box. A fix outside it belongs to someone travelling,
     /// and centring there would show an empty map — the data is statewide only.
     private static let stateBounds = (
@@ -70,73 +57,50 @@ struct FishingMapView: View {
         .marina, .park, .campground, .nationalPark, .parking, .publicTransport, .gasStation
     ]
 
-    /// Month from the selected plan date drives every rating on the map.
+    /// Month from the selected plan date drives every rating on the map. Pacific,
+    /// matching `TidePredictionsView`/`DaylightView` — the map's own solar and
+    /// tide math must key off the same local day, not the device's time zone.
     private var currentMonth: Int {
-        Calendar.current.component(.month, from: planDate)
+        UITestSeam.planMonth ?? Calendar.pacific.component(.month, from: planDate)
+    }
+
+    /// Day of the month from the plan date, paired with `currentMonth` to place
+    /// a reading in the right row of a river's day-of-year table.
+    private var currentDay: Int {
+        Calendar.pacific.component(.day, from: planDate)
     }
 
     private var timeOfDay: TimeOfDay {
-        if let solar = SolarTimes.compute(on: planDate, at: cameraCenter) {
+        if let solar = SolarTimes.compute(on: planDate, at: cameraCenter, calendar: .pacific) {
             return TimeOfDay(date: planDate, solar: solar)
         }
-        return TimeOfDay(hour: Calendar.current.component(.hour, from: planDate))
+        return TimeOfDay(hour: Calendar.pacific.component(.hour, from: planDate))
     }
 
     var body: some View {
-        Map(position: $position, selection: $model.selectedSiteID) {
-            ForEach(model.marineAreas) { area in
-                MapPolygon(coordinates: area.mapCoordinates)
-                    .foregroundStyle(color(forArea: area).opacity(0.12))
-                    .stroke(color(forArea: area).opacity(0.35), lineWidth: 0.75)
-                if cameraDistance < Self.areaLabelMaxDistance {
-                    Annotation("Area \(area.areaName)", coordinate: area.center) {
-                        Text("MA \(area.areaName)")
-                            .font(.caption2.weight(.semibold))
-                            .padding(.horizontal, 5).padding(.vertical, 2)
-                            .background(.ultraThinMaterial, in: Capsule())
-                    }
-                    .annotationTitles(.hidden)
-                }
-            }
-            ForEach(heatZones) { zone in
-                // The real grid cell, tiled. Circles wider than their own cell
-                // overlapped, and translucent overlap composites rather than
-                // maxes, so mediocre neighbours out-darkened a genuinely hot cell.
-                MapPolygon(coordinates: zone.corners.map(\.clLocationCoordinate))
-                    .foregroundStyle(ColorRamp.densityFill(zone.intensity))
-            }
-            if cameraDistance > Self.pinDetailMaxDistance {
-                ForEach(pinClusters) { cluster in
-                    clusterAnnotation(cluster)
-                }
-            } else {
-                ForEach(model.accessSites) { site in
-                    Marker(site.facilityName,
-                           systemImage: site.hasLaunch ? "anchor.fill" : "figure.fishing",
-                           coordinate: site.mapCoordinate)
-                        .tint(color(forSite: site))
-                        .tag(site.id)
-                }
-                ForEach(model.piers) { pier in
-                    Marker(pier.name, systemImage: "fish.fill", coordinate: pier.mapCoordinate)
-                        .tint(rating(for: pier)?.color ?? .gray)
-                        .tag(pier.id)
-                }
-            }
-            UserAnnotation()
-        }
-        // Drain the basemap while the overlay is on. A translucent fill takes its
-        // apparent colour from what is under it, so over the full-colour map one
-        // density band read as three different colours depending on land, water
-        // or city. A neutral ground is what makes the bands mean one thing.
-        .mapStyle(.standard(
-            emphasis: showHeat ? .muted : .automatic,
-            pointsOfInterest: .including(landmarkCategories)
-        ))
-        .mapControls {
-            MapUserLocationButton()
-            MapCompass()
-        }
+        FishingMapRepresentable(
+            annotations: showsPins ? siteAnnotations : [],
+            areas: model.marineAreas,
+            areaColors: areaColors,
+            protectedAreas: model.protectedAreas,
+            heatZones: heatZones,
+            rivers: model.rivers,
+            riverColors: riverColors,
+            showRivers: showRivers,
+            showHeat: heatVisible,
+            showAreaLabels: cameraDistance < Self.areaLabelMaxDistance,
+            pointsOfInterest: landmarkCategories,
+            selectedID: $model.selectedSiteID,
+            selectedRiverName: $selectedRiverName,
+            cameraDistance: $cameraDistance,
+            cameraCenter: $cameraCenter,
+            userMovedCamera: $userMovedCamera,
+            focusRegion: $focusRegion
+        )
+        .ignoresSafeArea()
+        // `MKMapView` has no built-in recentre control, so `MapUserLocationButton`
+        // is rebuilt by hand. The compass is native (`showsCompass`).
+        .overlay(alignment: .topTrailing) { recenterButton }
         .safeAreaInset(edge: .top) { dateControl }
         .safeAreaInset(edge: .bottom) { statusBar }
         .modifier(AdaptiveDetail(item: selectedSiteBinding) { site in
@@ -144,6 +108,17 @@ struct FishingMapView: View {
                 site: site,
                 fishery: model.fishery(for: site),
                 isMarine: model.isMarine(site),
+                guide: model.guide,
+                planDate: planDate,
+                protectedAreaCheck: model.protectedAreaCheck(for: site),
+                species: selectedSpecies
+            )
+        })
+        .modifier(AdaptiveDetail(item: selectedRiverBinding) { river in
+            RiverDetailSheet(
+                river: river,
+                stats: model.riverStats[river.name],
+                flow: model.flow(forRiver: river.name),
                 guide: model.guide,
                 planDate: planDate
             )
@@ -154,7 +129,9 @@ struct FishingMapView: View {
                 fishery: model.fishery(for: pier),
                 isMarine: model.isMarine(pier),
                 guide: model.guide,
-                planDate: planDate
+                planDate: planDate,
+                protectedAreaCheck: model.protectedAreaCheck(for: pier),
+                species: selectedSpecies
             )
         })
         .overlay {
@@ -183,30 +160,44 @@ struct FishingMapView: View {
             location.requestIfNeeded()
             await model.load()
             recomputeHeatZones()
-            // accessSites is now populated, so MapKit's .automatic camera is about
-            // to re-fit to it — that re-fit is the event this phase exists to catch.
-            cameraGuardPhase = .awaitingPostLoadRefit
         }
-        .onChange(of: showHeat) { recomputeHeatZones() }
+        .onChange(of: heatVisible) { recomputeHeatZones() }
         .onChange(of: Self.heatCellDegrees(cameraDistance)) { recomputeHeatZones() }
         .onChange(of: currentMonth) { recomputeHeatZones() }
         .onChange(of: selectedSpecies) { recomputeHeatZones() }
         .onChange(of: location.fix?.latitude) { recenterOnFixIfAppropriate() }
-        .onMapCameraChange(frequency: .onEnd) { context in
-            switch cameraGuardPhase {
-            case .beforeLoad:
-                break // MapKit's own pre-data fit; not the user
-            case .awaitingPostLoadRefit:
-                cameraGuardPhase = .settled // consume the data-triggered re-fit; still not the user
-            case .settled:
-                userMovedCamera = true
-            }
-            cameraDistance = context.camera.distance
-            cameraCenter = LonLat(
-                longitude: context.camera.centerCoordinate.longitude,
-                latitude: context.camera.centerCoordinate.latitude
-            )
-        }
+    }
+
+    /// Pulled back far enough, individual pins are an unreadable mass; the
+    /// density overlay carries the state-wide picture instead.
+    private var showsPins: Bool {
+        MapDetailLevel.showsPins(atCameraDistance: cameraDistance)
+    }
+
+    /// The user's toggle, plus the forced-on case where pins are hidden.
+    /// Flow colour per river. A river with no gauge, or a gauge that reported
+    /// nothing today, is simply absent here and draws neutral — the map never
+    /// invents a reading to fill a gap.
+    private var riverColors: [String: Color] {
+        guard showRivers else { return [:] }
+        return model.riverRatings(month: currentMonth, day: currentDay)
+            .mapValues(\.color)
+    }
+
+    private var heatVisible: Bool {
+        MapDetailLevel.showsHeat(userEnabled: showHeat, atCameraDistance: cameraDistance)
+    }
+
+    /// Sites and piers as MapKit annotations, ratings resolved up front.
+    private var siteAnnotations: [SiteAnnotation] {
+        model.accessSites.map { SiteAnnotation(site: $0, rating: rating(for: $0)) }
+            + model.piers.map { SiteAnnotation(pier: $0, rating: rating(for: $0)) }
+    }
+
+    private var areaColors: [String: Color] {
+        var colors: [String: Color] = [:]
+        for area in model.marineAreas { colors[area.id] = color(forArea: area) }
+        return colors
     }
 
     // MARK: Rating → color (nil rating renders neutral gray)
@@ -219,60 +210,12 @@ struct FishingMapView: View {
         rating(for: site)?.color ?? .gray
     }
 
-    /// Sites and piers bucketed on the same grid as the heat overlay.
-    private var pinClusters: [MapCluster] {
-        var points: [(id: String, coord: LonLat, rating: FishingRating?)] = []
-        points.reserveCapacity(model.accessSites.count + model.piers.count)
-        for site in model.accessSites {
-            points.append((site.id, site.coordinate, rating(for: site)))
-        }
-        for pier in model.piers {
-            points.append((pier.id, pier.coordinate, rating(for: pier)))
-        }
-        return HeatMap.clusters(points: points, cellDegrees: Self.heatCellDegrees(cameraDistance))
-    }
-
-    @MapContentBuilder
-    private func clusterAnnotation(_ cluster: MapCluster) -> some MapContent {
-        if cluster.count == 1, let site = model.accessSites.first(where: { $0.id == cluster.memberIDs[0] }) {
-            Annotation(site.facilityName, coordinate: site.mapCoordinate) {
-                RatingDot(color: color(forSite: site))
-            }
-            .annotationTitles(.hidden)
-            .tag(site.id)
-        } else if cluster.count == 1, let pier = model.piers.first(where: { $0.id == cluster.memberIDs[0] }) {
-            Annotation(pier.name, coordinate: pier.mapCoordinate) {
-                RatingDot(color: rating(for: pier)?.color ?? .gray)
-            }
-            .annotationTitles(.hidden)
-            .tag(pier.id)
-        } else {
-            Annotation("", coordinate: cluster.center.clLocationCoordinate) {
-                ClusterMark(count: cluster.count, color: cluster.bestRating?.color ?? .gray)
-                    .onTapGesture { zoomToCluster(cluster) }
-            }
-            .annotationTitles(.hidden)
-        }
-    }
-
-    private func zoomToCluster(_ cluster: MapCluster) {
-        userMovedCamera = true
-        cameraGuardPhase = .settled
-        let span = cluster.cellDegrees * 2.5
-        withAnimation(.easeInOut(duration: 0.4)) {
-            position = .region(MKCoordinateRegion(
-                center: cluster.center.clLocationCoordinate,
-                span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)
-            ))
-        }
-    }
-
     // MARK: Heat zones (density of good-rated spots, cold→hot)
 
     /// Cached in state; zones only change with the toggle, the plan month, the
     /// species filter, a data load, or the camera-distance band.
     private func recomputeHeatZones() {
-        guard showHeat else {
+        guard heatVisible else {
             heatZones = []
             return
         }
@@ -301,12 +244,38 @@ struct FishingMapView: View {
     /// said where they want to be.
     private func recenterOnFixIfAppropriate() {
         guard !userMovedCamera, let fix = location.fix, Self.isInWashington(fix) else { return }
-        withAnimation(.easeInOut(duration: 0.6)) {
-            position = .region(MKCoordinateRegion(
+        focusRegion = MKCoordinateRegion(
+            center: fix,
+            span: MKCoordinateSpan(latitudeDelta: 0.9, longitudeDelta: 0.9)
+        )
+    }
+
+    private var recenterButton: some View {
+        Button {
+            guard let fix = location.fix else { return }
+            userMovedCamera = true
+            focusRegion = MKCoordinateRegion(
                 center: fix,
-                span: MKCoordinateSpan(latitudeDelta: 0.9, longitudeDelta: 0.9)
-            ))
+                span: MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)
+            )
+        } label: {
+            Image(systemName: "location.fill")
+                .font(.system(size: 15, weight: .medium))
+                .frame(width: 36, height: 36)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
         }
+        .accessibilityLabel("Center on my location")
+        .padding(.trailing, 10)
+        .padding(.top, 6)
+    }
+
+    /// `River` is already `Identifiable` by name, so the sheet binds to the
+    /// river itself rather than to a wrapper around the name.
+    private var selectedRiverBinding: Binding<River?> {
+        Binding(
+            get: { model.rivers.first { $0.name == selectedRiverName } },
+            set: { selectedRiverName = $0?.name }
+        )
     }
 
     private var selectedSiteBinding: Binding<AccessSite?> {
@@ -404,6 +373,13 @@ struct FishingMapView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 Spacer()
+                Button { showRivers.toggle() } label: {
+                    Label("Rivers", systemImage: "water.waves")
+                        .font(.caption2.weight(.semibold))
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .tint(showRivers ? .teal : .secondary)
                 Button { showHeat.toggle() } label: {
                     Label("Heat", systemImage: showHeat ? "flame.fill" : "flame")
                         .font(.caption2.weight(.semibold))
@@ -418,11 +394,19 @@ struct FishingMapView: View {
                 .buttonStyle(.borderless)
                 .accessibilityLabel("About this guidance")
                 .popover(isPresented: $showDisclaimer, arrowEdge: .bottom) {
-                    Text("Tap a launch for what's biting. Guidance only — verify seasons in the Fish Washington app.")
-                        .font(.caption)
-                        .padding()
-                        .frame(maxWidth: 280)
-                        .presentationCompactAdaptation(.popover)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Tap a launch for what's biting. Guidance only — verify seasons in the Fish Washington app.")
+                            .font(.caption)
+                        if let urlString = model.guide?.wdfwURL, let url = URL(string: urlString) {
+                            Link(destination: url) {
+                                Label("Verify seasons & limits at WDFW", systemImage: "exclamationmark.shield")
+                                    .font(.caption.weight(.semibold))
+                            }
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: 280)
+                    .presentationCompactAdaptation(.popover)
                 }
             }
             if location.isDenied {
@@ -436,7 +420,9 @@ struct FishingMapView: View {
                 }
                 .buttonStyle(.borderless)
             }
-            if showHeat {
+            // Follows what is actually drawn, not the toggle: zoomed out the
+            // overlay is forced on, and a rating legend over a heat map lies.
+            if heatVisible {
                 HeatLegend()
             } else {
                 RatingLegend()

@@ -51,30 +51,3 @@ extension FishingRating {
         }
     }
 }
-
-/// A site rendered at range: colour and position only, no glyph or balloon.
-struct RatingDot: View {
-    let color: Color
-
-    var body: some View {
-        Circle()
-            .fill(color)
-            .stroke(.white, lineWidth: 1.5)
-            .frame(width: 11, height: 11)
-    }
-}
-
-/// Numbered stand-in for several pins in one grid cell. Tap is handled by the map.
-struct ClusterMark: View {
-    let count: Int
-    let color: Color
-
-    var body: some View {
-        Text("\(count)")
-            .font(.caption2.bold())
-            .foregroundStyle(.white)
-            .frame(width: 26, height: 26)
-            .background(color, in: Circle())
-            .overlay(Circle().stroke(.white, lineWidth: 1.5))
-    }
-}

@@ -40,12 +40,18 @@ struct BitingNowView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack {
                             RatingBadge(rating: s.rating(inMonth: month))
+                            // Counts the species on screen for the UI test. It sits
+                            // on the name, not the card: an identifier on the card
+                            // container makes SwiftUI collapse it into one element
+                            // and the badge inside stops being queryable.
                             Text(s.species).font(.subheadline.weight(.semibold))
+                                .accessibilityIdentifier("speciesName")
                         }
                         if s.riskMonths.contains(month) {
                             Label("Season varies — verify", systemImage: "exclamationmark.triangle")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
+                                .accessibilityIdentifier("verifyBadge")
                         }
                         Label("Best months: \(Self.monthList(s.bestMonths))", systemImage: "calendar")
                             .font(.caption).foregroundStyle(.secondary)
@@ -110,6 +116,45 @@ struct GuidanceFooter: View {
     }
 }
 
+/// The MPA qualifier, shared by the launch and pier sheets. Shown above "What's
+/// biting" so it is read before the guidance it qualifies.
+///
+/// `unavailable` gets its own row: a spot whose MPA check never ran must not
+/// render identically to one that came back clear.
+struct ProtectedAreaSection: View {
+    let check: ProtectedAreaCheck
+
+    var body: some View {
+        switch check {
+        case .inside(let mpa):
+            VStack(alignment: .leading, spacing: 4) {
+                Label(mpa.headline, systemImage: "exclamationmark.shield")
+                    .font(.subheadline.weight(.semibold))
+                Text(mpa.detailLine)
+                    .font(.caption)
+                if let url = mpa.detailURL {
+                    Link("WDFW details", destination: url).font(.caption)
+                }
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.orange.opacity(0.14), in: RoundedRectangle(cornerRadius: 10))
+        case .unavailable:
+            VStack(alignment: .leading, spacing: 4) {
+                Label("Protected-area check unavailable", systemImage: "questionmark.circle")
+                    .font(.subheadline.weight(.semibold))
+                Text("WDFW's protected-area layer didn't load, so this app can't say whether this spot sits in one. Check WDFW.")
+                    .font(.caption)
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.gray.opacity(0.14), in: RoundedRectangle(cornerRadius: 10))
+        case .clear:
+            EmptyView()
+        }
+    }
+}
+
 /// Detail shown when a launch/shore marker is tapped.
 struct SiteDetailSheet: View {
     let site: AccessSite
@@ -117,9 +162,14 @@ struct SiteDetailSheet: View {
     let isMarine: Bool
     let guide: FisheryGuide?
     let planDate: Date
+    var protectedAreaCheck: ProtectedAreaCheck = .unavailable
+    /// The map's species filter, if any. Threaded through so the header badge
+    /// agrees with the pin colour, which is already species-aware
+    /// (`FishingMapModel.rating(for:month:species:)`).
+    var species: String? = nil
 
-    private var month: Int { Calendar.current.component(.month, from: planDate) }
-    private var rating: FishingRating? { fishery?.rating(inMonth: month) }
+    private var month: Int { PlanClock.month(for: planDate) }
+    private var rating: FishingRating? { fishery?.rating(inMonth: month, species: species) }
     private var inSeason: [SpeciesSeason] { fishery?.inSeason(month: month) ?? [] }
 
     var body: some View {
@@ -129,11 +179,15 @@ struct SiteDetailSheet: View {
                     header
                     facilitySection
                     amenitiesSection
+                    DaylightView(coordinate: site.coordinate, planDate: planDate)
                     TidePredictionsView(
                         coordinate: site.coordinate,
                         planDate: planDate,
                         isMarine: isMarine
                     )
+                    BuoyConditionsView(coordinate: site.coordinate, isMarine: isMarine)
+                    PlanWeatherView(coordinate: site.coordinate, planDate: planDate)
+                    ProtectedAreaSection(check: protectedAreaCheck)
                     BitingNowView(fishery: fishery, month: month)
                     GuidanceFooter(guide: guide)
                     if !site.directions.isEmpty { directionsSection }
@@ -143,6 +197,9 @@ struct SiteDetailSheet: View {
             .navigationTitle(site.facilityName)
             .navigationBarTitleDisplayMode(.inline)
         }
+        // Lets a UI test wait for the sheet before asserting the *absence* of the
+        // verify badge; without it an absence check can pass by running early.
+        .accessibilityIdentifier("siteDetailSheet")
     }
 
     private var header: some View {
@@ -224,9 +281,14 @@ struct PierDetailSheet: View {
     let isMarine: Bool
     let guide: FisheryGuide?
     let planDate: Date
+    var protectedAreaCheck: ProtectedAreaCheck = .unavailable
+    /// The map's species filter, if any. Threaded through so the header badge
+    /// agrees with the pin colour, which is already species-aware — mirrors
+    /// `SiteDetailSheet.species`.
+    var species: String? = nil
 
-    private var month: Int { Calendar.current.component(.month, from: planDate) }
-    private var rating: FishingRating? { fishery?.rating(inMonth: month) }
+    private var month: Int { PlanClock.month(for: planDate) }
+    private var rating: FishingRating? { fishery?.rating(inMonth: month, species: species) }
 
     var body: some View {
         NavigationStack {
@@ -247,11 +309,15 @@ struct PierDetailSheet: View {
                         }
                     }
                     .font(.subheadline)
+                    DaylightView(coordinate: pier.coordinate, planDate: planDate)
                     TidePredictionsView(
                         coordinate: pier.coordinate,
                         planDate: planDate,
                         isMarine: isMarine
                     )
+                    BuoyConditionsView(coordinate: pier.coordinate, isMarine: isMarine)
+                    PlanWeatherView(coordinate: pier.coordinate, planDate: planDate)
+                    ProtectedAreaSection(check: protectedAreaCheck)
                     BitingNowView(fishery: fishery, month: month)
                     GuidanceFooter(guide: guide)
                 }

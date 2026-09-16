@@ -1,0 +1,228 @@
+{
+  "source": "https://www.ndbc.noaa.gov/data/stations/station_table.txt",
+  "fetched": "2026-09-02",
+  "stations": [
+    {
+      "id": "46010",
+      "name": "Station 46010",
+      "lat": 46.2,
+      "lon": -124.2
+    },
+    {
+      "id": "46029",
+      "name": "COLUMBIA RIVER BAR - 20NM West of Columbia River Mouth",
+      "lat": 46.148,
+      "lon": -124.508
+    },
+    {
+      "id": "46039",
+      "name": "Station 46039",
+      "lat": 48.2,
+      "lon": -123.4
+    },
+    {
+      "id": "46041",
+      "name": "CAPE ELIZABETH - 45NM NW of Aberdeen, WA",
+      "lat": 47.351,
+      "lon": -124.741
+    },
+    {
+      "id": "46043",
+      "name": "Station 46043",
+      "lat": 46.9,
+      "lon": -124.2
+    },
+    {
+      "id": "46087",
+      "name": "Neah Bay - 6 NM North of Cape Flattery, WA (Traffic Separation Lighted Buoy)",
+      "lat": 48.493,
+      "lon": -124.727
+    },
+    {
+      "id": "46088",
+      "name": "NEW DUNGENESS - 17 NM NE of Port Angeles, WA",
+      "lat": 48.332,
+      "lon": -123.179
+    },
+    {
+      "id": "46089",
+      "name": "TILLAMOOK, OR - 85 NM WNW of Tillamook, OR",
+      "lat": 45.928,
+      "lon": -125.815
+    },
+    {
+      "id": "46096",
+      "name": "Columbia River Entrance - SATURN Station #02 Offshore",
+      "lat": 46.173,
+      "lon": -124.127
+    },
+    {
+      "id": "46099",
+      "name": "OOI Westport Shelf",
+      "lat": 46.988,
+      "lon": -124.567
+    },
+    {
+      "id": "46100",
+      "name": "OOI Westport Offshore",
+      "lat": 46.851,
+      "lon": -124.964
+    },
+    {
+      "id": "46109",
+      "name": "Port Angeles Buoy",
+      "lat": 48.123,
+      "lon": -123.395
+    },
+    {
+      "id": "46110",
+      "name": "Sequim Buoy",
+      "lat": 48.115,
+      "lon": -123.032
+    },
+    {
+      "id": "46111",
+      "name": "Fort Worden Buoy",
+      "lat": 48.131,
+      "lon": -122.748
+    },
+    {
+      "id": "46112",
+      "name": "Marrowstone Buoy",
+      "lat": 48.1,
+      "lon": -122.73
+    },
+    {
+      "id": "46113",
+      "name": "Poulsbo Buoy",
+      "lat": 47.73,
+      "lon": -122.646
+    },
+    {
+      "id": "46116",
+      "name": "SATURN Estuary Station #07, Baker Bay, WA",
+      "lat": 46.287,
+      "lon": -124.016
+    },
+    {
+      "id": "46117",
+      "name": "SATURN Estuary Station #09, Youngs Bay, OR",
+      "lat": 46.176,
+      "lon": -123.869
+    },
+    {
+      "id": "46118",
+      "name": "Se'lhaem Bellingham Bay",
+      "lat": 48.724,
+      "lon": -122.576
+    },
+    {
+      "id": "46119",
+      "name": "Cha'Ba La Push",
+      "lat": 47.967,
+      "lon": -124.95
+    },
+    {
+      "id": "46120",
+      "name": "Pt Wells, WA (U of Wash)",
+      "lat": 47.761,
+      "lon": -122.397
+    },
+    {
+      "id": "46121",
+      "name": "Carr Inlet, WA (U of Wash)",
+      "lat": 47.28,
+      "lon": -122.73
+    },
+    {
+      "id": "46122",
+      "name": "Dabob Bay, WA (U of Wash)",
+      "lat": 47.803,
+      "lon": -122.803
+    },
+    {
+      "id": "46123",
+      "name": "Twanoh - Hood Canal, WA (U of Wash)",
+      "lat": 47.375,
+      "lon": -123.008
+    },
+    {
+      "id": "46124",
+      "name": "Hoodsport - Hood Canal, WA (U of Wash)",
+      "lat": 47.422,
+      "lon": -123.113
+    },
+    {
+      "id": "46125",
+      "name": "Hansville - Hood Canal, WA",
+      "lat": 47.907,
+      "lon": -122.627
+    },
+    {
+      "id": "46127",
+      "name": "SATURN Offshore Station #10, Columbia River, South Jetty, OR",
+      "lat": 46.215,
+      "lon": -124.063
+    },
+    {
+      "id": "46134",
+      "name": "Pat Bay",
+      "lat": 48.65,
+      "lon": -123.5
+    },
+    {
+      "id": "46139",
+      "name": "La Perouse Bank DWR, Canada  (195)",
+      "lat": 48.844,
+      "lon": -126.01
+    },
+    {
+      "id": "46206",
+      "name": "La Perouse Bank",
+      "lat": 48.84,
+      "lon": -126.0
+    },
+    {
+      "id": "46211",
+      "name": "Grays Harbor, WA (036)",
+      "lat": 46.857,
+      "lon": -124.243
+    },
+    {
+      "id": "46243",
+      "name": "Clatsop Spit, OR (162)",
+      "lat": 46.215,
+      "lon": -124.129
+    },
+    {
+      "id": "46248",
+      "name": "Astoria Canyon, OR  (179)",
+      "lat": 46.133,
+      "lon": -124.64
+    },
+    {
+      "id": "46267",
+      "name": "Angeles Point, WA (248)",
+      "lat": 48.171,
+      "lon": -123.6
+    },
+    {
+      "id": "46278",
+      "name": "Tillamook Bay South Jetty, OR (270)",
+      "lat": 45.559,
+      "lon": -123.991
+    },
+    {
+      "id": "46303",
+      "name": "Southern Georgia Strait",
+      "lat": 49.02,
+      "lon": -123.43
+    },
+    {
+      "id": "46453",
+      "name": "Backyard Buoys - Quinault North",
+      "lat": 47.45,
+      "lon": -124.43
+    }
+  ]
+}

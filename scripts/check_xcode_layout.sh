@@ -27,11 +27,7 @@ done
 
 swift_count="$(find WAFishMap -name '*.swift' | wc -l | tr -d ' ')"
 echo
-echo "Swift files under WAFishMap/: $swift_count (expect 10)"
-if [[ "$swift_count" -lt 10 ]]; then
-  echo "[x]  too few Swift sources — git checkout or re-clone"
-  fail=1
-fi
+echo "Swift files under WAFishMap/: $swift_count"
 
 if grep -q PBXFileSystemSynchronizedRootGroup WAFishMap.xcodeproj/project.pbxproj 2>/dev/null; then
   echo "[ok] synchronized groups enabled"

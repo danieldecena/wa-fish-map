@@ -1,0 +1,15 @@
+{
+  "fill" : {
+    "linear-gradient" : [
+      "extended-srgb:0.09020,0.59216,0.68235,1.00000",
+      "extended-srgb:0.00000,0.29020,0.47451,1.00000"
+    ]
+  },
+  "groups" : [
+    { "layers" : [ { "image-name" : "tail.svg", "fill" : { "solid" : "extended-srgb:1.00000,1.00000,1.00000,1.00000" } } ] },
+    { "layers" : [ { "image-name" : "body.svg", "fill" : { "solid" : "extended-srgb:1.00000,1.00000,1.00000,1.00000" } } ] }
+  ],
+  "supported-platforms" : {
+    "squares" : [ "iOS" ]
+  }
+}

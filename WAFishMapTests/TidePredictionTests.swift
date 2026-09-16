@@ -120,6 +120,33 @@ struct TidePredictionTests {
         #expect(table.extremes[0].kind == .high)
     }
 
+    @Test func loadKeyDiffersByCoordinateSameDay() {
+        let a = LonLat(longitude: -122.3393, latitude: 47.6026)
+        let b = LonLat(longitude: -124.602, latitude: 48.370)
+        let day = date(2026, 8, 31, 9, 0)
+        let keyA = TidePredictionsView.loadKey(coordinate: a, planDate: day, calendar: Self.pacific)
+        let keyB = TidePredictionsView.loadKey(coordinate: b, planDate: day, calendar: Self.pacific)
+        #expect(keyA != keyB)
+    }
+
+    @Test func loadKeySameCoordinateSameDayDifferentHours() {
+        let a = LonLat(longitude: -122.3393, latitude: 47.6026)
+        let morning = date(2026, 8, 31, 1, 0)
+        let evening = date(2026, 8, 31, 23, 0)
+        let keyMorning = TidePredictionsView.loadKey(coordinate: a, planDate: morning, calendar: Self.pacific)
+        let keyEvening = TidePredictionsView.loadKey(coordinate: a, planDate: evening, calendar: Self.pacific)
+        #expect(keyMorning == keyEvening)
+    }
+
+    @Test func loadKeyDiffersByDaySameCoordinate() {
+        let a = LonLat(longitude: -122.3393, latitude: 47.6026)
+        let day1 = date(2026, 8, 31, 9, 0)
+        let day2 = date(2026, 9, 1, 9, 0)
+        let key1 = TidePredictionsView.loadKey(coordinate: a, planDate: day1, calendar: Self.pacific)
+        let key2 = TidePredictionsView.loadKey(coordinate: a, planDate: day2, calendar: Self.pacific)
+        #expect(key1 != key2)
+    }
+
     @Test func shippedCatalogIncludesSeattleAndColumbiaMouth() throws {
         let bundle = try #require(FixtureBundle.loader)
         let stations = try NOAATideLoader.loadStations(from: bundle)

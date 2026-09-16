@@ -7,11 +7,7 @@ struct TidePredictionsView: View {
     let isMarine: Bool
     var client: HTTPGet = URLSessionHTTPGet()
     var bundle: Bundle = .main
-    var calendar: Calendar = {
-        var c = Calendar.current
-        c.timeZone = TimeZone(identifier: "America/Los_Angeles") ?? .current
-        return c
-    }()
+    var calendar: Calendar = .pacific
 
     @State private var table: TideTable?
     @State private var failed = false
@@ -22,7 +18,7 @@ struct TidePredictionsView: View {
                 Text("Tides").font(.headline)
                 content
             }
-            .task(id: dayKey) { await load() }
+            .task(id: taskKey) { await load() }
         }
     }
 
@@ -62,9 +58,14 @@ struct TidePredictionsView: View {
         }
     }
 
-    private var dayKey: String {
+    private var taskKey: String { Self.loadKey(coordinate: coordinate, planDate: planDate, calendar: calendar) }
+
+    /// Keys `.task(id:)` on both the plan day and the coordinate, so switching sites in an
+    /// inspector that keeps its view identity (iPad) still triggers a reload. Cheap to compute
+    /// in `body` — no station lookup, just the coordinate already on hand.
+    static func loadKey(coordinate: LonLat, planDate: Date, calendar: Calendar) -> String {
         let p = calendar.dateComponents([.year, .month, .day], from: planDate)
-        return "\(p.year ?? 0)-\(p.month ?? 0)-\(p.day ?? 0)"
+        return "\(p.year ?? 0)-\(p.month ?? 0)-\(p.day ?? 0)|\(coordinate.longitude)|\(coordinate.latitude)"
     }
 
     private func load() async {
@@ -76,10 +77,17 @@ struct TidePredictionsView: View {
                 failed = true
                 return
             }
-            table = try await NOAATideLoader.fetch(
+            let fetched = try await NOAATideLoader.fetch(
                 station: station, day: planDate, client: client, calendar: calendar
             )
+            // A newer load may have started (and thus a newer .task) while this awaited;
+            // do not let a superseded fetch overwrite the current site's state.
+            guard !Task.isCancelled else { return }
+            table = fetched
+        } catch is CancellationError {
+            // Superseded by a newer load; leave table/failed alone.
         } catch {
+            guard !Task.isCancelled else { return }
             failed = true
         }
     }

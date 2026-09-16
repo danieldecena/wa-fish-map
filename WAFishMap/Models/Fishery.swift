@@ -163,6 +163,44 @@ struct FreshwaterGuide: Decodable, Sendable {
     let species: [SpeciesSeason]
     let byCounty: [String: [SpeciesSeason]]?
 
+    /// Rows true of one lake or river. A county is not a place a claim can be
+    /// pinned to — King County holds Lake Washington, Lake Sammamish, Lake
+    /// Dolloff and the Green River, and a note naming one of them is wrong at
+    /// the other three.
+    let byWaterbody: [String: [SpeciesSeason]]?
+
+    /// waterbody → the WDFW `FacilityName`s that sit on it. WDFW's access-site
+    /// layer carries no waterbody column, so the key has to be curated. Matching
+    /// facility names against waterbody names by substring was rejected: that is
+    /// the same prose-matching failure `NoteScopeTests` documents for
+    /// "Potholes", and it would guess silently.
+    let waterbodySites: [String: [String]]?
+
+    /// The waterbody a named ramp sits on, or nil when it is not curated yet.
+    func waterbody(forFacility facility: String) -> String? {
+        waterbodySites?.first { $0.value.contains(facility) }?.key
+    }
+
+    /// Curated list first, so a lake ramp near an inlet river keeps the lake;
+    /// otherwise the river the site sits on.
+    func waterbody(forFacility facility: String, at point: LonLat, rivers: [River]) -> String? {
+        waterbody(forFacility: facility)
+            ?? River.nearest(to: point, within: River.waterbodyMatchMeters, in: rivers)?.name
+    }
+
+    /// The two waterbody fields default to nil so the older two-field form keeps
+    /// compiling — the tier is additive, and a guide without it behaves exactly
+    /// as it did before.
+    init(species: [SpeciesSeason],
+         byCounty: [String: [SpeciesSeason]]? = nil,
+         byWaterbody: [String: [SpeciesSeason]]? = nil,
+         waterbodySites: [String: [String]]? = nil) {
+        self.species = species
+        self.byCounty = byCounty
+        self.byWaterbody = byWaterbody
+        self.waterbodySites = waterbodySites
+    }
+
     /// County entries refine the statewide default, they don't erase it: overrides
     /// come first (they carry the local note), then any statewide species the county
     /// doesn't redefine. An empty override list falls back to the default outright.
@@ -175,10 +213,28 @@ struct FreshwaterGuide: Decodable, Sendable {
         return AreaFishery(areaName: "freshwater", species: overrides + inherited)
     }
 
+    /// Waterbody beats county beats statewide, overriding per species name.
+    ///
+    /// Order is load-bearing: `AreaFishery.inSeason(month:)` breaks rating ties
+    /// on declaration index, so the overriding rows must come first.
+    func fishery(county: String, waterbody: String?) -> AreaFishery {
+        let base = fishery(county: county).species
+        guard let waterbody, let rows = byWaterbody?[waterbody], !rows.isEmpty else {
+            return AreaFishery(areaName: "freshwater", species: base)
+        }
+        let overridden = Set(rows.map(\.species))
+        return AreaFishery(areaName: "freshwater",
+                           species: rows + base.filter { !overridden.contains($0.species) })
+    }
+
+    /// Every tier is stamped. A tier omitted here silently skips the season cap,
+    /// which would let a closure-prone fishery render as Prime.
     func resolvingSeasonRisk(_ table: [SeasonRisk]) -> FreshwaterGuide {
         FreshwaterGuide(
             species: species.map { $0.resolvingSeasonRisk(table) },
-            byCounty: byCounty?.mapValues { $0.map { $0.resolvingSeasonRisk(table) } }
+            byCounty: byCounty?.mapValues { $0.map { $0.resolvingSeasonRisk(table) } },
+            byWaterbody: byWaterbody?.mapValues { $0.map { $0.resolvingSeasonRisk(table) } },
+            waterbodySites: waterbodySites
         )
     }
 }

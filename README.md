@@ -29,6 +29,18 @@ xcodebuild -scheme WAFishMap \
   test
 ```
 
+One check needs real hardware. WeatherKit mints its JWT from the provisioning
+profile, which a Simulator build does not have, so the live wind and rain fetch
+can only be observed on a device:
+
+```zsh
+./scripts/verify_weatherkit_device.sh
+```
+
+It refuses with the specific unblock if the iPhone is not attached, paired and
+in Developer Mode, and otherwise runs the one XCUITest that asserts a live wind
+speed is on screen.
+
 See [SETUP.md](SETUP.md) for signing and troubleshooting.
 
 ## Troubleshooting empty Xcode navigator

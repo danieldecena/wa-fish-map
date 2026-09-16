@@ -14,7 +14,12 @@ protocol HTTPGet: Sendable {
 
 struct URLSessionHTTPGet: HTTPGet {
     func data(from url: URL) async throws -> Data {
-        let (data, response) = try await URLSession.shared.data(from: url)
+        // WDFW's ArcGIS endpoints have hung long enough in the field to stall a
+        // load past the default 60 s; every layer here is small, so 15 s is
+        // ample and fails fast into the bundled-sample fallback instead.
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 15
+        let (data, response) = try await URLSession.shared.data(for: request)
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         guard (200...299).contains(status) else { throw WDFWLayerError.badHTTPStatus(status) }
         return data
@@ -30,6 +35,11 @@ enum WDFWLayerLoader {
     static func accessSites(from data: Data) throws -> [AccessSite] {
         try collection(AccessSite.Properties.self, from: data)
             .features.compactMap(AccessSite.init(feature:))
+    }
+
+    static func protectedAreas(from data: Data) throws -> [ProtectedArea] {
+        try collection(ProtectedArea.Properties.self, from: data)
+            .features.compactMap(ProtectedArea.init(feature:))
     }
 
     static func piers(from data: Data) throws -> [FishingPier] {
