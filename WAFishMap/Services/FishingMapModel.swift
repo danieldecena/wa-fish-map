@@ -174,10 +174,11 @@ final class FishingMapModel {
                 statusMessage = "Couldn't load WDFW data — check your connection"
             }
         }
-        // Piers are a live-only enhancement; absence is non-fatal. Kicked off
-        // alongside the MPA fetch (`async let`) rather than after it — the two
-        // layers don't depend on each other, only the indexing below needs the
-        // MPA result first.
+        // Piers are a live-only enhancement; absence is non-fatal. This fetch
+        // (`async let`) starts before the MPA fetch below rather than after it —
+        // the two layers don't depend on each other, only the indexing below
+        // needs the MPA result first. The MPA fetch itself is sequential `await`,
+        // not concurrent with this one.
         async let pierFetch = try? await client.data(from: MapScope.piersURL)
         // Marine Protected Areas are a live-only overlay; a failure is non-fatal
         // for the load but is not silent — `protectedAreasLoaded` stays false and
