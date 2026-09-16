@@ -31,6 +31,10 @@ enum UITestSeam {
         else { return nil }
         return month
     }
+
+    static func planYear(from args: [String]) -> Int? {
+        nil
+    }
 }
 
 private extension Array {
