@@ -7,7 +7,8 @@
 - [x] [you] App Privacy questionnaire — Precise Location / App Functionality / not linked / not tracking
 - [x] Archive and upload release build — ASC build 2 (1.0)
 - [x] [you] ASC App Privacy: set Location to Data Not Collected
-- [ ] [you] Upload a build with PR #41's manifest before submitting
+- [x] [you] Upload a build with PR #41's manifest before submitting
+- [ ] [you] Select build 5 on version 1.0 once processed (not build 2)
 - [ ] [you] Submit for App Store review — paused until app done
 - [ ] [you] Release to the App Store
 
