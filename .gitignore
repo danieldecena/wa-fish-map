@@ -11,3 +11,4 @@ build/
 
 # graphify knowledge graph (build artifact, rebuilt by post-commit hook)
 graphify-out/
+.claude/worktrees/

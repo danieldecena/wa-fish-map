@@ -38,6 +38,36 @@ CI does not name a device at all — it resolves one from `xcrun simctl` so the
 job cannot break when a runner image drops a model. See
 `.github/workflows/ci.yml`.
 
+## Run it on a simulator
+
+```zsh
+cd ~/developer/wa-fish-map
+scripts/run_sim.sh
+```
+
+Resolves a device the way CI does (booted one if there is one, else the newest
+available iPhone), builds, installs, sets a simulated fix inside Marine Area 11,
+and launches. `--shot out.png` also screenshots; `-l lat,lon` moves the fix;
+`--no-location` leaves the app on its statewide framing.
+
+The location matters. The camera opens auto-fit and only eases to a regional
+span on a first fix **inside the Washington bbox**; a fresh simulator has no
+fix at all, so without one you never exercise that path.
+
+### Seeing a stale build?
+
+`xcrun simctl launch` runs whatever is installed — it never builds. So a failed
+or skipped `xcodebuild` leaves the previous copy on the device and launching
+"succeeds" into the old app. Same for a simulator left booted from an earlier
+session. When in doubt, clear both ends:
+
+```zsh
+git pull                                    # the clone itself can be behind
+xcrun simctl uninstall booted com.danieldecena.WAFishMap
+rm -rf /tmp/wafishmap-dd ~/Library/Developer/Xcode/DerivedData/WAFishMap-*
+scripts/run_sim.sh
+```
+
 ## Signing (device only)
 
 Set **Signing & Capabilities → Team** on the WAFishMap target. Simulator builds
