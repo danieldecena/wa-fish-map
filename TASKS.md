@@ -18,7 +18,7 @@
 - [x] Merge PR 4 (CI billing-blocked; verified locally) — 13c45d4
 - [x] River nearest-match within 150 m — b68d7b6
 - [x] Waterbody resolver: curated list then river
-- [ ] Model index for site and pier waterbodies
+- [x] Model index for site and pier waterbodies
 - [x] Reachability gate accepts river names
 - [ ] Spokane River row gated on WDFW, docs, verify
 - [ ] Stamp the remaining 6 flow-stat gates
