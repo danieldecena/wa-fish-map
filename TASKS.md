@@ -1,4 +1,5 @@
 ## Tasks
+- [ ] Recenter button uses live location, not launch fix
 
 - [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
