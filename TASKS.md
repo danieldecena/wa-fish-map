@@ -9,7 +9,7 @@
 - [x] Add PrivacyInfo privacy manifest — 492a874
 - [x] Audit location permission strings — 74cb109
 - [x] Attribution: Apple Weather mark and data credits — c705807
-- [ ] UI test: disclaimer and WDFW link on every sheet
+- [x] UI test: disclaimer and WDFW link on every sheet
 - [x] Weather: plan past last forecast hour shows last hour
 - [x] Empty MPA layer reads as "clear" at every site
 - [x] iPad buoy section keeps previous site's reading

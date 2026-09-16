@@ -145,9 +145,11 @@ struct GuidanceFooter: View {
                     Label("Verify seasons & limits at WDFW", systemImage: "exclamationmark.shield")
                         .font(.subheadline.weight(.semibold))
                 }
+                .accessibilityIdentifier("wdfwLink")
             }
             if let disclaimer = guide?.disclaimer {
                 Text(disclaimer).font(.caption).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("guidanceDisclaimer")
             }
             Text("Not for navigation or safety decisions.")
                 .font(.caption)
