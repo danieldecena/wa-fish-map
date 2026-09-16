@@ -4,7 +4,11 @@
 - [ ] [you] Re-invite Pauline at her Apple Account address
 - [ ] [you] GitHub Actions billing blocks PR #4 CI
 - [ ] [you] Merge PR 4 once CI runs green
-- [ ] Waterbody tier keyed off river polylines
+- [ ] River nearest-match within 150 m
+- [ ] Waterbody resolver: curated list then river
+- [ ] Model index for site and pier waterbodies
+- [ ] Reachability gate accepts river names
+- [ ] Spokane River row gated on WDFW, docs, verify
 - [ ] Stamp the remaining 6 flow-stat gates
 - [ ] Seed or hide the Oregon marine polygon
 - [ ] Add PrivacyInfo privacy manifest
@@ -87,7 +91,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-16 01:12.
+Plan approved 2026-09-16 01:19.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
