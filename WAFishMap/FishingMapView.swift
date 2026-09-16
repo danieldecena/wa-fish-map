@@ -319,17 +319,23 @@ struct FishingMapView: View {
     }
 
     private var dateControl: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             Image(systemName: timeOfDay.symbol)
+                .font(.caption2)
                 .foregroundStyle(timeOfDay.isPrimeLight ? .green : .secondary)
             DatePicker("Plan for", selection: $planDate)
                 .labelsHidden()
+                .controlSize(.mini)
+                // Compact DatePicker fields ignore most font/controlSize hints;
+                // scale is the reliable way to shrink the day/time pills.
+                .scaleEffect(0.85, anchor: .leading)
+                .padding(.trailing, -28)
             speciesMenu
             Spacer(minLength: 4)
             // Measured against actual width, not size class: narrow regular contexts
             // (iPad split view, Mac windows) crushed the hint and wrapped the button.
             ViewThatFits(in: .horizontal) {
-                HStack(spacing: 10) {
+                HStack(spacing: 8) {
                     VStack(alignment: .trailing, spacing: 1) {
                         Text(timeOfDay.label).font(.caption2.weight(.semibold))
                         Text(timeOfDay.lightHint)
@@ -339,7 +345,7 @@ struct FishingMapView: View {
                     }
                     nowButton
                 }
-                HStack(spacing: 10) {
+                HStack(spacing: 8) {
                     Text(timeOfDay.label)
                         .font(.caption2.weight(.semibold))
                         .fixedSize()
@@ -348,9 +354,9 @@ struct FishingMapView: View {
             }
         }
         .font(.caption2)
-        .controlSize(.small)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .controlSize(.mini)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
         .frame(maxWidth: sizeClass == .regular ? 560 : .infinity, alignment: .leading)
         .modifier(GlassCard())
         .padding(sizeClass == .regular ? 12 : 8)
@@ -360,6 +366,7 @@ struct FishingMapView: View {
         Button("Now") { planDate = Date() }
             .font(.caption2.weight(.semibold))
             .buttonStyle(.bordered)
+            .controlSize(.mini)
             .fixedSize()
     }
 

@@ -14,7 +14,7 @@
 - [ ] Profile launch indexing in Instruments (A7)
 - [ ] [you] TestFlight: add both to the Internal group once they activate
 - [ ] [you] Re-invite Pauline at her Apple Account address
-- [ ] [you] GitHub Actions billing blocks PR #4 CI
+- [x] GitHub Actions removed (billing block; verify locally) — e654667
 - [x] Merge PR 4 (CI billing-blocked; verified locally) — 13c45d4
 - [x] River nearest-match within 150 m — b68d7b6
 - [x] Waterbody resolver: curated list then river
@@ -112,7 +112,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-16 07:45.
+Plan approved 2026-09-16 08:02.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
