@@ -147,13 +147,25 @@ struct AreaFishery: Decodable, Equatable, Sendable {
         species.map { $0.rating(inMonth: month) }.max() ?? .poor
     }
 
-    /// `nil` species is All (best in the area). A named species is an exact match,
+    /// `nil` species is All (`breadthRating`). A named species is an exact match,
     /// or `nil` when this area does not list it.
     func rating(inMonth month: Int, species name: String?) -> FishingRating? {
         if let name {
             return species.first { $0.species == name }?.rating(inMonth: month)
         }
-        return rating(inMonth: month)
+        return breadthRating(inMonth: month)
+    }
+
+    /// The All-species map colour: the rounded mean of the best three species.
+    /// The single best species is not enough — in September every marine area
+    /// has one species at peak, so a max painted the whole map red. A spot that
+    /// lists fewer than three species averages what it has, so a one-species
+    /// kokanee lake at peak still reads Prime.
+    func breadthRating(inMonth month: Int) -> FishingRating {
+        let top = species.map { $0.rating(inMonth: month).rawValue }.sorted(by: >).prefix(3)
+        guard !top.isEmpty else { return .poor }
+        let mean = Double(top.reduce(0, +)) / Double(top.count)
+        return FishingRating(rawValue: Int(mean.rounded())) ?? .poor
     }
 
     /// True when the rating for `month` rests on a species whose season may be

@@ -114,11 +114,32 @@ struct FisheryTests {
             SpeciesSeason(species: "Chinook Salmon (ocean)", bestMonths: [6]),
             SpeciesSeason(species: "Coho", bestMonths: [], goodMonths: [8]),
         ])
-        #expect(area.rating(inMonth: 8, species: nil) == .excellent)
+        // All is the breadth rating: Prime, Slow, Good average to Good.
+        #expect(area.rating(inMonth: 8, species: nil) == .good)
         #expect(area.rating(inMonth: 8, species: "Chinook Salmon") == .excellent)
         #expect(area.rating(inMonth: 8, species: "Chinook Salmon (ocean)") == .poor)
         #expect(area.rating(inMonth: 8, species: "Coho") == .good)
         #expect(area.rating(inMonth: 8, species: "Lingcod") == nil)
+    }
+
+    @Test func breadthRatingAveragesTheTopThreeSpecies() {
+        let area = AreaFishery(areaName: "13", species: [
+            SpeciesSeason(species: "A", bestMonths: [9]),
+            SpeciesSeason(species: "B", bestMonths: [9]),
+            SpeciesSeason(species: "C", bestMonths: [9]),
+            SpeciesSeason(species: "D", bestMonths: [3]),
+        ])
+        // Three at peak: the slow fourth species does not drag it down.
+        #expect(area.breadthRating(inMonth: 9) == .excellent)
+        // One peak among slow species is no longer Prime, as max would say.
+        #expect(area.rating(inMonth: 3) == .excellent)
+        #expect(area.breadthRating(inMonth: 3) == .fair)
+    }
+
+    @Test func breadthRatingKeepsASingleSpeciesSpotAtItsOwnRating() {
+        let lake = AreaFishery(areaName: "Lake", species: [SpeciesSeason(species: "Kokanee", bestMonths: [6])])
+        #expect(lake.breadthRating(inMonth: 6) == .excellent)
+        #expect(AreaFishery(areaName: "x", species: []).breadthRating(inMonth: 6) == .poor)
     }
 
     @Test func speciesNamesAreUniqueAndSorted() {
