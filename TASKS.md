@@ -1,12 +1,14 @@
 ## Tasks
 
 - [ ] Layered OS27 app icon (3 SVG layers, Icon Composer)
-- [ ] ContentUnavailableView for the load-failure state
+- [x] ContentUnavailableView for the load-failure state — 406d3dc
 - [ ] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
 - [x] run_sim: resolve -d name to a udid before build — 34217d4
 - [x] run_sim: guard against mid-build simulator shutdown — 34217d4
 - [x] run_sim: verified end-to-end run with screenshot — 34217d4
 - [x] Restore PR 4 build on phone after review-branch trial
+- [x] Merge PR 5 run_sim script — merged 2026-09-16
+- [ ] Review PR 4 MKMapView migration branch
 
 - [x] Waterbody-scoped notes: gate + data fix + rule — d26c4ca
 
