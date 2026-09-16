@@ -258,6 +258,8 @@ final class FishingMapModel {
 
     /// Must run after the guide, rivers and marine-area indexes are in place.
     func indexWaterbodies() {
+        let indexClock = ContinuousClock(); let indexStart = indexClock.now
+        defer { print("INDEXTIME \(indexClock.now - indexStart) sites=\(accessSites.count) piers=\(piers.count) rivers=\(rivers.count)") }
         let freshwater = guide?.freshwater
         var sites: [AccessSite.ID: String] = [:]
         for site in accessSites where siteAreaName[site.id] == nil {
