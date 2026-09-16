@@ -1671,21 +1671,6 @@
       ],
       "Grant": [
         {
-          "species": "Walleye",
-          "bestMonths": [
-            6,
-            7,
-            8
-          ],
-          "goodMonths": [
-            5,
-            9
-          ],
-          "bait": "Bottom-walker + worm harness, crankbaits",
-          "note": "The county's big reservoirs; best post-spawn in summer.",
-          "bestTime": "Dawn, dusk & after dark"
-        },
-        {
           "species": "Rainbow Trout",
           "bestMonths": [
             4,
@@ -1862,6 +1847,74 @@
           "bestTime": "First light to mid-morning",
           "note": "Opens on a set summer date regardless of how many fish are in the lake; sockeye reach it by the Baker River trap-and-haul. Confirm dates with WDFW."
         }
+      ],
+      "Potholes Reservoir": [
+        {
+          "species": "Walleye",
+          "bestMonths": [
+            6,
+            7,
+            8
+          ],
+          "goodMonths": [
+            5,
+            9
+          ],
+          "bait": "Bottom-walker + worm harness, crankbaits",
+          "note": "WDFW lists walleye in this warmwater-emphasis reservoir; its level rises and falls with irrigation.",
+          "bestTime": "Dawn, dusk & after dark"
+        }
+      ],
+      "Moses Lake": [
+        {
+          "species": "Walleye",
+          "bestMonths": [
+            6,
+            7,
+            8
+          ],
+          "goodMonths": [
+            5,
+            9
+          ],
+          "bait": "Bottom-walker + worm harness, crankbaits",
+          "note": "WDFW lists walleye in this warmwater-emphasis lake.",
+          "bestTime": "Dawn, dusk & after dark"
+        }
+      ],
+      "Banks Lake": [
+        {
+          "species": "Walleye",
+          "bestMonths": [
+            6,
+            7,
+            8
+          ],
+          "goodMonths": [
+            5,
+            9
+          ],
+          "bait": "Bottom-walker + worm harness, crankbaits",
+          "note": "WDFW lists walleye in this large warmwater-emphasis reservoir.",
+          "bestTime": "Dawn, dusk & after dark"
+        }
+      ],
+      "Billy Clapp Lake": [
+        {
+          "species": "Walleye",
+          "bestMonths": [
+            6,
+            7,
+            8
+          ],
+          "goodMonths": [
+            5,
+            9
+          ],
+          "bait": "Bottom-walker + worm harness, crankbaits",
+          "note": "WDFW lists walleye in this warmwater-emphasis reservoir; it is drawn down each fall for irrigation.",
+          "bestTime": "Dawn, dusk & after dark"
+        }
       ]
     },
     "waterbodySites": {
@@ -1870,6 +1923,29 @@
         "Baker Lake Resort",
         "Horseshoe Cove",
         "Kulshan Campground"
+      ],
+      "Potholes Reservoir": [
+        "Blythe",
+        "Glen Williams",
+        "Lind Coulee Bridge",
+        "Lind Coulee East",
+        "Lind Coulee Island",
+        "Lind Coulee Point",
+        "Medicare Beach",
+        "Sampson's Pit"
+      ],
+      "Moses Lake": [
+        "Moses Lake"
+      ],
+      "Banks Lake": [
+        "Ankeny N",
+        "Ankeny S",
+        "Barker Canyon",
+        "Million Dollar Mile N",
+        "Million Dollar Mile S"
+      ],
+      "Billy Clapp Lake": [
+        "Billy Clapp Lake"
       ]
     }
   }
