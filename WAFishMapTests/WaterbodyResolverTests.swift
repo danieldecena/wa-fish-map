@@ -29,6 +29,14 @@ struct WaterbodyResolverTests {
         #expect(Self.guide.waterbody(forFacility: "Unknown Ramp", at: Self.nearRiver, rivers: [creek]) == nil)
     }
 
+    /// A note keyed "Green River" cannot say which Green River, so a split run
+    /// never resolves, even the gauged one.
+    @Test func aRampOnASplitRiverResolvesToNothing() {
+        let split = River(name: "Test River", streamOrder: 4, lengthKm: 1, lines: Self.river.lines,
+                          id: "Test River@-122.000,47.500", gauged: true)
+        #expect(Self.guide.waterbody(forFacility: "Unknown Ramp", at: Self.nearRiver, rivers: [split]) == nil)
+    }
+
     @Test func anUncuratedRampFarFromEveryRiverResolvesToNothing() {
         let far = LonLat(longitude: -121.995, latitude: 47.509)
         #expect(Self.guide.waterbody(forFacility: "Unknown Ramp", at: far, rivers: [Self.river]) == nil)

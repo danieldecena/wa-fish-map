@@ -236,10 +236,11 @@ struct FreshwaterGuide: Decodable, Sendable {
     /// Curated list first, so a lake ramp near an inlet river keeps the lake;
     /// otherwise the river the site sits on. Creeks never resolve: their names
     /// repeat across the state, so a note keyed by one would reach them all.
+    /// Split rivers never resolve for the same reason.
     func waterbody(forFacility facility: String, at point: LonLat, rivers: [River]) -> String? {
         waterbody(forFacility: facility)
             ?? River.nearest(to: point, within: River.waterbodyMatchMeters,
-                             in: rivers.filter { $0.kind == .river })?.name
+                             in: rivers.filter { $0.kind == .river && !$0.isSplit })?.name
     }
 
     /// The two waterbody fields default to nil so the older two-field form keeps

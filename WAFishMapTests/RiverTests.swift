@@ -218,6 +218,43 @@ struct RiverTests {
         #expect(all.filter { $0.kind == .river }.count > 280, "adding creeks lost rivers")
     }
 
+    /// Two unrelated Green Rivers, 150 km apart, once shipped as one feature,
+    /// so the King County gauge coloured the Cowlitz County river too. Each is
+    /// now its own run, and only the one the gauge sits on owns the name's flow.
+    @Test func unrelatedRiversSharingANameShipSeparatelyWithOneGauged() throws {
+        let all = try Self.bundled()
+        for name in ["Green River", "White River", "Cedar River"] {
+            let runs = all.filter { $0.kind == .river && $0.name == name }
+            #expect(runs.count >= 2, "\(name) was merged into one feature")
+            #expect(runs.allSatisfy { $0.isSplit })
+            #expect(runs.filter { $0.gauged }.count == 1, "\(name) must have exactly one gauged run")
+        }
+        let kingGreen = try #require(all.first { $0.id == "Green River@-122.266,47.376" })
+        #expect(kingGreen.gauged)
+        // A gap inside one river is not two rivers.
+        #expect(all.filter { $0.name == "Chehalis River" }.count == 1)
+        #expect(all.filter { $0.name == "Yakima River" }.count == 1)
+    }
+
+    @Test func aSplitRunDecodesGaugedAndOnlyTheGaugedRunOwnsTheName() throws {
+        let json = """
+        {"type":"FeatureCollection","features":[
+          {"type":"Feature","geometry":{"type":"LineString","coordinates":[[-122.3,47.4],[-122.2,47.4]]},
+           "properties":{"id":"Green River@-122.300,47.400","kind":"river","name":"Green River",
+                         "streamOrder":5,"lengthKm":90.0,"gauged":true}},
+          {"type":"Feature","geometry":{"type":"LineString","coordinates":[[-122.6,46.4],[-122.5,46.4]]},
+           "properties":{"id":"Green River@-122.600,46.400","kind":"river","name":"Green River",
+                         "streamOrder":4,"lengthKm":40.0}},
+          {"type":"Feature","geometry":{"type":"LineString","coordinates":[[-121.8,48.4],[-121.7,48.4]]},
+           "properties":{"id":"Skagit River","kind":"river","name":"Skagit River",
+                         "streamOrder":6,"lengthKm":191.0}}
+        ]}
+        """.data(using: .utf8)!
+        let rivers = try RiverLoader.rivers(from: json)
+        #expect(rivers.map { $0.ownsNameGauge } == [true, false, true])
+        #expect(rivers.map { $0.isSplit } == [true, true, false])
+    }
+
     /// A fragment passes a name check. Length is what separates the whole
     /// Columbia from the 8.8km of it the broken filter kept.
     @Test func theColumbiaIsTheWholeRiverNotAFragment() throws {
