@@ -25,9 +25,10 @@
 - [ ] Layered OS27 app icon (3 SVG layers, Icon Composer)
 - [ ] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
 
-- [ ] Dockton Park Pier (Maury Is.) reads Freshwater: area miss
+- [x] Shore snap: saltwater piers/launches no longer freshwater
 - [ ] Verify species typical weights against WDFW/NOAA
-- [ ] Watch the fish-size icon and Closed badge on screen
+- [x] Watch fish silhouettes on screen (Dash Point, Crescent Lake)
+- [ ] Watch the Closed badge in a closed pier sheet
 - [ ] MapCoordinatorTests recentre test hung 10 min under load
 - [ ] Inland pins all Good in Sept: statewide list is uniform
 

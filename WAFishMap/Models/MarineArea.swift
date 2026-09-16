@@ -17,6 +17,8 @@ struct MarineArea: Identifiable, Equatable, Sendable {
     /// re-running the hole/area classification (up to 286 rings) on every
     /// colour change, on the main thread, inside `updateUIView`.
     let ringGroups: [LonLat.RingGroup]
+    /// One box per ring, parallel to `rings`, for the shore snap.
+    let ringBounds: [LonLat.Bounds]
 
     /// The largest ring by vertex count. Stands in wherever a single ring is
     /// needed (the label centroid below, and any caller predating multi-ring
@@ -49,6 +51,41 @@ struct MarineArea: Identifiable, Equatable, Sendable {
         LonLat.rings(rings, contains: point)
     }
 
+    /// How far outside its polygon a saltwater point may sit and still belong to
+    /// it. WDFW draws each area to the shoreline and records a pier or ramp at
+    /// its landward end, so on 2026-09-16 29 of 63 live piers sat outside every
+    /// area (28 within 1 m of an edge) and read as freshwater, as did launches
+    /// like Boston Harbor (30 m) and Point No Point (65 m). The nearest genuine
+    /// lake launch was 639 m from salt water. Same tolerance as river matching.
+    static let shoreSnapMeters: Double = 150
+
+    /// Metres from `point` to this area's nearest edge, or nil when no ring comes
+    /// within `meters`.
+    func edgeDistanceMeters(to point: LonLat, within meters: Double) -> Double? {
+        var best = Double.infinity
+        for (ring, bounds) in zip(rings, ringBounds) where ring.count >= 2 && bounds.contains(point, slackMeters: meters) {
+            var j = ring.count - 1
+            for i in 0..<ring.count {
+                best = min(best, LonLat.distanceMeters(from: point, toSegment: ring[j], ring[i]))
+                j = i
+            }
+        }
+        return best <= meters ? best : nil
+    }
+
+    /// The area containing `point` (first wins, as before), else the nearest area
+    /// whose edge lies within `shoreSnapMeters`. Inland points match nothing and
+    /// stay freshwater.
+    static func matching(_ point: LonLat, in areas: [MarineArea]) -> MarineArea? {
+        if let inside = areas.first(where: { $0.contains(point) }) { return inside }
+        var best: (area: MarineArea, distance: Double)?
+        for area in areas {
+            guard let d = area.edgeDistanceMeters(to: point, within: shoreSnapMeters) else { continue }
+            if best == nil || d < best!.distance { best = (area, d) }
+        }
+        return best?.area
+    }
+
     struct Properties: Decodable {
         let areaName: String
         let areaTitle: String
@@ -73,6 +110,7 @@ struct MarineArea: Identifiable, Equatable, Sendable {
         self.wac = wac
         self.rings = rings
         self.ringGroups = LonLat.groupRings(rings)
+        self.ringBounds = rings.map(LonLat.Bounds.init)
     }
 
     init?(feature: GeoJSONFeature<Properties>) {
@@ -96,5 +134,6 @@ struct MarineArea: Identifiable, Equatable, Sendable {
         wac = feature.properties.wac ?? ""
         rings = parsedRings
         ringGroups = LonLat.groupRings(parsedRings)
+        ringBounds = parsedRings.map(LonLat.Bounds.init)
     }
 }
