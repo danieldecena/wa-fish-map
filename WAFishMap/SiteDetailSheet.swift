@@ -78,10 +78,11 @@ struct BitingNowView: View {
                             if let size = SpeciesSize.typical(for: s.species) {
                                 Spacer(minLength: 8)
                                 VStack(spacing: 0) {
-                                    Image(systemName: "fish.fill")
-                                        .font(.system(size: size.iconPointSize))
-                                        .foregroundStyle(.secondary)
-                                        .frame(width: 52, height: 48)
+                                    FishSilhouette(form: size.form)
+                                        .fill(.secondary)
+                                        .frame(width: size.iconPointSize * 1.15,
+                                               height: size.iconPointSize * 1.15 * size.form.aspect)
+                                        .frame(width: 56, height: 36)
                                     Text(size.range).font(.caption2).foregroundStyle(.secondary)
                                 }
                                 .accessibilityElement(children: .ignore)

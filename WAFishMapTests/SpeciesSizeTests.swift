@@ -20,6 +20,15 @@ struct SpeciesSizeTests {
         #expect(perch.iconPointSize >= 16 && halibut.iconPointSize <= 48)
     }
 
+    @Test func eachSpeciesDrawsItsOwnBodyPlan() {
+        #expect(SpeciesSize.typical(for: "Halibut")?.form == .flatfish)
+        #expect(SpeciesSize.typical(for: "Resident Chinook (Blackmouth)")?.form == .salmon)
+        #expect(SpeciesSize.typical(for: "Albacore Tuna")?.form == .tuna)
+        #expect(SpeciesSize.typical(for: "Yellow Perch")?.form == .perch)
+        #expect(SpeciesSize.typical(for: "Rock Bass")?.form == .panfish)
+        #expect(SpeciesSize.typical(for: "Largemouth Bass")?.form == .bass)
+    }
+
     @Test func shellfishGetNoFish() {
         #expect(SpeciesSize.typical(for: "Dungeness Crab") == nil)
         #expect(SpeciesSize.typical(for: "Razor Clams") == nil)
