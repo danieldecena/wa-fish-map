@@ -25,6 +25,16 @@ struct FishingMapModelTests {
         #expect(model.guide?.area(named: "7")?.rating(inMonth: 8, species: "Pink Salmon") == .excellent)
     }
 
+    // `load` publishes the guide before its network awaits finish, so a year set
+    // only after `load` returns would leave pins rendering the unstamped guide.
+    @Test @MainActor func planYearSetBeforeLoadStampsTheGuideOnArrival() async throws {
+        let model = FishingMapModel()
+        let bundle = try #require(FixtureBundle.loader)
+        model.setPlanYear(2026)
+        try model.loadFromBundle(bundle: bundle)
+        #expect(model.guide?.area(named: "7")?.rating(inMonth: 8, species: "Pink Salmon") == .poor)
+    }
+
     @Test @MainActor func launchesAreMappedToTheirMarineAreaByPolygon() async throws {
         let model = FishingMapModel()
         let bundle = try #require(FixtureBundle.loader)

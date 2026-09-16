@@ -153,11 +153,6 @@ struct FishingMapView: View {
                         Task {
                             model.isLoading = true
                             await model.load()
-                            // First successful load stamps the guide the same way the
-                            // initial `.task` does — a retry after a total failure is
-                            // the first time `loadGuide` runs, so `guide` would
-                            // otherwise stay year-unresolved on screen.
-                            model.setPlanYear(currentYear)
                             recomputeHeatZones()
                         }
                     }
@@ -169,8 +164,9 @@ struct FishingMapView: View {
         }
         .task {
             location.requestIfNeeded()
-            await model.load()
+            // Before `load`: it publishes the guide ahead of its network awaits.
             model.setPlanYear(currentYear)
+            await model.load()
             recomputeHeatZones()
         }
         .onChange(of: heatVisible) { recomputeHeatZones() }
