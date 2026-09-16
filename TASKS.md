@@ -54,7 +54,7 @@
 - [x] Key river stats/flow by id before any creek gets a gauge
 - [x] Filter rivers once in indexWaterbodies, not per site
 - [x] Live load shows no false "piers unavailable" (PR #18)
-- [ ] [you] Review and merge PR #18
+- [x] [you] Review and merge PR #18
 
 ## Completed
 
