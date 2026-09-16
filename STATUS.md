@@ -114,6 +114,23 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-16 (build 4 uploaded; Apple API review items landed)
+
+- Decided: build 4 archived from main 66c16ba with release Xcode and uploaded;
+  ASC refused 3 (-19232) and accepted cfBundleVersion 4 (ContentDelivery.log).
+  Carries data batch 2 (#32), recenter on live location (#33), Grant walleye
+  reservoirs (#34), unified Maps directions URL on 18.4+ (#35), glass area
+  labels (#36), Baker Lake removal (#37), lake species filter (#38, #39).
+- Decided: the MapCoordinatorTests "hang" was another session's UI-test launch
+  killing the unit-test host on a shared simulator (reproduced, rc=65 after
+  607s). No code change; the one-session-per-simulator rule is in the ios-build
+  runbook.
+- Unverified: #35's route rendering (Maps stopped at its first-run ads sheet);
+  #33's live-location path has unit tests but no UI coverage.
+- Open, from the Apple API review: the privacy label declares Precise Location
+  collected while the prompt says location stays on device (your call, ASC and
+  PrivacyInfo change together).
+
 ### 2026-09-16 (inland launches rated only on species their WDFW lake lists)
 
 - Decided: a launch matched by `Lake.match` to a lake with a WDFW species list
@@ -125,9 +142,10 @@ current counts rather than trusting a number written here.
   species): ratings went from 199 Good to 179 Good, 12 Prime, 6 Fair, 2 no data.
   Species lists changed at 172 of 199. Colour stays mostly Good because Rainbow
   Trout and Largemouth Bass both carry September as a good month.
-- Open: WDFW's only cutthroat layer is "Coastal Cutthroat", listed at 0 of 325
-  lakes east of -120.5, so cutthroat drops at every eastern lake. Keeping it there
-  instead would make 49 Prime / 150 Good. Piers are not lake-matched and unchanged.
+- Decided: cutthroat stays dropped at eastern lakes. WDFW's only cutthroat layer
+  is "Coastal Cutthroat", listed at 0 of 325 lakes east of -120.5; keeping it
+  would put 49 Prime on mostly bass/walleye water with no data behind it, the
+  over-claim this filter exists to remove. Piers are not lake-matched and unchanged.
 
 ### 2026-09-16 (Baker Lake sockeye row removed: no launch reaches it)
 

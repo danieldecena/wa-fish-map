@@ -1,26 +1,27 @@
 ## Tasks
-- [x] Recenter button uses live location, not launch fix -- #33
-- [x] Directions link uses unified Maps URL on iOS 18.4+
-- [x] Glass effect on MA area labels (iOS 26)
-
-- [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
+- [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
 - [x] Privacy policy page hosted — https://danieldecena.github.io/wa-fish-map/privacy.html
 - [x] Store description, keywords, review notes — pasted in ASC version (see listing-draft checklist)
-- [ ] App Store screenshots in ASC (0 of 10) — PNGs in docs/app-store/screenshots/; resume when app ready
+- [ ] [you] App Store screenshots in ASC (0 of 10) — PNGs in docs/app-store/screenshots/; resume when app ready
 - [x] [you] App Privacy questionnaire — Precise Location / App Functionality / not linked / not tracking
 - [x] Archive and upload release build — ASC build 2 (1.0)
-- [ ] Archive and upload build 4 (carries data batch 2)
+- [ ] [you] Decide privacy label: Precise Location collected?
 - [ ] [you] Submit for App Store review — paused until app done
 - [ ] [you] Release to the App Store
 
-- [x] MapCoordinatorTests recentre test hung 10 min under load
-- [x] Inland pins all Good in Sept: statewide list is uniform
-- [x] Grant walleye: per-reservoir rows, drop county row
-- [x] Baker Lake sockeye row reaches no WDFW launch
-- [ ] Shared simulator relaunches test host mid-run
 
 ## Completed
+
+- [x] Build 4 uploaded to ASC (from 66c16ba, accepted as 4)
+- [x] Shared simulator test-host kill: runbook rule (~/.claude ed7fdcf)
+- [x] Recenter button uses live location, not launch fix -- #33
+- [x] Directions link uses unified Maps URL on iOS 18.4+ -- #35
+- [x] Glass effect on MA area labels (iOS 26) -- #36
+- [x] MapCoordinatorTests recentre test hung 10 min under load
+- [x] Inland pins all Good in Sept: statewide list is uniform -- #38
+- [x] Grant walleye: per-reservoir rows, drop county row -- #34
+- [x] Baker Lake sockeye row reaches no WDFW launch -- #37
 
 - [x] Build 3 uploaded to ASC (data batch 1, from a47cc87)
 
