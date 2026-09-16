@@ -108,13 +108,31 @@
 
 ## Next Up
 
-- **Phase 1 of the App Store plan:** the waterbody river tier and the USGS flow-stat
-  check are done, and the Oregon polygon is hidden.
+- **Map never frames Washington without a location fix** (seen 2026-09-16 with
+  location cleared). Every good framing today coincided with a fix, so the initial
+  fit in `FishingMapRepresentable` may never run. Reproduce with
+  `simctl location clear` before touching code.
+- Branch `claude/goal-followups` (shore snap, VoiceOver labels, cluster scale) is
+  pushed with no PR yet.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-16 (shore snap, VoiceOver labels, cluster scale)
+
+- Decided: marine area matching snaps to the nearest area within 150 m when a point
+  is in no polygon. Live WDFW: 29 of 63 piers outside every area (28 within 1 m),
+  saltwater launches 22-108 m out; nearest real lake launch 639 m. Dash Point now
+  reads Marine water with tides. 7b904bd.
+- Decided: pins, clusters, legends and badges carry VoiceOver text. Pin text is
+  unit-tested; the legend label was seen in a UI run; pin labels on screen were not
+  (XCUITest pinch rotates instead of zooming). a8d5464.
+- Decided: clusters scale 1.1/1.2/1.3x by count, applied in prepareForDisplay
+  because MapKit reset a transform set earlier. Seen larger on screen. 023680d.
+- Observed: UI test runs reinstall the app and leave the shared simulator without
+  location; restore with `simctl privacy grant` and `simctl location set`.
 
 ### 2026-09-16 (map legibility: outlines, breadth colour, closed piers, directions, fish size)
 
@@ -400,279 +418,3 @@ current counts rather than trusting a number written here.
   Apple Account on the team and has to activate an emailed invitation, which
   expires in about 7 days. That is exactly what the external route avoided.
 
-### 2026-09-02 (TestFlight: external chosen first)
-
-- Decided: put the brother in the `insideout` **external** group rather than
-  invite him as an App Store Connect user with a `DEVELOPER` role. External
-  costs a one-time Beta App Review; internal would have cost him an account
-  seat, given him visibility into the account, and required him to accept a
-  user invitation. Every later build now reaches him without another review.
-- Test Information: `Sign-in required` left **unchecked**. The app has no
-  accounts, so there are no reviewer credentials to supply; leaving it checked
-  blocks the form and invites a rejection for credentials that do not work.
-- Recorded because it retires the old Next Up item, which described the
-  internal route and the `POST /v1/userInvitations` call that was never made.
-- Open question deliberately not answered: TestFlight builds expire at 90 days,
-  so keeping the app on his phone means re-uploading before each expiry. The
-  App Store alternative stays gated on verifying `fisheries.json` against WDFW.
-
-### 2026-09-02 (TestFlight: nobody was a tester)
-
-- "I don't see it in the TestFlight app" was not a build problem. Build 1 was
-  `VALID`, `READY_FOR_BETA_TESTING`, export compliance already answered. The app
-  had zero beta groups, the account had zero beta testers, and the build was
-  attached to nothing. Nothing was wrong; nothing had been asked for.
-- **Being the Account Holder does not make you a TestFlight tester.** An internal
-  tester is a `betaTester` record whose email matches an App Store Connect user,
-  in an internal `betaGroup` the build is attached to. Creating that chain is
-  three POSTs, so the previous entry's "the rest is browser-only" was wrong.
-- The tester email is the Apple Account on the developer account,
-  `danieldecena@icloud.com`, not the address used elsewhere for this work. A
-  TestFlight signed in to the other account would show nothing however correct
-  the server state is.
-- `isInternalGroup` is settable on `POST /v1/betaGroups`, confirmed against the
-  schema Apple publishes for `BetaGroupCreateRequest.Data.Attributes` before the
-  write, not after. The script still deletes the group if Apple hands back an
-  external one, because an external group routes the build to App Review.
-- **A swallowed 403 reads exactly like an empty relationship.** The first pass
-  asked `GET /v1/builds/{id}/betaGroups`, defaulted the error body to `[]`, and
-  reported "attached to no groups" — the right conclusion by luck. Apple refuses
-  that direction outright (`the relationship 'betaGroups' does not allow
-  'GET_RELATED'`); the edge is only readable as `GET /v1/betaGroups/{id}/builds`.
-- The confirmation is Apple's own state change, not the absence of an error:
-  `internalBuildState` moved `READY_FOR_BETA_TESTING` -> `IN_BETA_TESTING` across
-  the writes.
-- A tester at state `INVITED` is invited, not testing. TestFlight lists nothing
-  for them until the emailed invitation is accepted, so a fully correct server
-  state — internal group, tester, build attached, `IN_BETA_TESTING` — still
-  shows an empty TestFlight. `POST /v1/betaTesterInvitations` re-sends it, and
-  the state went `INVITED` -> `INSTALLED` once it was accepted. **The tester
-  state is the only field that answers "can they run it".**
-- The App Store Connect key is a **team** key: its JWT carries `iss`. Signed as
-  an individual key (`sub: "user"`, no `iss`) it returns a bare 401 identical to
-  a revoked key, which cost a detour re-deriving credentials that were fine.
-
-### 2026-09-02 (TestFlight: build 1 uploaded)
-
-- Archive and upload must use the **release** Xcode. App Store Connect rejects a
-  beta toolchain with `90534: Unsupported SDK or Xcode version`. Set
-  `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` for those commands
-  only — switching `xcode-select` globally would drag the device script with it,
-  and that one wants the beta.
-- Xcode 26.6 shipped with no iOS platform; `xcodebuild -downloadPlatform iOS`
-  fetched 8.5GB before it could build for iOS at all.
-- `altool` reported failure while the shell pipeline reported success, because
-  `tail` was the last command. The only thing that caught it was
-  `GET /v1/apps/{id}/builds` returning zero. An upload receipt is not evidence a
-  build arrived; the build list is. Confirmed `version=1 state=VALID` two minutes
-  after the successful upload.
-
-### 2026-09-02 (root cause: two WeatherKit capability type strings)
-
-- **Fixed.** The App ID carried a legacy `WEATHERKIT` capability record. The
-  portal minted profiles from it, so `codesign -d --entitlements` showed the
-  entitlement present on the installed binary and every check we ran looked
-  green, but `weatherkit.apple.com/v3/token` would not honour it. Re-registering
-  the capability produced a second record, `WEATHER_KIT`, and the token issued on
-  the first attempt. The device test went from failing in 68-79s to passing in
-  7.7s.
-- Corroboration, found only because the write failed: the App Store Connect API
-  will *read* `WEATHERKIT` back but rejects it on `POST`, and its accepted enum
-  does not contain it at all. That is a legacy value which can still exist on an
-  identifier and can no longer be issued.
-- Why this took four sessions: every individual check was green. Entitlement in
-  the profile, capability visible in the portal, licence accepted, quota active,
-  service reachable. The failure lived in the *disagreement* between two
-  representations of the same capability, which no single check could see. What
-  finally localised it was the REST control — same service, different credential
-  path, returning 200 with real data while the device got 401 — which proved the
-  fault was neither the app nor the service but the binding between them.
-- Mistake worth keeping: the re-registration was run as DELETE-then-POST without
-  first verifying the POST would be accepted. The DELETE succeeded, the POST was
-  refused, and the capability sat removed until it was restored by hand in the
-  portal. Read enum and write enum were not the same set. Verify the reverse
-  operation before running the irreversible half.
-
-### 2026-09-02 (the REST control: WeatherKit works, the device path does not)
-
-- Finding: WeatherKit serves team 877MLS29T9. `GET /api/v1/availability` returned
-  200 with `forecastHourly` among the datasets, and the weather endpoint returned
-  25 real hours for Boston Harbor — 7 mph at 194 degrees, which is the `SSW 7 mph`
-  the app's wind row would have drawn. The device path returned a bare 401 for the
-  same coordinate minutes earlier.
-- Decided: the control had to sit on the surface that failed. MapKit JS was
-  considered and rejected — its auth is unrelated, so a green MapKit would have
-  said nothing about WeatherKit. The REST API is the same host and the same
-  service, differing only in credential path, which is what makes the contrast
-  mean something.
-- Refused to guess the Service ID. A token whose `sub` is not a registered
-  Services ID is rejected with the same bare 401 as the bug, so trying candidates
-  would have manufactured exactly the false confirmation the control exists to
-  prevent. Same reason the pre-existing `AuthKey_5Z2966W5U2.p8` was not used: a
-  `.p8` carries no record of which service it belongs to, and every Apple key is
-  P-256, so the file cannot answer it.
-- The signer was proved before it was aimed at Apple: signed with a throwaway
-  P-256 key and the output decoded to check the documented header
-  (`alg`/`kid`/`id`), the four claims, and a 64-byte raw r||s signature. A
-  malformed token would also have produced a 401.
-
-### 2026-09-02 (WeatherKit fault localised to token issuance)
-
-- Tried and failed: the device-side entitlement cache reset. Rebooted the phone,
-  deleted the app (absence confirmed via `devicectl device info apps`, not
-  assumed), rebuilt and re-ran 2026-09-02. Identical result: the sheet renders
-  "Wind and rain unavailable right now." and all three assertions fire. The
-  documented remedy for a correct server side does not apply here.
-- Noted: the run immediately after the delete proved nothing and was discarded.
-  Its label dump held only map chrome — no sheet, no `Wind & rain` — because a
-  fresh install re-prompts for location, so `PlanWeatherView` never rendered and
-  no fetch was attempted. A failure count alone would have read as confirmation;
-  the dump is what showed it was a different failure entirely.
-- Finding: every layer below token issuance is green;
-  `https://weatherkit.apple.com/v3/token` still returns a bare 401 for
-  `com.danieldecena.WAFishMap`.
-
-  **The capability is already enabled — do not re-do it, and do not wait on
-  propagation.** The signed profile Apple issued and embedded in the device build
-  carries the entitlement:
-
-      $ security cms -D -i ~/Library/Developer/Xcode/DerivedData/WAFishMap-*/ \
-          Build/Products/Debug-iphoneos/WAFishMap.app/embedded.mobileprovision \
-        | plutil -extract Entitlements xml1 -o - -
-      <key>com.apple.developer.weatherkit</key><true/>
-
-  The portal cannot emit a profile containing that entitlement unless WeatherKit
-  is enabled on the identifier, so that step is verified complete by artifact.
-  The ~30-minute propagation window has therefore also already elapsed.
-
-  **The licence agreement is not it either.** Checked in the portal 2026-09-02:
-  Apple Developer Program License Agreement issued 2026-08-18, **accepted
-  2026-09-01**. No banner, nothing pending. The Paid Apps Agreement does read
-  "Pending User Info", but that gates *payouts* — it wants a bank account and a
-  W-9 — and the Free Apps Agreement is Active. Do not submit banking details to
-  test this; it does not gate service entitlements.
-
-  **Every layer visible from a browser is green.** Certificates, Identifiers &
-  Profiles → Services → WeatherKit shows an active plan: 500,000 calls/month,
-  **0 used, 0 calls in the last 30 days**, "You don't have any calls within this
-  period." A team without WeatherKit provisioned has no plan page at all. So the
-  service is provisioned, the quota is untouched, the entitlement is in the
-  signed profile, and the agreement is accepted.
-
-  That localises the fault precisely: **the failure is at token issuance**, not at
-  capability, quota, or agreement. Nothing has ever authenticated, which is why
-  usage is zero — a 401 dies before it reaches the quota.
-
-  Remaining hypothesis is propagation, and the dates support it: the membership
-  renewed 2026-09-01 (renewal date 2027-09-01), the PLA was accepted 2026-09-01,
-  and the failing device run was 2026-09-02. The account's current agreement is
-  one day older than the bug. Forum thread 807586 describes this exact shape —
-  entitlement present in the profile, key created, still 401s, survives clean
-  builds and reinstalls.
-
-  Next, in order:
-
-  1. Device-side cache reset — reboot the iPhone, delete WAFishMap, rebuild to
-     device, re-run `./scripts/verify_weatherkit_device.sh`. Entitlement data
-     caches on the phone, and this is the documented fix when the server side is
-     already correct. Five minutes.
-  2. If it still returns a bare 401, this is Apple's to fix. File code-level
-     support (included with the membership) with: Team ID `877MLS29T9`, bundle
-     `com.danieldecena.WAFishMap`, entitlement present in the embedded profile,
-     PLA accepted 2026-09-01, WeatherKit plan active with 0 calls, bare 401 from
-     `https://weatherkit.apple.com/v3/token` on a signed device build. That is
-     not a "did you enable it" ticket.
-
-  Do not re-check the capability or the agreement. Both are verified, by artifact
-  and by portal respectively, and re-checking them has already cost two rounds.
-  A pass is also the first known-GOOD input this test has ever had.
-
-Everything else open lives in `TASKS.md`.
-
-### 2026-09-02 (WeatherKit narrowed to token issuance; two hypotheses killed)
-
-- Corrected: "Authorise the App ID for WeatherKit" had sat in Next Up as work to
-  do. It was already done, and a local artifact proved it — Apple's portal cannot
-  emit a provisioning profile carrying `com.apple.developer.weatherkit` unless the
-  capability is enabled, and that profile was already embedded in the device build
-  on disk. One `security cms -D -i ... | plutil -extract Entitlements` closed the
-  item and skipped a documented ~30-minute propagation wait. Rule added to
-  CLAUDE.md: check what local artifact would already be different before filing an
-  action item that lives in someone's browser.
-- Killed: the licence-agreement hypothesis, which this file had named as the live
-  branch. The Program License Agreement was accepted 2026-09-01. The Paid Apps
-  Agreement reads "Pending User Info", but that gates payouts, not services, and
-  chasing it would have meant submitting bank and tax details to test a guess.
-- Narrowed: the WeatherKit service page shows an active 500,000-call plan with
-  0 calls in 30 days. Service provisioned, quota untouched, entitlement in the
-  signed profile, agreement accepted — so the fault is specifically at token
-  issuance. Nothing has ever authenticated.
-- Live hypothesis is now propagation since the 2026-09-01 renewal, the failing run
-  being one day later. Next step is a device-side entitlement cache reset; after
-  that it is a code-level support ticket, not local debugging.
-- Method note: three rounds of this were spent re-checking things that were
-  already verifiable. The evidence was on disk and in the portal the whole time.
-
-### 2026-09-02 (WeatherKit answered: Apple returns 401)
-
-- Finding: WeatherKit fails on hardware for the same reason it fails on the
-  simulator, and neither reason is the one assumed. The simulator's ad-hoc
-  signing was a real obstacle, but removing it changed nothing: the token
-  endpoint returns 401 with an empty body on a correctly-entitled, correctly-
-  signed device build. The question "does the live path work on a phone" is now
-  answered — no — and the remaining work is an account-level authorisation, not
-  code. Nine sessions of this being filed as "needs a device" ended in one run.
-- Decided: keep the swallowed-error Logger permanently. It is what turned a mute
-  "unavailable" into a 401 with a URL in under a minute, on a device where no
-  debugger was attached. Reading the daemon's own subsystem out of the same
-  archive gave the status code the app never sees.
-- Corrected: the 2026-09-02 simulator control run proved less than first claimed.
-  Two of its three assertions used `staticTexts.containing(predicate)`, which
-  filters by *descendant*; a StaticText is a leaf, so those two could never have
-  matched anything and would have "failed correctly" against any input at all.
-  Sourced from the SDK, not from memory — `XCUIAutomation.framework/Headers/
-  XCUIElementQuery.h`: `containingPredicate:` is "elements that contain a
-  descendant matching the specification", `matchingPredicate:` "applies the
-  specified attributes or predicate to the receiver".
-  Only the third, an identifier lookup, was sound. Fixed to `matching(...)`, and
-  the failure message now dumps every label on screen — which is the only reason
-  the device run could be diagnosed from its output. The valid known-bad
-  observation is now the device run itself, where all three fired and the dump
-  showed "Wind and rain unavailable right now.".
-- Noted: a device run that failed at 67s showed two failures and one at 79s
-  showed three, because at 67s the section was still spinning. A fixed timeout
-  around a live fetch makes the failure count itself unstable; the label dump,
-  not the count, is what identifies the state.
-
-### 2026-09-02 (device signing, WeatherKit diagnosability)
-
-- Decided: scope `CODE_SIGN_ENTITLEMENTS` to the app target instead of the
-  project. It sat on the two PBXProject-level configs, so all three targets
-  inherited it and both test bundles claimed `com.apple.developer.weatherkit`
-  under bundle ids whose App IDs have no such capability. Ad-hoc simulator
-  signing hides this completely, which is why it survived every green run to
-  date. `xcodebuild build-for-testing -destination 'generic/platform=iOS'`
-  reproduces it with no hardware attached and was the whole diagnosis:
-  `error: Entitlement com.apple.developer.weatherkit not found and could not be
-  included in profile ... (in target 'WAFishMapUITests')`. A device
-  `xcodebuild test` had therefore never been possible — the verification had no
-  route that did not end in reading a screenshot.
-- Decided: the success sentinel for the weather section is the "not an
-  observation" footer, not the `planWeatherSection` identifier. That identifier
-  is on the header `Text`, so it renders in every state including the spinner and
-  the failure string; asserting on it would have passed while nothing had loaded.
-  The footer renders only when a `PlanWeather` exists.
-- Decided: log the error `PlanWeatherView.load()` was discarding. The `catch`
-  bound `error` and threw it away, and the app had no logging at all, so a JWT
-  refusal and a dropped network rendered the same single string and were
-  indistinguishable afterwards. One `Logger` line now attributes the failure from
-  the app's own subsystem rather than from WeatherDaemon's.
-- Decided: `verify_weatherkit_device.sh` refuses ambiguity rather than picking a
-  device. It filters `devicectl` to physical devices and exits if there are zero
-  or more than one, then checks pairing and Developer Mode before building. The
-  2026-09-01 attempt was lost precisely to an iPad silently standing in for the
-  iPhone and then dropping out mid-build.
-- Noted: `xcodebuild ... | tail -60` reports the exit status of `tail`, so the
-  first device-signing run looked like a success (exit 0) while the log said
-  `TEST BUILD FAILED`. Only the text was the observation. Later runs use
-  `set -o pipefail`.

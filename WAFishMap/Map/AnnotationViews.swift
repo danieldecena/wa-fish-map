@@ -44,6 +44,10 @@ final class SiteMarkerView: MKMarkerAnnotationView {
         glyphImage = UIImage(systemName: Self.symbol(for: site.kind))
         // Faded gray: still tappable, so the details stay one tap away.
         alpha = site.isClosed ? 0.55 : 1
+        isAccessibilityElement = true
+        accessibilityLabel = site.title
+        accessibilityValue = site.spokenSummary
+        accessibilityTraits = .button
     }
 
     /// Outlined = a pale balloon with the rating colour moved to the glyph, so a
@@ -80,12 +84,45 @@ final class SiteClusterView: MKMarkerAnnotationView {
         didSet { apply(annotation) }
     }
 
+    /// Applied here, not in `apply`: MapKit resets the view's transform between
+    /// setting the annotation and drawing it, so a scale set earlier never showed.
+    override func prepareForDisplay() {
+        super.prepareForDisplay()
+        let count = (annotation as? MKClusterAnnotation)?.memberAnnotations.count ?? 1
+        let scale = Self.scale(forCount: count)
+        transform = CGAffineTransform(scaleX: scale, y: scale)
+    }
+
     private func apply(_ annotation: MKAnnotation?) {
         guard let cluster = annotation as? MKClusterAnnotation else { return }
         let members = cluster.memberAnnotations.compactMap { $0 as? SiteAnnotation }
         SiteMarkerView.paint(self, tint: UIColor(Self.bestRating(of: members)?.color ?? .gray),
                              outlined: Self.closurePlausible(of: members))
         glyphText = "\(cluster.memberAnnotations.count)"
+        isAccessibilityElement = true
+        accessibilityLabel = "\(cluster.memberAnnotations.count) fishing spots"
+        accessibilityValue = Self.spokenSummary(of: members)
+        accessibilityTraits = .button
+    }
+
+    /// A group reads as a group: a little larger than a single pin, growing with
+    /// its count, capped so a big cluster never covers the water around it.
+    /// A cluster sits at its members' mean, so the scale's small shift off that
+    /// point misplaces nothing a single pin would have marked.
+    static func scale(forCount count: Int) -> CGFloat {
+        switch count {
+        case ..<2: 1
+        case 2...4: 1.1
+        case 5...9: 1.2
+        default: 1.3
+        }
+    }
+
+    static func spokenSummary(of members: [SiteAnnotation]) -> String {
+        guard let best = bestRating(of: members) else { return "no seasonal guidance" }
+        return closurePlausible(of: members)
+            ? "best rated \(best.label), season may be closed, verify with WDFW"
+            : "best rated \(best.label)"
     }
 
     /// Pure, so it is unit-testable without a map: the strongest rating present.

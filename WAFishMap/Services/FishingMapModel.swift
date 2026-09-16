@@ -30,7 +30,7 @@ final class FishingMapModel {
     /// empty is *unknown*, never zero — an absent river stays neutral.
     var riverFlows: [String: RiverFlow] = [:]
 
-    /// Launch → containing marine area (by point-in-polygon). Absent for inland/lake
+    /// Launch → marine area (point-in-polygon, else within the shore snap). Absent for inland/lake
     /// launches, which have no marine area and therefore a neutral rating.
     private(set) var siteAreaName: [AccessSite.ID: String] = [:]
 
@@ -229,11 +229,12 @@ final class FishingMapModel {
         isLoading = false
     }
 
-    /// Match every launch to the marine area whose polygon contains it (first wins).
+    /// Match every launch to its marine area: containing polygon first, else the
+    /// shore snap (`MarineArea.matching`).
     private func indexSitesToAreas() {
         var map: [AccessSite.ID: String] = [:]
         for site in accessSites {
-            if let area = marineAreas.first(where: { $0.contains(site.coordinate) }) {
+            if let area = MarineArea.matching(site.coordinate, in: marineAreas) {
                 map[site.id] = area.areaName
             }
         }
@@ -262,11 +263,12 @@ final class FishingMapModel {
         pierProtectedArea = map
     }
 
-    /// Match every pier to the marine area whose polygon contains it (first wins).
+    /// Match every pier to its marine area: containing polygon first, else the
+    /// shore snap (`MarineArea.matching`).
     private func indexPiersToAreas() {
         var map: [FishingPier.ID: String] = [:]
         for pier in piers {
-            if let area = marineAreas.first(where: { $0.contains(pier.coordinate) }) {
+            if let area = MarineArea.matching(pier.coordinate, in: marineAreas) {
                 map[pier.id] = area.areaName
             }
         }

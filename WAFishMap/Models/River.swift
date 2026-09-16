@@ -46,7 +46,7 @@ struct River: Identifiable, Equatable, Sendable {
         var best = Double.infinity
         for line in lines {
             for index in 0..<(line.count - 1) {
-                best = min(best, Self.distance(point, line[index], line[index + 1]))
+                best = min(best, LonLat.distanceMeters(from: point, toSegment: line[index], line[index + 1]))
             }
         }
         return best.isFinite ? best : nil
@@ -76,26 +76,7 @@ struct River: Identifiable, Equatable, Sendable {
         return best?.river
     }
 
-    private static let metresPerDegree = 111_320.0
-
-    /// Point-to-segment distance, projected flat around the point's latitude.
-    private static func distance(_ p: LonLat, _ a: LonLat, _ b: LonLat) -> Double {
-        let scale = cos(p.latitude * .pi / 180)
-        func project(_ c: LonLat) -> (x: Double, y: Double) {
-            ((c.longitude - p.longitude) * scale * metresPerDegree,
-             (c.latitude - p.latitude) * metresPerDegree)
-        }
-        let (ax, ay) = project(a)
-        let (bx, by) = project(b)
-        let (dx, dy) = (bx - ax, by - ay)
-        let lengthSquared = dx * dx + dy * dy
-        // A zero-length segment is just its endpoint; the clamp below would
-        // divide by zero.
-        guard lengthSquared > 0 else { return (ax * ax + ay * ay).squareRoot() }
-        let t = min(1, max(0, -(ax * dx + ay * dy) / lengthSquared))
-        let (cx, cy) = (ax + t * dx, ay + t * dy)
-        return (cx * cx + cy * cy).squareRoot()
-    }
+    private static let metresPerDegree = LonLat.metresPerDegree
 
     struct Properties: Decodable {
         let name: String

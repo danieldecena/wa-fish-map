@@ -15,6 +15,7 @@ struct RatingBadge: View {
             .padding(.vertical, 5)
             .background(color.opacity(0.2), in: Capsule())
             .foregroundStyle(color)
+            .accessibilityLabel(rating.map { "Rated \($0.label)" } ?? "No seasonal guidance")
             .overlay(Capsule().stroke(color, lineWidth: 1))
     }
 }

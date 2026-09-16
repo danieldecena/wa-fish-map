@@ -508,6 +508,8 @@ private struct HeatLegend: View {
             Text("More").font(.caption2).foregroundStyle(.secondary)
             Text("· density of well-rated spots").font(.caption2).foregroundStyle(.tertiary)
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Heat map key: darker cells have more well-rated spots")
     }
 }
 
@@ -526,6 +528,9 @@ private struct RatingLegend: View {
                 Text("No data").font(.caption2).foregroundStyle(.secondary)
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Map key: red Prime, orange Good, yellow Fair, blue Slow, gray No data. "
+            + "An outlined pin means the season may be closed; a faded gray pin is closed.")
     }
 }
 
