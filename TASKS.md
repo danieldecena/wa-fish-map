@@ -24,9 +24,13 @@
 - [x] No location fix: map stays on North America, never frames WA — #16, #17
 - [ ] Final data pass and updated stamp
 - [ ] [you] App name, subtitle, category, age rating
-- [ ] Privacy policy page (host is your call)
-- [ ] Store description, keywords, review notes
-- [ ] App Store screenshots from uiTesting fixtures
+- [x] Info button 44pt hit target + navigation disclaimer in chrome/footer
+- [x] Draft privacy policy + App Store listing copy — docs/app-store/
+- [x] Screenshot helper script — scripts/app_store_screenshots.sh
+- [x] Merge weather hour/cache/cancel fixes — PR #19
+- [ ] Privacy policy page (host is your call) — draft in docs/app-store/privacy-policy.md
+- [ ] Store description, keywords, review notes — draft in docs/app-store/listing-draft.md
+- [ ] App Store screenshots from uiTesting fixtures — scripts/app_store_screenshots.sh
 - [ ] [you] App Privacy questionnaire
 - [ ] Archive and upload release build
 - [ ] [you] Submit for App Store review

@@ -430,14 +430,20 @@ struct FishingMapView: View {
                 .tint(showHeat ? .orange : .secondary)
                 Button { showDisclaimer.toggle() } label: {
                     Image(systemName: "info.circle")
-                        .font(.caption)
+                        .font(.body)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel("About this guidance")
+                .accessibilityHint("Opens guidance disclaimer and WDFW link")
                 .popover(isPresented: $showDisclaimer, arrowEdge: .bottom) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Tap a launch for what's biting. Guidance only — verify seasons in the Fish Washington app.")
                             .font(.caption)
+                        Text("Not for navigation or safety decisions.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         if let urlString = model.guide?.wdfwURL, let url = URL(string: urlString) {
                             Link(destination: url) {
                                 Label("Verify seasons & limits at WDFW", systemImage: "exclamationmark.shield")
