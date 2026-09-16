@@ -195,20 +195,20 @@ struct ShippedSeasonRiskTests {
     ).ignoresCase() }
 
     @Test func dateDetectorFiresOnKnownBadSample() {
-        #expect(try "Open May 1-Jun 15".firstMatch(of: Self.datePattern) != nil)
-        #expect(try "mid-June closure".firstMatch(of: Self.datePattern) != nil)
-        #expect(try "Season runs Mar-Apr".firstMatch(of: Self.datePattern) != nil)
+        #expect("Open May 1-Jun 15".firstMatch(of: Self.datePattern) != nil)
+        #expect("mid-June closure".firstMatch(of: Self.datePattern) != nil)
+        #expect("Season runs Mar-Apr".firstMatch(of: Self.datePattern) != nil)
     }
 
     @Test func dateDetectorDoesNotFireOnKnownGoodSample() {
-        #expect(try "Season dates set annually".firstMatch(of: Self.datePattern) == nil)
-        #expect(try "Quota-driven summer fishery; confirm before you go".firstMatch(of: Self.datePattern) == nil)
+        #expect("Season dates set annually".firstMatch(of: Self.datePattern) == nil)
+        #expect("Quota-driven summer fishery; confirm before you go".firstMatch(of: Self.datePattern) == nil)
     }
 
     @Test func noReasonStatesADate() throws {
         // The reason explains why to verify; it must not read as a season date.
         for row in try loadShipped().seasonRisk {
-            #expect(try row.reason.firstMatch(of: Self.datePattern) == nil,
+            #expect(row.reason.firstMatch(of: Self.datePattern) == nil,
                     "\(row.match) reason contains a date")
         }
     }
@@ -226,7 +226,7 @@ struct ShippedSeasonRiskTests {
         }
         for species in allSpecies {
             guard let note = species.note else { continue }
-            #expect(try note.firstMatch(of: Self.datePattern) == nil,
+            #expect(note.firstMatch(of: Self.datePattern) == nil,
                     "\(species.species) note contains a date: \(note)")
         }
     }
