@@ -3,9 +3,9 @@
 - [ ] Layered OS27 app icon (3 SVG layers, Icon Composer)
 - [ ] ContentUnavailableView for the load-failure state
 - [ ] Fix app icon: reconnect tail, centre mark, eye inside head; add generator script
-- [ ] run_sim: resolve -d name to a udid before build
-- [ ] run_sim: guard against mid-build simulator shutdown
-- [ ] run_sim: verified end-to-end run with screenshot
+- [x] run_sim: resolve -d name to a udid before build — 34217d4
+- [x] run_sim: guard against mid-build simulator shutdown — 34217d4
+- [x] run_sim: verified end-to-end run with screenshot — 34217d4
 
 - [x] Waterbody-scoped notes: gate + data fix + rule — d26c4ca
 
