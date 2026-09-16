@@ -353,6 +353,15 @@ current counts rather than trusting a number written here.
   story as `docs/app-store/privacy-policy.md` and the live GitHub Pages URL.
   Tracking remains false; no tracking domains.
 
+### 2026-09-16 (Location is not collected; reverts adda11f)
+
+- Decided: the manifest and ASC answer declare no collected data. Apple counts
+  data as collected only when it leaves the device. The user's fix drives the
+  camera only (`FishingMapView` recentre); `PlanWeatherView` and
+  `DirectionsButton` send the launch's `site.coordinate`, and WDFW/NOAA queries
+  are statewide or by station. Adding a request that carries the user's fix
+  means re-declaring Precise Location in both places.
+
 ### 2026-09-16 (the Oregon marine polygon is hidden, not seeded)
 
 - Decided: drop WDFW's "Oregon" area (North of Falcon, WAC field "Oregon's

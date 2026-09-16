@@ -80,7 +80,7 @@ WA Fish Map is a map of Washington fishing access with editorial seasonal timing
 |---|---|
 | Tracking? | **No** |
 | Purchase history / contact / financial / health / sensitive info? | **No** |
-| Location | **Yes** — Precise Location; purpose **App Functionality**; Linked to User **No**; Used for Tracking **No** |
+| Location | **No** — the device location only moves the map on the phone; weather and directions send the launch's coordinates, never the user's |
 | Diagnostics / usage / product interaction collected by you? | **No** (Apple may collect separately) |
 
 Do **not** declare tracking domains. WeatherKit is Apple’s framework; you are not selling location.
@@ -98,7 +98,8 @@ Paused 2026-09-16 — resume when the app build is ready for review (screenshots
 - [x] App Privacy answers documented
 - [x] Release archive uploaded to ASC (2026-09-16; build **2** / 1.0 attached)
 - [x] ASC App Information: name, subtitle, category Navigation
-- [x] ASC App Privacy: policy URL + Precise Location (App Functionality, not linked, not tracking); publish when prompted
+- [x] ASC App Privacy: policy URL
+- [ ] ASC App Privacy: change Location to Data Not Collected; publish when prompted
 - [x] ASC Version: promo / description / keywords / support URL / copyright; review notes
 - [ ] Attach screenshots (ASC still 0 of 10) — sized copies in `/tmp/asc-shots/` and `docs/app-store/screenshots/`
 - [ ] Save → Add for Review → Submit for Review
