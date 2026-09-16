@@ -44,8 +44,8 @@
 - `freshwater.byWaterbody` pins a claim to one lake or river. A lake resolves
   through the curated `waterbodySites` list; a river resolves by exact name to
   any inland launch or pier within 150 m of its line (`River.nearest`, curated
-  list first, precomputed per site in `FishingMapModel.indexWaterbodies`). Baker
-  Lake sockeye is the only shipped row — no river carries one yet.
+  list first, precomputed per site in `FishingMapModel.indexWaterbodies`). The
+  shipped rows are walleye on four Grant County lakes; no river carries one yet.
 - Marine sheets show the nearest NDBC buoy's latest wave height and water
   temperature, each with its own timestamp.
 - WeatherKit works on device. `testWindReadsARealValueOnDevice` **passed** on a
@@ -113,6 +113,15 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-16 (Baker Lake sockeye row removed: no launch reaches it)
+
+- Decided: drop `byWaterbody["Baker Lake"]` and its `waterbodySites` entry. The
+  WDFW launch layer (MapServer/0, 477 of 477 rows) has no "Baker Lake", "Baker
+  Lake Resort", "Horseshoe Cove" or "Kulshan Campground" (only "Baker River",
+  below the dams), and the pier layer (63 rows) has no Baker name; Moses Lake and
+  Billy Clapp Lake in the same query do match. The season-risk stamp test now
+  decodes an inline guide and was watched failing with the byWaterbody stamp removed.
 
 ### 2026-09-16 (data pass, second batch)
 

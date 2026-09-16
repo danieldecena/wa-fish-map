@@ -17,7 +17,7 @@
 - [x] MapCoordinatorTests recentre test hung 10 min under load
 - [ ] Inland pins all Good in Sept: statewide list is uniform
 - [x] Grant walleye: per-reservoir rows, drop county row
-- [ ] Baker Lake sockeye row reaches no WDFW launch
+- [x] Baker Lake sockeye row reaches no WDFW launch
 - [ ] Shared simulator relaunches test host mid-run
 
 ## Completed

@@ -1835,19 +1835,6 @@
       ]
     },
     "byWaterbody": {
-      "Baker Lake": [
-        {
-          "species": "Sockeye Salmon",
-          "bestMonths": [
-            7,
-            8
-          ],
-          "goodMonths": [],
-          "bait": "Small pink or red hoochies behind a dodger, trolled slow",
-          "bestTime": "First light to mid-morning",
-          "note": "Opens on a set summer date regardless of how many fish are in the lake; sockeye reach it by the Baker River trap-and-haul. Confirm dates with WDFW."
-        }
-      ],
       "Potholes Reservoir": [
         {
           "species": "Walleye",
@@ -1918,12 +1905,6 @@
       ]
     },
     "waterbodySites": {
-      "Baker Lake": [
-        "Baker Lake",
-        "Baker Lake Resort",
-        "Horseshoe Cove",
-        "Kulshan Campground"
-      ],
       "Potholes Reservoir": [
         "Blythe",
         "Glen Williams",

@@ -48,8 +48,8 @@ struct NoteScopeTests {
     }
 
     /// The waterbody tier is exempt for the same reason the area tier is: the
-    /// row IS a place, so "Baker Lake sockeye run on a WDFW quota" attached to
-    /// Baker Lake is true everywhere it renders. The exemption is sound only
+    /// row IS a place, so "WDFW lists walleye in this warmwater-emphasis lake"
+    /// attached to Moses Lake is true everywhere it renders. The exemption is sound only
     /// because the tier is keyed by a curated facility list rather than by
     /// prose-matching a name — that guess is the failure this suite exists for.
     /// A key is either a curated facility list or an exact river name from
@@ -85,13 +85,35 @@ struct NoteScopeTests {
     /// The season cap must reach the new tier. A tier the resolver skips lets a
     /// closure-prone fishery render Prime, which is the whole defect the cap
     /// exists to prevent.
+    ///
+    /// Decoded from an inline guide rather than the bundled one: the bundled
+    /// Baker Lake sockeye row reached no WDFW launch and was removed on
+    /// 2026-09-16, and no remaining waterbody row names an at-risk species. The
+    /// Walleye row is the control, so an empty stamp everywhere cannot pass.
     @Test func waterbodyRowsAreStampedWithSeasonRisk() throws {
-        let guide = try bundledGuide()
-        let sockeye = guide.freshwater?.byWaterbody?["Baker Lake"]?
-            .first { $0.species == "Sockeye Salmon" }
-        let expected = guide.seasonRisk.first { $0.matches("Sockeye Salmon") }
-        #expect(try #require(sockeye).riskMonths == expected?.months ?? [],
-                "Baker Lake sockeye did not pick up the seasonRisk stamp.")
+        let json = """
+        {
+          "updated": "2026-09-16", "disclaimer": "d", "wdfwURL": "u",
+          "seasonRisk": [{ "match": "Sockeye", "months": [7, 8], "reason": "Quota" }],
+          "areas": [],
+          "freshwater": {
+            "species": [{ "species": "Rainbow Trout", "bestMonths": [5] }],
+            "byWaterbody": {
+              "Some Lake": [
+                { "species": "Sockeye Salmon", "bestMonths": [7, 8] },
+                { "species": "Walleye", "bestMonths": [6] }
+              ]
+            },
+            "waterbodySites": { "Some Lake": ["Some Lake Ramp"] }
+          }
+        }
+        """.data(using: .utf8)!
+        let rows = try #require(FisheryLoader.guide(from: json).freshwater?.byWaterbody?["Some Lake"])
+        let sockeye = try #require(rows.first { $0.species == "Sockeye Salmon" })
+        let walleye = try #require(rows.first { $0.species == "Walleye" })
+        #expect(sockeye.riskMonths == [7, 8], "waterbody sockeye did not pick up the seasonRisk stamp.")
+        #expect(sockeye.riskReason == "Quota")
+        #expect(walleye.riskMonths.isEmpty)
     }
 
     /// Proves the pattern fires, so a passing suite means the data is clean
