@@ -25,7 +25,7 @@
 - [ ] Seed or hide the Oregon marine polygon
 - [x] Add PrivacyInfo privacy manifest — 492a874
 - [x] Audit location permission strings — 74cb109
-- [ ] Attribution: Apple Weather mark and data credits
+- [x] Attribution: Apple Weather mark and data credits — c705807
 - [ ] UI test: disclaimer and WDFW link on every sheet
 - [ ] Offline states render unavailable, never stale
 - [ ] Accessibility pass on pins, legend, sheets
