@@ -37,6 +37,11 @@ EOF
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    -d|--device|-l|--location|-s|--shot)
+      # Bare `set -u` would die with an opaque "parameter not set" here.
+      [[ $# -ge 2 ]] || { echo "[x]  $1 requires a value" >&2; exit 2; } ;;
+  esac
+  case "$1" in
     -d|--device)   device="$2"; shift 2 ;;
     -l|--location) location="$2"; shift 2 ;;
     --no-location) location=""; shift ;;
@@ -146,7 +151,9 @@ if [[ -n "$location" ]]; then
   # The fix only reaches the app once it holds location permission, and a
   # fresh simulator has not granted it — without this the camera stays on the
   # statewide auto-fit no matter what fix is set (observed 2026-09-16).
-  xcrun simctl privacy "$udid" grant location "$BUNDLE_ID"
+  if ! xcrun simctl privacy "$udid" grant location "$BUNDLE_ID" 2>/dev/null; then
+    echo "[!]  could not grant location permission — camera may stay on statewide auto-fit" >&2
+  fi
   # simctl location landed in Xcode 14; tolerate its absence rather than
   # failing a build that is otherwise fine.
   if xcrun simctl location "$udid" set "$location" 2>/dev/null; then
