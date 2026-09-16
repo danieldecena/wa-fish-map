@@ -279,6 +279,26 @@ struct FailedReadTests {
         #expect(model.statusMessage.contains("piers unavailable"))
     }
 
+    /// A 200 with no usable series is as empty as a failed fetch; it must not
+    /// read as "loaded" and blame every gauge.
+    @Test @MainActor func anEmptyUSGSResponseIsNotLoaded() async throws {
+        struct EmptyUSGS: HTTPGet {
+            let base: LayerClient
+            func data(from url: URL) async throws -> Data {
+                if url.host?.contains("usgs") == true {
+                    return Data(#"{"value":{"timeSeries":[]}}"#.utf8)
+                }
+                return try await base.data(from: url)
+            }
+        }
+        let bundle = try #require(FixtureBundle.loader)
+        let model = FishingMapModel()
+        await model.load(client: EmptyUSGS(base: LayerClient(marine: Self.oneArea, sites: Self.oneSite,
+                                                              mpa: Self.oneMPA, piers: Self.onePier)),
+                         bundle: bundle)
+        #expect(!model.riverFlowsLoaded)
+    }
+
     @Test @MainActor func aFailedUSGSFetchIsRecordedAsNotLoaded() async throws {
         let bundle = try #require(FixtureBundle.loader)
         let model = FishingMapModel()

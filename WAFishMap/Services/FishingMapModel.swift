@@ -238,7 +238,7 @@ final class FishingMapModel {
         // River flow is a live-only enhancement; a USGS outage leaves every
         // river neutral rather than taking the map down.
         if let flowData = try? await client.data(from: USGSFlowLoader.url),
-           let loaded = try? USGSFlowLoader.flows(from: flowData) {
+           let loaded = try? USGSFlowLoader.flows(from: flowData), !loaded.isEmpty {
             riverFlows = loaded
             riverFlowsLoaded = true
         }

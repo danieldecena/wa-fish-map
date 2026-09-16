@@ -241,6 +241,9 @@ struct ProtectedAreaTests {
         func data(from url: URL) async throws -> Data {
             if url.absoluteString.contains("/4/query") { throw WDFWLayerError.badHTTPStatus(500) }
             if url.absoluteString.contains("/0/query") { return siteData }
+            // A real marine layer: an empty one would fall back to the bundled
+            // sample and the test would quietly run against sample sites.
+            if url.absoluteString.contains("/6/query") { return Data(ProtectedAreaTests.farArea.utf8) }
             return Data(#"{"type":"FeatureCollection","features":[]}"#.utf8)
         }
     }
@@ -255,6 +258,7 @@ struct ProtectedAreaTests {
         let model = FishingMapModel()
         await model.load(client: FailingMPAClient(siteData: Data(Self.oneSite.utf8)), bundle: .main)
         let site = try #require(model.accessSites.first)
+        #expect(site.facilityName == "Elsewhere", "loaded the bundled sample, not the stub")
         #expect(!model.protectedAreasLoaded)
         #expect(model.protectedAreaCheck(for: site) == .unavailable)
     }
@@ -268,6 +272,9 @@ struct ProtectedAreaTests {
                 return Data(#"{"type":"FeatureCollection","exceededTransferLimit":true,"features":[]}"#.utf8)
             }
             if url.absoluteString.contains("/0/query") { return siteData }
+            // A real marine layer: an empty one would fall back to the bundled
+            // sample and the test would quietly run against sample sites.
+            if url.absoluteString.contains("/6/query") { return Data(ProtectedAreaTests.farArea.utf8) }
             return Data(#"{"type":"FeatureCollection","features":[]}"#.utf8)
         }
     }
@@ -276,6 +283,7 @@ struct ProtectedAreaTests {
         let model = FishingMapModel()
         await model.load(client: TruncatedMPAClient(siteData: Data(Self.oneSite.utf8)), bundle: .main)
         let site = try #require(model.accessSites.first)
+        #expect(site.facilityName == "Elsewhere", "loaded the bundled sample, not the stub")
         #expect(model.protectedAreaCheck(for: site) == .unavailable)
     }
 

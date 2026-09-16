@@ -49,7 +49,7 @@
 - [x] Review and merge PR #17 — 9b3a4fb
 - [ ] Key river stats/flow by id before any creek gets a gauge
 - [ ] Filter rivers once in indexWaterbodies, not per site
-- [ ] See "piers unavailable" and USGS wording on screen (PR #18)
+- [x] Live load shows no false "piers unavailable" (PR #18)
 - [ ] [you] Review and merge PR #18
 
 ## Completed
