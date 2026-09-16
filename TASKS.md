@@ -1,5 +1,17 @@
 ## Tasks
 
+- [x] Resolve the two stashes on the PR 4 branch — 6e21fb5
+- [x] Merge main into PR 4, suite green — b996199
+- [x] Map popover WDFW link, species-aware sheets, Pacific calendar
+- [x] WDFW 15s timeout + concurrent piers fetch — 6deea4d
+- [x] Keep every ring of marine/protected areas, punch holes — 63fc7fe
+- [x] Tide table reloads on site change — 0386a21
+- [x] Strict concurrency warnings on (28 found) — d5fc9e2
+- [x] Cache ring groups; Pacific calendar + species in all sheets — 22fe6c1
+- [ ] Fix the 28 strict-concurrency warnings (1 in USGSFlowLoader)
+- [ ] [you] Cursor: install swiftlang.swift-vscode, disable CodeLLDB
+- [ ] Generate buildServer.json for Cursor (xcode-build-server)
+- [ ] Profile launch indexing in Instruments (A7)
 - [ ] [you] TestFlight: add both to the Internal group once they activate
 - [ ] [you] Re-invite Pauline at her Apple Account address
 - [ ] [you] GitHub Actions billing blocks PR #4 CI
