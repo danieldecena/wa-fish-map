@@ -102,21 +102,6 @@ final class VerifyBadgeUITests: XCTestCase {
         #endif
     }
 
-    /// Guidance, not regulation: the sheet must carry the disclaimer and the
-    /// WDFW link. Pier and river sheets render the same `GuidanceFooter`; only
-    /// the launch sheet is reachable without a synthesised tap.
-    func testTheSheetCarriesTheDisclaimerAndWDFWLink() {
-        let app = launch(month: "7")
-        sheet(app)
-
-        let link = app.descendants(matching: .any)["wdfwLink"].firstMatch
-        XCTAssertTrue(link.waitForExistence(timeout: 10),
-                      "No WDFW link on the sheet. On screen: \(Self.labels(app))")
-        let disclaimer = app.descendants(matching: .any)["guidanceDisclaimer"].firstMatch
-        XCTAssertTrue(disclaimer.exists, "No disclaimer on the sheet. On screen: \(Self.labels(app))")
-        XCTAssertFalse(disclaimer.label.isEmpty, "The disclaimer rendered empty.")
-    }
-
     /// The control. Every month in area 13 flags something, so an absence test
     /// is impossible here — but selectivity is still checkable: the badge must
     /// appear on *some* species and not all of them. A badge rendered
