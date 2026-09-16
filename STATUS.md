@@ -41,8 +41,11 @@
 - Piers are checked against Marine Protected Areas and answer the same
   three-way `inside / clear / unavailable` as launches, through a shared
   `ProtectedAreaSection`. Piers outside every marine polygon answer freshwater.
-- `freshwater.byWaterbody` pins a claim to one lake or river, keyed by a curated
-  facility list. Baker Lake sockeye is its first row.
+- `freshwater.byWaterbody` pins a claim to one lake or river. A lake resolves
+  through the curated `waterbodySites` list; a river resolves by exact name to
+  any inland launch or pier within 150 m of its line (`River.nearest`, curated
+  list first, precomputed per site in `FishingMapModel.indexWaterbodies`). Baker
+  Lake sockeye is the only shipped row — no river carries one yet.
 - Marine sheets show the nearest NDBC buoy's latest wave height and water
   temperature, each with its own timestamp.
 - WeatherKit works on device. `testWindReadsARealValueOnDevice` **passed** on a
@@ -112,14 +115,47 @@
 
 ## Next Up
 
-- **Phase 1 of the App Store plan:** waterbody tier keyed off the river
-  polylines, then the 6 unstamped flow-stat gates, then the Oregon polygon.
+- **Phase 1 of the App Store plan:** the waterbody river tier is done; next are
+  the 6 unstamped flow-stat gates, then the Oregon polygon.
 - Phase 0 runs in parallel and is waiting on you: GitHub billing, then merge PR #4.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-16 (the waterbody river tier, and the Spokane row refused)
+
+- Shipped the river waterbody tier (plan
+  `docs/superpowers/plans/2026-09-16-river-waterbody-tier.md`, five slices). An
+  inland launch or pier now inherits a river's `byWaterbody` rows when it sits
+  within 150 m of that river's line: `River.nearest` (pure, confluence-aware),
+  a curated-first resolver on `FreshwaterGuide`, and a precomputed
+  `FishingMapModel.indexWaterbodies` index so pins never re-scan geometry on
+  render. The reachability gate in `NoteScopeTests` now accepts an exact river
+  name from `rivers.json` as well as a curated facility, with a misspelled-river
+  control proving it still fires.
+- **Refused the Spokane River row (plan Task 5, Step 2b — no data change.)** A
+  single river-wide note is not defensible: the WA reach's trout rule changes
+  reach by reach. Above Nine Mile Dam to the Idaho line is selective-gear,
+  release-all-but-hatchery, closed Mar 16 to late May (the classic wild-redband
+  fly water). Long Lake and Little Falls reservoirs run landlocked-salmon rules.
+  The lower Spokane Arm of Lake Roosevelt is year-round, limit 5, adipose-clip
+  retention. Gear, season, and bag structure all differ, so "catch-and-release
+  for wild redband" is true only on the top reach and cannot ride the whole
+  river. Sources: WAC 220-312-050 entries #308/#197/#187/#191
+  (https://app.leg.wa.gov/wac/default.aspx?cite=220-312-050,
+  https://www.law.cornell.edu/regulations/washington/WAC-220-312-050); Spokane
+  Falls TU reach guide (https://spokanefallstu.org/guide-to-fishing-the-spokane-by-marc-fryt/)
+  and Lake Roosevelt redband rule
+  (https://spokanefallstu.org/columbia-river/new-fishing-rules-effect-lake-roosevelt-protect-redband-rainbow-trout/).
+  If a row is ever wanted, scope it to "Spokane River above Nine Mile Dam" as
+  its own curated waterbody, not to the river name.
+- So no river ships a `byWaterbody` row yet; Baker Lake (a curated lake) stays
+  the only row. The tier's plumbing is proven by unit tests
+  (`WaterbodyResolverTests`, `FishingMapModelTests.anInlandLaunchBesideARiverGetsTheRiversRows`),
+  not by a screenshot — there is no river row to photograph, which is the honest
+  state, not a skipped step.
 
 ### 2026-09-16 (finished means a public App Store release)
 

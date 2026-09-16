@@ -55,6 +55,11 @@ site in its tier:
   Lake Sammamish, Lake Dolloff and the Green River, so a note naming one of
   them is wrong at the other three.
 - `freshwater.species` — the entire state.
+- `freshwater.byWaterbody` — one lake or river. Lakes resolve through the
+  curated `waterbodySites` list; rivers resolve by name to any site within 150 m
+  of the river line. A river is one feature end to end, so a river row must be
+  true along the whole river — the Spokane River was refused on 2026-09-16
+  because its rule changes reach by reach (see the STATUS decision log).
 
 `WAFishMapTests/NoteScopeTests.swift` fails the build when a county or
 statewide note names a waterbody. It shipped catching a real defect: Lake
@@ -63,8 +68,10 @@ the note sat on the King County override. The regex is prose matching —
 "Potholes"-style names without a Lake/River noun slip it, so the rule binds
 the editor, not just the test.
 
-If a claim is only true of one lake, it does not belong in this file at all
-until the data model has a waterbody tier.
+A claim only true of one lake or river belongs in `freshwater.byWaterbody`,
+keyed by an exact lake facility (via `waterbodySites`) or an exact river name
+from `rivers.json` — never prose-matched. It must still be true everywhere that
+key resolves: a whole lake, or a whole river end to end.
 
 ## Apple's docs are a tool call, not a memory
 
