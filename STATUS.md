@@ -124,6 +124,18 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-16 (strict-concurrency warnings cleared)
+- Decided: clear them with isolation annotations, not code changes. The
+  immutable statics (USGS date formatter, two test regexes) are
+  `nonisolated(unsafe)`; test suites calling main-actor statics and the XCUITest
+  class are `@MainActor`. Clean build-for-testing: 0 concurrency warnings, 5
+  unrelated lint warnings left. Unit suite 198/29 passed, rc=0 (`30fd9d9`).
+- `indexWaterbodies()` cost on the live bundle is still unmeasured (plan Step 5):
+  three simulator attempts died to contention (server died, boot timeout,
+  shutting down). The instrumented build sits detached in `../wa-fish-map-timing`.
+- The project CLAUDE.md names the simulator `iPhone`; no such device exists now,
+  only `iPhone 17 Pro`.
+
 ### 2026-09-16 (flow stats checked against USGS, not just on screen)
 
 - Decided: "Stamp the remaining 6 flow-stat gates" was never defined (coined once
