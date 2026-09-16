@@ -73,12 +73,16 @@ final class GuidanceOnEverySheetUITests: XCTestCase {
             return
         }
         // The launch opens the site sheet, which covers the status bar on a phone.
+        // The site sheet's footer carries its own wdfwLink, so the popover's link
+        // proves nothing unless the sheet is gone first.
         let sheet = element(app, "siteDetailSheet")
-        if sheet.waitForExistence(timeout: 30) {
-            sheet.swipeDown(velocity: .fast)
-            // The dismiss is animated; tapping mid-animation lands on the sheet,
-            // not the button underneath it, and the popover never opens.
-            _ = sheet.waitForNonExistence(timeout: 10)
+        XCTAssertTrue(sheet.waitForExistence(timeout: 30), "Site sheet never opened. On screen: \(Self.labels(app))")
+        sheet.swipeDown(velocity: .fast)
+        // The dismiss is animated; tapping mid-animation lands on the sheet,
+        // not the button underneath it, and the popover never opens.
+        guard sheet.waitForNonExistence(timeout: 10) else {
+            XCTFail("Site sheet never dismissed, so its footer link would satisfy the check. On screen: \(Self.labels(app))")
+            return
         }
         for _ in 0..<20 where !button.isHittable {
             RunLoop.current.run(until: Date().addingTimeInterval(0.1))

@@ -50,7 +50,9 @@ enum HeatMap {
         guard cellDegrees > 0, !points.isEmpty else { return [] }
 
         var sums: [GridKey: Double] = [:]
-        for p in points {
+        // A zero weight must not create a cell: a lone poor-only cell would rank
+        // as the hottest one.
+        for p in points where p.weight > 0 {
             let key = GridKey(
                 x: Int((p.coord.longitude / cellDegrees).rounded(.down)),
                 y: Int((p.coord.latitude / cellDegrees).rounded(.down))

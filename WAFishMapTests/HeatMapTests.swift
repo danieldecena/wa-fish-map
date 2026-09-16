@@ -95,18 +95,22 @@ struct HeatMapTests {
     }
 
     @Test func poorOnlyCellDrawsNothingAgainstARatedNeighbor() {
-        // A cell of only poor/unrated points has weight 0, so it draws no zone at
-        // all once the grid keys collapse points into cells only when they carry
-        // weight — a fair-or-better neighbor still ranks above it.
         let points: [(coord: LonLat, weight: Double)] = [
             (LonLat(longitude: -122.90, latitude: 47.10), HeatMap.weight(for: .poor)),
             (LonLat(longitude: -122.89, latitude: 47.11), HeatMap.weight(for: nil)),
             (LonLat(longitude: -117.40, latitude: 47.60), HeatMap.weight(for: .fair)),
         ]
         let zones = HeatMap.zones(points: points, cellDegrees: 0.15)
-        let poorCellZone = zones.first { $0.center.longitude < -120 }
-        #expect(poorCellZone != nil)
-        #expect(ColorRamp.densityBand(poorCellZone!.intensity) == 0)
+        #expect(zones.count == 1)
+        #expect(zones.first { $0.center.longitude < -120 } == nil)
+    }
+
+    @Test func lonePoorOnlyCellIsNotDrawnHot() {
+        let points: [(coord: LonLat, weight: Double)] = [
+            (LonLat(longitude: -122.90, latitude: 47.10), HeatMap.weight(for: .poor)),
+            (LonLat(longitude: -122.89, latitude: 47.11), HeatMap.weight(for: nil)),
+        ]
+        #expect(HeatMap.zones(points: points, cellDegrees: 0.15).isEmpty)
     }
 
     @Test func manyPoorPointsDoNotOutrankOneExcellentPoint() {
