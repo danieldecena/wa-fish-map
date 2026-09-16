@@ -41,7 +41,7 @@
 - [x] Shore snap: saltwater piers/launches no longer freshwater
 - [x] Verify species weights (7 adjusted; 6 no source found)
 - [x] Watch fish silhouettes on screen (Dash Point, Crescent Lake)
-- [ ] Watch the Closed badge in a closed pier sheet
+- [x] Watch the Closed badge in a closed pier sheet
 - [ ] MapCoordinatorTests recentre test hung 10 min under load
 - [ ] Inland pins all Good in Sept: statewide list is uniform
 - [x] Look at creeks on screen with Rivers on (PR #17)
