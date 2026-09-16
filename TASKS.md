@@ -29,6 +29,9 @@
 - [ ] UI test: disclaimer and WDFW link on every sheet
 - [ ] Offline states render unavailable, never stale
 - [ ] Accessibility pass on pins, legend, sheets
+- [ ] Rating colors onto DS.Rating tokens
+- [ ] Detail sheets onto DS.Surface and DS.TypeScale
+- [ ] Map chrome onto DS tokens after odd-year merge
 - [ ] Final data pass and updated stamp
 - [ ] [you] App name, subtitle, category, age rating
 - [ ] Privacy policy page (host is your call)
