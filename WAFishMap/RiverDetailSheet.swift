@@ -10,10 +10,8 @@ struct RiverDetailSheet: View {
     let guide: FisheryGuide?
     let planDate: Date
 
-    private var month: Int {
-        UITestSeam.planMonth ?? Calendar.current.component(.month, from: planDate)
-    }
-    private var day: Int { Calendar.current.component(.day, from: planDate) }
+    private var month: Int { PlanClock.month(for: planDate) }
+    private var day: Int { PlanClock.day(for: planDate) }
 
     private var rating: FishingRating? {
         guard let stats, let discharge = flow?.discharge else { return nil }
