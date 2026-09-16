@@ -9,7 +9,7 @@
 - [x] Strict concurrency warnings on (28 found) — d5fc9e2
 - [x] Cache ring groups; Pacific calendar + species in all sheets — 22fe6c1
 - [ ] Fix the 28 strict-concurrency warnings (1 in USGSFlowLoader)
-- [x] Cursor: install swiftlang.swift-vscode (CodeLLDB still enabled)
+- [x] Cursor: install swiftlang.swift-vscode + remove CodeLLDB
 - [x] Generate buildServer.json for Cursor (xcode-build-server)
 - [ ] Profile launch indexing in Instruments (A7)
 - [ ] [you] TestFlight: add both to the Internal group once they activate
