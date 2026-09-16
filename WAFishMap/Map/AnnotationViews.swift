@@ -150,6 +150,9 @@ final class AreaLabelView: MKAnnotationView {
 
     override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
         super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+        if #available(iOS 26, *) {
+            blur.effect = UIGlassEffect(style: .regular)
+        }
         displayPriority = .defaultLow
         collisionMode = .circle
         canShowCallout = false
