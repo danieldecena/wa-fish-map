@@ -363,6 +363,26 @@ struct FishingMapRepresentable: UIViewRepresentable {
                 .map { "\($0.id):\($0.rating?.rawValue ?? -1)" }
                 .joined(separator: ",")
             let labels = parent.showAreaLabels ? parent.areas.map(\.id).joined(separator: ",") : ""
+            // The camera opened statewide with `position = .automatic`; do that
+            // once, as soon as there is anything to frame — but never over the
+            // top of a camera the user or a location fix has already claimed.
+            // CoreLocation regularly answers before the WDFW fetch, and the fit
+            // used to erase the recentre with no second chance to reapply it.
+            // It sits ahead of the signature guard: sites that land while pins
+            // are hidden leave the drawn list empty, the signature unchanged, and
+            // an early return would skip the fit for good.
+            // Framed from coordinates rather than `showAnnotations`, which would
+            // add every pin to a map zoomed out past the level that hides them.
+            if !hasDoneInitialFit && !parent.fitAnnotations.isEmpty
+                && !parent.userMovedCamera && parent.focusRegion == nil && !hasAppliedFocusRegion {
+                hasDoneInitialFit = true
+                let rect = parent.fitAnnotations
+                    .map { MKMapRect(origin: MKMapPoint($0.coordinate), size: MKMapSize(width: 0, height: 0)) }
+                    .reduce(MKMapRect.null) { $0.union($1) }
+                mapView.setVisibleMapRect(rect, edgePadding: UIEdgeInsets(top: 40, left: 40, bottom: 40, right: 40),
+                                          animated: false)
+            }
+
             guard signature != annotationSignature || labels != labelSignature else { return }
 
             if signature != annotationSignature {
@@ -388,23 +408,6 @@ struct FishingMapRepresentable: UIViewRepresentable {
                 if parent.showAreaLabels {
                     mapView.addAnnotations(parent.areas.map(AreaLabelAnnotation.init(area:)))
                 }
-            }
-
-            // The camera opened statewide with `position = .automatic`; do that
-            // once, as soon as there is anything to frame — but never over the
-            // top of a camera the user or a location fix has already claimed.
-            // CoreLocation regularly answers before the WDFW fetch, and the fit
-            // used to erase the recentre with no second chance to reapply it.
-            // Framed from coordinates rather than `showAnnotations`, which would
-            // add every pin to a map zoomed out past the level that hides them.
-            if !hasDoneInitialFit && !parent.fitAnnotations.isEmpty
-                && !parent.userMovedCamera && parent.focusRegion == nil && !hasAppliedFocusRegion {
-                hasDoneInitialFit = true
-                let rect = parent.fitAnnotations
-                    .map { MKMapRect(origin: MKMapPoint($0.coordinate), size: MKMapSize(width: 0, height: 0)) }
-                    .reduce(MKMapRect.null) { $0.union($1) }
-                mapView.setVisibleMapRect(rect, edgePadding: UIEdgeInsets(top: 40, left: 40, bottom: 40, right: 40),
-                                          animated: false)
             }
         }
 
