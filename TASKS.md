@@ -46,7 +46,9 @@
 - [ ] Confirm PR #17 "unstable" is the CI billing block
 - [ ] Same-name rivers still merge (two Green Rivers)
 - [ ] Shared simulator relaunches test host mid-run
-- [ ] [you] Review and merge PR #17
+- [x] Review and merge PR #17 — 9b3a4fb
+- [ ] Key river stats/flow by id before any creek gets a gauge
+- [ ] Filter rivers once in indexWaterbodies, not per site
 
 ## Completed
 
