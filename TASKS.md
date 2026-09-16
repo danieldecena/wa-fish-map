@@ -1,8 +1,6 @@
 ## Tasks
 
-- [ ] Spokane River row gated on WDFW, docs, verify
 - [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
-- [ ] Final data pass and updated stamp
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
 - [x] Privacy policy page hosted — https://danieldecena.github.io/wa-fish-map/privacy.html
 - [x] Store description, keywords, review notes — pasted in ASC version (see listing-draft checklist)
@@ -16,9 +14,13 @@
 
 - [ ] MapCoordinatorTests recentre test hung 10 min under load
 - [ ] Inland pins all Good in Sept: statewide list is uniform
+- [ ] Source and add data-pass omissions (shrimp, perch, crappie)
 - [ ] Shared simulator relaunches test host mid-run
 
 ## Completed
+
+- [x] Final data pass against WDFW (3 reports in docs/research)
+- [x] Spokane River row refused (logged 2026-09-16)
 
 - [x] Profile launch indexing on iPhone 16 Pro (A7 impossible)
 
