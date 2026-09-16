@@ -28,6 +28,7 @@
 - [ ] Attribution: Apple Weather mark and data credits
 - [ ] UI test: disclaimer and WDFW link on every sheet
 - [ ] Offline states render unavailable, never stale
+- [x] Opening map frames Washington with no WA location fix
 - [ ] Accessibility pass on pins, legend, sheets
 - [ ] Final data pass and updated stamp
 - [ ] [you] App name, subtitle, category, age rating
