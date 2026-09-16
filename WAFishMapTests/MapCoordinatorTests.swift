@@ -52,7 +52,9 @@ struct MapCoordinatorTests {
             cameraDistance: .constant(0),
             cameraCenter: .constant(LonLat(longitude: -122.5, latitude: 47.5)),
             userMovedCamera: .constant(userMovedCamera),
-            focusRegion: .constant(focusRegion)
+            focusRegion: .constant(focusRegion),
+            recenterRequested: .constant(false),
+            locationFix: nil
         )
     }
 
@@ -79,7 +81,9 @@ struct MapCoordinatorTests {
             cameraDistance: .constant(0),
             cameraCenter: .constant(LonLat(longitude: -122.5, latitude: 47.5)),
             userMovedCamera: userMovedCamera,
-            focusRegion: .constant(nil)
+            focusRegion: .constant(nil),
+            recenterRequested: .constant(false),
+            locationFix: nil
         )
     }
 
@@ -320,5 +324,28 @@ struct MapCoordinatorTests {
             coordinator.userGesture(StubGesture(state))
             #expect(!flag.value, "\(state) is not a camera move")
         }
+    }
+
+    // MARK: The recentre button goes to where the user is now
+
+    /// `requestLocation()` answers once, so the launch fix goes stale as soon as
+    /// the user moves. The map's live location has to win whenever it exists.
+    @Test func theRecentreUsesTheLiveMapLocationOverTheLaunchFix() {
+        let launch = CLLocationCoordinate2D(latitude: 47.60, longitude: -122.33)
+        let now = CLLocationCoordinate2D(latitude: 48.75, longitude: -122.48)
+        let center = FishingMapRepresentable.Coordinator.recenterCoordinate(live: now, fix: launch)
+        #expect(center?.latitude == now.latitude && center?.longitude == now.longitude)
+    }
+
+    /// Before the map has placed the blue dot, the launch fix is still better
+    /// than a button that does nothing.
+    @Test func theRecentreFallsBackToTheLaunchFixBeforeTheMapHasALocation() {
+        let launch = CLLocationCoordinate2D(latitude: 47.60, longitude: -122.33)
+        let center = FishingMapRepresentable.Coordinator.recenterCoordinate(live: nil, fix: launch)
+        #expect(center?.latitude == launch.latitude && center?.longitude == launch.longitude)
+    }
+
+    @Test func theRecentreHasNowhereToGoWithNoLocationAtAll() {
+        #expect(FishingMapRepresentable.Coordinator.recenterCoordinate(live: nil, fix: nil) == nil)
     }
 }

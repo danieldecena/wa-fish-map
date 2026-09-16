@@ -41,6 +41,9 @@ struct FishingMapView: View {
     /// ease). MapKit's own delegate reports real pan/pinch touches, so the
     /// three-phase `CameraGuardPhase` machine this replaced is gone.
     @State private var focusRegion: MKCoordinateRegion?
+    /// A one-shot recentre request; the representable resolves the coordinate
+    /// because only it can read the map's live user location.
+    @State private var recenterRequested = false
     /// Washington's bounding box. A fix outside it belongs to someone travelling,
     /// and centring there would show an empty map — the data is statewide only.
     private static let stateBounds = (
@@ -102,11 +105,15 @@ struct FishingMapView: View {
             cameraDistance: $cameraDistance,
             cameraCenter: $cameraCenter,
             userMovedCamera: $userMovedCamera,
-            focusRegion: $focusRegion
+            focusRegion: $focusRegion,
+            recenterRequested: $recenterRequested,
+            locationFix: location.fix
         )
         .ignoresSafeArea()
-        // `MKMapView` has no built-in recentre control, so `MapUserLocationButton`
-        // is rebuilt by hand. The compass is native (`showsCompass`).
+        // Custom rather than `showsUserTrackingButton` (iOS 17+): that control
+        // cycles follow/heading tracking modes, and this one is a single tap to a
+        // fixed zoom that also marks the camera as user-claimed. The compass is
+        // native (`showsCompass`).
         .overlay(alignment: .topTrailing) { recenterButton }
         .safeAreaInset(edge: .top) { dateControl }
         .safeAreaInset(edge: .bottom) { statusBar }
@@ -274,12 +281,7 @@ struct FishingMapView: View {
 
     private var recenterButton: some View {
         Button {
-            guard let fix = location.fix else { return }
-            userMovedCamera = true
-            focusRegion = MKCoordinateRegion(
-                center: fix,
-                span: MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)
-            )
+            recenterRequested = true
         } label: {
             Image(systemName: "location.fill")
                 .font(.system(size: 15, weight: .medium))
