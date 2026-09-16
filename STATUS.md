@@ -106,23 +106,21 @@
 
 ## Known broken
 
-- PR #4's two CI checks are red for a reason that is not the code. Both jobs on
-  run `33712289921` carry the annotation *"The job was not started because
-  recent account payments have failed or your spending limit needs to be
-  increased."* The same branch passed three times at 02:45, 02:48 and 02:55 on
-  2026-09-03; the block landed at 03:41. Do not re-debug the test suite over
-  this - it is the Billing and plans section of the GitHub account.
-
 ## Next Up
 
 - **Phase 1 of the App Store plan:** the waterbody river tier and the USGS flow-stat
   check are done; next is the Oregon polygon.
-- Phase 0 runs in parallel and is waiting on you: GitHub billing, then merge PR #4.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-16 (GitHub Actions billing dropped)
+
+- Decided: removed the GitHub Actions billing item from TASKS, Known broken and
+  Next Up at Daniel's request. PR #4 already merged (13c45d4); CI stays unrun
+  until billing is revisited.
 
 ### 2026-09-16 (strict-concurrency warnings cleared)
 - Decided: clear them with isolation annotations, not code changes. The

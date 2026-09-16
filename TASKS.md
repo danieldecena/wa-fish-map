@@ -14,7 +14,6 @@
 - [ ] Profile launch indexing in Instruments (A7)
 - [ ] [you] TestFlight: add both to the Internal group once they activate
 - [ ] [you] Re-invite Pauline at her Apple Account address
-- [ ] [you] GitHub Actions billing blocks PR #4 CI
 - [x] Merge PR 4 (CI billing-blocked; verified locally) — 13c45d4
 - [x] River nearest-match within 150 m — b68d7b6
 - [x] Waterbody resolver: curated list then river
