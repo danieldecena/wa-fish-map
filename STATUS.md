@@ -114,6 +114,21 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-16 (launch indexing profiled on device)
+
+- Decided: launch indexing needs no further work. No A7 device can run an iOS 18
+  app (the floor is A12), so it was profiled on the paired iPhone 16 Pro (A18
+  Pro, iOS 27.0) instead: Release build, `xctrace` Time Profiler over a 25 s
+  launch, symbolicated with the build's dSYM, inlined frames resolved per
+  address with `atos -i`. Main-thread CPU: `indexWaterbodies` 31 ms (28 ms of
+  it `Lake.match`), `indexSitesToAreas` 8 ms, `indexPiersToAreas` 1 ms, about
+  40 ms in all. (The simulator timings above are not a baseline for this:
+  `indexSitesToAreas` was timed there before its fix and not after.) Bigger launch costs are decoding:
+  GeoJSON collections 82 ms, protected areas 56 ms, USGS flows 54 ms, rivers
+  43 ms. Control: `loadRiverStats`, which xctrace named itself, read 33 ms both
+  ways. Not measured: an A12 phone, the oldest that can run the app,
+  which will be slower by an unknown factor.
+
 ### 2026-09-16 (Silver Lake is not North Silver Lake)
 
 - Decided: direction words (upper/lower/north/south/east/west) are still
