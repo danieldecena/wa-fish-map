@@ -9,13 +9,13 @@
 - [x] Strict concurrency warnings on (28 found) — d5fc9e2
 - [x] Cache ring groups; Pacific calendar + species in all sheets — 22fe6c1
 - [ ] Fix the 28 strict-concurrency warnings (1 in USGSFlowLoader)
-- [ ] [you] Cursor: install swiftlang.swift-vscode, disable CodeLLDB
-- [ ] Generate buildServer.json for Cursor (xcode-build-server)
+- [x] Cursor: install swiftlang.swift-vscode (CodeLLDB still enabled)
+- [x] Generate buildServer.json for Cursor (xcode-build-server)
 - [ ] Profile launch indexing in Instruments (A7)
 - [ ] [you] TestFlight: add both to the Internal group once they activate
 - [ ] [you] Re-invite Pauline at her Apple Account address
 - [ ] [you] GitHub Actions billing blocks PR #4 CI
-- [ ] [you] Merge PR 4 once CI runs green
+- [x] Merge PR 4 (CI billing-blocked; verified locally) — 13c45d4
 - [x] River nearest-match within 150 m — b68d7b6
 - [x] Waterbody resolver: curated list then river
 - [ ] Model index for site and pier waterbodies
@@ -46,7 +46,7 @@
 - [x] run_sim: verified end-to-end run with screenshot — 34217d4
 - [x] Restore PR 4 build on phone after review-branch trial
 - [x] Merge PR 5 run_sim script — merged 2026-09-16
-- [ ] Review PR 4 MKMapView migration branch
+- [x] Review PR 4 MKMapView migration branch
 
 ## Completed
 
