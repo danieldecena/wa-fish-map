@@ -31,6 +31,9 @@ struct LakeTests {
         ("Lyle Lake", "Herman Lake"),
         ("Corral Lake", "Potholes Reservoir"),
         ("North Lake", "South Lake"),
+        ("Silver Lake", "North Silver Lake"),
+        ("Caliche Lakes", "Upper Caliche Lake"),
+        ("Elton Pond", "Elton Pond North"),
     ])
     func namesThatDisagree(facility: String, lake: String) {
         #expect(!Lake.namesAgree(facility: facility, lake: lake))
@@ -93,13 +96,17 @@ struct LakeTests {
 
     /// Real WDFW launch coordinates (layer 0, 2026-09-16) against the shipped
     /// lakes. Three launches within 2 km of each other in Federal Way, and the
-    /// two probe mismatches from eastern Washington.
+    /// two probe mismatches from eastern Washington, and the Spokane County
+    /// Silver Lake launch the direction-word rule stopped matching North Silver.
     @Test(arguments: [
         ("Lake Dolloff", -122.284561, 47.323529, "Lake Dolloff" as String?),
         ("Steel Lake", -122.300005, 47.325877, "Steele Lake"),
         ("North Lake", -122.289173, 47.308077, "North Lake"),
         ("Lyle Lake", -119.203165, 46.895406, nil),
         ("Corral Lake", -119.311142, 46.969255, nil),
+        // On Silver Lake (67 m from its NHD shore), 792 m from North Silver
+        // Lake's WDFW point and outside Silver Lake's own reach.
+        ("Silver Lake", -117.656981, 47.571883, nil),
     ])
     func realLaunchesMatchTheirOwnLake(facility: String, lon: Double, lat: Double, expected: String?) throws {
         let lakes = try Self.bundled()

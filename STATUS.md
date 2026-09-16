@@ -108,12 +108,23 @@
 
 ## Next Up
 
-- Silver Lake -> North Silver Lake lake-facts match is unverified against WDFW.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-16 (Silver Lake is not North Silver Lake)
+
+- Decided: direction words (upper/lower/north/south/east/west) are still
+  ignored when looking for a shared lake name, but must agree between launch
+  and lake. The Spokane County "Silver Lake" launch sits 67 m from Silver
+  Lake's NHD shore and 144 m from North Silver Lake's (a separate 71-acre
+  lake, whose WDFW point is inside that polygon), yet matched North Silver
+  because Silver Lake's own point is outside reach. Against all live launches
+  the rule changes 3 of 206 matches, each to no lake facts: Silver Lake,
+  Caliche Lakes (was Upper Caliche) and Elton Pond (was Elton Pond North).
+  None is shown rather than a guess.
 
 ### 2026-09-16 (same-name rivers split; guidance tests merged in)
 

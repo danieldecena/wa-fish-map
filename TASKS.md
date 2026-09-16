@@ -1,8 +1,6 @@
 ## Tasks
 
 - [ ] Profile launch indexing in Instruments (A7)
-- [ ] [you] TestFlight: add both to the Internal group once they activate
-- [ ] [you] Re-invite Pauline at her Apple Account address
 - [ ] Spokane River row gated on WDFW, docs, verify
 - [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
 - [ ] Final data pass and updated stamp
