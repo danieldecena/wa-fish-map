@@ -12,7 +12,7 @@
 - [ ] UI test: disclaimer and WDFW link on every sheet
 - [x] Weather: plan past last forecast hour shows last hour
 - [x] Empty MPA layer reads as "clear" at every site
-- [ ] iPad buoy section keeps previous site's reading
+- [x] iPad buoy section keeps previous site's reading
 - [x] USGS fetch failure blamed on "gauge not reporting"
 - [x] Empty live WDFW layer shows "0 access sites"
 - [x] Pier fetch failure is invisible (try? swallowed)
