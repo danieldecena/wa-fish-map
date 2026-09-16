@@ -3,13 +3,13 @@
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
 - [x] Privacy policy page hosted — https://danieldecena.github.io/wa-fish-map/privacy.html
 - [x] Store description, keywords, review notes — pasted in ASC version (see listing-draft checklist)
-- [ ] [you] App Store screenshots in ASC (0 of 10) — PNGs in docs/app-store/screenshots/; resume when app ready
+- [x] [you] App Store screenshots in ASC — 6 on the 6.5" slot
 - [x] [you] App Privacy questionnaire — Precise Location / App Functionality / not linked / not tracking
 - [x] Archive and upload release build — ASC build 2 (1.0)
 - [x] [you] ASC App Privacy: set Location to Data Not Collected
-- [ ] [you] Upload a build with PR #41's manifest before submitting
-- [ ] [you] Submit for App Store review — paused until app done
-- [ ] [you] Release to the App Store
+- [x] Upload build 6: PR #41 manifest, iPhone-only (#43)
+- [x] [you] Submit 1.0 (6) for App Store review — Waiting for Review
+- [ ] [you] Release to the App Store after approval (manual release)
 
 
 ## Completed
