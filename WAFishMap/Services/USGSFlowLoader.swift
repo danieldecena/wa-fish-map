@@ -79,7 +79,9 @@ enum USGSFlowLoader {
 private extension ISO8601DateFormatter {
     /// USGS stamps its samples with a numeric offset and fractional seconds
     /// ("2026-09-03T20:30:00.000-07:00"), which the default configuration rejects.
-    static let usgs: ISO8601DateFormatter = {
+    /// `nonisolated(unsafe)`: configured once here and only read after, and
+    /// ISO8601DateFormatter is documented as thread-safe.
+    nonisolated(unsafe) static let usgs: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter

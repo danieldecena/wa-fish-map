@@ -8,20 +8,19 @@
 - [x] Tide table reloads on site change — 0386a21
 - [x] Strict concurrency warnings on (28 found) — d5fc9e2
 - [x] Cache ring groups; Pacific calendar + species in all sheets — 22fe6c1
-- [ ] Fix the 28 strict-concurrency warnings (1 in USGSFlowLoader)
+- [x] Fix the 28 strict-concurrency warnings (1 in USGSFlowLoader)
 - [x] Cursor: install swiftlang.swift-vscode + remove CodeLLDB
 - [x] Generate buildServer.json for Cursor (xcode-build-server)
 - [ ] Profile launch indexing in Instruments (A7)
 - [ ] [you] TestFlight: add both to the Internal group once they activate
 - [ ] [you] Re-invite Pauline at her Apple Account address
-- [ ] [you] GitHub Actions billing blocks PR #4 CI
 - [x] Merge PR 4 (CI billing-blocked; verified locally) — 13c45d4
 - [x] River nearest-match within 150 m — b68d7b6
 - [x] Waterbody resolver: curated list then river
-- [ ] Model index for site and pier waterbodies
+- [x] Model index for site and pier waterbodies
 - [x] Reachability gate accepts river names
 - [ ] Spokane River row gated on WDFW, docs, verify
-- [ ] Stamp the remaining 6 flow-stat gates
+- [x] Verify flow stats against USGS source
 - [ ] Seed or hide the Oregon marine polygon
 - [ ] Add PrivacyInfo privacy manifest
 - [ ] Audit location permission strings

@@ -13,6 +13,7 @@ import XCTest
 /// A first draft did, and was wrong in both directions, because it reimplemented
 /// `inSeason(month:)` in the test and disagreed with the app. A test that
 /// restates the rule it is checking cannot catch the rule being wrong.
+@MainActor
 final class VerifyBadgeUITests: XCTestCase {
     private func launch(month: String) -> XCUIApplication {
         let app = XCUIApplication()
