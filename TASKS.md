@@ -23,6 +23,9 @@
 - [ ] Spokane River row gated on WDFW, docs, verify
 - [ ] Stamp the remaining 6 flow-stat gates
 - [ ] Seed or hide the Oregon marine polygon
+- [ ] Add WDFW fish-plant stocking data (data.wa.gov 6fex-3r7d)
+- [ ] Add WDFW lowland lakes layer (AllLakes MapServer/2)
+- [ ] Add DOH shellfish biotoxin closure overlay
 - [ ] Add PrivacyInfo privacy manifest
 - [ ] Audit location permission strings
 - [ ] Attribution: Apple Weather mark and data credits
