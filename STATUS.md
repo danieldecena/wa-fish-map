@@ -108,8 +108,6 @@
 
 ## Next Up
 
-- **PR #22** (same-name rivers split, buoy reload, guidance on every sheet,
-  indexing speedup) is open and needs review and merge.
 - Silver Lake -> North Silver Lake lake-facts match is unverified against WDFW.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
