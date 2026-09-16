@@ -84,14 +84,21 @@ final class SiteClusterView: MKMarkerAnnotationView {
         didSet { apply(annotation) }
     }
 
+    /// Applied here, not in `apply`: MapKit resets the view's transform between
+    /// setting the annotation and drawing it, so a scale set earlier never showed.
+    override func prepareForDisplay() {
+        super.prepareForDisplay()
+        let count = (annotation as? MKClusterAnnotation)?.memberAnnotations.count ?? 1
+        let scale = Self.scale(forCount: count)
+        transform = CGAffineTransform(scaleX: scale, y: scale)
+    }
+
     private func apply(_ annotation: MKAnnotation?) {
         guard let cluster = annotation as? MKClusterAnnotation else { return }
         let members = cluster.memberAnnotations.compactMap { $0 as? SiteAnnotation }
         SiteMarkerView.paint(self, tint: UIColor(Self.bestRating(of: members)?.color ?? .gray),
                              outlined: Self.closurePlausible(of: members))
         glyphText = "\(cluster.memberAnnotations.count)"
-        let scale = Self.scale(forCount: cluster.memberAnnotations.count)
-        transform = CGAffineTransform(scaleX: scale, y: scale)
         isAccessibilityElement = true
         accessibilityLabel = "\(cluster.memberAnnotations.count) fishing spots"
         accessibilityValue = Self.spokenSummary(of: members)

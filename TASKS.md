@@ -14,6 +14,7 @@
 - [x] Opening map frames Washington with no WA location fix — d2a106a
 - [x] VoiceOver labels: pins, clusters, legends, rating badge
 - [ ] Observe pin VoiceOver labels on device (XCUITest pinch fails)
+- [ ] No location fix: map stays on North America, never frames WA
 - [ ] Final data pass and updated stamp
 - [ ] [you] App name, subtitle, category, age rating
 - [ ] Privacy policy page (host is your call)
