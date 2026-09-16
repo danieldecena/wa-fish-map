@@ -12,6 +12,19 @@ struct FishingMapModelTests {
         #expect(model.statusMessage == "Washington · offline sample")
     }
 
+    /// Guards the model layer's half of the odd-year fix: `loadFromBundle` alone
+    /// must not resolve Pink Salmon's parity (that would mean the Services layer
+    /// read the clock) — only `setPlanYear`, called explicitly here, does.
+    @Test @MainActor func loadFromBundleGuideRatesPinkSalmonByExplicitPlanYear() async throws {
+        let model = FishingMapModel()
+        let bundle = try #require(FixtureBundle.loader)
+        try model.loadFromBundle(bundle: bundle)
+        model.setPlanYear(2026)
+        #expect(model.guide?.area(named: "7")?.rating(inMonth: 8, species: "Pink Salmon") == .poor)
+        model.setPlanYear(2025)
+        #expect(model.guide?.area(named: "7")?.rating(inMonth: 8, species: "Pink Salmon") == .excellent)
+    }
+
     @Test @MainActor func launchesAreMappedToTheirMarineAreaByPolygon() async throws {
         let model = FishingMapModel()
         let bundle = try #require(FixtureBundle.loader)

@@ -321,15 +321,19 @@ final class FishingMapModel {
         return ratings
     }
 
+    /// Loads the base guide only — season-risk resolved, but not yet stamped for
+    /// a plan year. This layer never reads the clock (`~/developer/wa-fish-map`
+    /// `CLAUDE.md`: "the view injects Calendar month, the logic never reads the
+    /// clock"); `guide` stays year-unresolved until the view calls `setPlanYear`,
+    /// which it always does synchronously right after `load`/`loadFromBundle`
+    /// returns, before SwiftUI gets a chance to render the unresolved guide.
     private func loadGuide(bundle: Bundle) {
         guard baseGuide == nil,
               let url = bundle.url(forResource: "fisheries", withExtension: "json"),
               let data = try? Data(contentsOf: url),
               let loaded = try? FisheryLoader.guide(from: data) else { return }
         baseGuide = loaded
-        let year = planYear ?? PlanClock.year(for: Date())
-        planYear = year
-        guide = loaded.resolvingYear(year)
+        guide = loaded
     }
 
     /// Re-stamp `guide` for a new plan year. A no-op when the year hasn't
