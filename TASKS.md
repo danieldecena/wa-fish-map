@@ -7,7 +7,7 @@
 - [x] River nearest-match within 150 m — b68d7b6
 - [x] Waterbody resolver: curated list then river
 - [ ] Model index for site and pier waterbodies
-- [ ] Reachability gate accepts river names
+- [x] Reachability gate accepts river names
 - [ ] Spokane River row gated on WDFW, docs, verify
 - [ ] Stamp the remaining 6 flow-stat gates
 - [ ] Seed or hide the Oregon marine polygon

@@ -52,16 +52,32 @@ struct NoteScopeTests {
     /// Baker Lake is true everywhere it renders. The exemption is sound only
     /// because the tier is keyed by a curated facility list rather than by
     /// prose-matching a name — that guess is the failure this suite exists for.
+    /// A key is either a curated facility list or an exact river name from
+    /// rivers.json, never a substring match.
     ///
     /// What is asserted instead: every waterbody row must name a waterbody the
     /// guide can actually resolve a site to, or the note is unreachable and the
     /// tier quietly does nothing.
-    @Test func everyWaterbodyRowHasAtLeastOneSiteThatCanReachIt() throws {
+    @Test func everyWaterbodyRowIsReachable() throws {
         let freshwater = try #require(bundledGuide().freshwater)
-        let keyed = Set(freshwater.waterbodySites?.keys ?? [:].keys)
-        let orphans = (freshwater.byWaterbody ?? [:]).keys.filter { !keyed.contains($0) }
-        #expect(orphans.isEmpty,
-                "waterbody notes no site maps to: \(orphans.sorted().joined(separator: ", "))")
+        let bundle = try #require(FixtureBundle.loader)
+        let url = try #require(bundle.url(forResource: "rivers", withExtension: "json"))
+        let names = Set(try RiverLoader.rivers(from: Data(contentsOf: url)).map(\.name))
+        #expect(names.count > 200, "rivers.json did not load; the gate would pass vacuously")
+        let orphans = Self.unreachableWaterbodyKeys(in: freshwater, riverNames: names)
+        #expect(orphans.isEmpty, "waterbody notes no site can reach: \(orphans.joined(separator: ", "))")
+    }
+
+    static func unreachableWaterbodyKeys(in freshwater: FreshwaterGuide, riverNames: Set<String>) -> [String] {
+        let keyed = Set(freshwater.waterbodySites?.keys ?? [:].keys).union(riverNames)
+        return (freshwater.byWaterbody ?? [:]).keys.filter { !keyed.contains($0) }.sorted()
+    }
+
+    /// Proves the gate fires: a misspelled river is unreachable, a real one is not.
+    @Test func theReachabilityGateCatchesAMisspelledRiver() {
+        let row = SpeciesSeason(species: "Redband Trout", bestMonths: [8])
+        let guide = FreshwaterGuide(species: [], byWaterbody: ["Spokane River": [row], "Spokan River": [row]])
+        #expect(Self.unreachableWaterbodyKeys(in: guide, riverNames: ["Spokane River"]) == ["Spokan River"])
     }
 
     /// The season cap must reach the new tier. A tier the resolver skips lets a
