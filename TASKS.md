@@ -30,9 +30,9 @@
 - [ ] Offline states render unavailable, never stale
 - [ ] Accessibility pass on pins, legend, sheets
 - [x] Rating colors onto DS.Rating tokens -- 7b0e660
-- [ ] Detail sheets onto DS.Surface and DS.TypeScale
+- [x] Detail sheets onto DS.Surface and DS.TypeScale -- e802628
 - [ ] Map chrome onto DS tokens after odd-year merge
-- [ ] Fix top plan bar overflowing on iPhone
+- [x] Fix top plan bar overflowing on iPhone -- e802628
 - [ ] Final data pass and updated stamp
 - [ ] [you] App name, subtitle, category, age rating
 - [ ] Privacy policy page (host is your call)
