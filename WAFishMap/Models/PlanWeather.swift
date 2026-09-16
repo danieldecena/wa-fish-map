@@ -33,13 +33,32 @@ protocol ForecastHour {
 }
 
 enum PlanWeatherSelection {
-    /// The forecast hour covering `date` — the latest hour at or before it, so a
-    /// 6:45 PM plan reads the 6 PM hour rather than the 7 PM one.
+    static let hourLength: TimeInterval = 3600
+
+    /// The forecast hour covering `date`: the hour that starts at or before it and
+    /// has not ended, so a 6:45 PM plan reads the 6 PM hour rather than the 7 PM one.
     ///
-    /// Returns nil when every hour is later than the plan: a forecast that does
-    /// not reach the requested time must say nothing rather than substitute its
-    /// closest guess, which would silently answer a different question.
+    /// Returns nil when no hour covers the plan, on either side. A forecast that
+    /// does not reach the requested time must say nothing rather than substitute
+    /// its closest guess, which would silently answer a different question. The
+    /// "has not ended" half is what stops a plan days past the forecast from
+    /// reading the forecast's last hour.
     static func hour<H: ForecastHour>(covering date: Date, in hours: [H]) -> H? {
-        hours.filter { $0.date <= date }.max { $0.date < $1.date }
+        hours.filter { $0.date <= date && date < $0.date.addingTimeInterval(hourLength) }
+            .max { $0.date < $1.date }
+    }
+}
+
+/// A forecast held for reuse, with the moment it was fetched. A forecast for a
+/// fixed future hour is revised as that hour approaches, so a copy kept for the
+/// life of the process would keep showing an answer WeatherKit has since changed.
+struct CachedPlanWeather: Sendable {
+    static let maxAge: TimeInterval = 3600
+
+    let weather: PlanWeather
+    let fetchedAt: Date
+
+    func isFresh(at now: Date) -> Bool {
+        now.timeIntervalSince(fetchedAt) < Self.maxAge
     }
 }
