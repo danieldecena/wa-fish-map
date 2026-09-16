@@ -11,9 +11,10 @@ import Foundation
 ///
 /// `-uiTesting` loads the bundled fixture instead of the network and preselects
 /// the first site, so the detail sheet is up without synthesising a tap.
-/// `-planMonth n` pins the month the ratings are computed for.
+/// `-planMonth n` pins the month the ratings are computed for, and `-planYear n`
+/// the year (odd-year species rate by it).
 ///
-/// Deliberately not a general test harness: two arguments, read in two places.
+/// Deliberately not a general test harness: three arguments, read in few places.
 enum UITestSeam {
     static var isActive: Bool {
         ProcessInfo.processInfo.arguments.contains("-uiTesting")
@@ -30,6 +31,17 @@ enum UITestSeam {
               (1...12).contains(month)
         else { return nil }
         return month
+    }
+
+    /// Year from `-planYear n`, or `nil` when unset or not a number, so a test
+    /// that pins `-planMonth` can pin the year an odd-year species rates by.
+    static var planYear: Int? {
+        planYear(from: ProcessInfo.processInfo.arguments)
+    }
+
+    static func planYear(from args: [String]) -> Int? {
+        guard let flag = args.firstIndex(of: "-planYear") else { return nil }
+        return Int(args[safe: flag + 1] ?? "")
     }
 }
 

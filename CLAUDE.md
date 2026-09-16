@@ -15,7 +15,8 @@ the view.
 
 Launches carry no marine-area code, so each is matched to its area by point-in-polygon
 (`MarineArea.contains(_:)`, indexed in `FishingMapModel.indexSitesToAreas`). Inland/lake
-launches match no area → **neutral (gray) rating**, by design.
+launches match no area and are rated from `freshwater` instead: the county override
+(`byCounty`) plus the statewide species it inherits.
 
 ## Seasonal guidance
 
@@ -134,5 +135,5 @@ cannot warn you off the thing you are about to do:
   done. Signed profiles, lockfiles and build outputs are testimony about remote
   state — read them before writing an action item that lives in a browser.
 
-The simulator here is named `iPhone`; use `-destination
-'platform=iOS Simulator,name=iPhone'` and never a cached UUID.
+The simulator here is named `iPhone 17 Pro`; use `-destination
+'platform=iOS Simulator,name=iPhone 17 Pro'` and never a cached UUID.

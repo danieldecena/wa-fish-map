@@ -18,6 +18,6 @@ enum PlanClock {
     /// as `month`/`day` — a device outside the Pacific zone must not roll the
     /// year over at the wrong instant.
     static func year(for planDate: Date) -> Int {
-        Calendar.pacific.component(.year, from: planDate)
+        UITestSeam.planYear ?? Calendar.pacific.component(.year, from: planDate)
     }
 }
