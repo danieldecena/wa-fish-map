@@ -80,6 +80,31 @@ final class SiteClusterView: MKMarkerAnnotationView {
         didSet { apply(annotation) }
     }
 
+    /// A cluster draws a fixed step larger than a single pin, so "13" does not
+    /// read as one spot. `MKMarkerAnnotationView` has no size property, so the
+    /// view is scaled, lifted by the growth so the balloon's tip stays on the
+    /// coordinate instead of sinking below it.
+    static let scale: CGFloat = 1.2
+
+    // Applied at both points: `layoutSubviews` alone left reused cluster views
+    // at single-pin size on screen, since a dequeued view is not always laid
+    // out again before MapKit shows it.
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        applyScale()
+    }
+
+    override func prepareForDisplay() {
+        super.prepareForDisplay()
+        applyScale()
+    }
+
+    private func applyScale() {
+        let lift = bounds.height * (Self.scale - 1) / 2
+        let target = CGAffineTransform(translationX: 0, y: -lift).scaledBy(x: Self.scale, y: Self.scale)
+        if transform != target { transform = target }
+    }
+
     private func apply(_ annotation: MKAnnotation?) {
         guard let cluster = annotation as? MKClusterAnnotation else { return }
         let members = cluster.memberAnnotations.compactMap { $0 as? SiteAnnotation }
