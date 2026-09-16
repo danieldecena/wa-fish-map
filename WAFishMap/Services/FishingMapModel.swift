@@ -231,10 +231,10 @@ final class FishingMapModel {
 
     /// Match every launch to its marine area: containing polygon first, else the
     /// shore snap (`MarineArea.matching`).
-    private func indexSitesToAreas() {
+    func indexSitesToAreas() {
         var map: [AccessSite.ID: String] = [:]
         for site in accessSites {
-            if let area = MarineArea.matching(site.coordinate, in: marineAreas) {
+            if let area = marineArea(at: site.coordinate, facility: site.facilityName) {
                 map[site.id] = area.areaName
             }
         }
@@ -268,11 +268,24 @@ final class FishingMapModel {
     private func indexPiersToAreas() {
         var map: [FishingPier.ID: String] = [:]
         for pier in piers {
-            if let area = MarineArea.matching(pier.coordinate, in: marineAreas) {
+            if let area = marineArea(at: pier.coordinate, facility: pier.name) {
                 map[pier.id] = area.areaName
             }
         }
         pierAreaName = map
+    }
+
+    /// Containment always wins; the shore snap does not. A river-mouth or slough
+    /// ramp just outside a polygon (Palix River 10 m, Hat Slough 39 m) keeps its
+    /// river or lake rows rather than being snapped into the marine area.
+    private func marineArea(at point: LonLat, facility: String) -> MarineArea? {
+        if let inside = marineAreas.first(where: { $0.contains(point) }) { return inside }
+        let freshwater = guide?.freshwater
+        if let waterbody = freshwater?.waterbody(forFacility: facility, at: point, rivers: rivers),
+           freshwater?.byWaterbody?[waterbody]?.isEmpty == false {
+            return nil
+        }
+        return MarineArea.matching(point, in: marineAreas)
     }
 
     /// Must run after the guide, rivers and marine-area indexes are in place.

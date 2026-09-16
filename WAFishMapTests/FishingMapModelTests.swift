@@ -79,6 +79,35 @@ struct FishingMapModelTests {
         #expect(model.fishery(for: onRiver)?.species.first?.note == "river row")
     }
 
+    @Test @MainActor func theShoreSnapLeavesARiverMouthRampOnItsRiver() throws {
+        let model = FishingMapModel()
+        // A marine area whose east edge is at -122.50, and a river ending at it.
+        model.marineAreas = [MarineArea(areaName: "13", areaTitle: "13", wac: "", coordinates: [
+            LonLat(longitude: -122.6, latitude: 47.3), LonLat(longitude: -122.5, latitude: 47.3),
+            LonLat(longitude: -122.5, latitude: 47.4), LonLat(longitude: -122.6, latitude: 47.4),
+        ])]
+        model.rivers = [River(name: "Mouth River", streamOrder: 4, lengthKm: 5,
+                              lines: [[LonLat(longitude: -122.50, latitude: 47.35),
+                                       LonLat(longitude: -122.45, latitude: 47.35)]])]
+        let row = SpeciesSeason(species: "Cutthroat Trout", bestMonths: [9], note: "river row")
+        model.guide = FisheryGuide(updated: "t", disclaimer: "d", wdfwURL: "https://wdfw.wa.gov",
+                                   areas: [], freshwater: FreshwaterGuide(species: [], byWaterbody: ["Mouth River": [row]]),
+                                   seasonRisk: [])
+        // Both 30 m east of the polygon; only the first sits on the river.
+        let riverMouth = AccessSite(facilityName: "Mouth Ramp", countyName: "Mason", hasLaunch: true,
+                                    launchSurface: .gravel, hasRestrooms: false, directions: "",
+                                    coordinate: LonLat(longitude: -122.4996, latitude: 47.35))
+        let saltShore = AccessSite(facilityName: "Salt Ramp", countyName: "Mason", hasLaunch: true,
+                                   launchSurface: .gravel, hasRestrooms: false, directions: "",
+                                   coordinate: LonLat(longitude: -122.4996, latitude: 47.31))
+        model.accessSites = [riverMouth, saltShore]
+        model.indexSitesToAreas()
+        model.indexWaterbodies()
+        #expect(model.areaName(for: riverMouth) == nil)
+        #expect(model.fishery(for: riverMouth)?.species.first?.note == "river row")
+        #expect(model.areaName(for: saltShore) == "13")
+    }
+
     struct StubClient: HTTPGet {
         var marineData: Data
         var siteData: Data
