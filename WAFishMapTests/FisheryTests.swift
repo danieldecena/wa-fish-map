@@ -78,6 +78,60 @@ struct FisheryTests {
         #expect(guide.fishery(county: "Unlisted").species.map(\.species) == ["Rainbow Trout"])
     }
 
+    // MARK: Lake species filter
+
+    let lakeGuide = FreshwaterGuide(
+        species: [
+            SpeciesSeason(species: "Rainbow Trout", bestMonths: [4, 5], goodMonths: [9]),
+            SpeciesSeason(species: "Largemouth Bass", bestMonths: [6], goodMonths: [9]),
+            SpeciesSeason(species: "Cutthroat Trout", bestMonths: [9]),
+        ],
+        byCounty: ["Pierce": [SpeciesSeason(species: "Rock Bass", bestMonths: [7])]],
+        byWaterbody: ["Walleye Lake": [SpeciesSeason(species: "Walleye", bestMonths: [9], note: "curated")]]
+    )
+
+    @Test func aTroutOnlyLakeDropsBass() throws {
+        let f = try #require(lakeGuide.fishery(county: "King", waterbody: nil,
+                                               lakeSpecies: ["Rainbow Trout", "Coastal Cutthroat"]))
+        #expect(f.species.map(\.species) == ["Rainbow Trout", "Cutthroat Trout"])
+    }
+
+    @Test func aLakeListingBassKeepsItAndDropsWhatItDoesNotList() throws {
+        let f = try #require(lakeGuide.fishery(county: "King", waterbody: nil,
+                                               lakeSpecies: ["Largemouth Bass", "Yellow Perch"]))
+        #expect(f.species.map(\.species) == ["Largemouth Bass"])
+    }
+
+    /// WDFW's lake layer has no rock bass column, so its silence says nothing.
+    @Test func aSpeciesWithNoWDFWMappingIsKept() throws {
+        let f = try #require(lakeGuide.fishery(county: "Pierce", waterbody: nil,
+                                               lakeSpecies: ["Rainbow Trout"]))
+        #expect(f.species.map(\.species) == ["Rock Bass", "Rainbow Trout"])
+    }
+
+    @Test func noLakeMatchOrAnEmptyListChangesNothing() {
+        let unfiltered = lakeGuide.fishery(county: "King", waterbody: nil).species.map(\.species)
+        #expect(lakeGuide.fishery(county: "King", waterbody: nil, lakeSpecies: nil)?.species.map(\.species) == unfiltered)
+        #expect(lakeGuide.fishery(county: "King", waterbody: nil, lakeSpecies: [])?.species.map(\.species) == unfiltered)
+        #expect(unfiltered.count == 3)
+    }
+
+    /// Walleye is absent from this lake's WDFW list, and kept anyway: a waterbody
+    /// row is curated for that water, which outranks the 2014 layer.
+    @Test func waterbodyRowsAreNeverFiltered() throws {
+        let f = try #require(lakeGuide.fishery(county: "King", waterbody: "Walleye Lake",
+                                               lakeSpecies: ["Rainbow Trout"]))
+        #expect(f.species.map(\.species) == ["Walleye", "Rainbow Trout"])
+        #expect(f.species[0].note == "curated")
+    }
+
+    /// Nil, not an empty fishery: an empty one rates `.poor`, which would paint a
+    /// blue pin for a lake the guide simply says nothing about.
+    @Test func aLakeSupportingNoGuideSpeciesHasNoFishery() {
+        #expect(lakeGuide.fishery(county: "King", waterbody: nil, lakeSpecies: ["Brown Bullhead"]) == nil)
+        #expect(AreaFishery(areaName: "freshwater", species: []).rating(inMonth: 9) == .poor)
+    }
+
     @Test func bundledGuideDecodesAndHasArea13() throws {
         let bundle = try #require(FixtureBundle.loader)
         let url = try #require(bundle.url(forResource: "fisheries", withExtension: "json"))

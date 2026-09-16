@@ -15,7 +15,7 @@
 - [ ] [you] Release to the App Store
 
 - [x] MapCoordinatorTests recentre test hung 10 min under load
-- [ ] Inland pins all Good in Sept: statewide list is uniform
+- [x] Inland pins all Good in Sept: statewide list is uniform
 - [x] Grant walleye: per-reservoir rows, drop county row
 - [x] Baker Lake sockeye row reaches no WDFW launch
 - [ ] Shared simulator relaunches test host mid-run
