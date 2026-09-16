@@ -149,6 +149,9 @@ struct GuidanceFooter: View {
             if let disclaimer = guide?.disclaimer {
                 Text(disclaimer).font(.caption).foregroundStyle(.secondary)
             }
+            Text("Not for navigation or safety decisions.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
             if let updated = guide?.updated {
                 Text("Guidance updated \(updated)").font(.caption2).foregroundStyle(.tertiary)
             }
