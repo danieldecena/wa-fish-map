@@ -114,6 +114,14 @@ struct PinSpokenSummaryTests {
         #expect(SiteAnnotation(pier: pier("Lake Pier")).spokenSummary == "Fishing pier, no seasonal guidance")
     }
 
+    @Test func aClusterGrowsWithItsCountButStaysModest() {
+        #expect(SiteClusterView.scale(forCount: 1) == 1)
+        #expect(SiteClusterView.scale(forCount: 3) > 1)
+        #expect(SiteClusterView.scale(forCount: 7) > SiteClusterView.scale(forCount: 3))
+        #expect(SiteClusterView.scale(forCount: 40) == SiteClusterView.scale(forCount: 12))
+        #expect(SiteClusterView.scale(forCount: 40) <= 1.3)
+    }
+
     @Test func aClusterReadsItsBestRating() {
         let members = [SiteAnnotation(pier: pier("A"), rating: .fair), SiteAnnotation(pier: pier("B"), rating: .good)]
         #expect(SiteClusterView.spokenSummary(of: members) == "best rated Good")
