@@ -51,7 +51,7 @@ struct FishingMapRepresentable: UIViewRepresentable {
     @Binding var selectedID: String?
     /// The tapped river, by name. Overlays are not selectable the way
     /// annotations are, so this is driven by an explicit hit test.
-    @Binding var selectedRiverName: String?
+    @Binding var selectedRiverID: River.ID?
     @Binding var cameraDistance: Double
     @Binding var cameraCenter: LonLat
     @Binding var userMovedCamera: Bool
@@ -59,12 +59,30 @@ struct FishingMapRepresentable: UIViewRepresentable {
     /// The coordinator applies it and clears it.
     @Binding var focusRegion: MKCoordinateRegion?
 
+    /// Washington's bounding box (45.5-49.1 N, 124.9-116.9 W), the same box
+    /// `FishingMapView` uses to decide whether a location fix is in the state.
+    static let washington = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 47.3, longitude: -120.9),
+        span: MKCoordinateSpan(latitudeDelta: 3.6, longitudeDelta: 8.0))
+    /// Camera altitude, in metres, at which the whole state still fits a phone
+    /// held upright. Tuned by eye on an iPhone 17 Pro simulator.
+    static let maxCameraDistance: CLLocationDistance = 3_200_000
+
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
         mapView.showsUserLocation = true
         mapView.showsCompass = true
         mapView.showsScale = false
+        // The data is Washington only, so the camera is too: it cannot centre
+        // outside the state or pull back past a statewide view. Zooming in is
+        // unrestricted. The region is set first: MapKit's default world camera
+        // sits outside the boundary and gets clamped to the box's corner, which
+        // opened the app on the Idaho line.
+        mapView.setRegion(Self.washington, animated: false)
+        mapView.cameraBoundary = MKMapView.CameraBoundary(coordinateRegion: Self.washington)
+        mapView.setCameraZoomRange(
+            MKMapView.CameraZoomRange(maxCenterCoordinateDistance: Self.maxCameraDistance), animated: false)
         mapView.register(SiteMarkerView.self,
                          forAnnotationViewWithReuseIdentifier: MKMapViewDefaultAnnotationViewReuseIdentifier)
         mapView.register(SiteClusterView.self,
@@ -285,13 +303,15 @@ struct FishingMapRepresentable: UIViewRepresentable {
             let nearest = parent.rivers
                 .compactMap { river -> (String, Double)? in
                     guard let distance = river.distanceMeters(to: target) else { return nil }
-                    return (river.name, distance)
+                    return (river.id, distance)
                 }
                 .min { $0.1 < $1.1 }
 
             guard let nearest, nearest.1 <= tolerance else { return }
-            parent.selectedRiverName = nearest.0
+            parent.selectedRiverID = nearest.0
         }
+
+        static let unratedRiverColor = Color.gray.opacity(0.75)
 
         func syncRivers(_ mapView: MKMapView) {
             let key = parent.showRivers
@@ -313,11 +333,12 @@ struct FishingMapRepresentable: UIViewRepresentable {
                     line.title = river.name
                     // An ungauged river recedes: same neutral, but lighter and
                     // thinner, so it reads as hydrography while the gauged
-                    // mainstems carry the signal. 73% of drawn rivers have no
-                    // gauge, and at full weight they drown out the 27% that do.
+                    // mainstems carry the signal. Recedes, not vanishes: at
+                    // 45% opacity and 0.6 pt, creeks on the muted basemap were
+                    // invisible, which read as missing data (2026-09-16).
                     let rated = parent.riverColors[river.id]
-                    line.color = rated ?? Color.gray.opacity(0.45)
-                    line.width = rated == nil ? river.lineWidth * 0.6 : river.lineWidth
+                    line.color = rated ?? Self.unratedRiverColor
+                    line.width = rated == nil ? max(river.lineWidth * 0.6, 1.2) : river.lineWidth
                     return line
                 }
             }

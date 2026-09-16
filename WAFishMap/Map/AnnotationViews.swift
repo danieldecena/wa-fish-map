@@ -84,13 +84,29 @@ final class SiteClusterView: MKMarkerAnnotationView {
         didSet { apply(annotation) }
     }
 
-    /// Applied here, not in `apply`: MapKit resets the view's transform between
-    /// setting the annotation and drawing it, so a scale set earlier never showed.
+    /// A cluster draws a fixed step larger than a single pin, so "13" does not
+    /// read as one spot. `MKMarkerAnnotationView` has no size property, so the
+    /// view is scaled, lifted by the growth so the balloon's tip stays on the
+    /// coordinate instead of sinking below it.
+    static let scale: CGFloat = 1.2
+
+    // Applied at both points: `layoutSubviews` alone left reused cluster views
+    // at single-pin size on screen, since a dequeued view is not always laid
+    // out again before MapKit shows it.
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        applyScale()
+    }
+
     override func prepareForDisplay() {
         super.prepareForDisplay()
-        let count = (annotation as? MKClusterAnnotation)?.memberAnnotations.count ?? 1
-        let scale = Self.scale(forCount: count)
-        transform = CGAffineTransform(scaleX: scale, y: scale)
+        applyScale()
+    }
+
+    private func applyScale() {
+        let lift = bounds.height * (Self.scale - 1) / 2
+        let target = CGAffineTransform(translationX: 0, y: -lift).scaledBy(x: Self.scale, y: Self.scale)
+        if transform != target { transform = target }
     }
 
     private func apply(_ annotation: MKAnnotation?) {
@@ -103,19 +119,6 @@ final class SiteClusterView: MKMarkerAnnotationView {
         accessibilityLabel = "\(cluster.memberAnnotations.count) fishing spots"
         accessibilityValue = Self.spokenSummary(of: members)
         accessibilityTraits = .button
-    }
-
-    /// A group reads as a group: a little larger than a single pin, growing with
-    /// its count, capped so a big cluster never covers the water around it.
-    /// A cluster sits at its members' mean, so the scale's small shift off that
-    /// point misplaces nothing a single pin would have marked.
-    static func scale(forCount count: Int) -> CGFloat {
-        switch count {
-        case ..<2: 1
-        case 2...4: 1.1
-        case 5...9: 1.2
-        default: 1.3
-        }
     }
 
     static func spokenSummary(of members: [SiteAnnotation]) -> String {

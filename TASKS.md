@@ -40,6 +40,13 @@
 - [ ] Watch the Closed badge in a closed pier sheet
 - [ ] MapCoordinatorTests recentre test hung 10 min under load
 - [ ] Inland pins all Good in Sept: statewide list is uniform
+- [x] Look at creeks on screen with Rivers on (PR #17)
+- [x] Creek sheet says "No USGS gauge on this river"
+- [x] Creek filter drops small fished creeks (order<3, <10 km)
+- [ ] Confirm PR #17 "unstable" is the CI billing block
+- [ ] Same-name rivers still merge (two Green Rivers)
+- [ ] Shared simulator relaunches test host mid-run
+- [ ] [you] Review and merge PR #17
 
 ## Completed
 

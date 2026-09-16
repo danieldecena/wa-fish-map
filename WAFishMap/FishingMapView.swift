@@ -13,7 +13,7 @@ struct FishingMapView: View {
     @State private var showRivers = false
     /// The tapped river, by name. Overlays are not selectable the way
     /// annotations are, so the coordinator sets this from an explicit hit test.
-    @State private var selectedRiverName: String?
+    @State private var selectedRiverID: River.ID?
     @State private var showDisclaimer = false
     @State private var heatZones: [HeatZone] = []
     /// Camera altitude in meters; starts far out so area labels stay hidden until the
@@ -98,7 +98,7 @@ struct FishingMapView: View {
             showAreaLabels: cameraDistance < Self.areaLabelMaxDistance,
             pointsOfInterest: landmarkCategories,
             selectedID: $model.selectedSiteID,
-            selectedRiverName: $selectedRiverName,
+            selectedRiverID: $selectedRiverID,
             cameraDistance: $cameraDistance,
             cameraCenter: $cameraCenter,
             userMovedCamera: $userMovedCamera,
@@ -292,8 +292,8 @@ struct FishingMapView: View {
     /// river itself rather than to a wrapper around the name.
     private var selectedRiverBinding: Binding<River?> {
         Binding(
-            get: { model.rivers.first { $0.name == selectedRiverName } },
-            set: { selectedRiverName = $0?.name }
+            get: { model.rivers.first { $0.id == selectedRiverID } },
+            set: { selectedRiverID = $0?.id }
         )
     }
 

@@ -80,15 +80,42 @@ EXPECTED_RIVERS = {
     "Wenatchee River",
 }
 
+# Creeks with real fisheries that the old River-only build omitted.
+EXPECTED_CREEKS = {"Crab Creek", "Salmon Creek", "Clover Creek", "Issaquah Creek",
+                   "Chambers Creek", "Kennedy Creek"}
+
 DEFAULT_OUT = Path(__file__).resolve().parent.parent / "WAFishMap/Resources/rivers.json"
 
 
-def fetch_page(offset: int) -> dict:
+RIVER_WHERE = "FTYPE IN ('StreamRiver','ArtificialPath','Connector') AND GNIS_NAME LIKE '% River'"
+
+# Creeks are where most of the state's named, fished water is: the small-scale
+# layer carries ~21,000 named creek segments against ~9,400 river ones, and a
+# "River"-only build drew none of them (2026-09-16).
+#
+# No stream-order filter in the query. Filtering segments by order drops a
+# creek's low-order upper reaches before its length is summed, which silently
+# removed Clover Creek (one 20.9 km run) and Issaquah Creek. Order is judged on
+# the whole run in build_creeks instead.
+CREEK_WHERE = (
+    "FTYPE IN ('StreamRiver','ArtificialPath','Connector') "
+    "AND GNIS_NAME LIKE '% Creek'"
+)
+
+# A run's highest order must reach this. Order 2 keeps small salmon creeks
+# (Kennedy, Big Beef, Minter) and still skips headwater trickles.
+MIN_CREEK_ORDER = 2
+
+# A creek shorter than this once split into its own connected run is dropped.
+MIN_CREEK_KM = 10.0
+
+# Endpoints closer than this (degrees, ~10 m) belong to the same run.
+JOIN_DEGREES = 0.0001
+
+
+def fetch_page(offset: int, where: str = RIVER_WHERE) -> dict:
     params = {
-        "where": (
-            "FTYPE IN ('StreamRiver','ArtificialPath','Connector') "
-            "AND GNIS_NAME LIKE '% River'"
-        ),
+        "where": where,
         "geometry": WA_ENVELOPE,
         "geometryType": "esriGeometryEnvelope",
         "inSR": "4326",
@@ -106,11 +133,11 @@ def fetch_page(offset: int) -> dict:
         return json.load(response)
 
 
-def fetch_all() -> list[dict]:
+def fetch_all(where: str = RIVER_WHERE) -> list[dict]:
     features: list[dict] = []
     offset = 0
     while True:
-        page = fetch_page(offset)
+        page = fetch_page(offset, where)
         if "error" in page:
             raise SystemExit(f"NHD query failed at offset {offset}: {page['error']}")
         batch = page.get("features", [])
@@ -215,6 +242,8 @@ def build(features: list[dict], rings: list[list[list[float]]]) -> dict:
                 "type": "Feature",
                 "geometry": {"type": "MultiLineString", "coordinates": lines},
                 "properties": {
+                    "id": name,
+                    "kind": "river",
                     "name": name,
                     "streamOrder": river["order"],
                     "lengthKm": round(river["lengthKm"], 1),
@@ -222,6 +251,82 @@ def build(features: list[dict], rings: list[list[list[float]]]) -> dict:
             }
         )
     return {"type": "FeatureCollection", "features": out}
+
+
+def connected_runs(parts: list[tuple[list[list[float]], int, float]]) -> list[list[int]]:
+    """Group segments whose endpoints touch. Washington has dozens of unrelated
+    creeks sharing a name ("Rock Creek" totals 579 km statewide), so merging by
+    name, as rivers do, would draw one creek across four counties."""
+    parent = list(range(len(parts)))
+
+    def find(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    buckets: dict[tuple[int, int], list[int]] = {}
+    for index, (line, _, _) in enumerate(parts):
+        for lon, lat in (line[0], line[-1]):
+            key = (round(lon / JOIN_DEGREES), round(lat / JOIN_DEGREES))
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    for other in buckets.get((key[0] + dx, key[1] + dy), []):
+                        parent[find(index)] = find(other)
+            buckets.setdefault(key, []).append(index)
+    groups: dict[int, list[int]] = {}
+    for index in range(len(parts)):
+        groups.setdefault(find(index), []).append(index)
+    return list(groups.values())
+
+
+def build_creeks(features: list[dict], rings: list[list[list[float]]]) -> list[dict]:
+    by_name: dict[str, list[tuple[list[list[float]], int, float]]] = {}
+    for feature in features:
+        props = feature.get("properties") or {}
+        name = (props.get("GNIS_NAME") or "").strip()
+        geometry = feature.get("geometry")
+        if not name or not geometry:
+            continue
+        lines = [round_line(line) for line in segments(geometry) if len(line) >= 2]
+        lines = [line for line in lines if len(line) >= 2]
+        if not lines:
+            continue
+        # A multi-part segment's length is split evenly; only the total matters.
+        share = float(props.get("LENGTHKM") or 0.0) / len(lines)
+        for line in lines:
+            by_name.setdefault(name, []).append((line, int(props.get("StreamOrde") or 0), share))
+
+    out = []
+    for name in sorted(by_name):
+        parts = by_name[name]
+        runs = []
+        for group in connected_runs(parts):
+            lines = sorted(parts[i][0] for i in group)
+            length = sum(parts[i][2] for i in group)
+            order = max(parts[i][1] for i in group)
+            if length < MIN_CREEK_KM or order < MIN_CREEK_ORDER or not touches_state(lines, rings):
+                continue
+            runs.append((lines, order, length))
+        runs.sort(key=lambda run: run[0][0][0])
+        for number, (lines, order, length) in enumerate(runs, start=1):
+            first = lines[0][0]
+            out.append(
+                {
+                    "type": "Feature",
+                    "geometry": {"type": "MultiLineString", "coordinates": lines},
+                    "properties": {
+                        # Name plus the run's first vertex: unique, and stable
+                        # across rebuilds while the geometry is unchanged.
+                        "id": f"{name}@{first[0]:.3f},{first[1]:.3f}",
+                        "kind": "creek",
+                        "name": name,
+                        "streamOrder": order,
+                        "lengthKm": round(length, 1),
+                    },
+                }
+            )
+    return out
 
 
 def main() -> int:
@@ -241,6 +346,20 @@ def main() -> int:
 
     collection = build(features, rings)
     found = {feature["properties"]["name"] for feature in collection["features"]}
+
+    print("Fetching NHD small-scale named creeks…", file=sys.stderr)
+    try:
+        creek_features = fetch_all(CREEK_WHERE)
+    except (urllib.error.URLError, TimeoutError) as error:
+        raise SystemExit(f"NHD unreachable: {error}")
+    creeks = build_creeks(creek_features, rings)
+    missing_creeks = sorted(EXPECTED_CREEKS - {creek["properties"]["name"] for creek in creeks})
+    if missing_creeks:
+        raise SystemExit(f"anchor creeks absent from the build: {', '.join(missing_creeks)}")
+    ids = [feature["properties"]["id"] for feature in collection["features"] + creeks]
+    if len(ids) != len(set(ids)):
+        raise SystemExit("duplicate feature ids; the app keys selection by id")
+    collection["features"].extend(creeks)
     missing = sorted(EXPECTED_RIVERS - found)
     if missing:
         raise SystemExit(
@@ -257,7 +376,7 @@ def main() -> int:
     )
     size_kb = args.out.stat().st_size / 1024
     print(
-        f"{len(collection['features'])} rivers, {vertices} vertices, "
+        f"{len(collection['features']) - len(creeks)} rivers, {len(creeks)} creeks, {vertices} vertices, "
         f"{size_kb:.0f} KB -> {args.out}",
         file=sys.stderr,
     )

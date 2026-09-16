@@ -9,8 +9,16 @@ import Foundation
 /// a point its colour by containing it, and no polygon can answer what a river
 /// hundreds of miles long is worth today.
 struct River: Identifiable, Equatable, Sendable {
-    var id: String { name }
+    /// Unique per drawn feature. A river's id is its name; a creek's adds where
+    /// its run starts, because Washington has many unrelated creeks per name
+    /// ("Rock Creek" is six separate features).
+    let id: String
     let name: String
+    let kind: Kind
+
+    enum Kind: String, Sendable {
+        case river, creek
+    }
     /// Strahler order, highest of the river's segments. Drives line weight only.
     let streamOrder: Int
     let lengthKm: Double
@@ -79,12 +87,17 @@ struct River: Identifiable, Equatable, Sendable {
     private static let metresPerDegree = LonLat.metresPerDegree
 
     struct Properties: Decodable {
+        let id: String?
+        let kind: String?
         let name: String
         let streamOrder: Int
         let lengthKm: Double
     }
 
-    init(name: String, streamOrder: Int, lengthKm: Double, lines: [[LonLat]]) {
+    init(name: String, streamOrder: Int, lengthKm: Double, lines: [[LonLat]],
+         id: String? = nil, kind: Kind = .river) {
+        self.id = id ?? name
+        self.kind = kind
         self.name = name
         self.streamOrder = streamOrder
         self.lengthKm = lengthKm
@@ -112,6 +125,8 @@ struct River: Identifiable, Equatable, Sendable {
         }
         guard !parsed.isEmpty else { return nil }
         self.init(name: feature.properties.name, streamOrder: feature.properties.streamOrder,
-                  lengthKm: feature.properties.lengthKm, lines: parsed)
+                  lengthKm: feature.properties.lengthKm, lines: parsed,
+                  id: feature.properties.id,
+                  kind: feature.properties.kind.flatMap(Kind.init(rawValue:)) ?? .river)
     }
 }

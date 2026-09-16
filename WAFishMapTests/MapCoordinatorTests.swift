@@ -48,7 +48,7 @@ struct MapCoordinatorTests {
             showAreaLabels: false,
             pointsOfInterest: [],
             selectedID: .constant(nil),
-            selectedRiverName: .constant(nil),
+            selectedRiverID: .constant(nil),
             cameraDistance: .constant(0),
             cameraCenter: .constant(LonLat(longitude: -122.5, latitude: 47.5)),
             userMovedCamera: .constant(userMovedCamera),
@@ -75,7 +75,7 @@ struct MapCoordinatorTests {
             showRivers: false, showHeat: false, showAreaLabels: false,
             pointsOfInterest: [],
             selectedID: .constant(nil),
-            selectedRiverName: .constant(nil),
+            selectedRiverID: .constant(nil),
             cameraDistance: .constant(0),
             cameraCenter: .constant(LonLat(longitude: -122.5, latitude: 47.5)),
             userMovedCamera: userMovedCamera,
@@ -253,7 +253,7 @@ struct MapCoordinatorTests {
         let skagit = try? #require(lines.first { $0.title == "Skagit River" })
         let sauk = try? #require(lines.first { $0.title == "Sauk River" })
         #expect(skagit?.color == .red)
-        #expect(sauk?.color == Color.gray.opacity(0.45))
+        #expect(sauk?.color == FishingMapRepresentable.Coordinator.unratedRiverColor)
         // The recessive treatment is a width change too, not just a tint.
         #expect((sauk?.width ?? 0) < (skagit?.width ?? 0))
     }

@@ -48,6 +48,21 @@ struct RiverTests {
         #expect(rivers[0].lines.count == 1)
     }
 
+    @Test func aCreekDecodesItsOwnIdAndKind() throws {
+        let json = """
+        {"type":"FeatureCollection","features":[
+          {"type":"Feature","geometry":{"type":"LineString","coordinates":[[-122.0,47.0],[-121.9,47.1]]},
+           "properties":{"id":"Rock Creek@-122.000,47.000","kind":"creek","name":"Rock Creek","streamOrder":3,"lengthKm":12.0}},
+          {"type":"Feature","geometry":{"type":"LineString","coordinates":[[-117.9,47.0],[-117.8,47.1]]},
+           "properties":{"id":"Rock Creek@-117.900,47.000","kind":"creek","name":"Rock Creek","streamOrder":4,"lengthKm":77.0}}
+        ]}
+        """.data(using: .utf8)!
+        let creeks = try RiverLoader.rivers(from: json)
+        #expect(creeks.map(\.kind) == [.creek, .creek])
+        #expect(Set(creeks.map(\.id)).count == 2)
+        #expect(creeks.allSatisfy { $0.name == "Rock Creek" })
+    }
+
     /// The control. Without it, "decodes a line" cannot be told apart from
     /// "accepts anything" — a polygon must still be refused.
     @Test func nonLineGeometryIsRefused() throws {
@@ -188,6 +203,19 @@ struct RiverTests {
                          "Wenatchee River"] {
             #expect(names.contains(expected), "\(expected) is missing from rivers.json")
         }
+    }
+
+    /// Creeks are in the bundle, split per run: many unrelated creeks share a
+    /// name, and merged by name one feature would span the state. Unique ids are
+    /// what tap-to-select keys on.
+    @Test func creeksShipAsSeparateUniquelyIdentifiedRuns() throws {
+        let all = try Self.bundled()
+        let creeks = all.filter { $0.kind == .creek }
+        #expect(creeks.count > 200, "creeks missing from rivers.json")
+        #expect(creeks.contains { $0.name == "Crab Creek" })
+        #expect(creeks.filter { $0.name == "Rock Creek" }.count > 1, "same-name creeks were merged")
+        #expect(Set(all.map(\.id)).count == all.count, "duplicate river ids")
+        #expect(all.filter { $0.kind == .river }.count > 280, "adding creeks lost rivers")
     }
 
     /// A fragment passes a name check. Length is what separates the whole
