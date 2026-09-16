@@ -324,14 +324,15 @@ final class FishingMapModel {
     /// Must run after the guide, rivers and marine-area indexes are in place.
     func indexWaterbodies() {
         let freshwater = guide?.freshwater
+        let riversOnly = rivers.filter { $0.kind == .river }
         var sites: [AccessSite.ID: String] = [:]
         for site in accessSites where siteAreaName[site.id] == nil {
-            sites[site.id] = freshwater?.waterbody(forFacility: site.facilityName, at: site.coordinate, rivers: rivers)
+            sites[site.id] = freshwater?.waterbody(forFacility: site.facilityName, at: site.coordinate, riversOnly: riversOnly)
         }
         siteWaterbody = sites
         var piersMap: [FishingPier.ID: String] = [:]
         for pier in piers where pierAreaName[pier.id] == nil {
-            piersMap[pier.id] = freshwater?.waterbody(forFacility: pier.name, at: pier.coordinate, rivers: rivers)
+            piersMap[pier.id] = freshwater?.waterbody(forFacility: pier.name, at: pier.coordinate, riversOnly: riversOnly)
         }
         pierWaterbody = piersMap
 

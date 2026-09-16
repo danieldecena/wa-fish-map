@@ -237,9 +237,14 @@ struct FreshwaterGuide: Decodable, Sendable {
     /// otherwise the river the site sits on. Creeks never resolve: their names
     /// repeat across the state, so a note keyed by one would reach them all.
     func waterbody(forFacility facility: String, at point: LonLat, rivers: [River]) -> String? {
+        waterbody(forFacility: facility, at: point, riversOnly: rivers.filter { $0.kind == .river })
+    }
+
+    /// Same, for a caller that already dropped the creeks. Filtering ~1,300
+    /// features per launch was a quarter of `indexWaterbodies` (2026-09-16).
+    func waterbody(forFacility facility: String, at point: LonLat, riversOnly: [River]) -> String? {
         waterbody(forFacility: facility)
-            ?? River.nearest(to: point, within: River.waterbodyMatchMeters,
-                             in: rivers.filter { $0.kind == .river })?.name
+            ?? River.nearest(to: point, within: River.waterbodyMatchMeters, in: riversOnly)?.name
     }
 
     /// The two waterbody fields default to nil so the older two-field form keeps
