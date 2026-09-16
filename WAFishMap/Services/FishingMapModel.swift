@@ -280,8 +280,9 @@ final class FishingMapModel {
     /// shore snap (`MarineArea.matching`).
     func indexSitesToAreas() {
         var map: [AccessSite.ID: String] = [:]
+        let riversOnly = rivers.filter(\.resolvesWaterbody)
         for site in accessSites {
-            if let area = marineArea(at: site.coordinate, facility: site.facilityName) {
+            if let area = marineArea(at: site.coordinate, facility: site.facilityName, riversOnly: riversOnly) {
                 map[site.id] = area.areaName
             }
         }
@@ -314,8 +315,9 @@ final class FishingMapModel {
     /// shore snap (`MarineArea.matching`).
     private func indexPiersToAreas() {
         var map: [FishingPier.ID: String] = [:]
+        let riversOnly = rivers.filter(\.resolvesWaterbody)
         for pier in piers {
-            if let area = marineArea(at: pier.coordinate, facility: pier.name) {
+            if let area = marineArea(at: pier.coordinate, facility: pier.name, riversOnly: riversOnly) {
                 map[pier.id] = area.areaName
             }
         }
@@ -325,10 +327,10 @@ final class FishingMapModel {
     /// Containment always wins; the shore snap does not. A river-mouth or slough
     /// ramp just outside a polygon (Palix River 10 m, Hat Slough 39 m) keeps its
     /// river or lake rows rather than being snapped into the marine area.
-    private func marineArea(at point: LonLat, facility: String) -> MarineArea? {
+    private func marineArea(at point: LonLat, facility: String, riversOnly: [River]) -> MarineArea? {
         if let inside = marineAreas.first(where: { $0.contains(point) }) { return inside }
         let freshwater = guide?.freshwater
-        if let waterbody = freshwater?.waterbody(forFacility: facility, at: point, rivers: rivers),
+        if let waterbody = freshwater?.waterbody(forFacility: facility, at: point, riversOnly: riversOnly),
            freshwater?.byWaterbody?[waterbody]?.isEmpty == false {
             return nil
         }
