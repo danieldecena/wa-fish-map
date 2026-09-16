@@ -353,6 +353,15 @@ current counts rather than trusting a number written here.
   story as `docs/app-store/privacy-policy.md` and the live GitHub Pages URL.
   Tracking remains false; no tracking domains.
 
+### 2026-09-16 (1.0 submitted: build 6, iPhone-only)
+
+- Decided: ship iPhone-only (`TARGETED_DEVICE_FAMILY = 1`, PR #43) rather
+  than supply 13-inch iPad screenshots for an iPad layout never checked.
+  Build 6 carries it plus the empty collected-data manifest; archived app
+  observed with `UIDeviceFamily = [1]`. Version 1.0 was submitted with build 6
+  and reads Waiting for Review; release is manual. Support URL now
+  `support.html` (contact email, guideline 1.5); `WDFW` dropped from keywords.
+
 ### 2026-09-16 (Location is not collected; reverts adda11f)
 
 - Decided: the manifest and ASC answer declare no collected data. Apple counts

@@ -99,7 +99,7 @@ Generated under `docs/app-store/screenshots/` via `scripts/app_store_screenshots
 
 ## Checklist
 
-Paused 2026-09-16 — resume when the app build is ready for review (screenshots + Submit).
+Submitted 2026-09-16 15:18 — version 1.0 build 6 (iPhone-only), Waiting for Review, manual release.
 
 - [x] Privacy policy live at HTTPS
 - [x] Listing copy ready to paste
@@ -110,4 +110,4 @@ Paused 2026-09-16 — resume when the app build is ready for review (screenshots
 - [x] ASC App Privacy: Data Not Collected, published 2026-09-16 (next upload must carry the matching manifest)
 - [x] ASC Version: promo / description / keywords / support URL / copyright; review notes
 - [ ] Attach screenshots (ASC still 0 of 10) — sized copies in `/tmp/asc-shots/` and `docs/app-store/screenshots/`
-- [ ] Save → Add for Review → Submit for Review
+- [x] Save → Add for Review → Submit for Review

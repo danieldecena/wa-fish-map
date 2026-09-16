@@ -8,8 +8,9 @@
 - [x] Archive and upload release build — ASC build 2 (1.0)
 - [x] [you] ASC App Privacy: set Location to Data Not Collected
 - [x] [you] Upload a build with PR #41's manifest before submitting
-- [x] [you] Select build 5 on version 1.0 once processed (not build 2)
-- [ ] [you] Submit for App Store review — paused until app done
+- [x] [you] Select build 6 (iPhone-only) on version 1.0
+- [x] [you] Submit for App Store review — build 6, Waiting for Review
+- [ ] [you] Merge PR #43 (iPhone-only) so main matches build 6
 - [ ] [you] Release to the App Store
 
 
