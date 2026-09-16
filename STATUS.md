@@ -114,6 +114,35 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-16 (final data pass against WDFW)
+
+- Decided: a month a fishery is closed, or release-only for that species, is
+  not a good or best month, even though the rating is editorial timing. Rows
+  whose fishery does not exist were removed: Area 13 chum (release-only), Area
+  13 crab and crab snaring (closed until further notice), Area 12 lingcod
+  (closed year-round), Area 7 blackmouth (closed Oct 1-May 14). A salmon month
+  was only changed where the 2025-26 agreed fisheries and the 2026-27 proposals
+  agree, so it is not a one-year quirk.
+- Applied every WRONG item from the three reports in `docs/research/`
+  (2026-09-16-datapass-{puget,coast,freshwater}.md, each with source URLs and
+  quotes), plus the UNSUPPORTED items with a clear fix: Areas 10/11 blackmouth
+  best April, Area 7 halibut good Aug/Sep, the Area 5 "odd days" and Area 13
+  "winter/spring only" clauses, softer rock bass and Mason perch notes, Yakima
+  channel catfish removed, and seasonRisk rows for ocean coho, black rockfish
+  and halibut September.
+- Freshwater county rows that described one waterbody were removed rather than
+  reworded (Stevens/Ferry kokanee, walleye and net-pen rainbow; Douglas
+  triploids and walleye; Spokane redband; King coho; Chelan Chinook; Yakima
+  smallmouth; Kittitas wild rainbow and cutthroat), so those launches fall back
+  to the statewide rows. Same rule as the Spokane River refusal.
+- Not done: the OMISSION lists (new species such as spot shrimp, summer
+  hatchery Chinook, statewide perch and crappie) need their own sourcing; and
+  UNSUPPORTED items left for judgement (statewide kokanee, Grant/Okanogan
+  smallmouth, Grant walleye, Area 2-2 fall Chinook note, squid timing in 9/12/13).
+- Verified: every edit asserted the old value before writing (67 plus notes);
+  unit suite 264 tests passed, rc=0, with the built bundle's fisheries.json
+  byte-identical to the edited file.
+
 ### 2026-09-16 (launch indexing profiled on device)
 
 - Decided: launch indexing needs no further work. No A7 device can run an iOS 18

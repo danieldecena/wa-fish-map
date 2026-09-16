@@ -45,6 +45,15 @@
       "reason": "Quota-driven summer fishery; days can be limited or closed in-season"
     },
     {
+      "match": "Coho Salmon (ocean)",
+      "months": [
+        7,
+        8,
+        9
+      ],
+      "reason": "Ocean coho quota can close areas in-season; confirm with WDFW"
+    },
+    {
       "match": "Coho",
       "months": [
         9,
@@ -84,6 +93,20 @@
       "reason": "Bottomfish season set annually with area and depth limits; confirm dates"
     },
     {
+      "match": "Black Rockfish",
+      "months": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "reason": "Coastal bottomfish season set annually; confirm dates"
+    },
+    {
       "match": "Rockfish",
       "months": [
         5,
@@ -99,7 +122,8 @@
         5,
         6,
         7,
-        8
+        8,
+        9
       ],
       "reason": "A few announced days each year, quota-driven; confirm before you go"
     },
@@ -121,21 +145,6 @@
     {
       "areaName": "13",
       "species": [
-        {
-          "species": "Crab Snaring (shore)",
-          "bestMonths": [
-            7,
-            8,
-            9
-          ],
-          "goodMonths": [
-            6,
-            10
-          ],
-          "bait": "Rod + crab snare baited with chicken/fish, from shore or pier",
-          "note": "Dungeness/red rock crab snared from beaches and piers; check crab season and areas.",
-          "bestTime": "Daytime on an incoming tide"
-        },
         {
           "species": "Coho Salmon",
           "bestMonths": [
@@ -163,22 +172,8 @@
             12
           ],
           "bait": "Trolled herring or flasher + hoochie",
-          "note": "Resident kings; bite improves toward spring as baitfish arrive. Selective-fishery rules and season dates set annually — often open in winter/spring only.",
+          "note": "Resident kings; bite improves toward spring as baitfish arrive. Selective-fishery rules set annually — confirm what may be kept.",
           "bestTime": "First light through mid-morning"
-        },
-        {
-          "species": "Chum Salmon",
-          "bestMonths": [
-            10,
-            11
-          ],
-          "goodMonths": [
-            9,
-            12
-          ],
-          "bait": "Green/chartreuse twitching jigs, cured eggs",
-          "note": "Strong late-fall South Sound returns.",
-          "bestTime": "Dawn & dusk"
         },
         {
           "species": "Sea-run Cutthroat",
@@ -197,19 +192,6 @@
           "bait": "Small spoons, Clouser flies, spinners",
           "note": "Beaches and estuaries; catch-and-release ethic.",
           "bestTime": "Dawn & dusk on a moving tide"
-        },
-        {
-          "species": "Dungeness Crab",
-          "bestMonths": [
-            7,
-            8
-          ],
-          "goodMonths": [
-            9
-          ],
-          "bait": "Crab pot baited with fish carcasses/chicken",
-          "note": "Summer season dates are set annually by WDFW.",
-          "bestTime": "Daytime around slack tide"
         },
         {
           "species": "Market Squid",
@@ -232,9 +214,7 @@
             5,
             6
           ],
-          "goodMonths": [
-            4
-          ],
+          "goodMonths": [],
           "bait": "Large jigs or live bait near structure",
           "note": "Spring bottomfish opener; size and area limits apply.",
           "bestTime": "Daytime at slack current"
@@ -248,12 +228,10 @@
           "species": "Crab Snaring (shore)",
           "bestMonths": [
             7,
-            8,
-            9
+            8
           ],
           "goodMonths": [
-            6,
-            10
+            9
           ],
           "bait": "Rod + crab snare baited with chicken/fish, from shore or pier",
           "note": "Dungeness/red rock crab snared from beaches and piers; check crab season and areas.",
@@ -262,11 +240,10 @@
         {
           "species": "Resident Chinook (Blackmouth)",
           "bestMonths": [
-            3,
             4
           ],
           "goodMonths": [
-            2
+            3
           ],
           "bait": "Trolled herring, flasher + hoochie",
           "note": "Spring selective opener, closed part of winter; dates set annually - confirm with WDFW.",
@@ -292,22 +269,19 @@
             10,
             11
           ],
-          "goodMonths": [
-            9,
-            12
-          ],
+          "goodMonths": [],
           "bait": "Chartreuse twitching jigs",
           "bestTime": "Dawn & dusk"
         },
         {
           "species": "Market Squid",
           "bestMonths": [
-            10,
             11,
             12,
             1
           ],
           "goodMonths": [
+            10,
             2
           ],
           "bait": "Glow squid jigs under a light",
@@ -320,9 +294,7 @@
             7,
             8
           ],
-          "goodMonths": [
-            9
-          ],
+          "goodMonths": [],
           "bait": "Baited crab pot",
           "bestTime": "Daytime around slack tide"
         },
@@ -332,9 +304,7 @@
             5,
             6
           ],
-          "goodMonths": [
-            4
-          ],
+          "goodMonths": [],
           "bait": "Heavy jigs near rocky structure",
           "bestTime": "Daytime at slack current"
         }
@@ -347,12 +317,10 @@
           "species": "Crab Snaring (shore)",
           "bestMonths": [
             7,
-            8,
-            9
+            8
           ],
           "goodMonths": [
-            6,
-            10
+            9
           ],
           "bait": "Rod + crab snare baited with chicken/fish, from shore or pier",
           "note": "Dungeness/red rock crab snared from beaches and piers; check crab season and areas.",
@@ -361,11 +329,10 @@
         {
           "species": "Resident Chinook (Blackmouth)",
           "bestMonths": [
-            3,
             4
           ],
           "goodMonths": [
-            2
+            3
           ],
           "bait": "Trolled herring, flasher + hoochie",
           "note": "Elliott Bay / Central Sound spring selective fishery, closed part of winter; dates set annually - confirm with WDFW.",
@@ -390,10 +357,7 @@
             10,
             11
           ],
-          "goodMonths": [
-            9,
-            12
-          ],
+          "goodMonths": [],
           "bait": "Chartreuse twitching jigs",
           "note": "Fall Elliott Bay chum.",
           "bestTime": "Dawn & dusk"
@@ -431,9 +395,7 @@
             5,
             6
           ],
-          "goodMonths": [
-            4
-          ],
+          "goodMonths": [],
           "bait": "Heavy jigs near structure",
           "bestTime": "Daytime at slack current"
         }
@@ -446,12 +408,10 @@
           "species": "Crab Snaring (shore)",
           "bestMonths": [
             7,
-            8,
-            9
+            8
           ],
           "goodMonths": [
-            6,
-            10
+            9
           ],
           "bait": "Rod + crab snare baited with chicken/fish, from shore or pier",
           "note": "Dungeness/red rock crab snared from beaches and piers; check crab season and areas.",
@@ -475,12 +435,10 @@
         {
           "species": "Chum Salmon",
           "bestMonths": [
-            10,
             11
           ],
           "goodMonths": [
-            9,
-            12
+            10
           ],
           "bait": "Chartreuse/green twitching jigs",
           "note": "Hood Canal is known for fall chum.",
@@ -493,8 +451,7 @@
             10
           ],
           "goodMonths": [
-            8,
-            11
+            8
           ],
           "bait": "Trolled hoochies or spinners",
           "bestTime": "Dawn & dusk; first light is best"
@@ -525,18 +482,6 @@
           ],
           "bait": "Small spoons, spinners, flies",
           "bestTime": "Dawn & dusk on a moving tide"
-        },
-        {
-          "species": "Lingcod",
-          "bestMonths": [
-            5,
-            6
-          ],
-          "goodMonths": [
-            4
-          ],
-          "bait": "Jigs or live bait near structure",
-          "bestTime": "Daytime at slack current"
         }
       ]
     },
@@ -547,12 +492,10 @@
           "species": "Crab Snaring (shore)",
           "bestMonths": [
             7,
-            8,
-            9
+            8
           ],
           "goodMonths": [
-            6,
-            10
+            9
           ],
           "bait": "Rod + crab snare baited with chicken/fish, from shore or pier",
           "note": "Dungeness/red rock crab snared from beaches and piers; check crab season and areas.",
@@ -576,11 +519,10 @@
         {
           "species": "Chinook Salmon",
           "bestMonths": [
-            7,
-            8
+            7
           ],
           "goodMonths": [
-            9
+            8
           ],
           "bait": "Trolled herring, spoons, flashers",
           "note": "Summer kings through Admiralty Inlet; quota-driven fishery - confirm open dates with WDFW.",
@@ -589,13 +531,10 @@
         {
           "species": "Coho Salmon",
           "bestMonths": [
-            9,
-            10
-          ],
-          "goodMonths": [
             8,
-            11
+            9
           ],
+          "goodMonths": [],
           "bait": "Trolled hoochies or herring",
           "bestTime": "Dawn & dusk; first light is best"
         },
@@ -631,9 +570,7 @@
             5,
             6
           ],
-          "goodMonths": [
-            4
-          ],
+          "goodMonths": [],
           "bait": "Heavy jigs near structure",
           "bestTime": "Daytime at slack current"
         }
@@ -674,9 +611,7 @@
             8,
             9
           ],
-          "goodMonths": [
-            7
-          ],
+          "goodMonths": [],
           "bait": "Trolled spinners, herring, or wobblers",
           "note": "Buoy 10 fishery peaks Aug into early Sep.",
           "bestTime": "First light on the flood tide"
@@ -727,7 +662,7 @@
           ],
           "bait": "Clam gun or shovel on a low tide",
           "note": "Long Beach; digs announced by WDFW after marine-toxin testing.",
-          "bestTime": "Evening low tides (dig openers set by WDFW)"
+          "bestTime": "Evening low tides in fall and winter, morning tides in spring (dig openers set by WDFW)"
         },
         {
           "species": "Surfperch",
@@ -836,7 +771,7 @@
           ],
           "bait": "Clam gun or shovel on a low tide",
           "note": "Twin Harbors/Copalis/Mocrocks; digs announced after toxin testing.",
-          "bestTime": "Evening low tides (dig openers set by WDFW)"
+          "bestTime": "Evening low tides in fall and winter, morning tides in spring (dig openers set by WDFW)"
         },
         {
           "species": "Halibut",
@@ -858,11 +793,10 @@
         {
           "species": "Fall Chinook",
           "bestMonths": [
-            9
+            8
           ],
           "goodMonths": [
-            8,
-            10
+            9
           ],
           "bait": "Trolled spinners or herring in the bay",
           "note": "Willapa Bay terminal fall run.",
@@ -899,11 +833,11 @@
           "species": "Dungeness Crab",
           "bestMonths": [
             7,
-            8,
-            9
+            8
           ],
           "goodMonths": [
-            10
+            6,
+            9
           ],
           "bait": "Baited crab pot",
           "note": "Coastal crab seasons differ from Puget Sound.",
@@ -946,11 +880,11 @@
           "species": "Dungeness Crab",
           "bestMonths": [
             7,
-            8,
-            9
+            8
           ],
           "goodMonths": [
-            10
+            6,
+            9
           ],
           "bait": "Baited crab pot",
           "bestTime": "Daytime around slack tide"
@@ -970,7 +904,7 @@
           ],
           "bait": "Clam gun or shovel on a low tide",
           "note": "Twin Harbors; digs announced after toxin testing.",
-          "bestTime": "Evening low tides (dig openers set by WDFW)"
+          "bestTime": "Evening low tides in fall and winter, morning tides in spring (dig openers set by WDFW)"
         },
         {
           "species": "Sea-run Cutthroat",
@@ -1163,7 +1097,7 @@
             8
           ],
           "bait": "Trolled herring or spoons",
-          "note": "Summer opener ~July, often odd days only; quota-driven.",
+          "note": "Summer opener ~July; quota-driven.",
           "bestTime": "First light through mid-morning"
         },
         {
@@ -1200,8 +1134,9 @@
             6
           ],
           "goodMonths": [
-            7,
-            8
+            4,
+            8,
+            9
           ],
           "bait": "Bottom bait/jigs off Kydaka/Pillar Point in 200-400 ft",
           "note": "Open days set by quota.",
@@ -1210,14 +1145,11 @@
         {
           "species": "Resident Chinook (Blackmouth)",
           "bestMonths": [
-            3,
             4
           ],
-          "goodMonths": [
-            2
-          ],
+          "goodMonths": [],
           "bait": "Trolled herring, flasher + hoochie",
-          "note": "Winter/spring blackmouth fishery, quota-driven; dates set annually - confirm with WDFW.",
+          "note": "Spring hatchery Chinook fishery, wild Chinook released; dates set annually - confirm with WDFW.",
           "bestTime": "First light through mid-morning"
         },
         {
@@ -1226,9 +1158,7 @@
             5,
             6
           ],
-          "goodMonths": [
-            4
-          ],
+          "goodMonths": [],
           "bait": "Jigs near rocky structure",
           "note": "Strait lingcod short spring opener; dates set annually - confirm with WDFW.",
           "bestTime": "Daytime at slack current"
@@ -1253,11 +1183,10 @@
         {
           "species": "Chinook Salmon",
           "bestMonths": [
-            7,
-            8
+            7
           ],
           "goodMonths": [
-            9
+            8
           ],
           "bait": "Trolled herring or spoons",
           "note": "Summer hatchery Chinook; quota-driven.",
@@ -1282,8 +1211,9 @@
             6
           ],
           "goodMonths": [
-            7,
-            8
+            4,
+            8,
+            9
           ],
           "bait": "Bottom bait or jigs",
           "note": "Open days set by quota.",
@@ -1295,9 +1225,7 @@
             5,
             6
           ],
-          "goodMonths": [
-            4
-          ],
+          "goodMonths": [],
           "bait": "Jigs near rocky structure",
           "note": "Short spring opener; dates set annually - confirm with WDFW.",
           "bestTime": "Daytime at slack current"
@@ -1334,30 +1262,12 @@
       "areaName": "7",
       "species": [
         {
-          "species": "Resident Chinook (Blackmouth)",
-          "bestMonths": [
-            12,
-            1,
-            2,
-            3,
-            4
-          ],
-          "goodMonths": [
-            11
-          ],
-          "bait": "Trolled herring, flasher + hoochie",
-          "note": "San Juans winter blackmouth fishery; opening dates vary by year and sub-area - confirm with WDFW.",
-          "bestTime": "First light through mid-morning"
-        },
-        {
           "species": "Lingcod",
           "bestMonths": [
             5,
             6
           ],
-          "goodMonths": [
-            4
-          ],
+          "goodMonths": [],
           "bait": "Large jigs near rocky structure",
           "note": "Short spring opener; dates set annually - confirm with WDFW.",
           "bestTime": "Daytime at slack current"
@@ -1368,9 +1278,7 @@
             8,
             9
           ],
-          "goodMonths": [
-            10
-          ],
+          "goodMonths": [],
           "bait": "Trolled hoochies or herring",
           "bestTime": "Dawn & dusk; first light is best"
         },
@@ -1395,7 +1303,9 @@
             6
           ],
           "goodMonths": [
-            4
+            4,
+            8,
+            9
           ],
           "bait": "Bottom bait or jigs on the banks",
           "note": "Open days set by quota.",
@@ -1467,9 +1377,7 @@
             5,
             6
           ],
-          "goodMonths": [
-            4
-          ],
+          "goodMonths": [],
           "bait": "Jigs near structure at Deception Pass",
           "note": "Short spring opener; dates set annually - confirm with WDFW.",
           "bestTime": "Daytime at slack current"
@@ -1490,12 +1398,10 @@
           "species": "Crab Snaring (shore)",
           "bestMonths": [
             7,
-            8,
-            9
+            8
           ],
           "goodMonths": [
-            6,
-            10
+            9
           ],
           "bait": "Rod + crab snare baited with chicken/fish, from beach or pier",
           "note": "Check crab season and areas.",
@@ -1509,8 +1415,7 @@
         {
           "species": "Coho Salmon",
           "bestMonths": [
-            9,
-            10
+            9
           ],
           "goodMonths": [
             8
@@ -1580,9 +1485,7 @@
             5,
             6
           ],
-          "goodMonths": [
-            4
-          ],
+          "goodMonths": [],
           "bait": "Jigs near Hat Island reefs",
           "note": "Short spring opener; dates set annually - confirm with WDFW.",
           "bestTime": "Daytime at slack current"
@@ -1685,20 +1588,6 @@
           ],
           "bait": "PowerBait, worms, spoons",
           "bestTime": "Early morning & evening"
-        },
-        {
-          "species": "Chinook Salmon",
-          "bestMonths": [
-            7,
-            8
-          ],
-          "goodMonths": [
-            6,
-            9
-          ],
-          "bait": "Trolled spoons or plugs",
-          "note": "Upper Columbia summer runs.",
-          "bestTime": "First light through mid-morning"
         }
       ],
       "Grant": [
@@ -1793,55 +1682,9 @@
           "bait": "Worm on a small hook, or a small jig tipped with wax worms or shrimp",
           "note": "Common in the county's lowland lakes; schools move deep in fall and winter.",
           "bestTime": "Midday through afternoon"
-        },
-        {
-          "species": "Coho Salmon",
-          "bestMonths": [
-            10
-          ],
-          "goodMonths": [
-            9,
-            11
-          ],
-          "bait": "Cut-plug herring or spinners, north end",
-          "note": "Fall run only in years the return supports it; confirm the waterbody before you go.",
-          "bestTime": "Dawn & dusk; first light is best"
-        }
-      ],
-      "Snohomish": [
-        {
-          "species": "Smallmouth Bass",
-          "bestMonths": [
-            5,
-            6,
-            7
-          ],
-          "goodMonths": [
-            8,
-            9
-          ],
-          "bait": "Tube jigs, crankbaits, drop-shot",
-          "note": "Lowland lakes across the county.",
-          "bestTime": "Morning & evening"
         }
       ],
       "Spokane": [
-        {
-          "species": "Redband Trout",
-          "bestMonths": [
-            6,
-            7,
-            8,
-            9,
-            10
-          ],
-          "goodMonths": [
-            11
-          ],
-          "bait": "Nymphs, dry flies, small spinners",
-          "note": "Native redband trout in the county's rivers, catch-and-release; season dates set annually - confirm with WDFW. Wild fishery, tread lightly.",
-          "bestTime": "Morning & evening"
-        },
         {
           "species": "Rainbow Trout",
           "bestMonths": [
@@ -1857,208 +1700,6 @@
           "bait": "PowerBait, worms, spoons",
           "note": "Stocked lowland lakes across the county.",
           "bestTime": "Early morning & evening"
-        }
-      ],
-      "Stevens": [
-        {
-          "species": "Kokanee",
-          "bestMonths": [
-            1,
-            2,
-            3,
-            11,
-            12
-          ],
-          "goodMonths": [
-            4,
-            5,
-            6,
-            10
-          ],
-          "bait": "Trolled dodger + hoochie tipped with corn near the dam",
-          "note": "Trophy kokanee on the county's Columbia-system reservoirs; best in winter and spring.",
-          "bestTime": "Early morning, before the sun is high"
-        },
-        {
-          "species": "Walleye",
-          "bestMonths": [
-            4,
-            5,
-            6
-          ],
-          "goodMonths": [
-            7,
-            8
-          ],
-          "bait": "Bottom-walker + worm harness, crankbaits",
-          "note": "Columbia-system reservoirs; a mercury advisory applies - limit consumption.",
-          "bestTime": "Dawn, dusk & after dark"
-        },
-        {
-          "species": "Rainbow Trout",
-          "bestMonths": [
-            3,
-            4,
-            10,
-            11
-          ],
-          "goodMonths": [
-            1,
-            2,
-            12
-          ],
-          "bait": "Trolled Wedding Rings or spoons",
-          "note": "Net-pen triploids on the county's Columbia-system reservoirs; best in cool months.",
-          "bestTime": "Early morning & evening"
-        }
-      ],
-      "Ferry": [
-        {
-          "species": "Kokanee",
-          "bestMonths": [
-            1,
-            2,
-            3,
-            11,
-            12
-          ],
-          "goodMonths": [
-            4,
-            5,
-            6,
-            10
-          ],
-          "bait": "Trolled dodger + hoochie tipped with corn",
-          "note": "Trophy kokanee on the county's Columbia-system reservoirs; best in winter and spring.",
-          "bestTime": "Early morning, before the sun is high"
-        },
-        {
-          "species": "Walleye",
-          "bestMonths": [
-            4,
-            5,
-            6
-          ],
-          "goodMonths": [
-            7,
-            8
-          ],
-          "bait": "Bottom-walker + worm harness, crankbaits",
-          "note": "Columbia-system reservoirs; a mercury advisory applies - limit consumption.",
-          "bestTime": "Dawn, dusk & after dark"
-        },
-        {
-          "species": "Rainbow Trout",
-          "bestMonths": [
-            3,
-            4,
-            10,
-            11
-          ],
-          "goodMonths": [
-            1,
-            2,
-            12
-          ],
-          "bait": "Trolled Wedding Rings or spoons",
-          "note": "Net-pen triploids on the county's Columbia-system reservoirs; best in cool months.",
-          "bestTime": "Early morning & evening"
-        }
-      ],
-      "Douglas": [
-        {
-          "species": "Rainbow Trout (triploid)",
-          "bestMonths": [
-            11,
-            12,
-            1,
-            2
-          ],
-          "goodMonths": [
-            3,
-            10
-          ],
-          "bait": "Trout dough bait or nightcrawlers near the net pens",
-          "note": "Trophy triploids on the county's Columbia-system reservoirs; a cold-weather fishery - spring is poor.",
-          "bestTime": "Early morning & evening"
-        },
-        {
-          "species": "Walleye",
-          "bestMonths": [
-            11,
-            12,
-            1,
-            2
-          ],
-          "goodMonths": [
-            3,
-            10
-          ],
-          "bait": "Bottom bouncers + spinners near the net pens",
-          "note": "Good winter walleye on the county's Columbia-system reservoirs.",
-          "bestTime": "Dawn, dusk & after dark"
-        }
-      ],
-      "Yakima": [
-        {
-          "species": "Smallmouth Bass",
-          "bestMonths": [
-            5,
-            6
-          ],
-          "goodMonths": [
-            7,
-            8,
-            9,
-            10
-          ],
-          "bait": "Tubes, crankbaits, drop-shot",
-          "note": "The county's warm rivers; peaks at the spawn, good into fall.",
-          "bestTime": "Morning & evening"
-        },
-        {
-          "species": "Channel Catfish",
-          "bestMonths": [
-            6,
-            7,
-            8
-          ],
-          "goodMonths": [
-            5,
-            9
-          ],
-          "bait": "Cut bait or nightcrawlers on the bottom after dark",
-          "bestTime": "Dusk & after dark"
-        }
-      ],
-      "Kittitas": [
-        {
-          "species": "Rainbow Trout (wild)",
-          "bestMonths": [
-            7,
-            8,
-            9
-          ],
-          "goodMonths": [
-            6,
-            10
-          ],
-          "bait": "Dry flies, nymphs",
-          "note": "Wild river rainbows; catch-and-release, selective gear rules apply.",
-          "bestTime": "Early morning & evening"
-        },
-        {
-          "species": "Cutthroat Trout",
-          "bestMonths": [
-            7,
-            8
-          ],
-          "goodMonths": [
-            9
-          ],
-          "bait": "Small spinners, flies",
-          "note": "Alpine lakes; best after ice-out through summer.",
-          "bestTime": "Morning & evening"
         }
       ],
       "Pierce": [
@@ -2104,7 +1745,7 @@
             9
           ],
           "bait": "Small jigs, worms or spinners worked tight to rock and timber",
-          "note": "Uncommon statewide but established in this county's lowland lakes; aggressive for its 6-10 inches and a good fish on light tackle.",
+          "note": "Uncommon statewide and present in only a few of this county's lowland lakes; aggressive for its 6-10 inches and a good fish on light tackle.",
           "bestTime": "Morning & evening"
         }
       ],
@@ -2136,7 +1777,7 @@
             9
           ],
           "bait": "Small jigs, worms or spinners worked tight to rock and timber",
-          "note": "Uncommon statewide but established in this county's lowland lakes; aggressive for its 6-10 inches and a good fish on light tackle.",
+          "note": "Uncommon statewide and present in only a few of this county's lowland lakes; aggressive for its 6-10 inches and a good fish on light tackle.",
           "bestTime": "Morning & evening"
         }
       ],
@@ -2153,7 +1794,7 @@
             9
           ],
           "bait": "Worm on a small hook, or a small jig tipped with wax worms or shrimp",
-          "note": "In the county's lowland lakes alongside the trout; schools hold near the drop-off and move deeper as the water cools.",
+          "note": "In some of the county's lowland lakes alongside the trout; schools hold near the drop-off and move deeper as the water cools.",
           "bestTime": "Midday through afternoon"
         }
       ]
@@ -2166,12 +1807,10 @@
             7,
             8
           ],
-          "goodMonths": [
-            6
-          ],
+          "goodMonths": [],
           "bait": "Small pink or red hoochies behind a dodger, trolled slow",
           "bestTime": "First light to mid-morning",
-          "note": "Baker Lake sockeye run on a WDFW trap-and-haul quota, so the fishery opens only when enough fish are passed above the dams."
+          "note": "Opens on a set summer date regardless of how many fish are in the lake; sockeye reach it by the Baker River trap-and-haul. Confirm dates with WDFW."
         }
       ]
     },
