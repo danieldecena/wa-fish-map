@@ -115,14 +115,28 @@
 
 ## Next Up
 
-- **Phase 1 of the App Store plan:** the waterbody river tier is done; next are
-  the 6 unstamped flow-stat gates, then the Oregon polygon.
+- **Phase 1 of the App Store plan:** the waterbody river tier and the USGS flow-stat
+  check are done; next is the Oregon polygon.
 - Phase 0 runs in parallel and is waiting on you: GitHub billing, then merge PR #4.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-16 (flow stats checked against USGS, not just on screen)
+
+- Decided: "Stamp the remaining 6 flow-stat gates" was never defined (coined once
+  on 2026-09-03). Redefined as a source check and built as
+  `scripts/verify_river_stats.py`: every bundled percentile row compared with
+  nwis/stat, and each river's live reading traced to the band it draws.
+- First run: 69 of 77 rivers matched exactly; 8 had drifted because USGS rolled in
+  water year 2026 (Chehalis 1/15 p50 5320 -> 5180). Regenerated `river_stats.json`,
+  same 77 rivers and same gauges; re-run 0 drift. The stale table was the failing
+  input, the regenerated one the passing input.
+- Swift resource tests not re-run (simulator held by another session); their
+  invariants (12 months, 5 ascending percentiles, >=10 years, 10 Feb-28-only
+  gauges) were checked on the new file in Python.
 
 ### 2026-09-16 (the waterbody river tier, and the Spokane row refused)
 

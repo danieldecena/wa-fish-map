@@ -21,7 +21,7 @@
 - [x] Model index for site and pier waterbodies
 - [x] Reachability gate accepts river names
 - [ ] Spokane River row gated on WDFW, docs, verify
-- [ ] Stamp the remaining 6 flow-stat gates
+- [x] Verify flow stats against USGS source
 - [ ] Seed or hide the Oregon marine polygon
 - [ ] Add PrivacyInfo privacy manifest
 - [ ] Audit location permission strings
