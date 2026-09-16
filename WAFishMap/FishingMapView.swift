@@ -125,8 +125,8 @@ struct FishingMapView: View {
         .modifier(AdaptiveDetail(item: selectedRiverBinding) { river in
             RiverDetailSheet(
                 river: river,
-                stats: model.riverStats[river.name],
-                flow: model.flow(forRiver: river.name),
+                stats: model.stats(for: river),
+                flow: model.flow(for: river),
                 flowsLoaded: model.riverFlowsLoaded,
                 guide: model.guide,
                 planDate: planDate

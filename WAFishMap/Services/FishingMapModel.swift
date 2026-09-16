@@ -392,15 +392,26 @@ final class FishingMapModel {
         return riverFlows[gauge]
     }
 
+    /// Flow history for this feature, or nil when the name's gauge is on a
+    /// different river of the same name.
+    func stats(for river: River) -> RiverFlowStats? {
+        river.ownsNameGauge ? riverStats[river.name] : nil
+    }
+
+    func flow(for river: River) -> RiverFlow? {
+        river.ownsNameGauge ? flow(forRiver: river.name) : nil
+    }
+
     /// Flow rating per river id for a given calendar day. The day is injected;
     /// nothing in this path reads the clock.
     func riverRatings(month: Int, day: Int) -> [String: FishingRating] {
         var ratings: [String: FishingRating] = [:]
-        for (name, stats) in riverStats {
-            guard let discharge = riverFlows[stats.gauge]?.discharge,
+        for river in rivers {
+            guard let stats = stats(for: river),
+                  let discharge = riverFlows[stats.gauge]?.discharge,
                   let rating = stats.rating(discharge: discharge, month: month, day: day)
             else { continue }
-            ratings[name] = rating
+            ratings[river.id] = rating
         }
         return ratings
     }
