@@ -40,4 +40,18 @@ struct PlanClockTests {
 
         #expect(PlanClock.day(for: planDate) == 31)
     }
+
+    /// Drives the odd/even-year species stamp (Pink Salmon), so it needs the same
+    /// Pacific-not-device-zone rule as month/day: Dec 31 23:30 Pacific is already
+    /// Jan 1 in UTC, a year later.
+    @Test func yearIsPacificEvenWhenUTCDisagrees() {
+        let planDate = date(2026, 12, 31, 23, 30)
+
+        var utc = Calendar(identifier: .gregorian)
+        utc.timeZone = TimeZone(identifier: "UTC")!
+        // Fixture sanity: this instant really does fall in the next year in UTC.
+        #expect(utc.component(.year, from: planDate) == 2027)
+
+        #expect(PlanClock.year(for: planDate) == 2026)
+    }
 }

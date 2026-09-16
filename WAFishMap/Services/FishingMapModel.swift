@@ -11,8 +11,17 @@ final class FishingMapModel {
     var isLoading = true
     var selectedSiteID: AccessSite.ID?
 
-    /// Curated seasonal guidance (bundled, offline). See `Fishery.swift`.
+    /// Curated seasonal guidance (bundled, offline), resolved for `planYear`. See
+    /// `Fishery.swift`. Every existing call site keeps reading this unchanged.
     var guide: FisheryGuide?
+    /// The season-risk-resolved guide before year-parity stamping. Kept so a
+    /// plan-year change is one `resolvingYear` pass over this base, not a
+    /// re-parse of the bundle.
+    private var baseGuide: FisheryGuide?
+    /// The year `guide` is currently resolved for, so `setPlanYear` can skip
+    /// recomputing when the year hasn't actually changed (e.g. a new `Date()`
+    /// every render, same calendar year).
+    private var planYear: Int?
     /// Bundled river geometry. Not a live layer — see `River`.
     var rivers: [River] = []
     /// Each river's own flow history, bundled. Keyed by river name.
@@ -312,12 +321,27 @@ final class FishingMapModel {
         return ratings
     }
 
+    /// Loads the guide, stamped for `planYear` if the view has already set one.
+    /// This layer never reads the clock; the view calls `setPlanYear` before
+    /// `load`, because `load` publishes the guide ahead of its network awaits and
+    /// pins render against it while those are still in flight.
     private func loadGuide(bundle: Bundle) {
-        guard guide == nil,
+        guard baseGuide == nil,
               let url = bundle.url(forResource: "fisheries", withExtension: "json"),
               let data = try? Data(contentsOf: url),
               let loaded = try? FisheryLoader.guide(from: data) else { return }
-        guide = loaded
+        baseGuide = loaded
+        guide = planYear.map(loaded.resolvingYear) ?? loaded
+    }
+
+    /// Record the plan year and re-stamp `guide` for it. A no-op when the year
+    /// hasn't changed. Before the guide loads it only records the year, which
+    /// `loadGuide` then applies.
+    func setPlanYear(_ year: Int) {
+        guard year != planYear else { return }
+        planYear = year
+        guard let baseGuide else { return }
+        guide = baseGuide.resolvingYear(year)
     }
 
     private static func data(_ resource: Resource, in bundle: Bundle) throws -> Data {

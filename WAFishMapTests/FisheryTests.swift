@@ -139,3 +139,70 @@ struct FisheryTests {
         #expect(guide.speciesNames == ["Chinook Salmon", "Coho", "Rainbow Trout"])
     }
 }
+
+/// Odd/even-year species (Pink Salmon is odd-year) must not rate Prime in the
+/// wrong year — `SpeciesSeason.rating(inMonth:)` is month-only, so without a
+/// year stamp a 2026 (even) plan showed pinks at Prime in August.
+struct OddYearSpeciesTests {
+    let pink = SpeciesSeason(species: "Pink Salmon", bestMonths: [8, 9], goodMonths: [7], years: "odd")
+
+    @Test func decodesYearsField() throws {
+        let json = #"{"species": "Pink Salmon", "bestMonths": [8], "years": "odd"}"#.data(using: .utf8)!
+        let decoded = try JSONDecoder().decode(SpeciesSeason.self, from: json)
+        #expect(decoded.years == "odd")
+    }
+
+    @Test func absentYearsFieldDecodesToNil() throws {
+        let json = #"{"species": "Coho", "bestMonths": [9]}"#.data(using: .utf8)!
+        let decoded = try JSONDecoder().decode(SpeciesSeason.self, from: json)
+        #expect(decoded.years == nil)
+    }
+
+    @Test func oddRowRatesExcellentInAnOddYearAndPoorInAnEvenYear() {
+        #expect(pink.resolvingYear(2025).rating(inMonth: 8) == .excellent)
+        #expect(pink.resolvingYear(2026).rating(inMonth: 8) == .poor)
+    }
+
+    @Test func rowWithoutYearsIsUnaffectedByEitherYear() {
+        let coho = SpeciesSeason(species: "Coho", bestMonths: [9, 10])
+        #expect(coho.resolvingYear(2025).rating(inMonth: 9) == .excellent)
+        #expect(coho.resolvingYear(2026).rating(inMonth: 9) == .excellent)
+    }
+
+    @Test func offYearExcludesFromInSeason() {
+        let area = AreaFishery(areaName: "7", species: [pink])
+        #expect(area.resolvingYear(2025).inSeason(month: 8).map(\.species) == ["Pink Salmon"])
+        #expect(area.resolvingYear(2026).inSeason(month: 8).isEmpty)
+    }
+
+    @Test func fisheryGuideResolvingYearStampsEveryTier() {
+        let guide = FisheryGuide(
+            updated: "2026-09-16", disclaimer: "d", wdfwURL: "https://example.com",
+            areas: [AreaFishery(areaName: "7", species: [pink])],
+            freshwater: FreshwaterGuide(
+                species: [pink],
+                byCounty: ["Skagit": [pink]],
+                byWaterbody: ["Baker Lake": [pink]]
+            ),
+            seasonRisk: []
+        )
+        let resolved = guide.resolvingYear(2026)
+        #expect(resolved.area(named: "7")?.species.first?.rating(inMonth: 8) == .poor)
+        #expect(resolved.freshwater?.species.first?.rating(inMonth: 8) == .poor)
+        #expect(resolved.freshwater?.fishery(county: "Skagit").species.first?.rating(inMonth: 8) == .poor)
+        #expect(resolved.freshwater?.fishery(county: "Skagit", waterbody: "Baker Lake")
+            .species.first?.rating(inMonth: 8) == .poor)
+    }
+}
+
+/// Confirms the shipped `fisheries.json` Pink Salmon rows actually carry
+/// `years: "odd"` and rate correctly for a real odd/even year pair.
+struct ShippedOddYearTests {
+    @Test func area7PinkSalmonIsNotPrimeInAnEvenYearButIsInAnOddYear() throws {
+        let url = try #require(Bundle.main.url(forResource: "fisheries", withExtension: "json"))
+        let guide = try FisheryLoader.guide(from: Data(contentsOf: url))
+        let area = try #require(guide.area(named: "7"))
+        #expect(area.resolvingYear(2026).rating(inMonth: 8, species: "Pink Salmon") == .poor)
+        #expect(area.resolvingYear(2025).rating(inMonth: 8, species: "Pink Salmon") == .excellent)
+    }
+}
