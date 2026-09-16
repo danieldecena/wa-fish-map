@@ -170,7 +170,7 @@ struct FishingMapView: View {
             // Before `load`: it publishes the guide ahead of its network awaits.
             model.setPlanYear(currentYear)
             await model.load()
-            if let river = model.initialRiverName { selectedRiverName = river }
+            if let river = model.initialRiverID { selectedRiverID = river }
             recomputeHeatZones()
         }
         .onChange(of: heatVisible) { recomputeHeatZones() }

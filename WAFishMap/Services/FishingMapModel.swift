@@ -12,7 +12,7 @@ final class FishingMapModel {
     var selectedSiteID: AccessSite.ID?
     /// A river for the view to open on launch. Set only under a UI test, because
     /// the river selection is view state the model cannot reach directly.
-    var initialRiverName: String?
+    var initialRiverID: River.ID?
 
     /// Curated seasonal guidance (bundled, offline), resolved for `planYear`. See
     /// `Fishery.swift`. Every existing call site keeps reading this unchanged.
@@ -193,7 +193,7 @@ final class FishingMapModel {
                 switch UITestSeam.detail ?? .site {
                 case .site: selectedSiteID = accessSites.first?.id
                 case .pier: selectedSiteID = piers.first?.id
-                case .river: initialRiverName = rivers.first?.name
+                case .river: initialRiverID = rivers.first?.id
                 }
             } catch {
                 statusMessage = "Couldn't load WDFW data — check your connection"
@@ -338,14 +338,15 @@ final class FishingMapModel {
     /// Must run after the guide, rivers and marine-area indexes are in place.
     func indexWaterbodies() {
         let freshwater = guide?.freshwater
+        let riversOnly = rivers.filter(\.resolvesWaterbody)
         var sites: [AccessSite.ID: String] = [:]
         for site in accessSites where siteAreaName[site.id] == nil {
-            sites[site.id] = freshwater?.waterbody(forFacility: site.facilityName, at: site.coordinate, rivers: rivers)
+            sites[site.id] = freshwater?.waterbody(forFacility: site.facilityName, at: site.coordinate, riversOnly: riversOnly)
         }
         siteWaterbody = sites
         var piersMap: [FishingPier.ID: String] = [:]
         for pier in piers where pierAreaName[pier.id] == nil {
-            piersMap[pier.id] = freshwater?.waterbody(forFacility: pier.name, at: pier.coordinate, rivers: rivers)
+            piersMap[pier.id] = freshwater?.waterbody(forFacility: pier.name, at: pier.coordinate, riversOnly: riversOnly)
         }
         pierWaterbody = piersMap
 

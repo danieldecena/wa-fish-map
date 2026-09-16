@@ -52,7 +52,7 @@
 - [ ] Shared simulator relaunches test host mid-run
 - [x] Review and merge PR #17 — 9b3a4fb
 - [x] Key river stats/flow by id before any creek gets a gauge
-- [ ] Filter rivers once in indexWaterbodies, not per site
+- [x] Filter rivers once in indexWaterbodies, not per site
 - [x] Live load shows no false "piers unavailable" (PR #18)
 - [ ] [you] Review and merge PR #18
 

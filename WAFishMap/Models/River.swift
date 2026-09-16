@@ -23,6 +23,10 @@ struct River: Identifiable, Equatable, Sendable {
     /// One of several unrelated rivers sharing this name.
     var isSplit: Bool { kind == .river && id != name }
 
+    /// Only a whole, uniquely named river can be a waterbody key. Creeks and
+    /// split rivers share their name with unrelated water.
+    var resolvesWaterbody: Bool { kind == .river && !isSplit }
+
     /// Whether data keyed by the river's *name* (flow history, a gauge, a
     /// waterbody note) is true of this feature. A split run is only the right
     /// river for its gauge, and never for a note, which cannot say which one.

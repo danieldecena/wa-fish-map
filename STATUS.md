@@ -437,3 +437,14 @@ current counts rather than trusting a number written here.
   Apple Account on the team and has to activate an emailed invitation, which
   expires in about 7 days. That is exactly what the external route avoided.
 
+
+### 2026-09-16 (launch indexing measured)
+- Decided: filter rivers once per `indexWaterbodies` pass, not per site. Measured
+  with a throwaway Swift Testing timer on the real bundled rivers (1,312), lakes
+  (653) and guide, plus 480 synthetic inland launches, iPhone 17 Pro simulator on
+  Apple silicon (not an A7 device), 5 runs: `indexWaterbodies` min 142.3 / median
+  146.4 ms before, 100.8 / 102.3 ms after; `indexSitesToAreas` 107.7 / 109.9 ms.
+  The per-site `filter` alone was 36.7 / 37.1 ms, about 25% of the pass.
+  Resolved counts unchanged (256 waterbodies, 215 lakes). `indexSitesToAreas`
+  still filters per site through `marineArea(at:facility:)`; same fix applies if
+  it matters. The timer ran 2.5 s, so it was not kept; A7 profiling stays open.
