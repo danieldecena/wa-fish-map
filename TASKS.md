@@ -23,7 +23,7 @@
 - [ ] Spokane River row gated on WDFW, docs, verify
 - [ ] Stamp the remaining 6 flow-stat gates
 - [ ] Seed or hide the Oregon marine polygon
-- [ ] Add PrivacyInfo privacy manifest
+- [x] Add PrivacyInfo privacy manifest
 - [ ] Audit location permission strings
 - [ ] Attribution: Apple Weather mark and data credits
 - [ ] UI test: disclaimer and WDFW link on every sheet

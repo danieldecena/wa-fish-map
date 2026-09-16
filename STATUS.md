@@ -124,6 +124,17 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-16 (privacy manifest declares nothing, on purpose)
+
+- Decided: `WAFishMap/PrivacyInfo.xcprivacy` is all-empty: no tracking, no
+  collected data, no required-reason APIs. Grep found no UserDefaults, file
+  timestamp, boot-time or disk-space calls, and no third-party packages. The
+  user's location never leaves the device: WeatherKit is queried with the
+  launch site's coordinate, and WDFW/NOAA/USGS/NDBC requests carry only fixed
+  queries or station ids. Adding any of those APIs, an SDK, or a request that
+  sends the user's position means updating the manifest and the App Privacy
+  answers together. Verified the file ships in the built .app.
+
 ### 2026-09-16 (the waterbody river tier, and the Spokane row refused)
 
 - Shipped the river waterbody tier (plan
