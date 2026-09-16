@@ -287,6 +287,49 @@ struct FreshwaterGuide: Decodable, Sendable {
                            species: rows + base.filter { !overridden.contains($0.species) })
     }
 
+    /// Guide species name → the WDFW lowland-lakes species that stand for it
+    /// (`scripts/build_lakes.py` layer names). WDFW's only cutthroat layer is
+    /// "Coastal Cutthroat". A guide species missing here is never filtered: the
+    /// layer has no column for it (Rock Bass), and unknown is not absent.
+    static let wdfwLakeSpecies: [String: Set<String>] = [
+        "Rainbow Trout": ["Rainbow Trout"],
+        "Cutthroat Trout": ["Coastal Cutthroat"],
+        "Brown Trout": ["Brown Trout"],
+        "Brook Trout": ["Brook Trout"],
+        "Tiger Trout": ["Tiger Trout"],
+        "Kokanee": ["Kokanee"],
+        "Largemouth Bass": ["Largemouth Bass"],
+        "Smallmouth Bass": ["Smallmouth Bass"],
+        "Walleye": ["Walleye"],
+        "Tiger Muskie": ["Tiger Muskie"],
+        "Brown Bullhead": ["Brown Bullhead"],
+        "Yellow Perch": ["Yellow Perch"],
+        "Black Crappie": ["Black Crappie"],
+        "Pumpkinseed": ["Pumpkinseed"],
+        "Bluegill": ["Bluegill"],
+    ]
+
+    /// `fishery(county:waterbody:)` narrowed to the WDFW lake a launch sits on.
+    /// The statewide list is one list everywhere, so without this every inland
+    /// launch rated the same, and bass rated at trout-only lakes (2026-09-16).
+    ///
+    /// Only the statewide and county tiers are filtered. Waterbody rows are
+    /// curated for that one water and always kept. Nil or empty `lakeSpecies`
+    /// (no lake match, or WDFW lists nothing) changes nothing. When filtering
+    /// leaves no species the result is nil, which the map renders neutral:
+    /// an empty fishery would rate `.poor`, a claim the data does not make.
+    func fishery(county: String, waterbody: String?, lakeSpecies: [String]?) -> AreaFishery? {
+        let merged = fishery(county: county, waterbody: waterbody)
+        guard let lakeSpecies, !lakeSpecies.isEmpty else { return merged }
+        let listed = Set(lakeSpecies)
+        let curated = Set(waterbody.flatMap { byWaterbody?[$0] }?.map(\.species) ?? [])
+        let kept = merged.species.filter { s in
+            guard !curated.contains(s.species), let wdfw = Self.wdfwLakeSpecies[s.species] else { return true }
+            return !wdfw.isDisjoint(with: listed)
+        }
+        return kept.isEmpty ? nil : AreaFishery(areaName: "freshwater", species: kept)
+    }
+
     /// Every tier is stamped. A tier omitted here silently skips the season cap,
     /// which would let a closure-prone fishery render as Prime.
     func resolvingSeasonRisk(_ table: [SeasonRisk]) -> FreshwaterGuide {

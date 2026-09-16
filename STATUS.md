@@ -114,6 +114,21 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-16 (inland launches rated only on species their WDFW lake lists)
+
+- Decided: a launch matched by `Lake.match` to a lake with a WDFW species list
+  keeps only statewide/county species that list supports
+  (`FreshwaterGuide.fishery(county:waterbody:lakeSpecies:)`, explicit
+  `wdfwLakeSpecies` map; unmapped species such as Rock Bass are kept, waterbody
+  rows are never filtered). Pin and sheet both read `fishery(for:)`.
+- Observed, September, live WDFW launches (477; 452 inland; 199 lake-matched with
+  species): ratings went from 199 Good to 179 Good, 12 Prime, 6 Fair, 2 no data.
+  Species lists changed at 172 of 199. Colour stays mostly Good because Rainbow
+  Trout and Largemouth Bass both carry September as a good month.
+- Open: WDFW's only cutthroat layer is "Coastal Cutthroat", listed at 0 of 325
+  lakes east of -120.5, so cutthroat drops at every eastern lake. Keeping it there
+  instead would make 49 Prime / 150 Good. Piers are not lake-matched and unchanged.
+
 ### 2026-09-16 (Baker Lake sockeye row removed: no launch reaches it)
 
 - Decided: drop `byWaterbody["Baker Lake"]` and its `waterbodySites` entry. The

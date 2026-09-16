@@ -143,6 +143,35 @@ struct FishingMapModelTests {
         #expect(model.lake(for: site)?.name == "Lake Dolloff")
     }
 
+    /// Pin and sheet read the same `fishery(for:)`, so a trout-only lake drops
+    /// bass from both the colour and the list.
+    @Test @MainActor func aLakeLaunchIsRatedOnlyOnSpeciesItsLakeLists() throws {
+        let model = FishingMapModel()
+        let trout = SpeciesSeason(species: "Rainbow Trout", bestMonths: [4], goodMonths: [9])
+        let bass = SpeciesSeason(species: "Largemouth Bass", bestMonths: [9])
+        model.guide = FisheryGuide(updated: "t", disclaimer: "d", wdfwURL: "https://wdfw.wa.gov",
+                                   areas: [], freshwater: FreshwaterGuide(species: [trout, bass]),
+                                   seasonRisk: [])
+        let dolloff = LakeTests.lake("Lake Dolloff", -122.2836, 47.3228, acres: 21.0)
+        model.lakes = [Lake(name: dolloff.name, county: "King", longitude: dolloff.longitude,
+                            latitude: dolloff.latitude, acres: 21.0, elevationFeet: nil, management: nil,
+                            shorelineAccess: nil, boatRamp: nil, websiteURL: nil, species: ["Rainbow Trout"])]
+        let onLake = AccessSite(facilityName: "Lake Dolloff", countyName: "King", hasLaunch: true,
+                                launchSurface: .concrete, hasRestrooms: false, directions: "",
+                                coordinate: LonLat(longitude: -122.284561, latitude: 47.323529))
+        let offLake = AccessSite(facilityName: "Dry Ramp", countyName: "King", hasLaunch: true,
+                                 launchSurface: .concrete, hasRestrooms: false, directions: "",
+                                 coordinate: LonLat(longitude: -122.0, latitude: 47.0))
+        model.accessSites = [onLake, offLake]
+        model.indexWaterbodies()
+        try #require(model.lake(for: onLake) != nil)
+        #expect(model.fishery(for: onLake)?.species.map(\.species) == ["Rainbow Trout"])
+        #expect(model.rating(for: onLake, month: 9) == .good)
+        #expect(model.rating(for: onLake, month: 9, species: "Largemouth Bass") == nil)
+        #expect(model.fishery(for: offLake)?.species.map(\.species) == ["Rainbow Trout", "Largemouth Bass"])
+        #expect(model.rating(for: offLake, month: 9) == .excellent)
+    }
+
     struct StubClient: HTTPGet {
         var marineData: Data
         var siteData: Data
