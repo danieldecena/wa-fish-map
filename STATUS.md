@@ -114,6 +114,71 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-17 (iPad/Mac on a branch, not for submission)
+
+- Decided: the branch carries a **draft PR #45, titled `DO NOT MERGE`**, so the
+  diff is reviewable and the session-start hook stops asking for one. It is a
+  record, not a merge path — merging it would put `TARGETED_DEVICE_FAMILY = "1,2"`
+  on `main` and re-trigger ASC's 13-inch screenshot requirement.
+- Decided: iPad and Mac are **not being submitted**. The work lives on
+  `feat/ipad-support` and is never merged to `main`, so the next App Store
+  upload stays iPhone-only and never re-triggers ASC's 13-inch screenshot
+  requirement. `main` keeps `TARGETED_DEVICE_FAMILY = 1`.
+- Decided sequencing: get iPad/Mac working, then iPhone function and design;
+  iPhone improvements get applied back to the other families later, on request.
+- Found: the broken iPad detail was **three stacked `.inspector` modifiers**.
+  `AdaptiveDetail` was applied three times (site, river, pier), which nests three
+  inspector columns on regular width and clips the content to an unreadable
+  ~60pt strip. Three `.sheet`s stack without complaint, which is why the phone
+  never showed it. Proven by a matched pair of screenshots on one build — three
+  modifiers vs one, nothing else changed. Fixed with a single `Detail` enum,
+  `selectedDetailBinding` and `detailSheet(for:)`; the full iPhone suite (274
+  Swift Testing + 7 XCUITest, UI tests observed running, not skipped) stayed
+  green across the change.
+- Found: three of the six defects predicted from reading the source were wrong.
+  The overlay cards are **centred**, not hugging the left edge —
+  `.frame(maxWidth:alignment:)` aligns content inside the frame, not the frame
+  within its parent. No doubled navigation bar appears inside the inspector, and
+  the 40pt map fit padding frames the statewide view acceptably. Left all three
+  alone. Reading the source predicted the wrong defects; the canvas found the
+  real one.
+- Found and fixed: `testInfoPopoverCarriesWDFWLink` failed on a 13-inch iPad and
+  failed identically at `main`'s code, so it was never a regression. **It was a
+  false detector, not an app defect.** `isHittable` reports every chrome control
+  unhittable on a regular-width canvas — Heat, Rivers, Now, recenter and the info
+  button all `false` — because the full-screen `MKMapView` is a later sibling of
+  the chrome in the accessibility hierarchy and therefore sits above it for
+  XCUITest's hit test. A real touch lands perfectly well: a coordinate tap opened
+  the popover with `isHittable` false throughout. That coordinate tap is the
+  known-good input that separated "the app is unusable on iPad" from "the check
+  is broken"; without it the honest reading of five `false`s was a severe app bug.
+  The test now taps by coordinate and asserts the outcome. Two supporting fixes:
+  the dismissal path prefers the inspector's close control over `swipeDown`
+  (which does nothing to an inspector), and `waitForNonExistence` became a hard
+  assertion because the detail carries a `wdfwLink` of its own and would satisfy
+  the popover assertion without the popover ever opening.
+- Found: the close control's first form was 22pt and its tap did not dismiss.
+  `.padding` applied outside a `Button` adds whitespace, not hit area; the frame
+  has to be on the label. At 44pt it dismisses. Same shape as the 14pt info
+  button recorded in the ios-build runbook.
+- Verified: full suite green on **both** destinations after the change — 274
+  Swift Testing tests in 39 suites plus all 7 XCUITest cases, `TEST SUCCEEDED`
+  on iPad Pro 13-inch (M4) and on iPhone 17 Pro.
+- Verified both orientations on the 13-inch canvas: portrait 2064x2752 and
+  landscape 2752x2064, the inspector correct in each, nothing clipped or
+  overlapping. Rotation has to go through `XCUIDevice` in a test — `simctl` has
+  no rotate verb and there is no Simulator GUI. Device left in portrait.
+- Note: Xcode 27 ships **no `Simulator.app`**. An 8-deep search of both
+  `Xcode.app` and `Xcode-beta.app` plus the system CoreSimulator paths finds
+  nothing and `open -a Simulator` reports `Unable to find application named
+  'Simulator'`. The simulator can only be observed through `simctl io screenshot`.
+- Note: `~/CLAUDE.md`'s "the simulator here is named `iPhone`" is stale. Re-checked
+  2026-09-17 against `xcrun simctl list devices available`: still no such device,
+  and this project's own `CLAUDE.md` repeats the claim. Filed as a task. No
+  simulator by that name exists; the devices are `iPhone 17 Pro`,
+  `iPhone UI Worktree` and now `iPad Pro 13-inch (M4)`, so
+  `-destination 'platform=iOS Simulator,name=iPhone'` no longer resolves.
+
 ### 2026-09-16 (1.0 (6) submitted for App Store review)
 
 - Decided: ship iPhone-only (#43, `TARGETED_DEVICE_FAMILY = 1` on the app

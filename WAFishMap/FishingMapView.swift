@@ -117,38 +117,8 @@ struct FishingMapView: View {
         .overlay(alignment: .topTrailing) { recenterButton }
         .safeAreaInset(edge: .top) { dateControl }
         .safeAreaInset(edge: .bottom) { statusBar }
-        .modifier(AdaptiveDetail(item: selectedSiteBinding) { site in
-            SiteDetailSheet(
-                site: site,
-                fishery: model.fishery(for: site),
-                isMarine: model.isMarine(site),
-                guide: model.guide,
-                planDate: planDate,
-                protectedAreaCheck: model.protectedAreaCheck(for: site),
-                species: selectedSpecies,
-                lake: model.lake(for: site)
-            )
-        })
-        .modifier(AdaptiveDetail(item: selectedRiverBinding) { river in
-            RiverDetailSheet(
-                river: river,
-                stats: model.stats(for: river),
-                flow: model.flow(for: river),
-                flowsLoaded: model.riverFlowsLoaded,
-                guide: model.guide,
-                planDate: planDate
-            )
-        })
-        .modifier(AdaptiveDetail(item: selectedPierBinding) { pier in
-            PierDetailSheet(
-                pier: pier,
-                fishery: model.fishery(for: pier),
-                isMarine: model.isMarine(pier),
-                guide: model.guide,
-                planDate: planDate,
-                protectedAreaCheck: model.protectedAreaCheck(for: pier),
-                species: selectedSpecies
-            )
+        .modifier(AdaptiveDetail(item: selectedDetailBinding) { detail in
+            detailSheet(for: detail)
         })
         .overlay {
             // Total load failure (no live data, no bundled sample): the kit's
@@ -293,29 +263,89 @@ struct FishingMapView: View {
         .padding(.top, 6)
     }
 
-    /// `River` is already `Identifiable` by name, so the sheet binds to the
-    /// river itself rather than to a wrapper around the name.
-    private var selectedRiverBinding: Binding<River?> {
+    /// The three detail surfaces present through **one** modifier. Three stacked
+    /// `.inspector`s nest their columns on a regular-width canvas and clip the
+    /// content to an unreadable strip — observed on a 13-inch iPad 2026-09-17,
+    /// and fixed by the single presentation below. Three `.sheet`s stack without
+    /// complaint, which is why the phone never showed it.
+    private enum Detail: Identifiable {
+        case site(AccessSite)
+        case river(River)
+        case pier(FishingPier)
+
+        var id: String {
+            switch self {
+            case .site(let site): "site-\(site.id)"
+            case .river(let river): "river-\(river.id)"
+            case .pier(let pier): "pier-\(pier.id)"
+            }
+        }
+    }
+
+    /// Precedence mirrors the modifier order this replaced. A site and a pier can
+    /// never both resolve: they share `model.selectedSiteID` and `selectedSite`
+    /// only looks in `accessSites`.
+    private var selectedDetailBinding: Binding<Detail?> {
         Binding(
-            get: { model.rivers.first { $0.id == selectedRiverID } },
-            set: { selectedRiverID = $0?.id }
+            get: {
+                if let site = model.selectedSite { return .site(site) }
+                if let river = model.rivers.first(where: { $0.id == selectedRiverID }) { return .river(river) }
+                if let pier = model.piers.first(where: { $0.id == model.selectedSiteID }) { return .pier(pier) }
+                return nil
+            },
+            set: { detail in
+                switch detail {
+                case .site(let site):
+                    model.selectedSiteID = site.id
+                    selectedRiverID = nil
+                case .pier(let pier):
+                    model.selectedSiteID = pier.id
+                    selectedRiverID = nil
+                case .river(let river):
+                    selectedRiverID = river.id
+                    model.selectedSiteID = nil
+                case nil:
+                    model.selectedSiteID = nil
+                    selectedRiverID = nil
+                }
+            }
         )
     }
 
-    private var selectedSiteBinding: Binding<AccessSite?> {
-        Binding(
-            get: { model.selectedSite },
-            set: { model.selectedSiteID = $0?.id }
-        )
-    }
-
-    /// Piers share the map's single selection; resolve it back to a pier when the
-    /// selected id is a pier's.
-    private var selectedPierBinding: Binding<FishingPier?> {
-        Binding(
-            get: { model.piers.first { $0.id == model.selectedSiteID } },
-            set: { model.selectedSiteID = $0?.id }
-        )
+    @ViewBuilder
+    private func detailSheet(for detail: Detail) -> some View {
+        switch detail {
+        case .site(let site):
+            SiteDetailSheet(
+                site: site,
+                fishery: model.fishery(for: site),
+                isMarine: model.isMarine(site),
+                guide: model.guide,
+                planDate: planDate,
+                protectedAreaCheck: model.protectedAreaCheck(for: site),
+                species: selectedSpecies,
+                lake: model.lake(for: site)
+            )
+        case .river(let river):
+            RiverDetailSheet(
+                river: river,
+                stats: model.stats(for: river),
+                flow: model.flow(for: river),
+                flowsLoaded: model.riverFlowsLoaded,
+                guide: model.guide,
+                planDate: planDate
+            )
+        case .pier(let pier):
+            PierDetailSheet(
+                pier: pier,
+                fishery: model.fishery(for: pier),
+                isMarine: model.isMarine(pier),
+                guide: model.guide,
+                planDate: planDate,
+                protectedAreaCheck: model.protectedAreaCheck(for: pier),
+                species: selectedSpecies
+            )
+        }
     }
 
     private func rating(for site: AccessSite) -> FishingRating? {
@@ -561,7 +591,29 @@ private struct AdaptiveDetail<Item: Identifiable, Detail: View>: ViewModifier {
     @ViewBuilder func body(content: Content) -> some View {
         if sizeClass == .regular {
             content.inspector(isPresented: isPresented) {
-                if let item { detail(item) } else { EmptyView() }
+                if let item {
+                    // A sheet has its grabber; an inspector has no dismiss of its
+                    // own, so without this the only way out is deselecting on the map.
+                    detail(item).overlay(alignment: .topTrailing) {
+                        Button { self.item = nil } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .symbolRenderingMode(.hierarchical)
+                                .font(.title2)
+                                // The frame is the tap target, and it has to be
+                                // on the label: `.padding` outside the Button
+                                // adds whitespace, not hit area, and left this
+                                // at 22pt — half Apple's 44pt minimum.
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.trailing, 4)
+                        .accessibilityLabel("Close")
+                        .accessibilityIdentifier("closeDetail")
+                    }
+                } else {
+                    EmptyView()
+                }
             }
         } else {
             content.sheet(item: $item) { site in
