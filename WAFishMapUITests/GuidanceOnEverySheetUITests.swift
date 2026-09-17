@@ -72,18 +72,28 @@ final class GuidanceOnEverySheetUITests: XCTestCase {
             XCTFail("Info button never appeared. On screen: \(Self.labels(app))")
             return
         }
-        // The launch opens the site sheet, which covers the status bar on a phone.
+        // The launch opens the site detail, which covers the status bar on a phone.
         let sheet = element(app, "siteDetailSheet")
         if sheet.waitForExistence(timeout: 30) {
-            sheet.swipeDown(velocity: .fast)
+            // A swipe dismisses a sheet but does nothing to the inspector a
+            // regular-width canvas presents instead, so prefer its close control.
+            let close = element(app, "closeDetail")
+            if close.exists {
+                close.tap()
+            } else {
+                sheet.swipeDown(velocity: .fast)
+            }
             // The dismiss is animated; tapping mid-animation lands on the sheet,
             // not the button underneath it, and the popover never opens.
             _ = sheet.waitForNonExistence(timeout: 10)
         }
-        for _ in 0..<20 where !button.isHittable {
-            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
-        }
-        XCTAssertTrue(button.isHittable, "guidanceInfoButton never became hittable. On screen: \(Self.labels(app))")
+        // Dismissing the inspector grows the map from a column to the full width,
+        // and the button only becomes hittable once that relayout lands. Two
+        // seconds of spinning was enough on a phone, where nothing resizes.
+        let hittable = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "isHittable == true"), object: button)
+        XCTAssertEqual(XCTWaiter().wait(for: [hittable], timeout: 15), .completed,
+                       "guidanceInfoButton never became hittable. On screen: \(Self.labels(app))")
         button.tap()
 
         let link = element(app, "wdfwLink")

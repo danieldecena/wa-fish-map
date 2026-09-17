@@ -114,6 +114,43 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-17 (iPad/Mac on a branch, not for submission)
+
+- Decided: iPad and Mac are **not being submitted**. The work lives on
+  `feat/ipad-support` and is never merged to `main`, so the next App Store
+  upload stays iPhone-only and never re-triggers ASC's 13-inch screenshot
+  requirement. `main` keeps `TARGETED_DEVICE_FAMILY = 1`.
+- Decided sequencing: get iPad/Mac working, then iPhone function and design;
+  iPhone improvements get applied back to the other families later, on request.
+- Found: the broken iPad detail was **three stacked `.inspector` modifiers**.
+  `AdaptiveDetail` was applied three times (site, river, pier), which nests three
+  inspector columns on regular width and clips the content to an unreadable
+  ~60pt strip. Three `.sheet`s stack without complaint, which is why the phone
+  never showed it. Proven by a matched pair of screenshots on one build — three
+  modifiers vs one, nothing else changed. Fixed with a single `Detail` enum,
+  `selectedDetailBinding` and `detailSheet(for:)`; the full iPhone suite (274
+  Swift Testing + 7 XCUITest, UI tests observed running, not skipped) stayed
+  green across the change.
+- Found: three of the six defects predicted from reading the source were wrong.
+  The overlay cards are **centred**, not hugging the left edge —
+  `.frame(maxWidth:alignment:)` aligns content inside the frame, not the frame
+  within its parent. No doubled navigation bar appears inside the inspector, and
+  the 40pt map fit padding frames the statewide view acceptably. Left all three
+  alone. Reading the source predicted the wrong defects; the canvas found the
+  real one.
+- Found (pre-existing, still open): `testInfoPopoverCarriesWDFWLink` fails on a
+  13-inch iPad and fails identically at `main`'s code, so it is not a regression.
+  The element tree shows `guidanceInfoButton` at {{546, 1270.5}, {44, 44}},
+  on-screen and uncovered by the inspector at {{752, 0}, {280, 1376}}, yet
+  `isHittable` is false — nothing in the primary content is hittable while the
+  inspector is presented. The test's `swipeDown` dismisses a sheet but not an
+  inspector; tapping the new close control fires but the inspector does not
+  close, cause not yet established.
+- Note: `~/CLAUDE.md`'s "the simulator here is named `iPhone`" is stale. No
+  simulator by that name exists; the devices are `iPhone 17 Pro`,
+  `iPhone UI Worktree` and now `iPad Pro 13-inch (M4)`, so
+  `-destination 'platform=iOS Simulator,name=iPhone'` no longer resolves.
+
 ### 2026-09-16 (1.0 (6) submitted for App Store review)
 
 - Decided: ship iPhone-only (#43, `TARGETED_DEVICE_FAMILY = 1` on the app
