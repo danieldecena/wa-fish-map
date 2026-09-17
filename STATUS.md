@@ -116,6 +116,10 @@ current counts rather than trusting a number written here.
 
 ### 2026-09-17 (iPad/Mac on a branch, not for submission)
 
+- Decided: the branch carries a **draft PR #45, titled `DO NOT MERGE`**, so the
+  diff is reviewable and the session-start hook stops asking for one. It is a
+  record, not a merge path — merging it would put `TARGETED_DEVICE_FAMILY = "1,2"`
+  on `main` and re-trigger ASC's 13-inch screenshot requirement.
 - Decided: iPad and Mac are **not being submitted**. The work lives on
   `feat/ipad-support` and is never merged to `main`, so the next App Store
   upload stays iPhone-only and never re-triggers ASC's 13-inch screenshot

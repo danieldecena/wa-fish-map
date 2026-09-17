@@ -5,6 +5,7 @@
 
 ## Completed
 
+- [x] Open a draft PR for feat/ipad-support (#45, DO NOT MERGE)
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
 - [x] Privacy policy page hosted — https://danieldecena.github.io/wa-fish-map/privacy.html
 - [x] Store description, keywords, review notes — pasted in ASC version (see listing-draft checklist)
