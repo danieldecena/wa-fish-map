@@ -1,5 +1,5 @@
 ## Tasks
-- [ ] Merge #46 and upload a replacement build (1.0 (7)) to ASC
+- [ ] [you] In ASC: confirm the new build number, remove 1.0 (6) from review, attach the new build, resubmit
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
 - [x] Privacy policy page hosted — https://danieldecena.github.io/wa-fish-map/privacy.html

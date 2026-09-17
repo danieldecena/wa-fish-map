@@ -147,6 +147,13 @@ current counts rather than trusting a number written here.
   hit-testing, so per-reach overlay identity was never load-bearing. The two
   coordinator tests that told rivers apart by `MKShape.title` now tell them
   apart by style.
+- Done: merged as #46 (`5bdbc6d`), archived Release and uploaded to ASC
+  (`** EXPORT SUCCEEDED **`, `UPLOAD SUCCEEDED with no errors`). The archived
+  binary carries `RiverMultiPolyline`, checked with `strings` on the product
+  rather than inferred from the repo. ASC refused CFBundleVersion 6 as already
+  used, so Xcode retried with the next free number; **that number was not
+  observed** — no issuer id on this machine for the ASC API, and the delivery
+  log never prints it. Confirm it in ASC rather than assuming 7.
 - Note: this is **not** iPad work. `FishingMapRepresentable.swift` is
   byte-identical on `main`, so 1.0 (6), in App Store review at the time, has the
   defect. Decided to fix on `main` and upload a replacement build.
