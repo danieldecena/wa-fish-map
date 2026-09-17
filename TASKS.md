@@ -15,6 +15,7 @@
 
 ## Completed
 
+- [x] Fix the Rivers watchdog kill: one overlay per style -- 5bdbc6d
 - [x] Build 4 uploaded to ASC (from 66c16ba, accepted as 4)
 - [x] Shared simulator test-host kill: runbook rule (~/.claude ed7fdcf)
 - [x] Recenter button uses live location, not launch fix -- #33
