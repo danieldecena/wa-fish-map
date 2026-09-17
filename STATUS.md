@@ -138,14 +138,32 @@ current counts rather than trusting a number written here.
   the 40pt map fit padding frames the statewide view acceptably. Left all three
   alone. Reading the source predicted the wrong defects; the canvas found the
   real one.
-- Found (pre-existing, still open): `testInfoPopoverCarriesWDFWLink` fails on a
-  13-inch iPad and fails identically at `main`'s code, so it is not a regression.
-  The element tree shows `guidanceInfoButton` at {{546, 1270.5}, {44, 44}},
-  on-screen and uncovered by the inspector at {{752, 0}, {280, 1376}}, yet
-  `isHittable` is false — nothing in the primary content is hittable while the
-  inspector is presented. The test's `swipeDown` dismisses a sheet but not an
-  inspector; tapping the new close control fires but the inspector does not
-  close, cause not yet established.
+- Found and fixed: `testInfoPopoverCarriesWDFWLink` failed on a 13-inch iPad and
+  failed identically at `main`'s code, so it was never a regression. **It was a
+  false detector, not an app defect.** `isHittable` reports every chrome control
+  unhittable on a regular-width canvas — Heat, Rivers, Now, recenter and the info
+  button all `false` — because the full-screen `MKMapView` is a later sibling of
+  the chrome in the accessibility hierarchy and therefore sits above it for
+  XCUITest's hit test. A real touch lands perfectly well: a coordinate tap opened
+  the popover with `isHittable` false throughout. That coordinate tap is the
+  known-good input that separated "the app is unusable on iPad" from "the check
+  is broken"; without it the honest reading of five `false`s was a severe app bug.
+  The test now taps by coordinate and asserts the outcome. Two supporting fixes:
+  the dismissal path prefers the inspector's close control over `swipeDown`
+  (which does nothing to an inspector), and `waitForNonExistence` became a hard
+  assertion because the detail carries a `wdfwLink` of its own and would satisfy
+  the popover assertion without the popover ever opening.
+- Found: the close control's first form was 22pt and its tap did not dismiss.
+  `.padding` applied outside a `Button` adds whitespace, not hit area; the frame
+  has to be on the label. At 44pt it dismisses. Same shape as the 14pt info
+  button recorded in the ios-build runbook.
+- Verified: full suite green on **both** destinations after the change — 274
+  Swift Testing tests in 39 suites plus all 7 XCUITest cases, `TEST SUCCEEDED`
+  on iPad Pro 13-inch (M4) and on iPhone 17 Pro.
+- Note: Xcode 27 ships **no `Simulator.app`**. An 8-deep search of both
+  `Xcode.app` and `Xcode-beta.app` plus the system CoreSimulator paths finds
+  nothing and `open -a Simulator` reports `Unable to find application named
+  'Simulator'`. The simulator can only be observed through `simctl io screenshot`.
 - Note: `~/CLAUDE.md`'s "the simulator here is named `iPhone`" is stale. No
   simulator by that name exists; the devices are `iPhone 17 Pro`,
   `iPhone UI Worktree` and now `iPad Pro 13-inch (M4)`, so

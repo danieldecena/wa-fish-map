@@ -18,10 +18,10 @@
 - [x] Checked: map auto-fit padding on a large viewport (no defect seen)
 - [x] Checked: recenter button placement on iPad (no defect seen)
 - [ ] Observe the iPad layout in both orientations
-- [ ] Rewrite UI test gestures for the inspector path
+- [x] Rewrite UI test gestures for the inspector path
 - [x] Collapse three stacked inspectors into one presentation
-- [ ] Fix guidanceInfoButton unhittable on iPad (pre-existing)
-- [ ] Run the full suite on an iPad destination
+- [x] Fixed: guidanceInfoButton "unhittable" on iPad was a false detector
+- [x] Run the full suite on an iPad destination
 
 
 ## Completed

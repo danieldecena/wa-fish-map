@@ -85,16 +85,21 @@ final class GuidanceOnEverySheetUITests: XCTestCase {
             }
             // The dismiss is animated; tapping mid-animation lands on the sheet,
             // not the button underneath it, and the popover never opens.
-            _ = sheet.waitForNonExistence(timeout: 10)
+            // Asserted, not hoped for: the detail carries a `wdfwLink` of its own,
+            // so a surviving detail would satisfy the assertion below without the
+            // popover ever opening.
+            XCTAssertTrue(sheet.waitForNonExistence(timeout: 15),
+                          "detail never dismissed, so a wdfwLink hit below would be its own")
         }
-        // Dismissing the inspector grows the map from a column to the full width,
-        // and the button only becomes hittable once that relayout lands. Two
-        // seconds of spinning was enough on a phone, where nothing resizes.
-        let hittable = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "isHittable == true"), object: button)
-        XCTAssertEqual(XCTWaiter().wait(for: [hittable], timeout: 15), .completed,
-                       "guidanceInfoButton never became hittable. On screen: \(Self.labels(app))")
-        button.tap()
+        // `isHittable` cannot be the gate here. The map is a full-screen MKMapView
+        // that sits above this chrome in the accessibility hierarchy, so on a
+        // regular-width canvas XCUITest calls every control — Heat, Rivers, Now,
+        // recenter, this button — unhittable while a real touch lands perfectly
+        // well. Observed on a 13-inch iPad 2026-09-17: a coordinate tap opened
+        // this popover with `isHittable` false throughout, and the same probe
+        // reported all five controls false. Tapping by coordinate bypasses the
+        // gate; the assertion below is the real check.
+        button.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
 
         let link = element(app, "wdfwLink")
         XCTAssertTrue(link.waitForExistence(timeout: 10),
