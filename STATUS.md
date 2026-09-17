@@ -114,6 +114,47 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-17 (Rivers watchdog kill)
+
+- Found: tapping Rivers could kill the app. Not an exception — a FRONTBOARD
+  `0x8BADF00D` **scene-update watchdog** termination, "exhausted real (wall
+  clock) time allowance of 10.00 seconds", 28.1s of CPU. Three such reports sit
+  on the device; **two of the three** (`WAFishMap-2026-09-16-152618`,
+  `WAFishMap-2026-09-17-142141`) carry the identical triggered-thread stack:
+  `syncRivers` -> `MKMapView.addOverlays` -> `MKOverlayContainerView
+  _considerAddingDrawable:inAddRect:` -> `NSConcreteMapTable objectForKey:`.
+  The third, 35s after the first, is in SwiftUI environment machinery — a
+  follow-on while still thrashing.
+- Decided: the overlay **count** is the cost, not the geometry. `rivers.json`
+  holds 1,319 rivers made of **18,287 reaches**, and `syncRivers` added one
+  `MKPolyline` per reach in a single `addOverlays` call on the main thread.
+  Reaches that share a colour and a width now go in together as
+  `MKMultiPolyline`, so the same 49,693 coordinates reach the map as roughly a
+  dozen overlays — bounded by the number of distinct styles, which no amount of
+  hydrography can grow. `39c757e`.
+- Verified, matched pair on one iPhone 16 Pro, same probe, same conditions: a
+  poll loop whose floor is 30s took **48.1s and 48.8s** before the change and
+  **30.9s** after. Main-thread blocking on the toggle goes from ~18s to ~0.9s,
+  against a 10s watchdog allowance. `riverSheetOpened=true` on both, so rivers
+  still draw and are still selectable.
+- Honest limit: **the kill itself was never reproduced on demand.** Tapping
+  Rivers on the pre-fix build survived every attempt, at the regional span the
+  camera eases to and pulled back to the whole state. So this is the *mechanism*
+  measured before and after, plus two crash stacks naming it — not a reproduced
+  crash made to disappear. The precondition that turns ~18s of blocking into one
+  contiguous >10s scene update is still unknown.
+- Found: `riverTap` finds the nearest river from the model, never from overlay
+  hit-testing, so per-reach overlay identity was never load-bearing. The two
+  coordinator tests that told rivers apart by `MKShape.title` now tell them
+  apart by style.
+- Note: this is **not** iPad work. `FishingMapRepresentable.swift` is
+  byte-identical on `main`, so 1.0 (6), in App Store review at the time, has the
+  defect. Decided to fix on `main` and upload a replacement build.
+- Note: `-only-testing:` naming a **Swift Testing** function ran **zero** tests
+  and still printed `** TEST SUCCEEDED **`. It was nearly accepted as proof that
+  a mutation had not broken anything; only the whole-suite run caught it. Filter
+  to the target, then read the `Test run with N tests` line.
+
 ### 2026-09-16 (1.0 (6) submitted for App Store review)
 
 - Decided: ship iPhone-only (#43, `TARGETED_DEVICE_FAMILY = 1` on the app

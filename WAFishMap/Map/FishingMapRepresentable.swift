@@ -10,11 +10,21 @@ final class RatedPolygon: MKPolygon {
     var isHeat = false
 }
 
-/// A river reach. Lines, not fills, so it needs its own class and its own
-/// renderer branch — everything else on this map is a polygon. Carries its tint
-/// and weight for the same reason `RatedPolygon` does: the renderer is a
-/// delegate callback with no model access.
-final class RiverPolyline: MKPolyline {
+/// Every river reach that shares a tint and a weight, as one overlay. Lines, not
+/// fills, so it needs its own class and its own renderer branch — everything
+/// else on this map is a polygon. Carries its tint and weight for the same
+/// reason `RatedPolygon` does: the renderer is a delegate callback with no
+/// model access.
+///
+/// Grouped rather than one overlay per reach because the count is what costs:
+/// 1,319 rivers hold 18,287 reaches, `MKMapView.addOverlays` does per-overlay
+/// bookkeeping in an `NSMapTable`, and adding them individually held the main
+/// thread past the 10-second scene-update watchdog — iOS killed the app with
+/// `0x8BADF00D` on a real iPhone (2026-09-17). The same 49,693 coordinates in a
+/// dozen `MKMultiPolyline`s draw identically and return at once. Style is the
+/// only thing a group must share, and a rating gives only a handful of tints
+/// against three stream-order widths.
+final class RiverMultiPolyline: MKMultiPolyline {
     var color: Color = .gray
     var width: CGFloat = 1.0
 }
@@ -333,29 +343,48 @@ struct FishingMapRepresentable: UIViewRepresentable {
                 riverOverlays = []
                 return
             }
-            riverOverlays = parent.rivers.flatMap { river -> [MKOverlay] in
-                river.mapLines.compactMap { coords in
-                    guard coords.count >= 2 else { return nil }
-                    let line = RiverPolyline(coordinates: coords, count: coords.count)
-                    line.title = river.name
-                    // An ungauged river recedes: same neutral, but lighter and
-                    // thinner, so it reads as hydrography while the gauged
-                    // mainstems carry the signal. Recedes, not vanishes: at
-                    // 45% opacity and 0.6 pt, creeks on the muted basemap were
-                    // invisible, which read as missing data (2026-09-16).
-                    let rated = parent.riverColors[river.id]
-                    line.color = rated ?? Self.unratedRiverColor
-                    line.width = rated == nil ? max(river.lineWidth * 0.6, 1.2) : river.lineWidth
-                    return line
-                }
-            }
+            riverOverlays = Self.groupedRivers(parent.rivers, colors: parent.riverColors)
             // Above the marine fills, below the heat cells at `.aboveLabels`.
             mapView.addOverlays(riverOverlays, level: .aboveRoads)
         }
 
+        /// How a reach is drawn. Rivers sharing one of these share an overlay.
+        struct RiverStyle: Hashable {
+            let color: Color
+            let width: CGFloat
+        }
+
+        /// An ungauged river recedes: same neutral, but lighter and thinner, so
+        /// it reads as hydrography while the gauged mainstems carry the signal.
+        /// Recedes, not vanishes: at 45% opacity and 0.6 pt, creeks on the muted
+        /// basemap were invisible, which read as missing data (2026-09-16).
+        static func style(for river: River, colors: [String: Color]) -> RiverStyle {
+            let rated = colors[river.id]
+            return RiverStyle(color: rated ?? unratedRiverColor,
+                              width: rated == nil ? max(river.lineWidth * 0.6, 1.2) : river.lineWidth)
+        }
+
+        /// Pure, so the overlay count this fix exists to bound can be asserted
+        /// without a map view.
+        static func groupedRivers(_ rivers: [River], colors: [String: Color]) -> [MKOverlay] {
+            var grouped: [RiverStyle: [MKPolyline]] = [:]
+            for river in rivers {
+                let style = style(for: river, colors: colors)
+                for coords in river.mapLines where coords.count >= 2 {
+                    grouped[style, default: []].append(MKPolyline(coordinates: coords, count: coords.count))
+                }
+            }
+            return grouped.map { style, lines in
+                let overlay = RiverMultiPolyline(lines)
+                overlay.color = style.color
+                overlay.width = style.width
+                return overlay
+            }
+        }
+
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-            if let river = overlay as? RiverPolyline {
-                let line = MKPolylineRenderer(overlay: river)
+            if let river = overlay as? RiverMultiPolyline {
+                let line = MKMultiPolylineRenderer(multiPolyline: river)
                 line.strokeColor = UIColor(river.color)
                 line.lineWidth = river.width
                 line.lineCap = .round

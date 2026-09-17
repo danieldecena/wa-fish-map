@@ -223,7 +223,7 @@ struct MapCoordinatorTests {
 
         let low = mapView.overlays(in: .aboveRoads)
         #expect(low.count == 2)
-        #expect(low.last is RiverPolyline)
+        #expect(low.last is RiverMultiPolyline)
         #expect(mapView.overlays(in: .aboveLabels).count == 1)
         #expect(mapView.overlays(in: .aboveLabels).first is RatedPolygon)
     }
@@ -242,6 +242,31 @@ struct MapCoordinatorTests {
         #expect(mapView.overlays(in: .aboveRoads).isEmpty)
     }
 
+    /// The overlay *count* is what killed the app, not the geometry. Shipped
+    /// 1.0 added one overlay per reach — 18,287 of them — and `addOverlays` held
+    /// the main thread past the 10-second scene-update watchdog, so iOS killed
+    /// the process with `0x8BADF00D` the moment Rivers was tapped on a real
+    /// iPhone (2026-09-17). Grouping by style bounds the count by the number of
+    /// distinct styles, which no amount of data can grow.
+    ///
+    /// Both inputs: 200 reaches must collapse to 2 overlays, and the same call
+    /// must still carry every one of those reaches, or "few overlays" would be
+    /// satisfied by dropping the rivers on the floor.
+    @Test func riversGroupByStyleSoTheOverlayCountCannotFollowTheReachCount() {
+        let rated = (0..<100).map { Self.river("Rated \($0)", order: 6, lon: -121.8, lat: 48.0) }
+        let unrated = (0..<100).map { Self.river("Unrated \($0)", order: 6, lon: -122.3, lat: 47.2) }
+        let colors = Dictionary(uniqueKeysWithValues: rated.map { ($0.id, Color.red) })
+
+        let overlays = FishingMapRepresentable.Coordinator
+            .groupedRivers(rated + unrated, colors: colors)
+            .compactMap { $0 as? RiverMultiPolyline }
+
+        #expect(overlays.count == 2)
+        #expect(overlays.flatMap(\.polylines).count == 200)
+        #expect(overlays.contains { $0.color == .red })
+        #expect(overlays.contains { $0.color == FishingMapRepresentable.Coordinator.unratedRiverColor })
+    }
+
     /// A river with no gauge reading recedes: same neutral hue, but lighter and
     /// thinner, so the gauged mainstems carry the signal.
     @Test func aRatedRiverTakesItsColourAndAnUnratedOneStaysNeutral() {
@@ -252,12 +277,16 @@ struct MapCoordinatorTests {
             Self.representable(rivers: rivers, riverColors: ["Skagit River": .red]))
         coordinator.syncRivers(mapView)
 
-        let lines = mapView.overlays(in: .aboveRoads).compactMap { $0 as? RiverPolyline }
+        // Rivers group by style, so the two differ by overlay rather than by
+        // title: a rated river cannot share one with an unrated one.
+        let lines = mapView.overlays(in: .aboveRoads).compactMap { $0 as? RiverMultiPolyline }
         #expect(lines.count == 2)
-        let skagit = try? #require(lines.first { $0.title == "Skagit River" })
-        let sauk = try? #require(lines.first { $0.title == "Sauk River" })
-        #expect(skagit?.color == .red)
-        #expect(sauk?.color == FishingMapRepresentable.Coordinator.unratedRiverColor)
+        let skagit = try? #require(lines.first { $0.color == .red })
+        let sauk = try? #require(lines.first {
+            $0.color == FishingMapRepresentable.Coordinator.unratedRiverColor
+        })
+        #expect(skagit?.polylines.count == 1)
+        #expect(sauk?.polylines.count == 1)
         // The recessive treatment is a width change too, not just a tint.
         #expect((sauk?.width ?? 0) < (skagit?.width ?? 0))
     }
