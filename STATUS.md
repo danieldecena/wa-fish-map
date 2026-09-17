@@ -160,6 +160,10 @@ current counts rather than trusting a number written here.
 - Verified: full suite green on **both** destinations after the change — 274
   Swift Testing tests in 39 suites plus all 7 XCUITest cases, `TEST SUCCEEDED`
   on iPad Pro 13-inch (M4) and on iPhone 17 Pro.
+- Verified both orientations on the 13-inch canvas: portrait 2064x2752 and
+  landscape 2752x2064, the inspector correct in each, nothing clipped or
+  overlapping. Rotation has to go through `XCUIDevice` in a test — `simctl` has
+  no rotate verb and there is no Simulator GUI. Device left in portrait.
 - Note: Xcode 27 ships **no `Simulator.app`**. An 8-deep search of both
   `Xcode.app` and `Xcode-beta.app` plus the system CoreSimulator paths finds
   nothing and `open -a Simulator` reports `Unable to find application named

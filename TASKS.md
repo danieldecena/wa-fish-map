@@ -1,5 +1,10 @@
 ## Tasks
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
+- [ ] [you] Release to the App Store after approval (manual release)
+
+
+## Completed
+
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
 - [x] Privacy policy page hosted — https://danieldecena.github.io/wa-fish-map/privacy.html
 - [x] Store description, keywords, review notes — pasted in ASC version (see listing-draft checklist)
@@ -9,7 +14,6 @@
 - [x] [you] ASC App Privacy: set Location to Data Not Collected
 - [x] Upload build 6: PR #41 manifest, iPhone-only (#43)
 - [x] [you] Submit 1.0 (6) for App Store review — Waiting for Review
-- [ ] [you] Release to the App Store after approval (manual release)
 - [x] Create a 13-inch iPad Pro simulator
 - [x] Set app target TARGETED_DEVICE_FAMILY back to "1,2"
 - [x] Add an inspector dismiss control
@@ -17,14 +21,11 @@
 - [x] Checked: overlay cards on a wide canvas (premise disproved)
 - [x] Checked: map auto-fit padding on a large viewport (no defect seen)
 - [x] Checked: recenter button placement on iPad (no defect seen)
-- [ ] Observe the iPad layout in both orientations
+- [x] Observe the iPad layout in both orientations
 - [x] Rewrite UI test gestures for the inspector path
 - [x] Collapse three stacked inspectors into one presentation
 - [x] Fixed: guidanceInfoButton "unhittable" on iPad was a false detector
 - [x] Run the full suite on an iPad destination
-
-
-## Completed
 
 - [x] Build 4 uploaded to ASC (from 66c16ba, accepted as 4)
 - [x] Shared simulator test-host kill: runbook rule (~/.claude ed7fdcf)
