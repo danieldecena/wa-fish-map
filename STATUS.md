@@ -172,7 +172,9 @@ current counts rather than trusting a number written here.
   `Xcode.app` and `Xcode-beta.app` plus the system CoreSimulator paths finds
   nothing and `open -a Simulator` reports `Unable to find application named
   'Simulator'`. The simulator can only be observed through `simctl io screenshot`.
-- Note: `~/CLAUDE.md`'s "the simulator here is named `iPhone`" is stale. No
+- Note: `~/CLAUDE.md`'s "the simulator here is named `iPhone`" is stale. Re-checked
+  2026-09-17 against `xcrun simctl list devices available`: still no such device,
+  and this project's own `CLAUDE.md` repeats the claim. Filed as a task. No
   simulator by that name exists; the devices are `iPhone 17 Pro`,
   `iPhone UI Worktree` and now `iPad Pro 13-inch (M4)`, so
   `-destination 'platform=iOS Simulator,name=iPhone'` no longer resolves.

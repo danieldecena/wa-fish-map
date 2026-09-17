@@ -1,4 +1,5 @@
 ## Tasks
+- [ ] Correct the stale simulator name in CLAUDE.md (no device named `iPhone`)
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [ ] [you] Release to the App Store after approval (manual release)
 
