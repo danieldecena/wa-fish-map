@@ -154,6 +154,13 @@ current counts rather than trusting a number written here.
   used, so Xcode retried with the next free number; **that number was not
   observed** — no issuer id on this machine for the ASC API, and the delivery
   log never prints it. Confirm it in ASC rather than assuming 7.
+  Re-checked 2026-09-17: the number is not recoverable locally by any route.
+  Every archive's Info.plist reads CFBundleVersion 1 (Organizer rewrites it at
+  export, not in the archive), no exported ipa was kept, `DistributionLogs/` does
+  not exist and the only altool logs are from 09-02. An ASC API key is on disk
+  (`~/.appstoreconnect/private_keys/AuthKey_9528366F2G.p8`) but the issuer id is
+  not, and appstoreconnect.apple.com has no signed-in session in Chrome. It takes
+  Daniel's sign-in.
 - Note: this is **not** iPad work. `FishingMapRepresentable.swift` is
   byte-identical on `main`, so 1.0 (6), in App Store review at the time, has the
   defect. Decided to fix on `main` and upload a replacement build.
