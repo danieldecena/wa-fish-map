@@ -1,6 +1,7 @@
 .DS_Store
 xcuserdata/
 DerivedData/
+DerivedData-device/
 *.xcuserstate
 *.xccheckout
 *.moved-aside
@@ -13,3 +14,6 @@ buildServer.json
 # graphify knowledge graph (build artifact, rebuilt by post-commit hook)
 graphify-out/
 .claude/worktrees/
+
+# throwaway captures (screenshots, icon previews)
+.scratch/
