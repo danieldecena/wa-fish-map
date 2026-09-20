@@ -1,7 +1,7 @@
 ## Tasks
-- [ ] Flow vs normal: range strip (p10-p90 track, p25-p75 band, p50 tick, today's marker), not a bar
+- [x] Flow vs normal: range strip (p10-p90 track, p25-p75 band, p50 tick, today's marker), not a bar
 - [ ] Best-months ribbon: 12 cells, current month marked, riskMonths on a non-colour channel
-- [ ] Decide the best-months wrap: linear Jan-Dec, or rotate the strip to start at the current month
+- [x] Decide the best-months wrap: rotate to start at the current month
 - [ ] [you] In ASC: confirm the new build number, remove 1.0 (6) from review, attach the new build, resubmit
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"

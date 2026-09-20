@@ -405,7 +405,30 @@ final class FishingMapModel {
     }
 
     func flow(for river: River) -> RiverFlow? {
-        river.ownsNameGauge ? flow(forRiver: river.name) : nil
+        guard river.ownsNameGauge else { return nil }
+        if let live = flow(forRiver: river.name) { return live }
+        return UITestSeam.isActive ? Self.fixtureFlow(stats: riverStats[river.name]) : nil
+    }
+
+    /// A deterministic reading for `-uiTesting`, which loads the bundled
+    /// fixture and never calls USGS.
+    ///
+    /// Without it the river sheet under the seam can only ever render its
+    /// "couldn't reach USGS" state, so the flow strip was unobservable and the
+    /// shipped App Store river frame was a screenshot of an error message.
+    ///
+    /// Derived from the gauge's own p75 rather than a constant, so it stays a
+    /// plausible reading for whichever river the seam opens, and lands off
+    /// centre where a strip pinned at the median would hide an axis bug.
+    nonisolated static func fixtureFlow(stats: RiverFlowStats?) -> RiverFlow? {
+        guard let stats, let row = stats.percentiles(month: 8, day: 15), row.count == 5 else { return nil }
+        return RiverFlow(
+            gauge: stats.gauge,
+            gaugeName: stats.gaugeName,
+            discharge: row[3],
+            dischargeAt: Date(timeIntervalSince1970: 1_786_000_000),
+            waterTempC: 13.5,
+            waterTempAt: Date(timeIntervalSince1970: 1_786_000_000))
     }
 
     /// Flow rating per river id for a given calendar day. The day is injected;
