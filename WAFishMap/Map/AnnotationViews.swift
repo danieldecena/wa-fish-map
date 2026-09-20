@@ -12,6 +12,27 @@ enum MarkerMetrics {
     static let pin: CGFloat = 0.8
     static let cluster: CGFloat = 0.95
 
+    /// Apple's minimum, in points on screen.
+    static let minimumTapTarget: CGFloat = 44
+
+    /// The touch area for a marker, in the view's own coordinates.
+    ///
+    /// The view is scaled on its way to the screen and a touch area scales
+    /// with it, so drawing a pin at 0.8 also shrank its target to about 32pt.
+    /// Dividing by the scale cancels that: the rect is oversized in view
+    /// coordinates precisely so it lands at 44pt once drawn.
+    ///
+    /// Centred on the balloon rather than grown from an edge, so the extra
+    /// reach is symmetric and a pin does not steal taps from one side only.
+    static func hitRect(bounds: CGRect, scale: CGFloat) -> CGRect {
+        guard scale > 0 else { return bounds }
+        let needed = minimumTapTarget / scale
+        let width = max(bounds.width, needed)
+        let height = max(bounds.height, needed)
+        return CGRect(x: bounds.midX - width / 2, y: bounds.midY - height / 2,
+                      width: width, height: height)
+    }
+
     /// Scaling happens about the view's centre, which walks the balloon's tip
     /// off its coordinate. Translating by half the height change puts it back,
     /// in either direction: the term is negative when shrinking.
@@ -70,6 +91,12 @@ final class SiteMarkerView: MKMarkerAnnotationView {
     private func applyScale() {
         let target = MarkerMetrics.transform(for: self, scale: MarkerMetrics.pin)
         if transform != target { transform = target }
+    }
+
+    /// Drawn at 0.8, tapped at 44pt. Without this the target shrinks with the
+    /// drawing and lands near 32pt.
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        MarkerMetrics.hitRect(bounds: bounds, scale: MarkerMetrics.pin).contains(point)
     }
 
     /// A boat for a launch, an angler for a shore-only site, a fish for a pier;
@@ -208,6 +235,11 @@ final class SiteClusterView: MKMarkerAnnotationView {
     private func applyScale() {
         let target = MarkerMetrics.transform(for: self, scale: Self.scale)
         if transform != target { transform = target }
+    }
+
+    /// Same floor as a pin. A cluster draws larger but still under 44pt.
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        MarkerMetrics.hitRect(bounds: bounds, scale: Self.scale).contains(point)
     }
 
     private func apply(_ annotation: MKAnnotation?) {
