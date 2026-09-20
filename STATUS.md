@@ -524,3 +524,43 @@ current counts rather than trusting a number written here.
   it is a subview rather than a badged glyph image.
 - Still not verified: the 44pt tap target. It is a geometry assertion; an edge
   tap on hardware is the other half.
+
+### 2026-09-20 (detail-sheet graphics, and slice 7's chrome trim)
+
+- Decided: river flow draws as a range strip with a marker, never a bar.
+  `flowRating` is non-monotonic on purpose -- bony and blown out are both
+  unfishable -- so a filled bar would encode more-is-better, which is the wrong
+  claim. `trackPosition` interpolates through the five percentile stops rather
+  than along the cfs axis, because flow distributions are skewed: on a
+  plausible day the median is 400 of a 1600 range, so a linear axis would put
+  it a quarter along instead of halfway.
+- Decided: the season ribbon rotates to start at the current month rather than
+  anchoring on January. A November-to-February season splits into two
+  disconnected blobs at opposite ends of a fixed strip, which is the most
+  misleading case it could have. Every card rotates identically, so species
+  stay comparable on one sheet. Both the contiguous run and the January-anchored
+  split are asserted, so the reason is a test rather than a comment.
+- Decided: a typical-size bar was considered for the species card and rejected.
+  The silhouette already scales with weight, several weights are flagged
+  unverified in `SpeciesSize`, and halibut beside rainbow trout has no honest
+  shared axis.
+- Observed: the ribbon's risk mark shipped white on first draft, which is the
+  same 1.51:1 defect slice 4 fixed on the map. Caught by looking at the rendered
+  sheet, not by any test. Fixed by reusing `SiteMarkerView.glyphTint(on:)` so
+  the ribbon and the map cannot drift apart, with a test pinning both to one
+  rule. Second time today that looking found something every green check missed.
+- Observed: the shipped App Store river frame was a screenshot of an error
+  message. `-uiTesting` loads the bundled fixture and never calls USGS, so the
+  sheet could only render "couldn't reach USGS". `fixtureFlow` gives it the
+  gauge's own p75 -- deliberately off centre, where a marker pinned at the
+  median would hide an axis that was not being applied at all.
+- Decided (slice 7): the header is one row. The light-hint sentence moved to the
+  info popover, the duplicated sun/moon glyph is gone, and date and time sit
+  behind one button that opens a graphical picker. The compact `DatePicker`'s
+  pills ignore `controlSize` and were what forced the bar onto two lines.
+- Decided (slice 7): a cluster is named for its lead member only. MapKit's
+  default "<first member> +N more" draws under a badge already reading N, and
+  those labels were most of the regional frame's clutter. The count survives on
+  the badge and in the accessibility value.
+- Still blocked on a human, unchanged: the ASC resubmit and the on-device
+  VoiceOver pass.
