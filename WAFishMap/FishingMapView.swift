@@ -568,6 +568,10 @@ private struct AdaptiveDetail<Item: Identifiable, Detail: View>: ViewModifier {
                 detail(site)
                     .presentationDetents([.medium, .large])
                     .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+                    // At the medium detent the sheet sat over a live, heat-washed
+                    // map and the body rows were read against green-blue mottling.
+                    // Opaque enough to read on, still clearly a layer over the map.
+                    .presentationBackground(.thickMaterial)
             }
         }
     }

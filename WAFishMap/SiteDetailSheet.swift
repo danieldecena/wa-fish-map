@@ -171,7 +171,11 @@ struct GuidanceFooter: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.yellow.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+        // Neutral, not yellow: a yellow wash is also the Fair rating, and both
+        // appear on this sheet — a reader had no way to tell a caution from a
+        // rating. The shield glyph and the heading carry the caution.
+        .background(DS.Surface.advisory,
+                    in: RoundedRectangle(cornerRadius: DS.Surface.advisoryRadius))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("guidanceFooter")
     }
@@ -301,6 +305,11 @@ struct SiteDetailSheet: View {
             }
             .navigationTitle(site.facilityName)
             .navigationBarTitleDisplayMode(.inline)
+            // The badge + subtitle row is the first thing in the scroll view, so
+            // a transparent bar let the title draw straight through it
+            // ("Public fishin{Les Davis Pier}g pier"). An opaque bar gives the
+            // content something to scroll under instead of into.
+            .toolbarBackground(.visible, for: .navigationBar)
         }
         // Lets a UI test wait for the sheet before asserting the *absence* of the
         // verify badge; without it an absence check can pass by running early.
@@ -444,6 +453,11 @@ struct PierDetailSheet: View {
             }
             .navigationTitle(pier.name)
             .navigationBarTitleDisplayMode(.inline)
+            // The badge + subtitle row is the first thing in the scroll view, so
+            // a transparent bar let the title draw straight through it
+            // ("Public fishin{Les Davis Pier}g pier"). An opaque bar gives the
+            // content something to scroll under instead of into.
+            .toolbarBackground(.visible, for: .navigationBar)
         }
         .accessibilityIdentifier("pierDetailSheet")
     }

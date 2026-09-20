@@ -40,6 +40,9 @@ struct RiverDetailSheet: View {
             }
             .navigationTitle(river.name)
             .navigationBarTitleDisplayMode(.inline)
+            // Same as the site and pier sheets: an opaque bar, so scrolled
+            // content passes under the title instead of through it.
+            .toolbarBackground(.visible, for: .navigationBar)
         }
         .accessibilityIdentifier("riverDetailSheet")
     }

@@ -1,6 +1,26 @@
 import MapKit
 import SwiftUI
 
+/// How large a marker draws, relative to `MKMarkerAnnotationView`'s own size.
+///
+/// The class has no size property, so both values are applied as a transform.
+/// At the default size the balloons covered the place labels they are meant to
+/// sit beside at regional zoom — a map of pins rather than a map with pins on
+/// it. A cluster stays a fixed step above a single pin so "13" never reads as
+/// one spot.
+enum MarkerMetrics {
+    static let pin: CGFloat = 0.8
+    static let cluster: CGFloat = 0.95
+
+    /// Scaling happens about the view's centre, which walks the balloon's tip
+    /// off its coordinate. Translating by half the height change puts it back,
+    /// in either direction: the term is negative when shrinking.
+    static func transform(for view: MKAnnotationView, scale: CGFloat) -> CGAffineTransform {
+        let lift = view.bounds.height * (scale - 1) / 2
+        return CGAffineTransform(translationX: 0, y: -lift).scaledBy(x: scale, y: scale)
+    }
+}
+
 /// The marine-area "MA n" capsule. A plain annotation, deliberately outside the
 /// site cluster group — labels must not merge into a site badge.
 final class AreaLabelAnnotation: NSObject, MKAnnotation {
@@ -32,6 +52,24 @@ final class SiteMarkerView: MKMarkerAnnotationView {
             clusteringIdentifier = "site"
             apply(annotation)
         }
+    }
+
+    // Applied at both points: a dequeued view is not always laid out again
+    // before MapKit shows it, so `layoutSubviews` alone leaves a reused marker
+    // at full size on screen.
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        applyScale()
+    }
+
+    override func prepareForDisplay() {
+        super.prepareForDisplay()
+        applyScale()
+    }
+
+    private func applyScale() {
+        let target = MarkerMetrics.transform(for: self, scale: MarkerMetrics.pin)
+        if transform != target { transform = target }
     }
 
     /// A boat for a launch, an angler for a shore-only site, a fish for a pier;
@@ -88,7 +126,7 @@ final class SiteClusterView: MKMarkerAnnotationView {
     /// read as one spot. `MKMarkerAnnotationView` has no size property, so the
     /// view is scaled, lifted by the growth so the balloon's tip stays on the
     /// coordinate instead of sinking below it.
-    static let scale: CGFloat = 1.2
+    static let scale: CGFloat = MarkerMetrics.cluster
 
     // Applied at both points: `layoutSubviews` alone left reused cluster views
     // at single-pin size on screen, since a dequeued view is not always laid
@@ -104,8 +142,7 @@ final class SiteClusterView: MKMarkerAnnotationView {
     }
 
     private func applyScale() {
-        let lift = bounds.height * (Self.scale - 1) / 2
-        let target = CGAffineTransform(translationX: 0, y: -lift).scaledBy(x: Self.scale, y: Self.scale)
+        let target = MarkerMetrics.transform(for: self, scale: Self.scale)
         if transform != target { transform = target }
     }
 

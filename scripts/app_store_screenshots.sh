@@ -63,7 +63,7 @@ if ! xcrun simctl get_app_container "$udid" "$BUNDLE_ID" >/dev/null 2>&1; then
 fi
 xcrun simctl privacy "$udid" grant location "$BUNDLE_ID" 2>/dev/null || true
 xcrun simctl location "$udid" set 47.29,-122.52 2>/dev/null || true
-trap 'xcrun simctl status_bar "$udid" clear' EXIT
+trap 'xcrun simctl status_bar "$udid" clear; xcrun simctl ui "$udid" appearance light' EXIT
 xcrun simctl status_bar "$udid" override --time 9:41 --dataNetwork wifi --wifiBars 3 \
   --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
 
@@ -85,6 +85,30 @@ shot "01-map-regional" 15
 xcrun simctl terminate "$udid" "$BUNDLE_ID" 2>/dev/null || true
 xcrun simctl launch "$udid" "$BUNDLE_ID" -- -uiTesting -planMonth 8 >/dev/null
 shot "02-site-detail-guidance"
+
+# 3-4) The other two sheets. Every sheet has to carry the disclaimer and the
+# WDFW link, so every sheet gets a frame — tapping pins on a clustered map is
+# exactly the moving target the seam exists to avoid.
+xcrun simctl terminate "$udid" "$BUNDLE_ID" 2>/dev/null || true
+xcrun simctl launch "$udid" "$BUNDLE_ID" -- -uiTesting -planMonth 8 -uiTestingDetail pier >/dev/null
+shot "03-pier-detail"
+
+xcrun simctl terminate "$udid" "$BUNDLE_ID" 2>/dev/null || true
+xcrun simctl launch "$udid" "$BUNDLE_ID" -- -uiTesting -planMonth 8 -uiTestingDetail river >/dev/null
+shot "04-river-detail"
+
+# 5-6) Dark appearance. The rating ramp is four hardcoded RGBs that do not
+# follow the appearance, so the dark frames are the observation for whether
+# they still hold up against a dark basemap and a dark sheet.
+xcrun simctl ui "$udid" appearance dark
+xcrun simctl terminate "$udid" "$BUNDLE_ID" 2>/dev/null || true
+xcrun simctl launch "$udid" "$BUNDLE_ID" >/dev/null
+shot "05-map-regional-dark" 15
+
+xcrun simctl terminate "$udid" "$BUNDLE_ID" 2>/dev/null || true
+xcrun simctl launch "$udid" "$BUNDLE_ID" -- -uiTesting -planMonth 8 >/dev/null
+shot "06-site-detail-dark"
+xcrun simctl ui "$udid" appearance light
 
 echo
 echo "Open $outdir and crop to ASC device sizes in Preview or Transporter."
