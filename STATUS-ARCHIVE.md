@@ -828,3 +828,71 @@ Everything else open lives in `TASKS.md`.
   first device-signing run looked like a success (exit 0) while the log said
   `TEST BUILD FAILED`. Only the text was the observation. Later runs use
   `set -o pipefail`.
+
+
+### 2026-09-16 (lake facts on the launch sheet)
+
+- Decided: lake facts from WDFW's 2014 lakes points, matched by acreage reach + name check; distance alone matched Lyle Lake to Herman Lake.
+
+### 2026-09-16 (camera, clusters, creeks, failed reads)
+
+- Decided: the camera is bounded to Washington (cameraBoundary plus a 3,200 km
+  zoom-out cap; 1,600 km cut off the coast). Clusters draw a fixed 1.2x, chosen
+  over main's count-based scaling. #17, 9b3a4fb.
+- Decided: creeks ship split into connected runs with unique ids (same-name
+  creeks are separate features) and never resolve a waterbody. Stream order is
+  judged per run, not per segment, which had silently dropped Clover and
+  Issaquah creeks. 1,025 creeks. Unrated water drew at 45% gray / 0.6 pt and was
+  invisible, which read as missing data; now 75% / 1.2 pt floor. #17.
+- Decided: an empty WDFW layer, MPA layer, pier fetch or USGS fetch is a failed
+  read, never "0 sites", "clear" or "gauge not reporting". Mutation-checked. #18.
+- Closed: "map never frames Washington without a fix" (#16, #17) and the
+  `claude/goal-followups` branch (merged as #14).
+
+### 2026-09-16 (shore snap, VoiceOver labels, cluster scale)
+
+- Decided: marine area matching snaps to the nearest area within 150 m when a point
+  is in no polygon. Live WDFW: 29 of 63 piers outside every area (28 within 1 m),
+  saltwater launches 22-108 m out; nearest real lake launch 639 m. Dash Point now
+  reads Marine water with tides. 7b904bd.
+- Decided: pins, clusters, legends and badges carry VoiceOver text. Pin text is
+  unit-tested; the legend label was seen in a UI run; pin labels on screen were not
+  (XCUITest pinch rotates instead of zooming). a8d5464.
+- Decided: clusters scale 1.1/1.2/1.3x by count, applied in prepareForDisplay
+  because MapKit reset a transform set earlier. Seen larger on screen. 023680d.
+- Observed: UI test runs reinstall the app and leave the shared simulator without
+  location; restore with `simctl privacy grant` and `simctl location set`.
+
+### 2026-09-16 (map legibility: outlines, breadth colour, closed piers, directions, fish size)
+
+- Decided: "season may be closed" draws as an outlined marker (pale balloon,
+  rating colour on the glyph), never gray. Gray already means no guidance, and
+  the app holds no authoritative closure data. For All, outlined only when every
+  top-rated species (or cluster member) is flagged. 3ba2b1e.
+- Decided: the All-species colour is the rounded mean of the top three species,
+  not the max. September painted every marine area Prime (each has 1-4 peak
+  species) and every statewide-inland launch Prime via Cutthroat. Per-species
+  ratings unchanged. Inland pins now read uniformly Good in September because
+  the statewide freshwater list is the same everywhere; that is data, not code. 6fc64b8.
+- Decided: WDFW flags closed piers only by "(CLOSED)" in the pier name (3 live:
+  Anacortes Municipal, Harper, Luhr's Beach Dock). Those pins fade gray and carry
+  no rating; the sheet shows a Closed badge. Launch "Closed to vehicles <dates>"
+  text stays free text in the sheet, not parsed ("4th Friday in April"). d2ece00.
+- Decided: directions use a maps.apple.com driving link, not MKMapItem, whose
+  coordinate init is iOS 26 only (target is 18). Observed: Maps opened a driving
+  route to Dockton Park Pier incl. the Tahlequah ferry. Return to the app is
+  iOS's own top-left "< WAFishMap" breadcrumb; the sheet is still open on return.
+- Decided: species rows show `fish.fill` sized log-scale by a hand-entered,
+  unverified typical weight (SpeciesSize.swift); shellfish/squid get none. Not
+  yet seen on screen: the shared simulator was being driven by another session. 721937e.
+- Season open/close sources (research, not built): WDFW emergency-rule RSS feed
+  and date-range rule search; the annual pamphlet (PDF, July 1-June 30); no
+  season fields found in WDFW ArcGIS layers checked; Fish Washington app has no
+  public API; reuse terms unconfirmed. Any use must stay "verify with WDFW".
+- Water emphasis (answered, not built): the Rivers/Heat toggles already mute the
+  basemap; rivers.json carries 287 named rivers only, so "full streams" needs a
+  new hydrography source (USGS NHD / WA DNR), a data-size decision.
+- Observed: the shared iPhone 17 Pro simulator is used by another session's test
+  runs (crash reports from a HeatMapTests test that does not exist here), and
+  MapCoordinatorTests' recentre test hung 10 minutes in a full run. Run targeted
+  suites, or give each worktree its own simulator.
