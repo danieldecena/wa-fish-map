@@ -114,9 +114,15 @@ struct PinSpokenSummaryTests {
 
     /// One fixed step up for every cluster (chosen over count-based sizing on
     /// 2026-09-16): larger than a single pin, modest enough not to cover water.
+    ///
+    /// Stated against the pin, not against 1. The thresholds were absolute
+    /// while a pin drew at MKMarkerAnnotationView's own size; once pins were
+    /// scaled to 0.8 so they stopped covering place labels, a cluster at 0.95
+    /// was still a step above a pin but no longer above 1, and this failed
+    /// while the behaviour it names was correct.
     @Test func aClusterIsOneModestSizeUpFromAPin() {
-        #expect(SiteClusterView.scale > 1)
-        #expect(SiteClusterView.scale <= 1.3)
+        #expect(SiteClusterView.scale > MarkerMetrics.pin)
+        #expect(SiteClusterView.scale <= MarkerMetrics.pin * 1.3)
     }
 
     @Test func aClusterReadsItsBestRating() {

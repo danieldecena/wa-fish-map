@@ -37,6 +37,20 @@ enum DS {
     /// beside a real system control. Anchoring on the system colours keeps the
     /// blue → yellow → orange → red ramp exactly, and gains the dark-appearance
     /// variants the literals could never have.
+    ///
+    /// The ramp keeps deferring to the platform, and that was measured rather
+    /// than assumed. The plan for this work expected Apple's stops to be too
+    /// close in lightness and budgeted for hand-picked literals with an
+    /// explicit platform-deference exception. Resolving the tokens on device
+    /// said otherwise: every adjacent pair clears ΔL* 12 in both appearances,
+    /// so the exception was not needed and was not taken.
+    ///
+    /// `RampLightnessTests` holds the numbers and fails the build if a later
+    /// change closes the gap. Two things it deliberately does not cover, both
+    /// live questions for the map rather than for these tokens: `prime` and
+    /// `slow` are within half an L* of each other, so red and blue pins differ
+    /// by hue alone, and `unrated` grey sits between them. Adjacency in the
+    /// ramp is not adjacency on screen.
     enum Rating {
         /// Nothing notable in season.
         static let slow = Color.blue
