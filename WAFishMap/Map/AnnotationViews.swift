@@ -161,6 +161,9 @@ final class SiteMarkerView: MKMarkerAnnotationView {
         ])
     }
 
+    /// The floor a glyph must clear against its balloon.
+    static let minimumGlyphContrast = 3.0
+
     /// Ink for a glyph sitting on a filled balloon.
     ///
     /// White was used on every stop, which works on the dark end of the ramp
@@ -182,8 +185,14 @@ final class SiteMarkerView: MKMarkerAnnotationView {
                 return v <= 0.04045 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4)
             }
             let luminance = 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b)
-            // Contrast against white vs against black, same formula both sides.
-            return (1.05 / (luminance + 0.05)) >= ((luminance + 0.05) / 0.05) ? .white : .black
+            // White unless white actually fails. Picking whichever ink merely
+            // contrasts *more* turned every glyph black, including Prime and
+            // Slow where white already clears the floor (3.57 and 3.52 in
+            // light) -- an over-correction that passed the numeric gate and
+            // was only visible once the frames were looked at. White on a
+            // saturated marker is also the platform's own convention, so it
+            // is the default and darkening is the exception.
+            return (1.05 / (luminance + 0.05)) >= minimumGlyphContrast ? .white : .black
         }
     }
 

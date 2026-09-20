@@ -56,6 +56,27 @@ struct MarkerGlyphContrastTests {
         }
     }
 
+    /// Darkening is the exception, not the rule. Prime and Slow clear 3:1
+    /// with white, so they must keep it: an ink rule that merely maximises
+    /// contrast turns every glyph black, which passes the contrast gate and
+    /// still looks wrong against the platform's own markers.
+    @Test(arguments: [UIUserInterfaceStyle.light, .dark])
+    func stopsThatCanCarryWhiteKeepIt(style: UIUserInterfaceStyle) {
+        func ink(_ stop: Color) -> UIColor {
+            SiteMarkerView.glyphTint(on: UIColor(stop))
+                .resolvedColor(with: UITraitCollection(userInterfaceStyle: style))
+        }
+        let white = UIColor.white.resolvedColor(with: UITraitCollection(userInterfaceStyle: style))
+        let black = UIColor.black.resolvedColor(with: UITraitCollection(userInterfaceStyle: style))
+
+        #expect(ink(DS.Rating.prime) == white)
+        #expect(ink(DS.Rating.slow) == white)
+        #expect(ink(DS.Rating.unrated) == white)
+        // The two that genuinely cannot: white measures 1.51 and 2.31 on them.
+        #expect(ink(DS.Rating.fair) == black)
+        #expect(ink(DS.Rating.good) == black)
+    }
+
     /// There is only one balloon state now, so this is the whole surface.
     /// The pale "season may be closed" balloon is gone: it could not carry a
     /// legible glyph and a readable rating at once, so closure became a badge.

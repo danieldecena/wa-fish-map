@@ -443,3 +443,43 @@ current counts rather than trusting a number written here.
 - Not done: nothing here has been looked at. The arm's-length check on the
   regional frame in both appearances is slice 6 and is the real gate. The
   numbers say the proxies pass; they do not say the map reads better.
+
+### 2026-09-20 (slice 6: the frames were looked at, and the gate does not pass)
+
+- Decided: the glyph ink rule is "white unless white fails 3:1", not "whichever
+  ink contrasts more". The maximising version turned every glyph black,
+  including Prime and Slow where white already clears the floor (3.57 and 3.52
+  in light). It passed the contrast gate and looked wrong: white on a saturated
+  marker is the platform's own convention. Caught only by looking at the frames,
+  which is the entire argument for this slice existing.
+- Observed: the ink rule works on screen. Orange carries black (white measures
+  2.31 on it), Prime carries white (3.57). That second channel also helps Prime
+  separate from Good, which was not planned for.
+- Observed: the dark frame now draws the dark ramp. It previously drew the light
+  one, because the literals could not adapt. Slice 1 confirmed by eye.
+- **Not passed: slice 6's arm's-length gate.** The failure is in the observation,
+  not demonstrably in the ramp:
+  - Light frame is a genuine regional view and shows Fair, Good and Prime.
+    Fair separates from Good clearly. Prime separates from Good, but weakly --
+    consistent with their ΔL* of 13.3, the narrowest pair in the ramp.
+  - Dark frame landed at a much tighter zoom and shows only Fair and Good. Two
+    of four ratings at a non-regional zoom cannot answer "do the ratings
+    separate in dark". It is not evidence either way.
+  - Slow never appears in any frame, so the Prime/Slow collision flagged when
+    the ramp was measured (within half an L* of each other, differing by hue
+    alone) is still completely untested on screen.
+  - The closure badge never appears in any frame, so the 14pt mark on a marker
+    drawn at 0.8 has not been seen at all.
+  - The light frame is roughly 85% Good. Separation reads there because the
+    other ratings are rare exceptions, which is a much weaker test than a mixed
+    map.
+- Observed: the camera is not deterministic between runs of
+  `scripts/app_store_screenshots.sh`. Two runs twenty minutes apart produced
+  different regions and different zooms from the same 15 s wait, so the frames
+  are not comparable to each other and cannot be a repeatable gate as they
+  stand.
+- Next: the gate needs a frame that contains all five states at a fixed camera.
+  The `-uiTesting` seam already exists for the sheets and is the obvious place
+  to add it. Until then slice 6 is open, and the plan's fallback (option C, a
+  ring channel on Prime) should not be adopted or rejected -- there is no
+  observation to justify either.
