@@ -131,3 +131,29 @@ struct PinSpokenSummaryTests {
         #expect(SiteClusterView.spokenSummary(of: [SiteAnnotation(pier: pier("C"))]) == "no seasonal guidance")
     }
 }
+
+/// A cluster's label must not repeat what its badge already says.
+struct ClusterTitleTests {
+    private static func pier(_ name: String) -> FishingPier {
+        FishingPier(name: name, countyName: "Kitsap", websiteURL: "",
+                    coordinate: LonLat(longitude: -122.5, latitude: 47.5))
+    }
+
+    @Test func aClusterIsNamedForItsLeadMemberWithNoCountAppended() {
+        let members = [SiteAnnotation(pier: Self.pier("Ross Point")),
+                       SiteAnnotation(pier: Self.pier("Second")),
+                       SiteAnnotation(pier: Self.pier("Third"))]
+        let title = FishingMapRepresentable.Coordinator.clusterTitle(for: members)
+
+        #expect(title == "Ross Point")
+        // The badge carries the count; the label must not carry it too.
+        #expect(title?.contains("more") == false)
+        #expect(title?.contains("3") == false)
+    }
+
+    /// Nil rather than a placeholder: an unnamed cluster should draw no label,
+    /// not one the app made up.
+    @Test func anUnnamedClusterGetsNoTitleRatherThanAnInventedOne() {
+        #expect(FishingMapRepresentable.Coordinator.clusterTitle(for: []) == nil)
+    }
+}
