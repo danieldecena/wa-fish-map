@@ -1,6 +1,6 @@
 ## Tasks
 - [x] Flow vs normal: range strip (p10-p90 track, p25-p75 band, p50 tick, today's marker), not a bar
-- [ ] Best-months ribbon: 12 cells, current month marked, riskMonths on a non-colour channel
+- [x] Best-months ribbon: 12 cells, current month marked, riskMonths on a non-colour channel
 - [x] Decide the best-months wrap: rotate to start at the current month
 - [ ] [you] In ASC: confirm the new build number, remove 1.0 (6) from review, attach the new build, resubmit
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)

@@ -125,8 +125,11 @@ struct BitingNowView: View {
                                 .foregroundStyle(.secondary)
                                 .accessibilityIdentifier("verifyBadge")
                         }
-                        Label("Best months: \(Self.monthList(s.bestMonths))", systemImage: "calendar")
-                            .font(.caption).foregroundStyle(.secondary)
+                        // Was "Best months: Jun, Jul, Aug". That reads the
+                        // same as "Mar, Jul, Nov" while being a completely
+                        // different fishery, so the shape is drawn instead.
+                        SeasonRibbon(season: s, month: month)
+                            .padding(.top, 2)
                         if let bestTime = s.bestTime {
                             Label("Best time: \(bestTime)", systemImage: "clock")
                                 .font(.caption).foregroundStyle(.secondary)
@@ -152,14 +155,6 @@ struct BitingNowView: View {
         }
     }
 
-    private static let shortMonthSymbols = DateFormatter().shortMonthSymbols ?? []
-
-    /// "9, 10" → "Sep, Oct".
-    static func monthList(_ months: [Int]) -> String {
-        months.sorted()
-            .compactMap { $0 >= 1 && $0 <= shortMonthSymbols.count ? shortMonthSymbols[$0 - 1] : nil }
-            .joined(separator: ", ")
-    }
 }
 
 /// Shared "Before you go" disclaimer + WDFW link, used by both detail sheets.
