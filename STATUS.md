@@ -483,3 +483,44 @@ current counts rather than trusting a number written here.
   to add it. Until then slice 6 is open, and the plan's fallback (option C, a
   ring channel on Prime) should not be adopted or rejected -- there is no
   observation to justify either.
+
+### 2026-09-20 (slice 6 passes, on a frame built to make it answerable)
+
+- Decided: the ramp gate gets its own frames, `docs/design/ramp-check/`, taken
+  at a pinned camera and a pinned month. The App Store frames could not answer
+  it: they reframe themselves from the location fix, so two runs produced
+  different regions and zooms, and in September they are ~85% Good, which tests
+  nothing. `-uiTestingRegion lat,lon,span` is the fourth and last argument on
+  `UITestSeam`, and it exists for the same reason the other three do.
+- Decided: November at 47.95,-123.00 span 1.3. November is the one month that
+  puts all four ratings in adjacent Puget Sound areas — Prime in 10/11/12, Good
+  in 8-2 and 13, Fair in 8-1 and 9, Slow in 5/6/7 — so one frame holds the whole
+  ramp.
+- Observed: the span is load-bearing. At 2.0 the frame came back as a violet
+  heat map with no pins at all, because `MapDetailLevel` hands pins over to the
+  density overlay past 400 km of camera distance. That is the app working as
+  designed, and it would have read as "the pins disappeared" to anyone who did
+  not check the threshold.
+- **Slice 6 passes.** Prime, Good, Fair and Slow are all separable at arm's
+  length in both appearances, which is more than the three bands the plan asked
+  for.
+- Observed, and it corrects an earlier worry: the Prime/Slow collision flagged
+  when the ramp was measured — within half an L* of each other — does not
+  matter on screen. Red and blue differ so strongly in hue that equal lightness
+  never confuses them. Lightness was the wrong thing to worry about for that
+  pair.
+- Observed: the weak pair is **Good against Fair**, not Prime against Good.
+  Orange and yellow are adjacent warm hues, and since slice 4 both carry black
+  glyphs, the ink channel gives no help telling them apart. They do separate,
+  but they are what would fail first if a stop moved.
+- Not tested, and the real remaining risk: **colour-blind reading.** Prime, Good
+  and Fair are three adjacent warm hues separated mostly by lightness, which is
+  the case deuteranopia and protanopia collapse. Slow is safe. The plan's
+  fallback (option C, a ring channel) is the answer if this matters, and the
+  gate as worded does not test it, so nothing here says it is fine.
+- Observed: the closure badge works in both appearances. It inverts correctly
+  (black circle in light, white in dark), stays legible on a marker drawn at
+  0.8, and does not collide with a cluster's member count — which was the reason
+  it is a subview rather than a badged glyph image.
+- Still not verified: the 44pt tap target. It is a geometry assertion; an edge
+  tap on hardware is the other half.

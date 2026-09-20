@@ -173,6 +173,17 @@ struct FishingMapView: View {
             }
         }
         .task {
+            // Before anything that could move the camera. Setting
+            // userMovedCamera suppresses the ease onto the location fix, which
+            // is the thing that made two screenshot runs incomparable.
+            if let pinned = UITestSeam.region {
+                focusRegion = MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: pinned.latitude,
+                                                   longitude: pinned.longitude),
+                    span: MKCoordinateSpan(latitudeDelta: pinned.span,
+                                           longitudeDelta: pinned.span))
+                userMovedCamera = true
+            }
             location.requestIfNeeded()
             // Before `load`: it publishes the guide ahead of its network awaits.
             model.setPlanYear(currentYear)
