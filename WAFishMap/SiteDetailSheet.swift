@@ -8,13 +8,31 @@ struct RatingBadge: View {
     private var color: Color { rating?.color ?? .gray }
     private var label: String { rating?.label ?? "No data" }
 
+    /// The label is deliberately *not* the rating colour.
+    ///
+    /// It used to be, on a 20% wash of that same colour, which put both sides
+    /// of the contrast ratio on the same slider: the lighter the stop, the
+    /// lighter its own background. Measured in light appearance every state
+    /// failed 4.5:1 and Fair reached 1.38:1. Dark appearance passed throughout,
+    /// because the wash over a near-black surface stays dark while the ramp
+    /// colour stays bright -- which is why this was invisible to anyone
+    /// testing in dark.
+    ///
+    /// `.primary` adapts to both appearances and leaves the ramp doing the job
+    /// it is good at: the fill and the stroke still encode the rating, so no
+    /// information is lost by taking it off the text.
+    /// `RatingBadgeContrastTests` holds the measurements.
+    static func labelColor(for rating: FishingRating?) -> Color {
+        .primary
+    }
+
     var body: some View {
         Text(label)
             .font(.caption.bold())
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(color.opacity(0.2), in: Capsule())
-            .foregroundStyle(color)
+            .foregroundStyle(Self.labelColor(for: rating))
             .accessibilityLabel(rating.map { "Rated \($0.label)" } ?? "No seasonal guidance")
             .overlay(Capsule().stroke(color, lineWidth: 1))
     }
