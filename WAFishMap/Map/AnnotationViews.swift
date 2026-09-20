@@ -78,7 +78,8 @@ final class SiteMarkerView: MKMarkerAnnotationView {
     /// nil and MapKit silently falls back to a default pin.
     private func apply(_ annotation: MKAnnotation?) {
         guard let site = annotation as? SiteAnnotation else { return }
-        Self.paint(self, tint: UIColor(site.rating?.color ?? .gray), outlined: site.closurePlausible)
+        Self.paint(self, tint: UIColor(site.rating?.color ?? .gray))
+        Self.applyClosureBadge(self, closurePlausible: site.closurePlausible)
         glyphImage = UIImage(systemName: Self.symbol(for: site.kind))
         // Faded gray: still tappable, so the details stay one tap away.
         alpha = site.isClosed ? 0.55 : 1
@@ -88,12 +89,49 @@ final class SiteMarkerView: MKMarkerAnnotationView {
         accessibilityTraits = .button
     }
 
-    /// Outlined = a pale balloon with the rating colour moved to the glyph, so a
-    /// "season may be closed, verify" spot keeps its colour and its tap target.
-    /// Both branches set both tints: views are reused across annotations.
-    static func paint(_ view: MKMarkerAnnotationView, tint: UIColor, outlined: Bool) {
-        view.markerTintColor = outlined ? .systemBackground : tint
-        view.glyphTintColor = outlined ? tint : glyphTint(on: tint)
+    /// The balloon always carries the rating at full strength.
+    ///
+    /// "Season may be closed" used to draw as a pale balloon with the rating
+    /// moved onto the glyph. That cost both legibility and the rating: the
+    /// glyph measured 1.51:1 for Fair against a 3:1 floor, and the only fixes
+    /// that kept colour on the glyph either darkened Fair until it was no
+    /// longer yellow, or washed the balloon until the four stops separated by
+    /// ΔL* 3-9 instead of the 12 the ramp is gated on. Closure moved to
+    /// `applyClosureBadge` instead, which is a shape, so colour is free to do
+    /// one job.
+    static func paint(_ view: MKMarkerAnnotationView, tint: UIColor) {
+        view.markerTintColor = tint
+        view.glyphTintColor = glyphTint(on: tint)
+    }
+
+    /// Identifies the badge among reused subviews.
+    static let closureBadgeTag = 7741
+
+    /// The "verify before you go" mark, as a shape rather than a colour.
+    ///
+    /// A subview rather than a badged `glyphImage`, because a cluster's glyph
+    /// is its member count: overwriting it to carry closure would trade one
+    /// fact for another. Constraint-pinned so it survives the scale transform
+    /// and the relayout that `prepareForDisplay` triggers, and removed on
+    /// every apply because MapKit reuses these views across annotations.
+    static func applyClosureBadge(_ view: MKAnnotationView, closurePlausible: Bool) {
+        view.viewWithTag(closureBadgeTag)?.removeFromSuperview()
+        guard closurePlausible else { return }
+
+        let badge = UIImageView(image: UIImage(systemName: "exclamationmark.circle.fill"))
+        badge.tag = closureBadgeTag
+        badge.tintColor = .label
+        badge.backgroundColor = .systemBackground
+        badge.layer.cornerRadius = 7
+        badge.clipsToBounds = true
+        badge.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(badge)
+        NSLayoutConstraint.activate([
+            badge.widthAnchor.constraint(equalToConstant: 14),
+            badge.heightAnchor.constraint(equalToConstant: 14),
+            badge.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 3),
+            badge.topAnchor.constraint(equalTo: view.topAnchor, constant: -3),
+        ])
     }
 
     /// Ink for a glyph sitting on a filled balloon.
@@ -175,8 +213,8 @@ final class SiteClusterView: MKMarkerAnnotationView {
     private func apply(_ annotation: MKAnnotation?) {
         guard let cluster = annotation as? MKClusterAnnotation else { return }
         let members = cluster.memberAnnotations.compactMap { $0 as? SiteAnnotation }
-        SiteMarkerView.paint(self, tint: UIColor(Self.bestRating(of: members)?.color ?? .gray),
-                             outlined: Self.closurePlausible(of: members))
+        SiteMarkerView.paint(self, tint: UIColor(Self.bestRating(of: members)?.color ?? .gray))
+        SiteMarkerView.applyClosureBadge(self, closurePlausible: Self.closurePlausible(of: members))
         glyphText = "\(cluster.memberAnnotations.count)"
         isAccessibilityElement = true
         accessibilityLabel = "\(cluster.memberAnnotations.count) fishing spots"
@@ -196,7 +234,7 @@ final class SiteClusterView: MKMarkerAnnotationView {
         members.compactMap(\.rating).max()
     }
 
-    /// Outlined only when every member carrying the cluster's colour is outlined;
+    /// Badged only when every member carrying the cluster's colour is badged;
     /// one solid member at that rating is a spot worth going to.
     static func closurePlausible(of members: [SiteAnnotation]) -> Bool {
         let best = bestRating(of: members)

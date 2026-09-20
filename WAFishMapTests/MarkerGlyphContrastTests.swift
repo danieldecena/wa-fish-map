@@ -39,53 +39,37 @@ struct MarkerGlyphContrastTests {
     static let minimumContrast = 3.0
 
     /// Measures what `paint` actually leaves on the view.
-    static func measured(stop: Color, outlined: Bool, style: UIUserInterfaceStyle) -> Double {
+    static func measured(stop: Color, style: UIUserInterfaceStyle) -> Double {
         let view = MKMarkerAnnotationView(annotation: nil, reuseIdentifier: nil)
-        SiteMarkerView.paint(view, tint: UIColor(stop), outlined: outlined)
+        SiteMarkerView.paint(view, tint: UIColor(stop))
         let balloon = view.markerTintColor ?? .clear
         let glyph = view.glyphTintColor ?? .clear
         return ratio(components(glyph, style), components(balloon, style))
     }
 
     @Test(arguments: [UIUserInterfaceStyle.light, .dark])
-    func theGlyphIsLegibleOnAFilledBalloon(style: UIUserInterfaceStyle) {
+    func theGlyphIsLegibleOnEveryStop(style: UIUserInterfaceStyle) {
         for stop in Self.stops {
-            let c = Self.measured(stop: stop.color, outlined: false, style: style)
+            let c = Self.measured(stop: stop.color, style: style)
             #expect(c >= Self.minimumContrast,
-                    "filled \(stop.name) glyph is \(String(format: "%.2f", c)):1 in \(style == .light ? "light" : "dark"); needs 3:1.")
+                    "\(stop.name) glyph is \(String(format: "%.2f", c)):1 in \(style == .light ? "light" : "dark"); needs 3:1.")
         }
     }
 
-    /// The outlined branch is the "season may be closed, verify" state, where
-    /// the rating colour moves to the glyph on a pale balloon. Same legibility
-    /// obligation, and the one state where an unreadable marker matters most.
-    @Test(arguments: [UIUserInterfaceStyle.light, .dark])
-    func theGlyphIsLegibleOnAnOutlinedBalloon(style: UIUserInterfaceStyle) {
-        func assertAllStops() {
-            for stop in Self.stops {
-                let c = Self.measured(stop: stop.color, outlined: true, style: style)
-                #expect(c >= Self.minimumContrast,
-                        "outlined \(stop.name) glyph is \(String(format: "%.2f", c)):1 in \(style == .light ? "light" : "dark"); needs 3:1.")
-            }
-        }
+    /// There is only one balloon state now, so this is the whole surface.
+    /// The pale "season may be closed" balloon is gone: it could not carry a
+    /// legible glyph and a readable rating at once, so closure became a badge.
+    @Test func closureIsCarriedByAShapeAndNotByTheBalloon() {
+        let view = MKMarkerAnnotationView(annotation: nil, reuseIdentifier: nil)
 
-        // Dark genuinely passes: the rating colour is bright and the pale
-        // balloon resolves near-black, so it is asserted for real.
-        //
-        // Light is a known gap. Fair reads 1.51:1 and Good 2.31:1. Unlike the
-        // filled branch this cannot be fixed by swapping the ink -- here the
-        // rating colour *is* the glyph, so reaching 3:1 means darkening the
-        // stop for this state or re-drawing the state, and this is the
-        // "season may be closed, verify" marker. That is a design call.
-        // Recorded rather than silenced: withKnownIssue fails the build the
-        // moment someone fixes it, and it already caught itself being applied
-        // too widely when it was first wrapped around dark as well.
-        if style == .light {
-            withKnownIssue("Outlined glyph contrast in light is a pending design decision") {
-                assertAllStops()
-            }
-        } else {
-            assertAllStops()
-        }
+        SiteMarkerView.paint(view, tint: UIColor(DS.Rating.prime))
+        SiteMarkerView.applyClosureBadge(view, closurePlausible: true)
+        #expect(view.viewWithTag(SiteMarkerView.closureBadgeTag) != nil)
+        #expect(view.markerTintColor == UIColor(DS.Rating.prime),
+                "The balloon must keep the rating at full strength in the closure state.")
+
+        // Views are reused across annotations, so the badge has to come off.
+        SiteMarkerView.applyClosureBadge(view, closurePlausible: false)
+        #expect(view.viewWithTag(SiteMarkerView.closureBadgeTag) == nil)
     }
 }

@@ -399,3 +399,47 @@ current counts rather than trusting a number written here.
   runs (crash reports from a HeatMapTests test that does not exist here), and
   MapCoordinatorTests' recentre test hung 10 minutes in a full run. Run targeted
   suites, or give each worktree its own simulator.
+
+### 2026-09-20 (rating ramp: one definition, contrast measured, closure becomes a shape)
+
+- Decided: the ramp keeps deferring to Apple's system colours. The plan expected
+  the stops to be too close in lightness and had granted a platform-deference
+  exception for hand-picked literals. Measured on device instead: every adjacent
+  pair clears ΔL* 12 in both appearances (slow→fair 27.3/27.3, fair→good
+  14.4/15.8, good→prime 13.3/13.3), so the exception was not needed and was not
+  taken. `RampLightnessTests` holds the numbers and fails the build if the gap
+  closes.
+- Decided: `FishingRating.color` returns `DS.Rating` and the four literals in
+  `ColorRamp.swift` are gone. There were two ramps; the views drew the one that
+  could not adapt, so the dark map drew the light ramp.
+- Decided: the rating colour is no longer the badge's text colour. Label and
+  wash moved together on one slider, so every state failed 4.5:1 in light and
+  Fair reached 1.38:1. Label is `.primary`; the ramp keeps the fill and the
+  stroke. Dark passed throughout beforehand, which is why this survived: a fix
+  checked only in dark would have looked complete.
+- Decided: **"season may be closed" no longer draws as a pale balloon.** This
+  reverses the 2026-09-16 decision above. That marker put the rating colour on
+  the glyph, which measured 1.51:1 for Fair and 2.31:1 for Good against a 3:1
+  floor. Neither fix that kept colour on the glyph worked: reaching 3:1 needs a
+  glyph at L* ≤ 61.7, which means darkening Fair by 22.5 points until it is no
+  longer yellow; and washing the balloon instead collapses the stops to ΔL* 3-9,
+  failing the ramp's own gate. So the balloon now always carries the rating at
+  full strength, and closure is carried by a badge subview
+  (`SiteMarkerView.applyClosureBadge`) — a shape, so colour does one job.
+  A subview rather than a badged `glyphImage` because a cluster's glyph is its
+  member count, and overwriting it would trade one fact for another.
+- Decided: the marker glyph's ink is picked by measured contrast against the
+  balloon, not fixed to white. White failed on the light end of the ramp (Fair
+  1.51:1, Good 2.31:1). A hardcoded list of "the light stops" would go stale the
+  moment a token moves, and the stops are themselves dynamic.
+- Observed: `** TEST FAILED **` from a compile error with zero tests run is
+  indistinguishable from a firing assertion if only the verdict line is read.
+  This happened twice in one session and nearly got written up as a successful
+  control both times. Check the error count and the case count before reading
+  any red as evidence.
+- Observed: `withKnownIssue` wrapped around both appearances failed with "Known
+  issue was not recorded", because the dark case genuinely passed. It caught its
+  own misuse, which is the behaviour to want from it.
+- Not done: nothing here has been looked at. The arm's-length check on the
+  regional frame in both appearances is slice 6 and is the real gate. The
+  numbers say the proxies pass; they do not say the map reads better.
