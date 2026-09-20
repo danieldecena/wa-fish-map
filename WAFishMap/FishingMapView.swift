@@ -37,6 +37,7 @@ struct FishingMapView: View {
     /// Set once the user pans or zooms. A fix that lands afterwards must not yank
     /// the camera out from under them.
     @State private var userMovedCamera = false
+    @State private var showPlanPicker = false
     /// A one-shot camera move handed to the representable (the recentre-on-fix
     /// ease). MapKit's own delegate reports real pan/pinch touches, so the
     /// three-phase `CameraGuardPhase` machine this replaced is gone.
@@ -372,12 +373,47 @@ struct FishingMapView: View {
         .padding(sizeClass == .regular ? 12 : 8)
     }
 
-    /// The symbol moved to `timeOfDayHint`, which now carries it beside the
-    /// label as one chip. Two copies of the same sun/moon glyph in one bar was
-    /// the header spending width on saying the same thing twice.
+    /// One button that says when, and opens the picker when asked.
+    ///
+    /// This was a compact `DatePicker`, whose date and time pills ignore
+    /// `controlSize` -- the comment on `dateControl` records that they
+    /// overflowed an iPhone row and forced the whole bar onto two lines. One
+    /// control fits, which is where most of the reclaimed height comes from.
+    ///
+    /// The symbol that used to sit beside it moved into `timeOfDayHint`; two
+    /// copies of the same sun/moon glyph in one bar was the header spending
+    /// width to say the same thing twice.
     private var planPicker: some View {
-        DatePicker("Plan for", selection: $planDate)
-            .labelsHidden()
+        Button { showPlanPicker.toggle() } label: {
+            Label(Self.planLabel(planDate), systemImage: "calendar")
+                .font(.caption2.weight(.semibold))
+                .lineLimit(1)
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.small)
+        .fixedSize()
+        .accessibilityLabel("Plan for \(Self.planLabel(planDate))")
+        .accessibilityHint("Opens a date and time picker")
+        .accessibilityIdentifier("planDateButton")
+        .popover(isPresented: $showPlanPicker, arrowEdge: .top) {
+            DatePicker("Plan for", selection: $planDate)
+                .datePickerStyle(.graphical)
+                .labelsHidden()
+                .padding()
+                .frame(minWidth: 320)
+                .presentationCompactAdaptation(.popover)
+        }
+    }
+
+    /// "Sep 20, 2:33 AM" -- short enough for a chip, and it must carry both
+    /// halves, since the two pills it replaces each carried one.
+    static func planLabel(_ date: Date, calendar: Calendar = .pacific) -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.calendar = calendar
+        f.timeZone = calendar.timeZone
+        f.dateFormat = "MMM d, h:mm a"
+        return f.string(from: date)
     }
 
     /// One chip: glyph and word, nothing else.
