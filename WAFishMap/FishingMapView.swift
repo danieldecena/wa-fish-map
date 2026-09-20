@@ -372,28 +372,27 @@ struct FishingMapView: View {
         .padding(sizeClass == .regular ? 12 : 8)
     }
 
+    /// The symbol moved to `timeOfDayHint`, which now carries it beside the
+    /// label as one chip. Two copies of the same sun/moon glyph in one bar was
+    /// the header spending width on saying the same thing twice.
     private var planPicker: some View {
-        HStack(spacing: 10) {
-            Image(systemName: timeOfDay.symbol)
-                .foregroundStyle(timeOfDay.isPrimeLight ? .green : .secondary)
-            DatePicker("Plan for", selection: $planDate)
-                .labelsHidden()
-        }
+        DatePicker("Plan for", selection: $planDate)
+            .labelsHidden()
     }
 
+    /// One chip: glyph and word, nothing else.
+    ///
+    /// This used to carry `lightHint` as a second line -- a full sentence
+    /// across the top of a map whose whole job is the map. The sentence is not
+    /// wrong, it is just not worth a permanent line of chrome, so it moved to
+    /// the info popover where a reader goes when they want the explanation.
     private var timeOfDayHint: some View {
-        ViewThatFits(in: .horizontal) {
-            VStack(alignment: .trailing, spacing: 1) {
-                Text(timeOfDay.label).font(.caption2.weight(.semibold))
-                Text(timeOfDay.lightHint)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-            Text(timeOfDay.label)
-                .font(.caption2.weight(.semibold))
-                .fixedSize()
-        }
+        Label(timeOfDay.label, systemImage: timeOfDay.symbol)
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(timeOfDay.isPrimeLight ? .green : .secondary)
+            .labelStyle(.titleAndIcon)
+            .fixedSize()
+            .accessibilityLabel("\(timeOfDay.label). \(timeOfDay.lightHint)")
     }
 
     private var nowButton: some View {
@@ -457,6 +456,11 @@ struct FishingMapView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Tap a launch for what's biting. Guidance only — verify seasons in the Fish Washington app.")
                             .font(.caption)
+                        // Was a permanent line in the header. It belongs where
+                        // someone has asked for an explanation.
+                        Label(timeOfDay.lightHint, systemImage: timeOfDay.symbol)
+                            .font(.caption)
+                            .foregroundStyle(timeOfDay.isPrimeLight ? .green : .secondary)
                         Text("Not for navigation or safety decisions.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
