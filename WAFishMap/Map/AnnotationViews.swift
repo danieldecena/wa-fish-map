@@ -93,7 +93,33 @@ final class SiteMarkerView: MKMarkerAnnotationView {
     /// Both branches set both tints: views are reused across annotations.
     static func paint(_ view: MKMarkerAnnotationView, tint: UIColor, outlined: Bool) {
         view.markerTintColor = outlined ? .systemBackground : tint
-        view.glyphTintColor = outlined ? tint : .white
+        view.glyphTintColor = outlined ? tint : glyphTint(on: tint)
+    }
+
+    /// Ink for a glyph sitting on a filled balloon.
+    ///
+    /// White was used on every stop, which works on the dark end of the ramp
+    /// and fails on the light end: white on Fair measured 1.51:1 in light and
+    /// 1.41:1 in dark, against a 3:1 floor. Rather than hardcode which stops
+    /// are light -- a list that goes stale the moment a token moves -- this
+    /// picks whichever ink actually contrasts more with the balloon.
+    ///
+    /// Resolved inside a dynamic provider so it re-decides per appearance:
+    /// the ramp's stops are themselves dynamic, so the right ink in light is
+    /// not always the right ink in dark.
+    static func glyphTint(on balloon: UIColor) -> UIColor {
+        UIColor { traits in
+            let resolved = balloon.resolvedColor(with: traits)
+            var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+            resolved.getRed(&r, green: &g, blue: &b, alpha: &a)
+            func linear(_ c: CGFloat) -> Double {
+                let v = Double(c)
+                return v <= 0.04045 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4)
+            }
+            let luminance = 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b)
+            // Contrast against white vs against black, same formula both sides.
+            return (1.05 / (luminance + 0.05)) >= ((luminance + 0.05) / 0.05) ? .white : .black
+        }
     }
 
     static func symbol(for kind: SiteAnnotation.Kind) -> String {
