@@ -142,5 +142,17 @@ cannot warn you off the thing you are about to do:
   done. Signed profiles, lockfiles and build outputs are testimony about remote
   state — read them before writing an action item that lives in a browser.
 
-The simulator here is named `iPhone`; use `-destination
-'platform=iOS Simulator,name=iPhone'` and never a cached UUID.
+The simulator destination should be dynamically resolved. Use `scripts/run_sim.sh` instead of hardcoding `name=iPhone 17` or `name=iPhone`, as those device models may not exist on the current runtime.
+
+## Toolchain Requirement
+
+Although the deployment target is iOS 18.0, the build host MUST use **Xcode 26 or newer** (iOS 26 SDK). The `GlassCard` component references `glassEffect(_:in:)`, which will fail to compile on older Xcode versions even behind `#available` checks.
+
+## Subsystem Architecture
+
+- **USGS Streamflow**: Driven by `RiverLoader` and `USGSFlowLoader`. Computes percentiles via `RiverFlowStats` (p10/p25/p75/p90) and intentionally caps flow rating below `Prime`. Features use a 22pt fingertip hit-test tolerance for selection.
+- **NDBC Buoys & NOAA Tides**: Buoy observation polling is handled by `NDBCLoader` (wave height, water temperature). Tides use a 170-station model.
+- **WeatherKit**: PlanWeather implements a 1-hour cache expiry. Note that WeatherKit simulator provisioning is unsupported; testing requires physical device verification via `scripts/verify_weatherkit_device.sh`.
+- **Marine Protected Areas (MPAs)**: Polygon logic punches holes in marine areas and resolves status via a 3-tier system (`inside / clear / unavailable`).
+- **Season Risk**: The `seasonRisk` table in `fisheries.json` intentionally caps annual rule-variable species to `.fair`.
+

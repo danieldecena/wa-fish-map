@@ -22,11 +22,8 @@ open WAFishMap.xcodeproj
 Build and run on the iOS Simulator, or test from Terminal:
 
 ```zsh
-# Any installed iPhone simulator works — list yours with:
-#   xcrun simctl list devices available | grep iPhone
-xcodebuild -scheme WAFishMap \
-  -destination 'platform=iOS Simulator,name=iPhone 17' \
-  test
+# Run tests dynamically against the first available iPhone simulator
+./scripts/run_sim.sh test
 ```
 
 One check needs real hardware. WeatherKit mints its JWT from the provisioning
@@ -72,6 +69,7 @@ the ones already in `WAFishMap/`.
 
 ## What you get
 
-- Hybrid map centered on South Puget Sound (Area 13 polygon + Thurston launch pins)
-- Live WDFW ArcGIS fetch with offline GeoJSON fallback
-- Swift Testing unit tests for parsers, scope filters, and model loading
+- Fully statewide map covering 16 marine areas, plus rivers, lakes, and coastal areas.
+- Live WDFW ArcGIS fetch with offline GeoJSON fallback for access sites and marine areas.
+- Contextual streamflow (USGS), marine tides (NOAA), buoy data (NDBC), and plan-time weather (Apple WeatherKit).
+- Swift Testing unit tests for parsers, scope filters, and model loading.
