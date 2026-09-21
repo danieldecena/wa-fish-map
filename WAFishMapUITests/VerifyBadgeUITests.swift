@@ -99,6 +99,13 @@ final class VerifyBadgeUITests: XCTestCase {
 
         XCTAssertFalse(app.staticTexts["Wind and rain unavailable right now."].exists,
                        "The section reported unavailable — the live fetch failed on device.")
+
+        // App Review 5.2.5: the Apple Weather mark and the legal source link must
+        // both be on screen wherever WeatherKit data is.
+        XCTAssertTrue(app.links["weatherAttribution"].waitForExistence(timeout: 15),
+                      "No Apple Weather mark beside the forecast. On screen: \(Self.labels(app))")
+        XCTAssertTrue(app.links["weatherLegalLink"].exists,
+                      "No legal source link beside the forecast. On screen: \(Self.labels(app))")
         #endif
     }
 

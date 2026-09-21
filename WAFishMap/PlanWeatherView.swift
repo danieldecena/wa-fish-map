@@ -79,10 +79,14 @@ struct PlanWeatherView: View {
     /// mark and legal link come from the service rather than being hardcoded, so
     /// they follow whatever Apple serves. Drawn only alongside a real reading:
     /// attributing data that failed to load would be a claim about nothing.
+    ///
+    /// App Review rejected 1.0 (6) under 5.2.5 (2026-09-21) because a 12pt faded
+    /// mark with only a chevron for the legal link did not read as attribution.
+    /// The mark is now full contrast and the legal source is a labelled link.
     @ViewBuilder private var attributionMark: some View {
         if let attribution {
-            Link(destination: attribution.legalPageURL) {
-                HStack(spacing: 4) {
+            HStack(spacing: 12) {
+                Link(destination: attribution.legalPageURL) {
                     AsyncImage(
                         url: colorScheme == .dark
                             ? attribution.combinedMarkDarkURL
@@ -90,15 +94,16 @@ struct PlanWeatherView: View {
                     ) { image in
                         image.resizable().scaledToFit()
                     } placeholder: {
-                        Text(attribution.serviceName).font(.caption2)
+                        Text(attribution.serviceName).font(.caption)
                     }
-                    .frame(height: 12)
-                    Image(systemName: "chevron.right").font(.system(size: 8))
+                    .frame(height: 20)
                 }
-                .foregroundStyle(.tertiary)
+                .accessibilityIdentifier("weatherAttribution")
+                .accessibilityLabel("Weather data by \(attribution.serviceName). Opens legal attribution.")
+                Link("Other data sources", destination: attribution.legalPageURL)
+                    .font(.caption)
+                    .accessibilityIdentifier("weatherLegalLink")
             }
-            .accessibilityIdentifier("weatherAttribution")
-            .accessibilityLabel("Weather data by \(attribution.serviceName). Opens legal attribution.")
         }
     }
 

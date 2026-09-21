@@ -1,4 +1,9 @@
 ## Tasks
+- [ ] Harden WeatherKit attribution: larger mark + legal link
+- [ ] Device UI test asserts attribution mark and legal link
+- [ ] Review notes: WeatherKit attribution paragraph + STATUS log
+- [ ] Archive and upload build 7
+- [ ] [you] Record WeatherKit attribution on iPhone for App Review
 - [ ] [you] In ASC: confirm the new build number, remove 1.0 (6) from review, attach the new build, resubmit
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
@@ -168,7 +173,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-16 11:59.
+Plan approved 2026-09-21 16:47.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
@@ -177,7 +182,7 @@ when launched via `cb` (--allow-dangerously-skip-permissions); `yolo`
 
 Only if Claude Code actually closed:
 
-    claude --resume 4e357a8b-dc36-4446-96db-9f46a2997f27
+    claude --resume 1f7317de-786d-4345-a4f4-babf6f9efb0e
 
 (`-c` resumes the most recent session; bare `--resume` opens a searchable picker.)
 <!-- /resume-footer -->
