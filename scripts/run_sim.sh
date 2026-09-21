@@ -21,10 +21,18 @@ location="47.29,-122.52"
 device=""
 shot=""
 
+# Check if we are testing or building
+ACTION="build"
+if [[ "${1:-}" == "test" ]]; then
+  ACTION="test"
+  shift
+fi
+
 usage() {
   cat <<'EOF'
-usage: scripts/run_sim.sh [options]
+usage: scripts/run_sim.sh [test] [options]
 
+  test                      run tests instead of just building
   -d, --device <udid|name>  simulator to use (default: booted, else newest iPhone)
   -l, --location <lat,lon>  simulated GPS fix (default: 47.29,-122.52, Area 11)
       --no-location         skip the fix; app stays on statewide auto-fit
@@ -125,12 +133,12 @@ echo "[ok] simulator $udid booted"
 
 # --- build ------------------------------------------------------------------
 
-echo "[..] building $SCHEME (Xcode 26+ required — GlassCard needs the iOS 26 SDK)"
+echo "[..] $ACTION $SCHEME (Xcode 26+ required — GlassCard needs the iOS 26 SDK)"
 xcodebuild -scheme "$SCHEME" \
   -destination "id=$udid" \
   -derivedDataPath "$DERIVED" \
   -skipPackagePluginValidation \
-  build
+  $ACTION
 
 app="$DERIVED/Build/Products/Debug-iphonesimulator/$SCHEME.app"
 if [[ ! -d "$app" ]]; then
