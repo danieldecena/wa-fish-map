@@ -1,6 +1,6 @@
 ## Tasks
 - [x] Harden WeatherKit attribution: larger mark + legal link
-- [ ] Device UI test asserts attribution mark and legal link
+- [x] Device UI test asserts attribution mark and legal link
 - [x] Review notes: WeatherKit attribution paragraph + STATUS log
 - [ ] Archive and upload build 7
 - [ ] [you] Record WeatherKit attribution on iPhone for App Review
