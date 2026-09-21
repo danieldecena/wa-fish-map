@@ -114,6 +114,12 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-21 (App Review rejection 5.2.5, WeatherKit attribution)
+
+- Found: 1.0 (6) rejected under 5.2.5. Apple's message: the reviewer could not confirm WeatherKit attribution (Apple Weather mark + legal source link) and wants a physical-device screen recording showing where WeatherKit is used, in App Review notes, for every future submission.
+- Decided: harden the attribution and ship a new build rather than reply-only. The old mark was 12pt, `.tertiary`, with only a chevron as the legal link. Now 20pt full contrast plus a labelled "Other data sources" link (`8339996`); the device UI test asserts both.
+- Found: `1ced71d` (NDBC throwing URL) left `WAFishMapTests` uncompilable, so the unit suite had not run since. Fixed in `8339996`; 275 tests pass.
+
 ### 2026-09-21 (Workflow Audit & URL Safety)
 
 - **CI Restored:** Configured Xcode Cloud (`ci_scripts/ci_post_clone.sh`) to replace the disabled GitHub Actions runners. Enforces the strict iOS 26 SDK requirement seamlessly using Apple Developer compute.
