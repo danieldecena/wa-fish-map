@@ -114,6 +114,12 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-09-21 (Workflow Audit & URL Safety)
+
+- **CI Restored:** Configured Xcode Cloud (`ci_scripts/ci_post_clone.sh`) to replace the disabled GitHub Actions runners. Enforces the strict iOS 26 SDK requirement seamlessly using Apple Developer compute.
+- **Testing Fixed:** `scripts/run_sim.sh` now correctly accepts a `test` argument, aligning with the `README.md` instructions and restoring command-line UI testing.
+- **Safety:** Replaced force-unwrapped static URLs in `NDBCLoader` with throwing `invalidURL` constructions to prevent silent upstream parsing crashes.
+
 ### 2026-09-17 (Rivers watchdog kill)
 
 - Found: tapping Rivers could kill the app. Not an exception — a FRONTBOARD
