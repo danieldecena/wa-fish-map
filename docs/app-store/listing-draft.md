@@ -74,13 +74,13 @@ How to review
 
 Data and scope
 - Access sites, marine areas and lakes come from public Washington Department of Fish and Wildlife (WDFW) map services; tides from NOAA; river flow from USGS; weather from WeatherKit. The app is not affiliated with or endorsed by WDFW.
+- Ratings are editorial timing guidance, not regulations. Every detail sheet shows a disclaimer and links to WDFW to confirm seasons and limits.
+- Sites WDFW lists as closed are labeled "Closed".
 
 WeatherKit (Guideline 5.2.5)
 - WeatherKit is used in one place: the "Wind & rain" section of every site's detail sheet (tap any pin, scroll to "Wind & rain").
 - Directly under the forecast the app shows the Apple Weather mark (served by WeatherAttribution, light/dark variant) and an "Other data sources" link that opens WeatherAttribution.legalPageURL. Tapping the mark opens the same page.
 - A screen recording on a physical iPhone showing this is attached.
-- Ratings are editorial timing guidance, not regulations. Every detail sheet shows a disclaimer and links to WDFW to confirm seasons and limits.
-- Sites WDFW lists as closed are labeled "Closed".
 
 Privacy
 - No accounts, ads, analytics or tracking. Device location stays on the device and only centers the map. Weather and directions use the selected site's coordinates, not the user's. App Privacy: Data Not Collected.
