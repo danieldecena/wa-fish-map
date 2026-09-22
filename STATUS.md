@@ -108,6 +108,7 @@
 
 ## Next Up
 
+- Resubmit 1.0 with build 8 plus an iPhone recording of the WeatherKit attribution (5.2.5 rejection, see decision log 2026-09-21).
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
