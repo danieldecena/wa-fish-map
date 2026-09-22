@@ -117,4 +117,6 @@ Submitted 2026-09-16 3:18 PM: iOS App 1.0 (6), Waiting for Review, manual releas
 - [x] Attach screenshots (6 of 10, 6.5" slot)
 - [x] Pricing, Content Rights, Age Rating
 - [x] Save -> Add for Review -> Submit for Review (2026-09-16)
+- [x] Rejected 2026-09-21, 5.2.5 WeatherKit attribution; fix uploaded as build **8**
+- [ ] Attach build 8, device recording in Attachment, updated review notes, reply + Resubmit
 - [ ] Release after approval

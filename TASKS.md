@@ -2,9 +2,9 @@
 - [x] Harden WeatherKit attribution: larger mark + legal link
 - [x] Device UI test asserts attribution mark and legal link
 - [x] Review notes: WeatherKit attribution paragraph + STATUS log
-- [ ] Archive and upload build 7
+- [x] Upload attribution fix to ASC — accepted as build 8
 - [ ] [you] Record WeatherKit attribution on iPhone for App Review
-- [ ] [you] In ASC: confirm the new build number, remove 1.0 (6) from review, attach the new build, resubmit
+- [ ] [you] In ASC: attach build 8 to 1.0, add recording, resubmit
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
 - [x] Privacy policy page hosted — https://danieldecena.github.io/wa-fish-map/privacy.html

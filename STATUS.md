@@ -118,6 +118,8 @@ current counts rather than trusting a number written here.
 
 - Found: 1.0 (6) rejected under 5.2.5. Apple's message: the reviewer could not confirm WeatherKit attribution (Apple Weather mark + legal source link) and wants a physical-device screen recording showing where WeatherKit is used, in App Review notes, for every future submission.
 - Decided: harden the attribution and ship a new build rather than reply-only. The old mark was 12pt, `.tertiary`, with only a chevron as the legal link. Now 20pt full contrast plus a labelled "Other data sources" link (`8339996`); the device UI test asserts both.
+- Observed on iPhone 16 Pro: the device UI test failed with the legal-link id deliberately broken (live WSW 4 mph reading on screen, mark assertion passing), then passed unmodified in 7.7s.
+- Uploaded from `562604b` via exportArchive; ASC refused 1 and 7 (`previousBundleVersion: 7`, so a 7 exists that this log did not create) and accepted **build 8**.
 - Found: `1ced71d` (NDBC throwing URL) left `WAFishMapTests` uncompilable, so the unit suite had not run since. Fixed in `8339996`; 275 tests pass.
 
 ### 2026-09-21 (Workflow Audit & URL Safety)
