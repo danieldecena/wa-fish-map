@@ -4,7 +4,7 @@
 - [x] Review notes: WeatherKit attribution paragraph + STATUS log
 - [x] Upload attribution fix to ASC — accepted as build 8
 - [x] [you] Record WeatherKit attribution on iPhone for App Review
-- [ ] [you] In ASC: attach build 8 to 1.0, add recording, resubmit
+- [x] Resubmit 1.0 (8) with recording — Waiting for Review
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
 - [x] Privacy policy page hosted — https://danieldecena.github.io/wa-fish-map/privacy.html
