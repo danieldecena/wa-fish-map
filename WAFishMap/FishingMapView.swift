@@ -431,7 +431,8 @@ struct FishingMapView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .tint(showHeat ? .orange : .secondary)
+                // The overlay's own violet: orange is the Good rating.
+                .tint(showHeat ? DS.Overlay.density : .secondary)
                 Button { showDisclaimer.toggle() } label: {
                     Image(systemName: "info.circle")
                         .font(.body)
