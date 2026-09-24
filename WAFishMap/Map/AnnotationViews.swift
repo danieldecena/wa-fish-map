@@ -40,7 +40,7 @@ final class SiteMarkerView: MKMarkerAnnotationView {
     /// nil and MapKit silently falls back to a default pin.
     private func apply(_ annotation: MKAnnotation?) {
         guard let site = annotation as? SiteAnnotation else { return }
-        Self.paint(self, tint: UIColor(site.rating?.color ?? .gray), outlined: site.closurePlausible)
+        Self.paint(self, tint: UIColor(site.rating?.color ?? DS.Rating.unrated), outlined: site.closurePlausible)
         glyphImage = UIImage(systemName: Self.symbol(for: site.kind))
         // Faded gray: still tappable, so the details stay one tap away.
         alpha = site.isClosed ? 0.55 : 1
@@ -112,7 +112,7 @@ final class SiteClusterView: MKMarkerAnnotationView {
     private func apply(_ annotation: MKAnnotation?) {
         guard let cluster = annotation as? MKClusterAnnotation else { return }
         let members = cluster.memberAnnotations.compactMap { $0 as? SiteAnnotation }
-        SiteMarkerView.paint(self, tint: UIColor(Self.bestRating(of: members)?.color ?? .gray),
+        SiteMarkerView.paint(self, tint: UIColor(Self.bestRating(of: members)?.color ?? DS.Rating.unrated),
                              outlined: Self.closurePlausible(of: members))
         glyphText = "\(cluster.memberAnnotations.count)"
         isAccessibilityElement = true

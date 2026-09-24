@@ -262,7 +262,7 @@ struct FishingMapRepresentable: UIViewRepresentable {
                             guard let geometry = Self.overlayGeometry(for: group) else { return nil }
                             let polygon = RatedPolygon(coordinates: geometry.outer, count: geometry.outer.count,
                                                        interiorPolygons: geometry.holes.isEmpty ? nil : geometry.holes)
-                            polygon.color = parent.areaColors[area.id] ?? .gray
+                            polygon.color = parent.areaColors[area.id] ?? DS.Rating.unrated
                             return polygon
                         }
                     }

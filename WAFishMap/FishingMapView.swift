@@ -232,11 +232,11 @@ struct FishingMapView: View {
     // MARK: Rating → color (nil rating renders neutral gray)
 
     private func color(forArea area: MarineArea) -> Color {
-        (model.guide?.area(named: area.areaName)?.rating(inMonth: currentMonth, species: selectedSpecies)?.color) ?? .gray
+        (model.guide?.area(named: area.areaName)?.rating(inMonth: currentMonth, species: selectedSpecies)?.color) ?? DS.Rating.unrated
     }
 
     private func color(forSite site: AccessSite) -> Color {
-        rating(for: site)?.color ?? .gray
+        rating(for: site)?.color ?? DS.Rating.unrated
     }
 
     // MARK: Heat zones (density of good-rated spots, cold→hot)
