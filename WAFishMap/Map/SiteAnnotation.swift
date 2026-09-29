@@ -10,8 +10,9 @@ final class SiteAnnotation: NSObject, MKAnnotation {
     let rating: FishingRating?
     let kind: Kind
     /// The rating rests on a season that may be closed this month. Drawn as a
-    /// warning badge on the marker, not a colour change: the balloon keeps the
-    /// rating at full strength, and gray already means "no guidance".
+    /// warning badge on the marker (`SiteMarkerView.applyClosureBadge`), so the
+    /// marker keeps its rating colour at full strength: never gray, which
+    /// already means "no guidance".
     let closurePlausible: Bool
     /// The facility itself is closed (WDFW listing), not just its season.
     let isClosed: Bool

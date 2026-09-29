@@ -595,7 +595,7 @@ private struct RatingLegend: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Map key: red Prime, orange Good, yellow Fair, blue Slow, gray No data. "
-            + "A pin with a warning badge means the season may be closed, verify with WDFW; "
+            + "A pin with a small warning badge means the season may be closed, verify with WDFW; "
             + "a faded pin is closed.")
     }
 }
