@@ -27,16 +27,9 @@ Or from Terminal:
 
 ```zsh
 cd ~/developer/wa-fish-map
-# Any installed iPhone simulator works — list yours with:
-#   xcrun simctl list devices available | grep iPhone
-xcodebuild -scheme WAFishMap \
-  -destination 'platform=iOS Simulator,name=iPhone 17' \
-  test
+# Run tests dynamically against the first available iPhone simulator
+./scripts/run_sim.sh test
 ```
-
-CI does not name a device at all — it resolves one from `xcrun simctl` so the
-job cannot break when a runner image drops a model. See
-`.github/workflows/ci.yml`.
 
 ## Run it on a simulator
 

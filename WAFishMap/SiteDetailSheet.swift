@@ -5,7 +5,7 @@ import SwiftUI
 struct RatingBadge: View {
     let rating: FishingRating?
 
-    private var color: Color { rating?.color ?? .gray }
+    private var color: Color { rating?.color ?? DS.Rating.unrated }
     private var label: String { rating?.label ?? "No data" }
 
     /// The label is deliberately *not* the rating colour.

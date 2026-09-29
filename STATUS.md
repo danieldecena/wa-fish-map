@@ -116,13 +116,26 @@
 ## Next Up
 
 - Colour-blind pass on the ramp, or an explicit decision not to do one.
-- Everything in the App Store lane is `[you]`-blocked: the ASC resubmit and the
-  post-approval release.
+- 1.0 (8) Waiting for Review after the 5.2.5 resubmission; release manually once approved.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-09-21 (App Review rejection 5.2.5, WeatherKit attribution)
+
+- Found: 1.0 (6) rejected under 5.2.5. Apple's message: the reviewer could not confirm WeatherKit attribution (Apple Weather mark + legal source link) and wants a physical-device screen recording showing where WeatherKit is used, in App Review notes, for every future submission.
+- Decided: harden the attribution and ship a new build rather than reply-only. The old mark was 12pt, `.tertiary`, with only a chevron as the legal link. Now 20pt full contrast plus a labelled "Other data sources" link (`8339996`); the device UI test asserts both.
+- Observed on iPhone 16 Pro: the device UI test failed with the legal-link id deliberately broken (live WSW 4 mph reading on screen, mark assertion passing), then passed unmodified in 7.7s.
+- Uploaded from `562604b` via exportArchive; ASC refused 1 and 7 (`previousBundleVersion: 7`, so a 7 exists that this log did not create) and accepted **build 8**.
+- Found: `1ced71d` (NDBC throwing URL) left `WAFishMapTests` uncompilable, so the unit suite had not run since. Fixed in `8339996`; 275 tests pass.
+
+### 2026-09-21 (Workflow Audit & URL Safety)
+
+- **CI Restored:** Configured Xcode Cloud (`ci_scripts/ci_post_clone.sh`) to replace the disabled GitHub Actions runners. Enforces the strict iOS 26 SDK requirement seamlessly using Apple Developer compute.
+- **Testing Fixed:** `scripts/run_sim.sh` now correctly accepts a `test` argument, aligning with the `README.md` instructions and restoring command-line UI testing.
+- **Safety:** Replaced force-unwrapped static URLs in `NDBCLoader` with throwing `invalidURL` constructions to prevent silent upstream parsing crashes.
 
 ### 2026-09-20 (rating ramp: one definition, contrast measured, closure becomes a shape)
 
@@ -288,6 +301,7 @@ current counts rather than trusting a number written here.
   the badge and in the accessibility value.
 - Still blocked on a human, unchanged: the ASC resubmit and the on-device
   VoiceOver pass.
+
 ### 2026-09-17 (Rivers watchdog kill)
 
 - Found: tapping Rivers could kill the app. Not an exception — a FRONTBOARD

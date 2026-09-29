@@ -4,6 +4,7 @@ enum NDBCError: Error, Equatable {
     case missingBundleResource
     case malformedHeader
     case noRows
+    case invalidURL
 }
 
 /// Reads NDBC's `realtime2` fixed-column text feed.
@@ -25,8 +26,11 @@ enum NDBCLoader {
         let stations: [BuoyStation]
     }
 
-    static func observationsURL(stationID: String) -> URL {
-        URL(string: "\(endpoint)/\(stationID).txt")!
+    static func observationsURL(stationID: String) throws -> URL {
+        guard let url = URL(string: "\(endpoint)/\(stationID).txt") else {
+            throw NDBCError.invalidURL
+        }
+        return url
     }
 
     /// Nearest buoy by great-circle distance, or nil when the catalog is empty.

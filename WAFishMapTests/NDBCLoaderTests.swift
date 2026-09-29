@@ -102,8 +102,8 @@ struct NDBCLoaderTests {
         #expect(nearest.lat > 47.9)
     }
 
-    @Test func theObservationURLIsTheRealtimeFeedForThatStation() {
-        #expect(NDBCLoader.observationsURL(stationID: "46088").absoluteString
+    @Test func theObservationURLIsTheRealtimeFeedForThatStation() throws {
+        #expect(try NDBCLoader.observationsURL(stationID: "46088").absoluteString
                 == "https://www.ndbc.noaa.gov/data/realtime2/46088.txt")
     }
 }

@@ -1,6 +1,11 @@
 ## Tasks
-- [ ] [you] In ASC: confirm the new build number, remove 1.0 (6) from review, attach the new build, resubmit
-- [ ] [you] Observe pin VoiceOver labels on device — sim XCUITest path untried
+- [x] Harden WeatherKit attribution: larger mark + legal link
+- [x] Device UI test asserts attribution mark and legal link
+- [x] Review notes: WeatherKit attribution paragraph + STATUS log
+- [x] Upload attribution fix to ASC — accepted as build 8
+- [x] [you] Record WeatherKit attribution on iPhone for App Review
+- [x] Resubmit 1.0 (8) with recording — Waiting for Review
+- [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [ ] [you] Release to the App Store after approval (manual release)
 
 ## Completed
@@ -173,7 +178,7 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-16 11:59.
+Plan approved 2026-09-21 16:47.
 
 Sessions start in "plan" (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
@@ -182,7 +187,7 @@ when launched via `cb` (--allow-dangerously-skip-permissions); `yolo`
 
 Only if Claude Code actually closed:
 
-    claude --resume 4e357a8b-dc36-4446-96db-9f46a2997f27
+    claude --resume 1f7317de-786d-4345-a4f4-babf6f9efb0e
 
 (`-c` resumes the most recent session; bare `--resume` opens a searchable picker.)
 <!-- /resume-footer -->

@@ -244,11 +244,11 @@ struct FishingMapView: View {
     // MARK: Rating → color (nil rating renders neutral gray)
 
     private func color(forArea area: MarineArea) -> Color {
-        (model.guide?.area(named: area.areaName)?.rating(inMonth: currentMonth, species: selectedSpecies)?.color) ?? .gray
+        (model.guide?.area(named: area.areaName)?.rating(inMonth: currentMonth, species: selectedSpecies)?.color) ?? DS.Rating.unrated
     }
 
     private func color(forSite site: AccessSite) -> Color {
-        rating(for: site)?.color ?? .gray
+        rating(for: site)?.color ?? DS.Rating.unrated
     }
 
     // MARK: Heat zones (density of good-rated spots, cold→hot)
@@ -477,7 +477,8 @@ struct FishingMapView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .tint(showHeat ? .orange : .secondary)
+                // The overlay's own violet: orange is the Good rating.
+                .tint(showHeat ? DS.Overlay.density : .secondary)
                 Button { showDisclaimer.toggle() } label: {
                     Image(systemName: "info.circle")
                         .font(.body)

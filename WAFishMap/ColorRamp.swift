@@ -28,7 +28,7 @@ enum ColorRamp {
     static func densityFill(band: Int) -> Color {
         let alphas = [0.0, 0.14, 0.26, 0.40]
         let clamped = min(max(band, 0), alphas.count - 1)
-        return Color(red: 0.48, green: 0.16, blue: 0.72).opacity(alphas[clamped])
+        return DS.Overlay.density.opacity(alphas[clamped])
     }
 
     /// Fill for a zone, straight from its intensity.

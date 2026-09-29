@@ -77,6 +77,11 @@ Data and scope
 - Ratings are editorial timing guidance, not regulations. Every detail sheet shows a disclaimer and links to WDFW to confirm seasons and limits.
 - Sites WDFW lists as closed are labeled "Closed".
 
+WeatherKit (Guideline 5.2.5)
+- WeatherKit is used in one place: the "Wind & rain" section of every site's detail sheet (tap any pin, scroll to "Wind & rain").
+- Directly under the forecast the app shows the Apple Weather mark (served by WeatherAttribution, light/dark variant) and an "Other data sources" link that opens WeatherAttribution.legalPageURL. Tapping the mark opens the same page.
+- A screen recording on a physical iPhone showing this is attached.
+
 Privacy
 - No accounts, ads, analytics or tracking. Device location stays on the device and only centers the map. Weather and directions use the selected site's coordinates, not the user's. App Privacy: Data Not Collected.
 - Privacy policy: https://danieldecena.github.io/wa-fish-map/privacy.html
@@ -112,4 +117,6 @@ Submitted 2026-09-16 3:18 PM: iOS App 1.0 (6), Waiting for Review, manual releas
 - [x] Attach screenshots (6 of 10, 6.5" slot)
 - [x] Pricing, Content Rights, Age Rating
 - [x] Save -> Add for Review -> Submit for Review (2026-09-16)
+- [x] Rejected 2026-09-21, 5.2.5 WeatherKit attribution; fix uploaded as build **8**
+- [x] Resubmitted 2026-09-21 5:30 PM: 1.0 (8), recording attached, notes updated, reply posted — Waiting for Review
 - [ ] Release after approval

@@ -88,6 +88,10 @@ struct FishingMapRepresentable: UIViewRepresentable {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
         mapView.showsUserLocation = true
+        // The location dot takes the view's tint. Left on the app accent it
+        // reads as a clay "Good" pin, and system blue is the Slow rating, so
+        // it gets the one hue no rating uses: plain ink.
+        mapView.tintColor = .label
         mapView.showsCompass = true
         mapView.showsScale = false
         // The data is Washington only, so the camera is too: it cannot centre
@@ -262,7 +266,7 @@ struct FishingMapRepresentable: UIViewRepresentable {
                             guard let geometry = Self.overlayGeometry(for: group) else { return nil }
                             let polygon = RatedPolygon(coordinates: geometry.outer, count: geometry.outer.count,
                                                        interiorPolygons: geometry.holes.isEmpty ? nil : geometry.holes)
-                            polygon.color = parent.areaColors[area.id] ?? .gray
+                            polygon.color = parent.areaColors[area.id] ?? DS.Rating.unrated
                             return polygon
                         }
                     }
