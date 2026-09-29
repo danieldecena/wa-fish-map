@@ -595,7 +595,7 @@ private struct RatingLegend: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Map key: red Prime, orange Good, yellow Fair, blue Slow, gray No data. "
-            + "An outlined pin means the season may be closed; a faded gray pin is closed.")
+            + "A pin with a small warning badge means the season may be closed; a faded gray pin is closed.")
     }
 }
 
