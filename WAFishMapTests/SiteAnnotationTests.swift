@@ -41,11 +41,11 @@ struct ClusterClosureTests {
         )
     }
 
-    @Test func outlinedWhenEveryTopRatedMemberIsFlagged() {
+    @Test func badgedWhenEveryTopRatedMemberIsFlagged() {
         #expect(SiteClusterView.closurePlausible(of: [pin(.good, flagged: true), pin(.fair, flagged: false)]))
     }
 
-    @Test func solidWhenAnyTopRatedMemberIsUnflagged() {
+    @Test func unbadgedWhenAnyTopRatedMemberIsUnflagged() {
         #expect(!SiteClusterView.closurePlausible(of: [pin(.good, flagged: true), pin(.good, flagged: false)]))
     }
 }
