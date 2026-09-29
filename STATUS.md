@@ -106,8 +106,16 @@
 
 ## Known broken
 
+- Colour-blind reading of the rating ramp is untested. Prime, Good and Fair are
+  three adjacent warm hues separated mostly by lightness, which is the case
+  deuteranopia and protanopia collapse. Slow is safe. The ramp plan's option C
+  (a ring channel) is the fix if it matters.
+- The 44pt marker tap target is asserted as geometry only. An edge tap on
+  hardware is the other half.
+
 ## Next Up
 
+- Colour-blind pass on the ramp, or an explicit decision not to do one.
 - 1.0 (8) Waiting for Review after the 5.2.5 resubmission; release manually once approved.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
@@ -128,6 +136,171 @@ current counts rather than trusting a number written here.
 - **CI Restored:** Configured Xcode Cloud (`ci_scripts/ci_post_clone.sh`) to replace the disabled GitHub Actions runners. Enforces the strict iOS 26 SDK requirement seamlessly using Apple Developer compute.
 - **Testing Fixed:** `scripts/run_sim.sh` now correctly accepts a `test` argument, aligning with the `README.md` instructions and restoring command-line UI testing.
 - **Safety:** Replaced force-unwrapped static URLs in `NDBCLoader` with throwing `invalidURL` constructions to prevent silent upstream parsing crashes.
+
+### 2026-09-20 (rating ramp: one definition, contrast measured, closure becomes a shape)
+
+- Decided: the ramp keeps deferring to Apple's system colours. The plan expected
+  the stops to be too close in lightness and had granted a platform-deference
+  exception for hand-picked literals. Measured on device instead: every adjacent
+  pair clears ΔL* 12 in both appearances (slow→fair 27.3/27.3, fair→good
+  14.4/15.8, good→prime 13.3/13.3), so the exception was not needed and was not
+  taken. `RampLightnessTests` holds the numbers and fails the build if the gap
+  closes.
+- Decided: `FishingRating.color` returns `DS.Rating` and the four literals in
+  `ColorRamp.swift` are gone. There were two ramps; the views drew the one that
+  could not adapt, so the dark map drew the light ramp.
+- Decided: the rating colour is no longer the badge's text colour. Label and
+  wash moved together on one slider, so every state failed 4.5:1 in light and
+  Fair reached 1.38:1. Label is `.primary`; the ramp keeps the fill and the
+  stroke. Dark passed throughout beforehand, which is why this survived: a fix
+  checked only in dark would have looked complete.
+- Decided: **"season may be closed" no longer draws as a pale balloon.** This
+  reverses the 2026-09-16 map-legibility decision (now in STATUS-ARCHIVE.md). That marker put the rating colour on
+  the glyph, which measured 1.51:1 for Fair and 2.31:1 for Good against a 3:1
+  floor. Neither fix that kept colour on the glyph worked: reaching 3:1 needs a
+  glyph at L* ≤ 61.7, which means darkening Fair by 22.5 points until it is no
+  longer yellow; and washing the balloon instead collapses the stops to ΔL* 3-9,
+  failing the ramp's own gate. So the balloon now always carries the rating at
+  full strength, and closure is carried by a badge subview
+  (`SiteMarkerView.applyClosureBadge`) — a shape, so colour does one job.
+  A subview rather than a badged `glyphImage` because a cluster's glyph is its
+  member count, and overwriting it would trade one fact for another.
+- Decided: the marker glyph's ink is picked by measured contrast against the
+  balloon, not fixed to white. White failed on the light end of the ramp (Fair
+  1.51:1, Good 2.31:1). A hardcoded list of "the light stops" would go stale the
+  moment a token moves, and the stops are themselves dynamic.
+- Observed: `** TEST FAILED **` from a compile error with zero tests run is
+  indistinguishable from a firing assertion if only the verdict line is read.
+  This happened twice in one session and nearly got written up as a successful
+  control both times. Check the error count and the case count before reading
+  any red as evidence.
+- Observed: `withKnownIssue` wrapped around both appearances failed with "Known
+  issue was not recorded", because the dark case genuinely passed. It caught its
+  own misuse, which is the behaviour to want from it.
+- Not done: nothing here has been looked at. The arm's-length check on the
+  regional frame in both appearances is slice 6 and is the real gate. The
+  numbers say the proxies pass; they do not say the map reads better.
+
+### 2026-09-20 (slice 6: the frames were looked at, and the gate does not pass)
+
+- Decided: the glyph ink rule is "white unless white fails 3:1", not "whichever
+  ink contrasts more". The maximising version turned every glyph black,
+  including Prime and Slow where white already clears the floor (3.57 and 3.52
+  in light). It passed the contrast gate and looked wrong: white on a saturated
+  marker is the platform's own convention. Caught only by looking at the frames,
+  which is the entire argument for this slice existing.
+- Observed: the ink rule works on screen. Orange carries black (white measures
+  2.31 on it), Prime carries white (3.57). That second channel also helps Prime
+  separate from Good, which was not planned for.
+- Observed: the dark frame now draws the dark ramp. It previously drew the light
+  one, because the literals could not adapt. Slice 1 confirmed by eye.
+- **Not passed: slice 6's arm's-length gate.** The failure is in the observation,
+  not demonstrably in the ramp:
+  - Light frame is a genuine regional view and shows Fair, Good and Prime.
+    Fair separates from Good clearly. Prime separates from Good, but weakly --
+    consistent with their ΔL* of 13.3, the narrowest pair in the ramp.
+  - Dark frame landed at a much tighter zoom and shows only Fair and Good. Two
+    of four ratings at a non-regional zoom cannot answer "do the ratings
+    separate in dark". It is not evidence either way.
+  - Slow never appears in any frame, so the Prime/Slow collision flagged when
+    the ramp was measured (within half an L* of each other, differing by hue
+    alone) is still completely untested on screen.
+  - The closure badge never appears in any frame, so the 14pt mark on a marker
+    drawn at 0.8 has not been seen at all.
+  - The light frame is roughly 85% Good. Separation reads there because the
+    other ratings are rare exceptions, which is a much weaker test than a mixed
+    map.
+- Observed: the camera is not deterministic between runs of
+  `scripts/app_store_screenshots.sh`. Two runs twenty minutes apart produced
+  different regions and different zooms from the same 15 s wait, so the frames
+  are not comparable to each other and cannot be a repeatable gate as they
+  stand.
+- Next: the gate needs a frame that contains all five states at a fixed camera.
+  The `-uiTesting` seam already exists for the sheets and is the obvious place
+  to add it. Until then slice 6 is open, and the plan's fallback (option C, a
+  ring channel on Prime) should not be adopted or rejected -- there is no
+  observation to justify either.
+
+### 2026-09-20 (slice 6 passes, on a frame built to make it answerable)
+
+- Decided: the ramp gate gets its own frames, `docs/design/ramp-check/`, taken
+  at a pinned camera and a pinned month. The App Store frames could not answer
+  it: they reframe themselves from the location fix, so two runs produced
+  different regions and zooms, and in September they are ~85% Good, which tests
+  nothing. `-uiTestingRegion lat,lon,span` is the fourth and last argument on
+  `UITestSeam`, and it exists for the same reason the other three do.
+- Decided: November at 47.95,-123.00 span 1.3. November is the one month that
+  puts all four ratings in adjacent Puget Sound areas — Prime in 10/11/12, Good
+  in 8-2 and 13, Fair in 8-1 and 9, Slow in 5/6/7 — so one frame holds the whole
+  ramp.
+- Observed: the span is load-bearing. At 2.0 the frame came back as a violet
+  heat map with no pins at all, because `MapDetailLevel` hands pins over to the
+  density overlay past 400 km of camera distance. That is the app working as
+  designed, and it would have read as "the pins disappeared" to anyone who did
+  not check the threshold.
+- **Slice 6 passes.** Prime, Good, Fair and Slow are all separable at arm's
+  length in both appearances, which is more than the three bands the plan asked
+  for.
+- Observed, and it corrects an earlier worry: the Prime/Slow collision flagged
+  when the ramp was measured — within half an L* of each other — does not
+  matter on screen. Red and blue differ so strongly in hue that equal lightness
+  never confuses them. Lightness was the wrong thing to worry about for that
+  pair.
+- Observed: the weak pair is **Good against Fair**, not Prime against Good.
+  Orange and yellow are adjacent warm hues, and since slice 4 both carry black
+  glyphs, the ink channel gives no help telling them apart. They do separate,
+  but they are what would fail first if a stop moved.
+- Not tested, and the real remaining risk: **colour-blind reading.** Prime, Good
+  and Fair are three adjacent warm hues separated mostly by lightness, which is
+  the case deuteranopia and protanopia collapse. Slow is safe. The plan's
+  fallback (option C, a ring channel) is the answer if this matters, and the
+  gate as worded does not test it, so nothing here says it is fine.
+- Observed: the closure badge works in both appearances. It inverts correctly
+  (black circle in light, white in dark), stays legible on a marker drawn at
+  0.8, and does not collide with a cluster's member count — which was the reason
+  it is a subview rather than a badged glyph image.
+- Still not verified: the 44pt tap target. It is a geometry assertion; an edge
+  tap on hardware is the other half.
+
+### 2026-09-20 (detail-sheet graphics, and slice 7's chrome trim)
+
+- Decided: river flow draws as a range strip with a marker, never a bar.
+  `flowRating` is non-monotonic on purpose -- bony and blown out are both
+  unfishable -- so a filled bar would encode more-is-better, which is the wrong
+  claim. `trackPosition` interpolates through the five percentile stops rather
+  than along the cfs axis, because flow distributions are skewed: on a
+  plausible day the median is 400 of a 1600 range, so a linear axis would put
+  it a quarter along instead of halfway.
+- Decided: the season ribbon rotates to start at the current month rather than
+  anchoring on January. A November-to-February season splits into two
+  disconnected blobs at opposite ends of a fixed strip, which is the most
+  misleading case it could have. Every card rotates identically, so species
+  stay comparable on one sheet. Both the contiguous run and the January-anchored
+  split are asserted, so the reason is a test rather than a comment.
+- Decided: a typical-size bar was considered for the species card and rejected.
+  The silhouette already scales with weight, several weights are flagged
+  unverified in `SpeciesSize`, and halibut beside rainbow trout has no honest
+  shared axis.
+- Observed: the ribbon's risk mark shipped white on first draft, which is the
+  same 1.51:1 defect slice 4 fixed on the map. Caught by looking at the rendered
+  sheet, not by any test. Fixed by reusing `SiteMarkerView.glyphTint(on:)` so
+  the ribbon and the map cannot drift apart, with a test pinning both to one
+  rule. Second time today that looking found something every green check missed.
+- Observed: the shipped App Store river frame was a screenshot of an error
+  message. `-uiTesting` loads the bundled fixture and never calls USGS, so the
+  sheet could only render "couldn't reach USGS". `fixtureFlow` gives it the
+  gauge's own p75 -- deliberately off centre, where a marker pinned at the
+  median would hide an axis that was not being applied at all.
+- Decided (slice 7): the header is one row. The light-hint sentence moved to the
+  info popover, the duplicated sun/moon glyph is gone, and date and time sit
+  behind one button that opens a graphical picker. The compact `DatePicker`'s
+  pills ignore `controlSize` and were what forced the bar onto two lines.
+- Decided (slice 7): a cluster is named for its lead member only. MapKit's
+  default "<first member> +N more" draws under a badge already reading N, and
+  those labels were most of the regional frame's clutter. The count survives on
+  the badge and in the accessibility value.
+- Still blocked on a human, unchanged: the ASC resubmit and the on-device
+  VoiceOver pass.
 
 ### 2026-09-17 (Rivers watchdog kill)
 
@@ -347,70 +520,3 @@ current counts rather than trusting a number written here.
   The per-site `filter` alone was 36.7 / 37.1 ms, about 25% of the pass.
   Resolved counts unchanged (256 waterbodies, 215 lakes). `indexSitesToAreas`
   got the same fix afterwards (6be7588), not re-timed. The timer ran 2.5 s, so it was not kept; A7 profiling stays open.
-
-### 2026-09-16 (lake facts on the launch sheet)
-
-- Decided: lake facts from WDFW's 2014 lakes points, matched by acreage reach + name check; distance alone matched Lyle Lake to Herman Lake.
-
-### 2026-09-16 (camera, clusters, creeks, failed reads)
-
-- Decided: the camera is bounded to Washington (cameraBoundary plus a 3,200 km
-  zoom-out cap; 1,600 km cut off the coast). Clusters draw a fixed 1.2x, chosen
-  over main's count-based scaling. #17, 9b3a4fb.
-- Decided: creeks ship split into connected runs with unique ids (same-name
-  creeks are separate features) and never resolve a waterbody. Stream order is
-  judged per run, not per segment, which had silently dropped Clover and
-  Issaquah creeks. 1,025 creeks. Unrated water drew at 45% gray / 0.6 pt and was
-  invisible, which read as missing data; now 75% / 1.2 pt floor. #17.
-- Decided: an empty WDFW layer, MPA layer, pier fetch or USGS fetch is a failed
-  read, never "0 sites", "clear" or "gauge not reporting". Mutation-checked. #18.
-- Closed: "map never frames Washington without a fix" (#16, #17) and the
-  `claude/goal-followups` branch (merged as #14).
-
-### 2026-09-16 (shore snap, VoiceOver labels, cluster scale)
-
-- Decided: marine area matching snaps to the nearest area within 150 m when a point
-  is in no polygon. Live WDFW: 29 of 63 piers outside every area (28 within 1 m),
-  saltwater launches 22-108 m out; nearest real lake launch 639 m. Dash Point now
-  reads Marine water with tides. 7b904bd.
-- Decided: pins, clusters, legends and badges carry VoiceOver text. Pin text is
-  unit-tested; the legend label was seen in a UI run; pin labels on screen were not
-  (XCUITest pinch rotates instead of zooming). a8d5464.
-- Decided: clusters scale 1.1/1.2/1.3x by count, applied in prepareForDisplay
-  because MapKit reset a transform set earlier. Seen larger on screen. 023680d.
-- Observed: UI test runs reinstall the app and leave the shared simulator without
-  location; restore with `simctl privacy grant` and `simctl location set`.
-
-### 2026-09-16 (map legibility: outlines, breadth colour, closed piers, directions, fish size)
-
-- Decided: "season may be closed" draws as an outlined marker (pale balloon,
-  rating colour on the glyph), never gray. Gray already means no guidance, and
-  the app holds no authoritative closure data. For All, outlined only when every
-  top-rated species (or cluster member) is flagged. 3ba2b1e.
-- Decided: the All-species colour is the rounded mean of the top three species,
-  not the max. September painted every marine area Prime (each has 1-4 peak
-  species) and every statewide-inland launch Prime via Cutthroat. Per-species
-  ratings unchanged. Inland pins now read uniformly Good in September because
-  the statewide freshwater list is the same everywhere; that is data, not code. 6fc64b8.
-- Decided: WDFW flags closed piers only by "(CLOSED)" in the pier name (3 live:
-  Anacortes Municipal, Harper, Luhr's Beach Dock). Those pins fade gray and carry
-  no rating; the sheet shows a Closed badge. Launch "Closed to vehicles <dates>"
-  text stays free text in the sheet, not parsed ("4th Friday in April"). d2ece00.
-- Decided: directions use a maps.apple.com driving link, not MKMapItem, whose
-  coordinate init is iOS 26 only (target is 18). Observed: Maps opened a driving
-  route to Dockton Park Pier incl. the Tahlequah ferry. Return to the app is
-  iOS's own top-left "< WAFishMap" breadcrumb; the sheet is still open on return.
-- Decided: species rows show `fish.fill` sized log-scale by a hand-entered,
-  unverified typical weight (SpeciesSize.swift); shellfish/squid get none. Not
-  yet seen on screen: the shared simulator was being driven by another session. 721937e.
-- Season open/close sources (research, not built): WDFW emergency-rule RSS feed
-  and date-range rule search; the annual pamphlet (PDF, July 1-June 30); no
-  season fields found in WDFW ArcGIS layers checked; Fish Washington app has no
-  public API; reuse terms unconfirmed. Any use must stay "verify with WDFW".
-- Water emphasis (answered, not built): the Rivers/Heat toggles already mute the
-  basemap; rivers.json carries 287 named rivers only, so "full streams" needs a
-  new hydrography source (USGS NHD / WA DNR), a data-size decision.
-- Observed: the shared iPhone 17 Pro simulator is used by another session's test
-  runs (crash reports from a HeatMapTests test that does not exist here), and
-  MapCoordinatorTests' recentre test hung 10 minutes in a full run. Run targeted
-  suites, or give each worktree its own simulator.

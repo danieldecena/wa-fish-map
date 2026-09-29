@@ -40,6 +40,9 @@ struct RiverDetailSheet: View {
             }
             .navigationTitle(river.name)
             .navigationBarTitleDisplayMode(.inline)
+            // Same as the site and pier sheets: an opaque bar, so scrolled
+            // content passes under the title instead of through it.
+            .toolbarBackground(.visible, for: .navigationBar)
         }
         .accessibilityIdentifier("riverDetailSheet")
     }
@@ -64,6 +67,14 @@ struct RiverDetailSheet: View {
                     .accessibilityIdentifier("riverDischarge")
                 if let summary = stats.summary(discharge: discharge, month: month, day: day) {
                     Text(summary).font(.subheadline)
+                }
+                // The sentence stays. The strip adds the one thing it cannot
+                // carry: how far into a tail the reading is.
+                if let row = stats.percentiles(month: month, day: day),
+                   let position = RiverFlowStats.trackPosition(discharge: discharge,
+                                                               percentiles: row) {
+                    FlowRangeStrip(position: position, discharge: discharge)
+                        .padding(.top, 2)
                 }
                 // Timestamps are per-series: a gauge can report flow every 15
                 // minutes and temperature hourly, so one "as of" would date one

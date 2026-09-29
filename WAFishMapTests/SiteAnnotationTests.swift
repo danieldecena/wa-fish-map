@@ -41,11 +41,11 @@ struct ClusterClosureTests {
         )
     }
 
-    @Test func outlinedWhenEveryTopRatedMemberIsFlagged() {
+    @Test func badgedWhenEveryTopRatedMemberIsFlagged() {
         #expect(SiteClusterView.closurePlausible(of: [pin(.good, flagged: true), pin(.fair, flagged: false)]))
     }
 
-    @Test func solidWhenAnyTopRatedMemberIsUnflagged() {
+    @Test func unbadgedWhenAnyTopRatedMemberIsUnflagged() {
         #expect(!SiteClusterView.closurePlausible(of: [pin(.good, flagged: true), pin(.good, flagged: false)]))
     }
 }
@@ -114,14 +114,46 @@ struct PinSpokenSummaryTests {
 
     /// One fixed step up for every cluster (chosen over count-based sizing on
     /// 2026-09-16): larger than a single pin, modest enough not to cover water.
+    ///
+    /// Stated against the pin, not against 1. The thresholds were absolute
+    /// while a pin drew at MKMarkerAnnotationView's own size; once pins were
+    /// scaled to 0.8 so they stopped covering place labels, a cluster at 0.95
+    /// was still a step above a pin but no longer above 1, and this failed
+    /// while the behaviour it names was correct.
     @Test func aClusterIsOneModestSizeUpFromAPin() {
-        #expect(SiteClusterView.scale > 1)
-        #expect(SiteClusterView.scale <= 1.3)
+        #expect(SiteClusterView.scale > MarkerMetrics.pin)
+        #expect(SiteClusterView.scale <= MarkerMetrics.pin * 1.3)
     }
 
     @Test func aClusterReadsItsBestRating() {
         let members = [SiteAnnotation(pier: pier("A"), rating: .fair), SiteAnnotation(pier: pier("B"), rating: .good)]
         #expect(SiteClusterView.spokenSummary(of: members) == "best rated Good")
         #expect(SiteClusterView.spokenSummary(of: [SiteAnnotation(pier: pier("C"))]) == "no seasonal guidance")
+    }
+}
+
+/// A cluster's label must not repeat what its badge already says.
+struct ClusterTitleTests {
+    private static func pier(_ name: String) -> FishingPier {
+        FishingPier(name: name, countyName: "Kitsap", websiteURL: "",
+                    coordinate: LonLat(longitude: -122.5, latitude: 47.5))
+    }
+
+    @Test func aClusterIsNamedForItsLeadMemberWithNoCountAppended() {
+        let members = [SiteAnnotation(pier: Self.pier("Ross Point")),
+                       SiteAnnotation(pier: Self.pier("Second")),
+                       SiteAnnotation(pier: Self.pier("Third"))]
+        let title = FishingMapRepresentable.Coordinator.clusterTitle(for: members)
+
+        #expect(title == "Ross Point")
+        // The badge carries the count; the label must not carry it too.
+        #expect(title?.contains("more") == false)
+        #expect(title?.contains("3") == false)
+    }
+
+    /// Nil rather than a placeholder: an unnamed cluster should draw no label,
+    /// not one the app made up.
+    @Test func anUnnamedClusterGetsNoTitleRatherThanAnInventedOne() {
+        #expect(FishingMapRepresentable.Coordinator.clusterTitle(for: []) == nil)
     }
 }

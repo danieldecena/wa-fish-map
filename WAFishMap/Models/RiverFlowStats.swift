@@ -38,6 +38,43 @@ struct RiverFlowStats: Decodable, Equatable, Sendable {
         return days[min(day, days.count) - 1]
     }
 
+    /// Where a reading sits on a p10-p90 track, as 0...1 across the whole
+    /// strip including both tails.
+    ///
+    /// Interpolated through the percentile points themselves, not along the
+    /// raw cfs axis: a river's flow distribution is heavily skewed, so equal
+    /// steps in cfs are not equal steps in how unusual the reading is. The
+    /// five stops land at 0.10, 0.25, 0.50, 0.75 and 0.90, which leaves a
+    /// tenth of the strip at each end for the tails.
+    ///
+    /// Below p10 the position scales toward zero, so a bone-dry river sits
+    /// hard left rather than pinned at the p10 stop. Above p90 it saturates at
+    /// twice p90 -- a river at five times its 90th percentile and one at ten
+    /// are both simply blown out, and stretching the axis to fit the worse one
+    /// would squash the rest of the strip into nothing.
+    static func trackPosition(discharge: Double, percentiles: [Double]) -> Double? {
+        guard percentiles.count == 5, discharge >= 0,
+              percentiles.allSatisfy({ $0 > 0 }) else { return nil }
+        let fractions = [0.10, 0.25, 0.50, 0.75, 0.90]
+
+        if discharge <= percentiles[0] {
+            return fractions[0] * (discharge / percentiles[0])
+        }
+        if discharge >= percentiles[4] {
+            let over = (discharge - percentiles[4]) / percentiles[4]
+            return fractions[4] + (1 - fractions[4]) * min(1, over)
+        }
+        for i in 0..<4 where discharge <= percentiles[i + 1] {
+            let span = percentiles[i + 1] - percentiles[i]
+            // Percentile rows can repeat on a short record, which would divide
+            // by zero; the lower stop is the honest answer there.
+            guard span > 0 else { return fractions[i] }
+            let t = (discharge - percentiles[i]) / span
+            return fractions[i] + t * (fractions[i + 1] - fractions[i])
+        }
+        return fractions[4]
+    }
+
     /// Where today's discharge sits in this river's own distribution.
     ///
     /// Deliberately non-monotonic: a river is unfishable when it is bony and

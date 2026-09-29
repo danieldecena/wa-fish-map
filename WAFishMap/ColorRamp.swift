@@ -42,6 +42,12 @@ extension FishingRating {
     /// explicit stops rather than sampled off a continuous function — sampling a
     /// blue-to-red line runs through magenta, which reads as a different scale
     /// rather than as heat.
+    ///
+    /// The stops themselves live in `DS.Rating` and nowhere else. They were four
+    /// hardcoded literals here, which meant the app had two ramps: this one,
+    /// which the views actually drew, and `DS.Rating`, which was declared and
+    /// unused. The literals could not adapt to appearance, so the dark map drew
+    /// the light ramp.
     var color: Color {
         switch self {
         case .poor: DS.Rating.slow

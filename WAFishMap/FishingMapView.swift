@@ -37,6 +37,7 @@ struct FishingMapView: View {
     /// Set once the user pans or zooms. A fix that lands afterwards must not yank
     /// the camera out from under them.
     @State private var userMovedCamera = false
+    @State private var showPlanPicker = false
     /// A one-shot camera move handed to the representable (the recentre-on-fix
     /// ease). MapKit's own delegate reports real pan/pinch touches, so the
     /// three-phase `CameraGuardPhase` machine this replaced is gone.
@@ -173,6 +174,17 @@ struct FishingMapView: View {
             }
         }
         .task {
+            // Before anything that could move the camera. Setting
+            // userMovedCamera suppresses the ease onto the location fix, which
+            // is the thing that made two screenshot runs incomparable.
+            if let pinned = UITestSeam.region {
+                focusRegion = MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: pinned.latitude,
+                                                   longitude: pinned.longitude),
+                    span: MKCoordinateSpan(latitudeDelta: pinned.span,
+                                           longitudeDelta: pinned.span))
+                userMovedCamera = true
+            }
             location.requestIfNeeded()
             // Before `load`: it publishes the guide ahead of its network awaits.
             model.setPlanYear(currentYear)
@@ -361,28 +373,62 @@ struct FishingMapView: View {
         .padding(sizeClass == .regular ? 12 : 8)
     }
 
+    /// One button that says when, and opens the picker when asked.
+    ///
+    /// This was a compact `DatePicker`, whose date and time pills ignore
+    /// `controlSize` -- the comment on `dateControl` records that they
+    /// overflowed an iPhone row and forced the whole bar onto two lines. One
+    /// control fits, which is where most of the reclaimed height comes from.
+    ///
+    /// The symbol that used to sit beside it moved into `timeOfDayHint`; two
+    /// copies of the same sun/moon glyph in one bar was the header spending
+    /// width to say the same thing twice.
     private var planPicker: some View {
-        HStack(spacing: 10) {
-            Image(systemName: timeOfDay.symbol)
-                .foregroundStyle(timeOfDay.isPrimeLight ? .green : .secondary)
+        Button { showPlanPicker.toggle() } label: {
+            Label(Self.planLabel(planDate), systemImage: "calendar")
+                .font(.caption2.weight(.semibold))
+                .lineLimit(1)
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.small)
+        .fixedSize()
+        .accessibilityLabel("Plan for \(Self.planLabel(planDate))")
+        .accessibilityHint("Opens a date and time picker")
+        .accessibilityIdentifier("planDateButton")
+        .popover(isPresented: $showPlanPicker, arrowEdge: .top) {
             DatePicker("Plan for", selection: $planDate)
+                .datePickerStyle(.graphical)
                 .labelsHidden()
+                .padding()
+                .frame(minWidth: 320)
+                .presentationCompactAdaptation(.popover)
         }
     }
 
+    /// "Sep 20, 2:33 AM" -- short enough for a chip, and it must carry both
+    /// halves, since the two pills it replaces each carried one.
+    static func planLabel(_ date: Date, calendar: Calendar = .pacific) -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.calendar = calendar
+        f.timeZone = calendar.timeZone
+        f.dateFormat = "MMM d, h:mm a"
+        return f.string(from: date)
+    }
+
+    /// One chip: glyph and word, nothing else.
+    ///
+    /// This used to carry `lightHint` as a second line -- a full sentence
+    /// across the top of a map whose whole job is the map. The sentence is not
+    /// wrong, it is just not worth a permanent line of chrome, so it moved to
+    /// the info popover where a reader goes when they want the explanation.
     private var timeOfDayHint: some View {
-        ViewThatFits(in: .horizontal) {
-            VStack(alignment: .trailing, spacing: 1) {
-                Text(timeOfDay.label).font(.caption2.weight(.semibold))
-                Text(timeOfDay.lightHint)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-            Text(timeOfDay.label)
-                .font(.caption2.weight(.semibold))
-                .fixedSize()
-        }
+        Label(timeOfDay.label, systemImage: timeOfDay.symbol)
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(timeOfDay.isPrimeLight ? .green : .secondary)
+            .labelStyle(.titleAndIcon)
+            .fixedSize()
+            .accessibilityLabel("\(timeOfDay.label). \(timeOfDay.lightHint)")
     }
 
     private var nowButton: some View {
@@ -447,6 +493,11 @@ struct FishingMapView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Tap a launch for what's biting. Guidance only — verify seasons in the Fish Washington app.")
                             .font(.caption)
+                        // Was a permanent line in the header. It belongs where
+                        // someone has asked for an explanation.
+                        Label(timeOfDay.lightHint, systemImage: timeOfDay.symbol)
+                            .font(.caption)
+                            .foregroundStyle(timeOfDay.isPrimeLight ? .green : .secondary)
                         Text("Not for navigation or safety decisions.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -544,7 +595,8 @@ private struct RatingLegend: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Map key: red Prime, orange Good, yellow Fair, blue Slow, gray No data. "
-            + "An outlined pin means the season may be closed; a faded gray pin is closed.")
+            + "A pin with a small warning badge means the season may be closed, verify with WDFW; "
+            + "a faded pin is closed.")
     }
 }
 
@@ -569,6 +621,10 @@ private struct AdaptiveDetail<Item: Identifiable, Detail: View>: ViewModifier {
                 detail(site)
                     .presentationDetents([.medium, .large])
                     .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+                    // At the medium detent the sheet sat over a live, heat-washed
+                    // map and the body rows were read against green-blue mottling.
+                    // Opaque enough to read on, still clearly a layer over the map.
+                    .presentationBackground(.thickMaterial)
             }
         }
     }

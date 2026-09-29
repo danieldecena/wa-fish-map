@@ -55,3 +55,39 @@ struct PlanClockTests {
         #expect(PlanClock.year(for: planDate) == 2026)
     }
 }
+
+/// The header's one date control replaced two pills, so its label has to carry
+/// both halves -- a chip that dropped the time would silently lose the thing
+/// the time-of-day rating is computed from.
+struct PlanLabelTests {
+
+    private static func date(_ iso: String) -> Date {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime]
+        return f.date(from: iso)!
+    }
+
+    @Test func theLabelCarriesBothTheDateAndTheTime() {
+        let label = FishingMapView.planLabel(Self.date("2026-09-20T14:33:00-07:00"))
+        #expect(label.contains("Sep 20"))
+        #expect(label.contains("2:33"))
+        #expect(label.contains("PM"))
+    }
+
+    @Test func theLabelStaysShortEnoughForAChip() {
+        for iso in ["2026-01-01T00:05:00-08:00", "2026-12-31T23:59:00-08:00",
+                    "2026-09-20T02:33:00-07:00"] {
+            let label = FishingMapView.planLabel(Self.date(iso))
+            #expect(label.count <= 18, "\(label) is too long for the header chip")
+        }
+    }
+
+    /// Pacific, like everything else in this app that renders a time. A label
+    /// rendered in the device's zone would disagree with the tide table beside
+    /// it.
+    @Test func theLabelIsRenderedInPacificTime() {
+        let midnightUTC = Self.date("2026-09-20T07:00:00Z")
+        #expect(FishingMapView.planLabel(midnightUTC).contains("12:00 AM"))
+        #expect(FishingMapView.planLabel(midnightUTC).contains("Sep 20"))
+    }
+}

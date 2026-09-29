@@ -8,13 +8,31 @@ struct RatingBadge: View {
     private var color: Color { rating?.color ?? DS.Rating.unrated }
     private var label: String { rating?.label ?? "No data" }
 
+    /// The label is deliberately *not* the rating colour.
+    ///
+    /// It used to be, on a 20% wash of that same colour, which put both sides
+    /// of the contrast ratio on the same slider: the lighter the stop, the
+    /// lighter its own background. Measured in light appearance every state
+    /// failed 4.5:1 and Fair reached 1.38:1. Dark appearance passed throughout,
+    /// because the wash over a near-black surface stays dark while the ramp
+    /// colour stays bright -- which is why this was invisible to anyone
+    /// testing in dark.
+    ///
+    /// `.primary` adapts to both appearances and leaves the ramp doing the job
+    /// it is good at: the fill and the stroke still encode the rating, so no
+    /// information is lost by taking it off the text.
+    /// `RatingBadgeContrastTests` holds the measurements.
+    static func labelColor(for rating: FishingRating?) -> Color {
+        .primary
+    }
+
     var body: some View {
         Text(label)
             .font(.caption.bold())
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(color.opacity(0.2), in: Capsule())
-            .foregroundStyle(color)
+            .foregroundStyle(Self.labelColor(for: rating))
             .accessibilityLabel(rating.map { "Rated \($0.label)" } ?? "No seasonal guidance")
             .overlay(Capsule().stroke(color, lineWidth: 1))
     }
@@ -107,8 +125,11 @@ struct BitingNowView: View {
                                 .foregroundStyle(.secondary)
                                 .accessibilityIdentifier("verifyBadge")
                         }
-                        Label("Best months: \(Self.monthList(s.bestMonths))", systemImage: "calendar")
-                            .font(.caption).foregroundStyle(.secondary)
+                        // Was "Best months: Jun, Jul, Aug". That reads the
+                        // same as "Mar, Jul, Nov" while being a completely
+                        // different fishery, so the shape is drawn instead.
+                        SeasonRibbon(season: s, month: month)
+                            .padding(.top, 2)
                         if let bestTime = s.bestTime {
                             Label("Best time: \(bestTime)", systemImage: "clock")
                                 .font(.caption).foregroundStyle(.secondary)
@@ -134,14 +155,6 @@ struct BitingNowView: View {
         }
     }
 
-    private static let shortMonthSymbols = DateFormatter().shortMonthSymbols ?? []
-
-    /// "9, 10" → "Sep, Oct".
-    static func monthList(_ months: [Int]) -> String {
-        months.sorted()
-            .compactMap { $0 >= 1 && $0 <= shortMonthSymbols.count ? shortMonthSymbols[$0 - 1] : nil }
-            .joined(separator: ", ")
-    }
 }
 
 /// Shared "Before you go" disclaimer + WDFW link, used by both detail sheets.
@@ -171,7 +184,11 @@ struct GuidanceFooter: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.yellow.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+        // Neutral, not yellow: a yellow wash is also the Fair rating, and both
+        // appear on this sheet — a reader had no way to tell a caution from a
+        // rating. The shield glyph and the heading carry the caution.
+        .background(DS.Surface.advisory,
+                    in: RoundedRectangle(cornerRadius: DS.Surface.advisoryRadius))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("guidanceFooter")
     }
@@ -301,6 +318,11 @@ struct SiteDetailSheet: View {
             }
             .navigationTitle(site.facilityName)
             .navigationBarTitleDisplayMode(.inline)
+            // The badge + subtitle row is the first thing in the scroll view, so
+            // a transparent bar let the title draw straight through it
+            // ("Public fishin{Les Davis Pier}g pier"). An opaque bar gives the
+            // content something to scroll under instead of into.
+            .toolbarBackground(.visible, for: .navigationBar)
         }
         // Lets a UI test wait for the sheet before asserting the *absence* of the
         // verify badge; without it an absence check can pass by running early.
@@ -444,6 +466,11 @@ struct PierDetailSheet: View {
             }
             .navigationTitle(pier.name)
             .navigationBarTitleDisplayMode(.inline)
+            // The badge + subtitle row is the first thing in the scroll view, so
+            // a transparent bar let the title draw straight through it
+            // ("Public fishin{Les Davis Pier}g pier"). An opaque bar gives the
+            // content something to scroll under instead of into.
+            .toolbarBackground(.visible, for: .navigationBar)
         }
         .accessibilityIdentifier("pierDetailSheet")
     }

@@ -6,6 +6,15 @@
 - [x] [you] Record WeatherKit attribution on iPhone for App Review
 - [x] Resubmit 1.0 (8) with recording — Waiting for Review
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
+- [ ] [you] Release to the App Store after approval (manual release)
+
+## Completed
+
+### 2026-09-20 — cleared from Tasks
+
+- [x] Flow vs normal: range strip (p10-p90 track, p25-p75 band, p50 tick, today's marker), not a bar
+- [x] Best-months ribbon: 12 cells, current month marked, riskMonths on a non-colour channel
+- [x] Decide the best-months wrap: rotate to start at the current month
 - [x] [you] App name, subtitle, category, age rating — ASC + CFBundleDisplayName "WA Fish Map"
 - [x] Privacy policy page hosted — https://danieldecena.github.io/wa-fish-map/privacy.html
 - [x] Store description, keywords, review notes — pasted in ASC version (see listing-draft checklist)
@@ -15,10 +24,6 @@
 - [x] [you] ASC App Privacy: set Location to Data Not Collected
 - [x] Upload build 6: PR #41 manifest, iPhone-only (#43)
 - [x] [you] Submit 1.0 (6) for App Store review — Waiting for Review
-- [ ] [you] Release to the App Store after approval (manual release)
-
-
-## Completed
 
 - [x] Fix the Rivers watchdog kill: one overlay per style -- 5bdbc6d
 - [x] Build 4 uploaded to ASC (from 66c16ba, accepted as 4)

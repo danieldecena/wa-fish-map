@@ -497,6 +497,31 @@ struct FishingMapRepresentable: UIViewRepresentable {
             }
         }
 
+        /// Names a cluster after its lead member and nothing else.
+        ///
+        /// Left to itself MapKit titles a cluster "<first member> +N more",
+        /// which draws under a badge that already reads N. "Ross Point +12
+        /// more" beneath a balloon showing 13 is the same fact twice, and the
+        /// label is the half that costs map.
+        ///
+        /// The count is not dropped -- the badge carries it, and
+        /// `SiteClusterView` puts "N fishing spots" plus the best rating on the
+        /// accessibility value, so VoiceOver still hears it.
+        func mapView(_ mapView: MKMapView,
+                     clusterAnnotationForMemberAnnotations memberAnnotations: [MKAnnotation]) -> MKClusterAnnotation {
+            let cluster = MKClusterAnnotation(memberAnnotations: memberAnnotations)
+            cluster.title = Coordinator.clusterTitle(for: memberAnnotations)
+            cluster.subtitle = nil
+            return cluster
+        }
+
+        /// The lead member's own title, or nil when there isn't one. Nil is a
+        /// real answer here: an unnamed cluster draws no label, which is better
+        /// than inventing one.
+        static func clusterTitle(for members: [MKAnnotation]) -> String? {
+            members.compactMap { ($0 as? SiteAnnotation)?.title }.first
+        }
+
         func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
             if let cluster = view.annotation as? MKClusterAnnotation {
                 mapView.deselectAnnotation(cluster, animated: false)
