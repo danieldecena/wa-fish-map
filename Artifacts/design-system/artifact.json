@@ -1,0 +1,8 @@
+{
+  "url": "https://claude.ai/artifact/VA1Zg6mdxPkiukUD6bxDuc",
+  "title": "WA Fish Map",
+  "identified": "2026-10-02, by /pointer-audit: live and owned by this account, not claimed by any owner file",
+  "account": "danieldecena@icloud.com",
+  "what": "This app's published Design System (contract 0.2.47, namespace WAFishMap): tokens.json, README.md, map-language.md, and nine component folders (Cover, SiteMarker, SpeciesRow, RatingBadge, RatingLegend, HeatLegend, GlassCard, GuidanceFooter, DirectionsButton), plus Logos and Screens asset groups (six light/dark app captures). lastChange: 2026-09-20, Daniel via Cowork -- 'Sheets given an opaque presentation background; frames reshot. Header collision and the advisory token landed in the same pass.'",
+  "note": "Distinct from the two other WA Fish Map artifacts in this folder (app-store-listing, interactive-preview) -- confirmed 2026-10-02 as three different things, not duplicates: this is the design system, the other two are a marketing page and its demo. Refresh by PASSING THIS URL."
+}
