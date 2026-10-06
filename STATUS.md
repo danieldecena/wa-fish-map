@@ -17,8 +17,11 @@
   verify" badge and their reason. 11 table rows cover the 42 entries whose notes
   already described a closure.
 - Ratings run a thermal ramp — Slow azure, Fair amber, Good orange, Prime red —
-  as four explicit stops. Above 150km altitude a site draws as an 11pt dot
-  instead of a balloon pin.
+  as four explicit stops. Past 400km altitude pins hand over to the density
+  overlay (`MapDetailLevel.pinMaxDistance`).
+- The ramp holds up for deuteranopia and protanopia: every adjacent pair is
+  separated by simulated colour or by glyph ink, asserted in
+  `CVDSeparationTests`. Fair/Good is the thin pair (see the 2026-10-06 entry).
 - The heat overlay draws each grid cell as a tiling MapPolygon, ranked against
   the other cells rather than normalised to the densest one, in four violet
   bands over a muted basemap. Cell size follows the camera.
@@ -106,22 +109,46 @@
 
 ## Known broken
 
-- Colour-blind reading of the rating ramp is untested. Prime, Good and Fair are
-  three adjacent warm hues separated mostly by lightness, which is the case
-  deuteranopia and protanopia collapse. Slow is safe. The ramp plan's option C
-  (a ring channel) is the fix if it matters.
 - The 44pt marker tap target is asserted as geometry only. An edge tap on
   hardware is the other half.
 
 ## Next Up
 
-- Colour-blind pass on the ramp, or an explicit decision not to do one.
 - 1.0 (8) Waiting for Review after the 5.2.5 resubmission; release manually once approved.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-06 (colour-blind pass on the ramp: no ring, gate added)
+
+- Decided: no ring channel. Measured with `WAFishMapTests/CVDSeparationTests.swift`
+  (exact, resolved tokens, Machado 2009 severity 1.0, linear RGB, iPhone 18 Pro) and
+  looked at in all four simulated frames (`scripts/cvd_check.py` regenerates
+  them beside the pinned frames in `docs/design/ramp-check/`; not committed). Slow is safe. Criterion: a pair fails when dL* < 12 AND dE76 < 30.
+- Numbers (dL* / dE76), light then dark:
+  - deuteranopia: fair->good 12.71/18.8, 14.01/21.9; good->prime 11.11/19.5, 11.14/21.1
+  - protanopia: fair->good 17.51/24.7, 18.99/28.8; good->prime 18.14/39.6, 17.79/40.4
+- good->prime fails the colour test under deuteranopia in both appearances. It is
+  carried by glyph ink (black on Good, white on Prime), asserted on the real views.
+  fair->good passes but is the weakest pair and has no second channel: 0.7 L* above
+  the floor in light deuteranopia, and in the dark frames the pins read as two
+  yellows (Fair vivid, Good muted). If that ever matters, the ring goes on Fair, not
+  Prime (the old "option C on Prime" note predates the ink observation); Good is ~85%
+  of the map in season, so ringing it would ring everything.
+- The gate fails the build when a token move leaves a pair neither separated by
+  simulated colour nor by ink. It was watched failing first: the first version
+  failed on good->prime until the ink channel was asserted; with the deuteranopia
+  matrix swapped for identity, three control assertions went red.
+- Plan's calibration claim corrected: pure red/green keeps a real lightness gap
+  under a correct simulation, so it does not fail the dL*/dE criterion. The known-bad
+  control is a green built to match red's simulated green channel (dL* 0.3, dE76 7.9).
+- Simulated frames are approximate (P3 screenshots read as sRGB); the Swift numbers
+  are the exact ones.
+- Stale line fixed: "11pt dot above 150km" died with the dot renderer in `868aa35`.
+- Runbook note: after the mutated run finished, `xcodebuild` stayed alive with the
+  results final; killed by PID (matches the 2026-09-16 hang).
 
 ### 2026-09-21 (App Review rejection 5.2.5, WeatherKit attribution)
 

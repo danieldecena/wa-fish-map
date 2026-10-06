@@ -5,6 +5,7 @@
 - [x] Upload attribution fix to ASC — accepted as build 8
 - [x] [you] Record WeatherKit attribution on iPhone for App Review
 - [x] Resubmit 1.0 (8) with recording — Waiting for Review
+- [x] Colour-blind pass on the ramp: no ring, CVD gate added
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [ ] [you] Release to the App Store after approval (manual release)
 
