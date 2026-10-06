@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "5B0F7A2C-6E34-4C1D-9A48-2D7E1C0B9F63",
+      "name" : "Unit",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:WAFishMap.xcodeproj",
+        "identifier" : "A10000000000000000000009",
+        "name" : "WAFishMapTests"
+      }
+    }
+  ],
+  "version" : 1
+}
