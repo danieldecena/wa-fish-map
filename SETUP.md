@@ -31,27 +31,26 @@ cd ~/developer/wa-fish-map
 ./scripts/run_sim.sh test
 ```
 
-### Unit-only test plan (for Xcode Cloud)
+### Test plans
 
-The scheme's Test action runs both `WAFishMapTests` (unit) and `WAFishMapUITests`.
-`WAFishMapUnit.xctestplan` lists only the unit bundle, so a CI Test action can
-gate on it without also running the UI probes.
+The scheme links two plans:
 
-A plan only takes effect once it is added to the scheme. In Xcode: Product ▸ Test
-Plan ▸ **Manage Test Plans…**, click **+** below the list, choose **Add existing
-Test Plan**, and select `WAFishMapUnit.xctestplan`. The same dialog has a Default
-column; leave the existing plan as the default unless you want `⌘U` to skip the
-UI tests too.
-
-Confirm the link from Terminal. The plan's name is its file name:
+- `WAFishMap.xctestplan` (default): `WAFishMapTests` and `WAFishMapUITests`, the
+  same tests the scheme ran before it had plans. `⌘U` and
+  `./scripts/run_sim.sh test` use it.
+- `WAFishMapUnit.xctestplan`: the unit bundle only, so a CI Test action can gate
+  on the logic tests without also running the UI probes.
 
 ```zsh
-xcodebuild -scheme WAFishMap -showTestPlans          # should list WAFishMapUnit
-./scripts/run_sim.sh test                            # unchanged: the default plan
+xcodebuild -scheme WAFishMap -showTestPlans          # lists WAFishMap and WAFishMapUnit
 ```
 
 To run just the unit plan, pass `-testPlan WAFishMapUnit` to the same
 `xcodebuild … test` command that `scripts/run_sim.sh` runs.
+
+Both plans have to be listed explicitly. Linking only the unit plan beside the
+scheme's automatic one leaves the automatic plan empty, and the default run then
+fails with "There are no test bundles available to test" (seen 2026-10-07).
 
 Choosing the plan in the Xcode Cloud workflow's Test action is a separate step in
 Xcode / App Store Connect. Apple's test-plan documentation does not cover it, so

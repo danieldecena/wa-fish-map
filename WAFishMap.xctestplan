@@ -1,0 +1,33 @@
+{
+  "configurations" : [
+    {
+      "id" : "0597D38B-4C9D-4216-951F-B52B10084F6E",
+      "name" : "Default",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:WAFishMap.xcodeproj",
+        "identifier" : "A10000000000000000000009",
+        "name" : "WAFishMapTests"
+      }
+    },
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:WAFishMap.xcodeproj",
+        "identifier" : "A10000000000000000000042",
+        "name" : "WAFishMapUITests"
+      }
+    }
+  ],
+  "version" : 1
+}
