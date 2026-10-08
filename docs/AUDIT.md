@@ -9,12 +9,16 @@ Audit of `/Users/home/Developer/wa-fish-map` conducted on 2026-09-21. The codeba
 
 ## Risks
 - [ ] **No active CI pipeline** — GitHub Actions was disabled and `.github/workflows/ci.yml` deleted. PRs and branches cannot be automatically tested. Configure Xcode Cloud workflows before onboarding additional contributors or shipping further updates.
-- [ ] **Stale test commands and simulator destinations in README, SETUP, and CLAUDE.md** — README and SETUP prescribe `name=iPhone 17`, while `CLAUDE.md` prescribes `name=iPhone`. Neither device exists on host toolchains running iPhone 18 simulator runtimes. Update documentation to mandate dynamic device resolution via `scripts/run_sim.sh`.
-- [ ] **SETUP.md references deleted CI configuration** — Lines 38-39 point to `.github/workflows/ci.yml`, which was removed. Remove or update the reference.
-- [ ] **README feature scope severely out of date** — README claims the app is a "Hybrid map centered on South Puget Sound". The application is fully statewide with 16 marine areas, rivers, USGS streamflow, NOAA tides, NDBC buoys, WeatherKit integration, and lake facts. Revise README to reflect true product scope.
+- [x] **Stale test commands and simulator destinations in README, SETUP, and CLAUDE.md** — README and SETUP prescribe `name=iPhone 17`, while `CLAUDE.md` prescribes `name=iPhone`. Neither device exists on host toolchains running iPhone 18 simulator runtimes. Update documentation to mandate dynamic device resolution via `scripts/run_sim.sh`.
+- [x] **SETUP.md references deleted CI configuration** — Lines 38-39 point to `.github/workflows/ci.yml`, which was removed. Remove or update the reference.
+- [x] **README feature scope severely out of date** — README claims the app is a "Hybrid map centered on South Puget Sound". The application is fully statewide with 16 marine areas, rivers, USGS streamflow, NOAA tides, NDBC buoys, WeatherKit integration, and lake facts. Revise README to reflect true product scope.
 - [ ] **Missing LICENSE file** — The repository has a public remote but contains no `LICENSE` file. Add an appropriate license.
-- [ ] **Implicit Xcode 26 toolchain requirement in CLAUDE.md** — `CLAUDE.md` declares deployment target iOS 18.0, but omits that the build host MUST use Xcode 26+ (iOS 26 SDK) due to compile-time reference to `GlassCard.glassEffect`. Explicitly record the toolchain floor in `CLAUDE.md`.
-- [ ] **Implicit streamflow, buoy, and weather architectures in CLAUDE.md** — Major subsystems (`RiverLoader`, `NDBCLoader`, `PlanWeather`, MPA layer logic) are documented only in `STATUS.md` decision logs, not in `CLAUDE.md`. Document their architectural contracts in `CLAUDE.md`.
+- [x] **Implicit Xcode 26 toolchain requirement in CLAUDE.md** — `CLAUDE.md` declares deployment target iOS 18.0, but omits that the build host MUST use Xcode 26+ (iOS 26 SDK) due to compile-time reference to `GlassCard.glassEffect`. Explicitly record the toolchain floor in `CLAUDE.md`.
+- [x] **Implicit streamflow, buoy, and weather architectures in CLAUDE.md** — Major subsystems (`RiverLoader`, `NDBCLoader`, `PlanWeather`, MPA layer logic) are documented only in `STATUS.md` decision logs, not in `CLAUDE.md`. Document their architectural contracts in `CLAUDE.md`.
+
+Re-checked 2026-10-07 against the files: the five ticked items no longer hold. Open: the
+Xcode Cloud workflow builds but runs no tests, and there is still no `LICENSE`. The
+undocumented-scripts and `.gitignore` notes below were closed the same day (`SETUP.md` Scripts).
 
 ## Notes
 - **Top-level RESEARCH.md absent**: Research exists as six dated documents in `docs/research/`.

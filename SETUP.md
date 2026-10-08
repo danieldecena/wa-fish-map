@@ -106,3 +106,26 @@ rm -rf ~/Tools/scratch-WAFishMap-discard
 ```zsh
 python3 scripts/verify_wdfw_live.py
 ```
+
+## Scripts
+
+Each script's own header is the reference; this is the index. The generators
+write bundled resources, so run one, look at the diff, and commit the result.
+Never hand-edit a generated file.
+
+| Script | What it does |
+|--------|--------------|
+| `scripts/run_sim.sh` | Build, install and launch on a resolved simulator; `test` runs the default plan. |
+| `scripts/check_xcode_layout.sh` | Diagnose an empty Xcode navigator (see README). |
+| `scripts/app_store_screenshots.sh` | Capture App Store screenshots from a booted simulator with the app installed. |
+| `scripts/build_lakes.py` | Generate `WAFishMap/Resources/lakes.json` from WDFW's lowland lakes map. |
+| `scripts/build_rivers.py` | Generate `WAFishMap/Resources/rivers.json` from USGS NHD flowlines. |
+| `scripts/build_river_stats.py` | Generate `WAFishMap/Resources/river_stats.json`, each river's own flow history. |
+| `scripts/build_web_data.py` | Build `site/data/` for the web demo (`docs/web-demo-spec.md`) from WDFW's live service. |
+| `scripts/verify_wdfw_live.py` | Validate the statewide WDFW contract the app depends on. |
+| `scripts/verify_river_stats.py` | Check every gauged river's flow colour against USGS. |
+| `scripts/verify_weatherkit_device.sh` | Run the one WeatherKit test that needs a physical device. |
+| `scripts/weatherkit_rest_probe.py` | Ask WeatherKit over REST, as a control on a device-side 401. |
+| `scripts/testflight_internal.py` | Diagnose, and with `--apply` create, the internal TestFlight tester chain. Read-only without `--apply`. |
+| `scripts/cvd_check.py` | Simulate colour-vision deficiency over the pinned rating-ramp frames. |
+| `scripts/make_icon.swift` | Draw the app mark and emit both the flat PNG and the layered `.icon` bundle. |

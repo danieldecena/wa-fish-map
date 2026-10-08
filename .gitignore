@@ -21,3 +21,9 @@ graphify-out/
 # Simulated colour-blind frames: regenerate with scripts/cvd_check.py
 docs/design/ramp-check/ramp-*-deuteranopia.png
 docs/design/ramp-check/ramp-*-protanopia.png
+
+# Python and editor artifacts from scripts/
+__pycache__/
+*.pyc
+.venv/
+.cursor/
