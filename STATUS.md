@@ -121,6 +121,20 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-07 (test plans linked: explicit default, unit plan second)
+
+- Decided: the scheme lists two explicit plans, `WAFishMap` (default, both bundles)
+  and `WAFishMapUnit`. Linking only the unit plan beside the automatic one emptied
+  the automatic plan: the default run failed with "There are no test bundles
+  available to test", while the untouched scheme listed 341 tests on the same
+  simulator. That failure is the red the comparison was watched going.
+- Observed (Xcode 27.0, `-enumerate-tests`): default plan = the pre-change set
+  exactly, 331 unit + 10 UI; unit plan = the 331 alone. The unit plan then ran:
+  331 tests in 53 suites passed.
+- Not done: the Xcode Cloud workflow still only builds. Adding a Test action that
+  uses `WAFishMapUnit` is a step in Xcode or App Store Connect; the API route
+  needs the issuer id this Mac does not have.
+
 ### 2026-10-06 (colour-blind pass on the ramp: no ring, gate added)
 
 - Decided: no ring channel. Measured with `WAFishMapTests/CVDSeparationTests.swift`
