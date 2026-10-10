@@ -9,7 +9,8 @@
 - [x] Link the unit-only test plan into the scheme and verify it
 - [ ] Edge-tap UI test for the 44pt marker target
 - [x] Pin VoiceOver probe fails on a stale element index — 1dbfb36
-- [ ] [you] Reply to Apple's Sep 24 rejection of build 8
+- [ ] [you] Check the attached recording shows the far-date state
+- [ ] [you] Reply to Apple only if build 10 is rejected
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [ ] [you] Release to the App Store after approval (manual release)
 

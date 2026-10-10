@@ -165,6 +165,13 @@ current counts rather than trusting a number written here.
   bypassed with a direct `xcodebuild -destination platform=iOS,id=<iPhone UDID>`.
 - Gotcha: bare `python3` cannot run `ship.py` (needs 3.10+ syntax); use
   `/opt/homebrew/bin/python3`.
+- Done 2026-10-09 7:28 PM: Daniel saved build 10 and resubmitted; Apple read
+  back 1.0 (10) Waiting for Review. A Waiting-for-Review submission has no
+  reply box, so the reply to Apple's Sep 24 message cannot be sent unless the
+  submission is cancelled; the fix goes in the App Review Notes instead (saved
+  and read back, 2421 chars, WeatherKit section now says the mark and link show
+  in every state). The attached .mp4 was not played, so whether it shows the
+  date-too-far state is unverified.
 
 ### 2026-10-09 (1.0 (8) was rejected again on 09-24; build 9 is with internal testers)
 
