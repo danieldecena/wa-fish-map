@@ -113,15 +113,40 @@
   hardware is the other half.
 - `PinVoiceOverProbe` fails every run (stale element index, see 2026-10-09), and
   it is in the default test plan.
+- App Store version 1.0 (8) has sat Rejected under 5.2.5 since 2026-09-24 with
+  no reply sent.
 
 ## Next Up
 
-- 1.0 (8) Waiting for Review after the 5.2.5 resubmission; release manually once approved.
+- 1.0 (8) is Rejected, not waiting: Apple turned the 5.2.5 resubmission down on
+  2026-09-24 and is waiting on a reply (see 2026-10-09). Daniel's to answer.
+- 1.0 (9) is with the internal TestFlight group, carrying the pin VoiceOver fix.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-09 (1.0 (8) was rejected again on 09-24; build 9 is with internal testers)
+
+- Found: App Store version 1.0 (8) is Rejected and has been since 2026-09-24
+  06:18. This file said "Waiting for Review" for fifteen days because nothing
+  read the status back after the 09-21 resubmission. Read today from the
+  submission page (id `4cef16a5-876e-4b53-88de-c9c1997adcbd`): three messages,
+  Apple 09-21 00:18, Daniel 09-21 17:29, Apple 09-24 06:18; review date
+  September 24 on an iPhone 17 Pro Max; guideline 5.2.5 again. Apple's text:
+  "The issues we previously identified still need your attention", then the same
+  ask as before, a physical-device screen recording showing where WeatherKit is
+  used, sent as a reply and kept in the review notes. The version page does list
+  `WAFishMap-WeatherKit-attribution-review.mp4` as the review attachment, and
+  Apple attached its own `Screenshot-0924-061726.png`, not opened here. Not
+  known: why the recording did not satisfy the reviewer. No reply was sent and
+  nothing was resubmitted today.
+- Done: 1.0 (9) uploaded from `1437920` through `~/developer/app-ship` and read
+  back from Apple as VALID, in beta testing in the `Internal` group, not in
+  `insideout`, beta review not submitted. The upload was accepted on the 1.0
+  train. The submission page still shows build 8, Rejected, last updated by
+  Apple, so the upload changed nothing there.
 
 ### 2026-10-09 (pin spoken text saved for build 9; the probe still fails)
 
