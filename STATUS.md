@@ -113,14 +113,15 @@
   hardware is the other half.
 - `PinVoiceOverProbe` fails every run (stale element index, see 2026-10-09), and
   it is in the default test plan.
-- App Store version 1.0 is Rejected (5.2.5, 2026-09-24) and still points at
-  build 8. Build 10 carries the fix; swapping it onto the version, replying to
-  Apple and resubmitting are Daniel's (see 2026-10-09 workflow entry).
+- App Store version 1.0 (10) is Waiting for Review under 5.2.5, resubmitted
+  2026-10-09 7:28 PM (read from Apple). Daniel has not replied to Apple's
+  Sep 24 message in the thread; Apple also asks for a device screen
+  recording in the App Review Notes for future submissions.
 
 ## Next Up
 
-- 1.0 (8) is Rejected under 5.2.5 and waiting on Daniel: save build 10 on the
-  version, reply to Apple, resubmit (see 2026-10-09 workflow entry).
+- 1.0 (10) is Waiting for Review (5.2.5 fix). Next is Apple's verdict; then
+  release by hand.
 - 1.0 (9) carries the pin VoiceOver fix and is with both TestFlight groups,
   `Internal` and `insideout`, beta review approved (read from Apple 2026-10-09).
 
