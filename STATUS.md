@@ -120,7 +120,8 @@
 
 - 1.0 (8) is Rejected, not waiting: Apple turned the 5.2.5 resubmission down on
   2026-09-24 and is waiting on a reply (see 2026-10-09). Daniel's to answer.
-- 1.0 (9) is with the internal TestFlight group, carrying the pin VoiceOver fix.
+- 1.0 (9) carries the pin VoiceOver fix and is with both TestFlight groups,
+  `Internal` and `insideout`, beta review approved (read from Apple 2026-10-09).
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
@@ -147,6 +148,10 @@ current counts rather than trusting a number written here.
   `insideout`, beta review not submitted. The upload was accepted on the 1.0
   train. The submission page still shows build 8, Rejected, last updated by
   Apple, so the upload changed nothing there.
+- Found, minutes later: build 9 is with outside testers too. `app-ship`'s run log
+  has `submit-beta` at 18:13 and Apple now reads beta review APPROVED, external
+  in beta testing, groups `Internal` and `insideout`. It was run from another
+  session, which recorded it as Daniel's; the line above was true when read.
 
 ### 2026-10-09 (pin spoken text saved for build 9; the probe still fails)
 
