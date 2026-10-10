@@ -113,13 +113,14 @@
   hardware is the other half.
 - `PinVoiceOverProbe` fails every run (stale element index, see 2026-10-09), and
   it is in the default test plan.
-- App Store version 1.0 (8) has sat Rejected under 5.2.5 since 2026-09-24 with
-  no reply sent.
+- App Store version 1.0 is Rejected (5.2.5, 2026-09-24) and still points at
+  build 8. Build 10 carries the fix; swapping it onto the version, replying to
+  Apple and resubmitting are Daniel's (see 2026-10-09 workflow entry).
 
 ## Next Up
 
-- 1.0 (8) is Rejected, not waiting: Apple turned the 5.2.5 resubmission down on
-  2026-09-24 and is waiting on a reply (see 2026-10-09). Daniel's to answer.
+- 1.0 (8) is Rejected under 5.2.5 and waiting on Daniel: save build 10 on the
+  version, reply to Apple, resubmit (see 2026-10-09 workflow entry).
 - 1.0 (9) carries the pin VoiceOver fix and is with both TestFlight groups,
   `Internal` and `insideout`, beta review approved (read from Apple 2026-10-09).
 
@@ -127,6 +128,42 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-09 (workflow: fixing an App Review rejection and shipping the fix)
+
+- Found: Apple's rejection screenshot (Download link on the rejected item in
+  App Review) showed the sheet in the "forecast doesn't reach that date" state
+  with no Apple Weather mark and no legal link. The attribution was only drawn
+  beside a real reading. Fixed in `e953b69`, shipped as 1.0 (10).
+- Decided: read the reviewer's own evidence before replying or rebuilding. The
+  text of a rejection is stock wording; the attached screenshot is what they saw.
+- The steps that worked, in order:
+  1. Download the screenshot from the rejected item, open it, and find the
+     state it shows. Grep the code for where that state renders.
+  2. Fix, then add a device test that puts that exact state on screen
+     (`-planDaysAhead 60` in `UITestSeam` for this one). WeatherKit does not
+     work in the Simulator, so only `scripts/verify_weatherkit_device.sh` or a
+     direct `xcodebuild test` on the iPhone can observe the mark.
+  3. Prove the new test fails on the old code: restore the previous file with
+     `git show <sha>^:<path>`, assert the diff is non-empty, run the test, watch
+     it go red, then `git checkout` the file back.
+  4. Save to history, then ship with the `testflight-shipper` agent
+     (`app-ship`: upload, wait, internal group). It refuses to upload if Apple
+     already lists the build number.
+  5. Outside testers are a separate, approved step:
+     `/opt/homebrew/bin/python3 ship.py submit-beta wafishmap --build N` (flag
+     is `--build`, not a bare number). Read `status` back; a dropped connection
+     on 2026-10-09 left it not submitted, and one retry went through.
+  6. On the App Store version page: remove the old build, Add Build, pick the
+     new one, click Save, then read the page back. Replying to Apple and
+     "Update Review" are Daniel's. Browser clicks that remove a build or press
+     Save were blocked by the auto-mode classifier in Safari, so these two
+     clicks are his by hand.
+- Gotcha: `verify_weatherkit_device.sh` counts any non-simulator device, so an
+  offline iPad makes it refuse with "more than one physical device". It was
+  bypassed with a direct `xcodebuild -destination platform=iOS,id=<iPhone UDID>`.
+- Gotcha: bare `python3` cannot run `ship.py` (needs 3.10+ syntax); use
+  `/opt/homebrew/bin/python3`.
 
 ### 2026-10-09 (1.0 (8) was rejected again on 09-24; build 9 is with internal testers)
 
