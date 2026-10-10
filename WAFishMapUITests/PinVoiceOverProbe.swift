@@ -2,7 +2,7 @@ import XCTest
 
 /// Throwaway probe: read the pins' VoiceOver text off a real screen.
 ///
-/// `SiteMarkerView.apply` sets `accessibilityLabel`/`accessibilityValue` and the
+/// `SiteMarkerView.apply` sets `accessibilityLabel` and the
 /// strings are unit-tested, but they had never been observed on screen — a pinch
 /// through XCUITest rotates an `MKMapView` instead of zooming it, so the camera
 /// never left the statewide framing, where `MapDetailLevel` draws no pins at all.
@@ -12,17 +12,19 @@ import XCTest
 /// sites, all in Thurston County, so zooming anywhere else finds nothing — which
 /// is exactly how the first run of this probe failed.
 ///
-/// The negative input is already banked: the same query run over a screen holding
-/// 42 basemap POIs (`VKPointFeature`, type `Other`) returned zero, so a non-zero
-/// count here is our annotations and not Apple's labels. The `summaryShape` check
-/// below holds that line.
+/// Our pins and Apple's basemap labels are the same kind of element
+/// (`VKPointFeature`, type `Other`): MapKit reads a marker as
+/// "<title>, <the view's accessibilityLabel>" and exposes no value. This probe
+/// first queried `map.buttons` and read `value`, which can match nothing, so it
+/// could never have passed (`PinSpokenTextUITests`, 2026-10-07). The
+/// `summaryShape` check below is what separates our pins from Apple's labels.
 @MainActor
 final class PinVoiceOverProbe: XCTestCase {
     /// Every `SiteAnnotation.spokenSummary` opens with one of these.
     private static let summaryShape = ["Boat launch", "Shore access", "Fishing pier"]
 
     private func describe(_ pins: [XCUIElement]) -> [String] {
-        pins.map { "\($0.label) :: \(($0.value as? String) ?? "<no value>")" }
+        pins.map(\.label)
     }
 
     func testPinsCarryVoiceOverTextOnScreen() {
@@ -43,40 +45,39 @@ final class PinVoiceOverProbe: XCTestCase {
 
         // Pins are descendants of the map; the chrome is a sibling of it, so this
         // scope excludes Heat / Rivers / Now / recenter / the info button.
-        func pins() -> [XCUIElement] { map.buttons.allElementsBoundByIndex }
+        func pins() -> [XCUIElement] {
+            map.descendants(matching: .any).matching(identifier: "VKPointFeature").allElementsBoundByIndex
+        }
 
         print("PINPROBE launch count=\(pins().count) \(describe(pins()))")
 
+        func isOurs(_ label: String) -> Bool {
+            Self.summaryShape.contains { label.contains(", \($0)") } || label.contains(" fishing spots, ")
+        }
+
+        // Stop on the first of ours, not on a count: the statewide frame already
+        // holds plenty of Apple's labels before a single pin is drawn.
         var found: [String] = []
         for step in 1...7 {
             map.doubleTap()
-            for _ in 0..<12 where pins().isEmpty {
+            for _ in 0..<12 where !describe(pins()).contains(where: isOurs) {
                 usleep(300_000)
             }
             found = describe(pins())
             print("PINPROBE step=\(step) count=\(found.count) \(found.prefix(25))")
-            if found.count >= 3 { break }
+            if found.contains(where: isOurs) { break }
         }
 
         XCTAssertFalse(found.isEmpty,
                        "Zoomed in seven times and the map still reports no pins. Tree:\n\(map.debugDescription)")
 
-        let spoken = pins().compactMap { pin -> (String, String)? in
-            guard let value = pin.value as? String, !pin.label.isEmpty, !value.isEmpty else { return nil }
-            return (pin.label, value)
-        }
-        XCTAssertFalse(spoken.isEmpty, "Pins exist but none carries both a label and a value: \(found)")
-
-        let ours = spoken.filter { _, value in
-            Self.summaryShape.contains { value.hasPrefix($0) } || value.hasSuffix("fishing spots")
-                || value.hasPrefix("best rated") || value == "no seasonal guidance"
-        }
+        let ours = found.filter(isOurs)
         XCTAssertFalse(ours.isEmpty,
-                       "Found labelled elements but none reads like a SiteAnnotation summary, so these are not our pins: \(spoken)")
+                       "Found map labels but none reads like a SiteAnnotation summary, so these are not our pins: \(found)")
 
-        print("PINPROBE ours=\(ours.count) of \(spoken.count) labelled, of \(found.count) total")
-        for (label, value) in ours.prefix(25) {
-            print("PINPROBE voiceover: \"\(label), \(value)\"")
+        print("PINPROBE ours=\(ours.count) of \(found.count) labelled")
+        for label in ours.prefix(25) {
+            print("PINPROBE voiceover: \"\(label)\"")
         }
     }
 }

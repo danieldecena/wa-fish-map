@@ -7,6 +7,8 @@
 - [x] Resubmit 1.0 (8) with recording — Waiting for Review
 - [x] Colour-blind pass on the ramp: no ring, CVD gate added
 - [x] Link the unit-only test plan into the scheme and verify it
+- [ ] Edge-tap UI test for the 44pt marker target
+- [ ] Pin VoiceOver probe fails on a stale element index
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [ ] [you] Release to the App Store after approval (manual release)
 

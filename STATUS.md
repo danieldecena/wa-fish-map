@@ -111,6 +111,8 @@
 
 - The 44pt marker tap target is asserted as geometry only. An edge tap on
   hardware is the other half.
+- `PinVoiceOverProbe` fails every run (stale element index, see 2026-10-09), and
+  it is in the default test plan.
 
 ## Next Up
 
@@ -120,6 +122,23 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-09 (pin spoken text saved for build 9; the probe still fails)
+
+- Decided: the pin and cluster label change from 2026-10-07 is saved and goes out
+  in the next TestFlight build. Observed today on the iPhone 18 Pro simulator,
+  iOS 27.0: the app builds, the unit plan ran 331 tests in 53 suites with none
+  failing, and `PinSpokenTextUITests` ran 1 test and passed, printing
+  `Boston Harbor, Boat launch, rated Good`. Not done: that test was not run
+  against the old label and value split, so it has not been seen to fail.
+- Found: the rewritten `PinVoiceOverProbe` fails 3 runs of 3 at its first
+  `describe(pins())`, line 27, with "No matches found for Element at index 26".
+  `allElementsBoundByIndex` resolves each element when `.label` is read, and the
+  map has redrawn by then. It stops before `isOurs` or the zoom loop run, so
+  nothing past that line is shown to work, and the cluster label has no on-screen
+  coverage. Saved as it stands because the version before it could not pass
+  either (it read `value`, which MapKit never exposes). It is in the default
+  test plan, so a full default run goes red on it.
 
 ### 2026-10-07 (test plans linked: explicit default, unit plan second)
 
