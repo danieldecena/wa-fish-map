@@ -12,6 +12,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 TEST=WAFishMapUITests/VerifyBadgeUITests/testWindReadsARealValueOnDevice
+TEST2=WAFishMapUITests/VerifyBadgeUITests/testAttributionShowsWhenTheForecastDoesNotReachTheDate
 
 # Refuse ambiguity rather than guessing. A previous run built for an iPad that
 # had silently replaced the iPhone in the device list.
@@ -59,9 +60,9 @@ MSG
     exit 1
 fi
 
-echo "==> Running $TEST on the device"
+echo "==> Running $TEST and $TEST2 on the device"
 xcodebuild -scheme WAFishMap -destination "platform=iOS,id=$udid" \
-    -allowProvisioningUpdates -only-testing:"$TEST" test
+    -allowProvisioningUpdates -only-testing:"$TEST" -only-testing:"$TEST2" test
 
 # "App installed" is not an observation either. Ask the device what it holds.
 echo "==> Confirming the app is on the device"

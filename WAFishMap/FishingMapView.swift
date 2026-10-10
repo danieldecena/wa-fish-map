@@ -6,7 +6,7 @@ struct FishingMapView: View {
     @Environment(\.openURL) private var openURL
     @State private var location = LocationProvider()
     /// Date/time the user is planning for. Defaults to now; the month drives ratings.
-    @State private var planDate = Date()
+    @State private var planDate = UITestSeam.initialPlanDate
     /// `nil` is All species (best in the area). Exact name from the guide otherwise.
     @State private var selectedSpecies: String?
     @State private var showHeat = false

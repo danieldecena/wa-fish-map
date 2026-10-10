@@ -31,8 +31,10 @@ struct PlanWeatherView: View {
             Text("Wind & rain").font(.headline)
                 .accessibilityIdentifier("planWeatherSection")
             content
+            attributionMark
         }
         .task(id: hourKey) { await load() }
+        .task(id: hourKey) { await loadAttribution() }
     }
 
     @ViewBuilder private var content: some View {
@@ -58,7 +60,6 @@ struct PlanWeatherView: View {
             Text("Forecast for \(Self.hourLabel.string(from: weather.hour)), not an observation.")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
-            attributionMark
         } else if outOfRange {
             // The forecast does not reach the chosen date. Saying which is the
             // point — falling back to the nearest available hour would answer a
@@ -77,8 +78,10 @@ struct PlanWeatherView: View {
 
     /// Apple requires attribution for any published use of WeatherKit, and the
     /// mark and legal link come from the service rather than being hardcoded, so
-    /// they follow whatever Apple serves. Drawn only alongside a real reading:
-    /// attributing data that failed to load would be a claim about nothing.
+    /// they follow whatever Apple serves. Drawn in every state of this section,
+    /// not only beside a reading: App Review rejected 1.0 (8) under 5.2.5
+    /// (2026-09-24) after opening a sheet on a date the forecast does not reach,
+    /// where this section said so and showed no mark and no legal link.
     ///
     /// App Review rejected 1.0 (6) under 5.2.5 (2026-09-21) because a 12pt faded
     /// mark with only a chevron for the legal link did not read as attribution.
@@ -133,7 +136,6 @@ struct PlanWeatherView: View {
         outOfRange = false
         if let hit = Self.cache[key], hit.isFresh(at: Date()) {
             weather = hit.weather
-            await loadAttribution()
             return
         }
         weather = nil
@@ -156,7 +158,6 @@ struct PlanWeatherView: View {
             )
             weather = reading
             Self.cache[key] = CachedPlanWeather(weather: reading, fetchedAt: Date())
-            await loadAttribution()
         } catch {
             // Cancellation is not a failure; the task that replaced this one
             // owns the section now.
@@ -167,7 +168,8 @@ struct PlanWeatherView: View {
     }
 
     /// Attribution failing must not blank a good reading, so it is fetched apart
-    /// from the forecast and its failure only costs the mark.
+    /// from the forecast and its failure only costs the mark. It runs in its own
+    /// task so an out-of-range or failed forecast cannot skip it.
     private func loadAttribution() async {
         guard attribution == nil else { return }
         do {

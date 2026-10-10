@@ -1,6 +1,6 @@
 import Foundation
 
-/// The three launch arguments a UI test may set, and nothing else.
+/// The launch arguments a UI test may set, and nothing else.
 ///
 /// The verify badge was shipped "proven by tests and by reading the diff, not by
 /// observation" because there was no way to assert anything on screen. Observing
@@ -20,7 +20,11 @@ import Foundation
 /// `-uiTestingRegion lat,lon,span` pins the camera so a map frame is the
 /// same frame every run.
 ///
-/// Deliberately not a general test harness: four arguments.
+/// `-planDaysAhead n` starts the plan n days from now, so the weather section's
+/// "forecast doesn't reach that date" state can be put on screen on demand.
+/// Added for App Review 5.2.5 (2026-09-24), which opened exactly that state.
+///
+/// Deliberately not a general test harness: five arguments.
 enum UITestSeam {
     static var isActive: Bool {
         ProcessInfo.processInfo.arguments.contains("-uiTesting")
@@ -37,6 +41,17 @@ enum UITestSeam {
               (1...12).contains(month)
         else { return nil }
         return month
+    }
+
+    /// The plan's starting date from `-planDaysAhead n`: now when unset, and also
+    /// now when `n` is outside 1...365, the same unset rule as `planMonth`.
+    static var initialPlanDate: Date {
+        let args = ProcessInfo.processInfo.arguments
+        guard let flag = args.firstIndex(of: "-planDaysAhead"),
+              let days = Int(args[safe: flag + 1] ?? ""),
+              (1...365).contains(days)
+        else { return Date() }
+        return Date().addingTimeInterval(Double(days) * 86_400)
     }
 
     enum Detail: String {

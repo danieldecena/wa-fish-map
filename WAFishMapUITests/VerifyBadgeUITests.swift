@@ -109,6 +109,31 @@ final class VerifyBadgeUITests: XCTestCase {
         #endif
     }
 
+    /// App Review rejected 1.0 (8) under 5.2.5 on a sheet whose "Wind & rain"
+    /// section read "The forecast doesn't reach that date yet." with no Apple
+    /// Weather mark and no legal link. This puts that exact state on screen and
+    /// asserts the attribution is there anyway. 60 days is far past any hourly
+    /// forecast WeatherKit serves, so the message is the success sentinel for
+    /// "the state under test is the state on screen".
+    func testAttributionShowsWhenTheForecastDoesNotReachTheDate() throws {
+        #if targetEnvironment(simulator)
+        throw XCTSkip("WeatherKit cannot sign a Simulator build. Run scripts/verify_weatherkit_device.sh.")
+        #else
+        let app = XCUIApplication()
+        app.launchArguments = ["-uiTesting", "-planMonth", "7", "-planDaysAhead", "60"]
+        app.launch()
+        sheet(app)
+
+        let outOfRange = app.staticTexts["The forecast doesn't reach that date yet."]
+        XCTAssertTrue(outOfRange.waitForExistence(timeout: 60),
+                      "The out-of-range state never appeared, so nothing below proves anything. On screen: \(Self.labels(app))")
+        XCTAssertTrue(app.links["weatherAttribution"].waitForExistence(timeout: 15),
+                      "No Apple Weather mark in the out-of-range state. On screen: \(Self.labels(app))")
+        XCTAssertTrue(app.links["weatherLegalLink"].exists,
+                      "No legal source link in the out-of-range state. On screen: \(Self.labels(app))")
+        #endif
+    }
+
     /// The control. Every month in area 13 flags something, so an absence test
     /// is impossible here — but selectivity is still checkable: the badge must
     /// appear on *some* species and not all of them. A badge rendered
