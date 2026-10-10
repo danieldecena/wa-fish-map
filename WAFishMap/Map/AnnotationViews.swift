@@ -110,9 +110,12 @@ final class SiteMarkerView: MKMarkerAnnotationView {
         glyphImage = UIImage(systemName: Self.symbol(for: site.kind))
         // Faded gray: still tappable, so the details stay one tap away.
         alpha = site.isClosed ? 0.55 : 1
+        // MapKit hands assistive tech one element per marker, reading
+        // "<annotation title>, <this label>", and drops the value. With the
+        // name here and the summary in the value, a pin read as its name twice
+        // and its rating never (iOS 26.5 and 27.0, `PinSpokenTextUITests`).
         isAccessibilityElement = true
-        accessibilityLabel = site.title
-        accessibilityValue = site.spokenSummary
+        accessibilityLabel = site.spokenSummary
         accessibilityTraits = .button
     }
 
@@ -258,8 +261,8 @@ final class SiteClusterView: MKMarkerAnnotationView {
         SiteMarkerView.applyClosureBadge(self, closurePlausible: Self.closurePlausible(of: members))
         glyphText = "\(cluster.memberAnnotations.count)"
         isAccessibilityElement = true
-        accessibilityLabel = "\(cluster.memberAnnotations.count) fishing spots"
-        accessibilityValue = Self.spokenSummary(of: members)
+        // Same rule as a pin: only the label is read, after the cluster's title.
+        accessibilityLabel = "\(cluster.memberAnnotations.count) fishing spots, \(Self.spokenSummary(of: members))"
         accessibilityTraits = .button
     }
 
