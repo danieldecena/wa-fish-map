@@ -23,11 +23,14 @@ final class PinVoiceOverProbe: XCTestCase {
     /// Every `SiteAnnotation.spokenSummary` opens with one of these.
     private static let summaryShape = ["Boat launch", "Shore access", "Fishing pier"]
 
-    private func describe(_ pins: [XCUIElement]) -> [String] {
-        pins.map(\.label)
+    /// Walks one snapshot instead of asking each element for its label. An element
+    /// from `allElementsBoundByIndex` re-resolves by index when `.label` is read,
+    /// and the live map has redrawn by then, so the index is gone (2026-10-09).
+    private func pinLabels(in node: any XCUIElementSnapshot) -> [String] {
+        (node.identifier == "VKPointFeature" ? [node.label] : []) + node.children.flatMap(pinLabels(in:))
     }
 
-    func testPinsCarryVoiceOverTextOnScreen() {
+    func testPinsCarryVoiceOverTextOnScreen() throws {
         let app = XCUIApplication()
         app.launch()
 
@@ -45,25 +48,29 @@ final class PinVoiceOverProbe: XCTestCase {
 
         // Pins are descendants of the map; the chrome is a sibling of it, so this
         // scope excludes Heat / Rivers / Now / recenter / the info button.
-        func pins() -> [XCUIElement] {
-            map.descendants(matching: .any).matching(identifier: "VKPointFeature").allElementsBoundByIndex
+        func pins() throws -> [String] {
+            pinLabels(in: try map.snapshot())
         }
 
-        print("PINPROBE launch count=\(pins().count) \(describe(pins()))")
+        let atLaunch = try pins()
+        print("PINPROBE launch count=\(atLaunch.count) \(atLaunch)")
 
         func isOurs(_ label: String) -> Bool {
             Self.summaryShape.contains { label.contains(", \($0)") } || label.contains(" fishing spots, ")
         }
 
         // Stop on the first of ours, not on a count: the statewide frame already
-        // holds plenty of Apple's labels before a single pin is drawn.
+        // holds plenty of Apple's labels before a single pin is drawn. Step 0 waits
+        // without zooming: a frame that opens already drawing pins loses them to a
+        // double-tap, which zooms on the centre and past them (2026-10-09).
         var found: [String] = []
-        for step in 1...7 {
-            map.doubleTap()
-            for _ in 0..<12 where !describe(pins()).contains(where: isOurs) {
+        for step in 0...7 {
+            if step > 0 { map.doubleTap() }
+            for _ in 0..<12 {
+                found = try pins()
+                if found.contains(where: isOurs) { break }
                 usleep(300_000)
             }
-            found = describe(pins())
             print("PINPROBE step=\(step) count=\(found.count) \(found.prefix(25))")
             if found.contains(where: isOurs) { break }
         }
