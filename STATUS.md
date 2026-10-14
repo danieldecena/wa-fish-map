@@ -109,8 +109,10 @@
 
 ## Known broken
 
-- The 44pt marker tap target is asserted as geometry only. An edge tap on
-  hardware is the other half.
+- The 44pt marker tap target is asserted as geometry plus a simulator edge tap
+  (`MarkerEdgeTapUITests`). That test cannot isolate `hitRect`: the simulator
+  selects a lone pin out to about 52pt, so it passes with the rect deleted.
+  Hardware reach is not observed.
 - `PinVoiceOverProbe` fails every run (stale element index, see 2026-10-09), and
   it is in the default test plan.
 - App Store version 1.0 (10) is Waiting for Review under 5.2.5, resubmitted
@@ -131,6 +133,12 @@ current counts rather than trusting a number written here.
 ## Decision log
 
 ### 2026-10-14
+
+- Found: MapKit selects a lone pin from a tap up to about 52pt from its centre
+  (iOS 27 simulator; 60pt misses), past the 44pt `MarkerMetrics.hitRect`. A
+  control tap just outside the target therefore does not exist, so the edge-tap
+  test guards that a pin stays selectable from its edge in all four directions,
+  not that the rect is the reason. Do not add a "just outside must miss" assertion.
 
 - Decided: act on the 2026-10-14 design critique's three priorities (plan
   `docs/superpowers/plans/2026-10-14-design-critique-priorities.md`, PR 51).
