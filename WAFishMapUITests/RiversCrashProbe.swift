@@ -23,9 +23,9 @@ final class RiversCrashProbe: XCTestCase {
             if button.waitForExistence(timeout: 3) { button.tap(); break }
         }
 
-        let rivers = app.buttons["Rivers"]
+        let rivers = app.descendants(matching: .any).matching(identifier: "riversToggle").firstMatch
         XCTAssertTrue(rivers.waitForExistence(timeout: 60),
-                      "no Rivers control on screen: \(app.buttons.allElementsBoundByIndex.map(\.label))")
+                      "no Rivers control on screen: \(app.switches.allElementsBoundByIndex.map(\.label))")
 
         XCTAssertEqual(app.state, .runningForeground, "app was not up before the tap")
         print("RIVERSPROBE frame=\(rivers.frame) hittable=\(rivers.isHittable)")
