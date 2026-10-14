@@ -19,7 +19,7 @@
 - [x] Design critique 4: 44pt recentre touch target
 - [x] Design critique 5: Rivers and Heat as real toggles
 - [x] Design critique 6: species pill and chrome type roles
-- [ ] Design critique 7: verify all and record in STATUS
+- [x] Design critique 7: verify all and record in STATUS
 
 ## Completed
 
