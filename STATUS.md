@@ -130,6 +130,27 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-14
+
+- Decided: act on the 2026-10-14 design critique's three priorities (plan
+  `docs/superpowers/plans/2026-10-14-design-critique-priorities.md`, PR 51).
+  "What's biting" now leads the launch and pier sheets, below the
+  protected-area qualifier and above the WDFW footer. Fine print moved from
+  tertiary to `DS.Ink.fineprint` (secondaryLabel; measured on system and
+  secondary background: light 3.44 / 3.30, dark 6.36 / 5.95), floor 3.0:1
+  because secondaryLabel itself sits near 3.5:1. Closed chip rebuilt like
+  RatingBadge. Recentre touch area 44pt, drawing unchanged. Rivers and Heat are
+  real Toggles with a custom `LayerToggleStyle` (solid `DS.Chrome` fill and
+  white label when on): the system button toggle style was tried first and drew
+  a pale wash with tinted text, nearly unreadable in dark, so the fill is drawn
+  by hand to match what `ToggleTintContrastTests` measures. Species menu is a
+  pill; map chrome names its type roles. The App Store screenshots predate this
+  and are refreshed at the next submission.
+- Found: giving the toggles an accessibility identifier replaced the default
+  one (the label), which broke `RiversCrashProbe`'s lookup by "Rivers". The
+  probe now looks up `riversToggle`. Anything that finds chrome by label needs
+  the same check after an identifier is added.
+
 ### 2026-10-09 (workflow: fixing an App Review rejection and shipping the fix)
 
 - Found: Apple's rejection screenshot (Download link on the rejected item in
