@@ -38,6 +38,27 @@ struct RatingBadge: View {
     }
 }
 
+/// The "Closed" capsule on a pier sheet.
+///
+/// Built like `RatingBadge`, for the same reason: white on opaque system gray
+/// measured about 3.3:1. Primary ink on a light wash, with the stroke carrying
+/// the shape.
+struct ClosedBadge: View {
+    static let labelColor: Color = .primary
+    static let fill: Color = .gray
+    static let washOpacity = 0.2
+
+    var body: some View {
+        Label("Closed", systemImage: "xmark.octagon.fill")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(Self.labelColor)
+            .padding(.horizontal, 8).padding(.vertical, 3)
+            .background(Self.fill.opacity(Self.washOpacity), in: Capsule())
+            .overlay(Capsule().stroke(Self.fill, lineWidth: 1))
+            .accessibilityIdentifier("closedBadge")
+    }
+}
+
 /// Opens Apple Maps with driving directions to the spot. A maps.apple.com
 /// link, not `MKMapItem`: its coordinate initializer is iOS 26 only and the
 /// placemark one is deprecated there, while this app targets iOS 18.
@@ -428,12 +449,7 @@ struct PierDetailSheet: View {
                 VStack(alignment: .leading, spacing: 18) {
                     HStack(spacing: 10) {
                         if pier.isClosed {
-                            Label("Closed", systemImage: "xmark.octagon.fill")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 8).padding(.vertical, 3)
-                                .background(.gray, in: Capsule())
-                                .accessibilityIdentifier("closedBadge")
+                            ClosedBadge()
                         } else {
                             RatingBadge(rating: rating)
                         }
