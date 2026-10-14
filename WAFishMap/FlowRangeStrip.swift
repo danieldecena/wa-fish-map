@@ -53,11 +53,11 @@ struct FlowRangeStrip: View {
             .frame(height: height)
 
             HStack {
-                Text("Lower").font(.caption2).foregroundStyle(.tertiary)
+                Text("Lower").font(.caption2).foregroundStyle(DS.Ink.fineprint)
                 Spacer()
-                Text("Typical for the date").font(.caption2).foregroundStyle(.tertiary)
+                Text("Typical for the date").font(.caption2).foregroundStyle(DS.Ink.fineprint)
                 Spacer()
-                Text("Higher").font(.caption2).foregroundStyle(.tertiary)
+                Text("Higher").font(.caption2).foregroundStyle(DS.Ink.fineprint)
             }
         }
         .accessibilityElement(children: .ignore)

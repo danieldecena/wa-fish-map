@@ -106,6 +106,18 @@ enum DS {
         static let speciesRowRadius: CGFloat = 10
     }
 
+    // MARK: - Ink
+
+    enum Ink {
+        /// Disclaimers, attributions, "updated" stamps, axis words.
+        ///
+        /// Was `.tertiary`, about 1.7:1 on white: below any floor, and it
+        /// carried a season-risk reason, which is safety-relevant. It is the
+        /// secondary label colour so that size, not lightness, separates fine
+        /// print from the supporting text above it.
+        static let fineprint = Color(uiColor: .secondaryLabel)
+    }
+
     // MARK: - Type
 
     /// Roles from the SF Pro ramp.

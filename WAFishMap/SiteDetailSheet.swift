@@ -138,7 +138,7 @@ struct BitingNowView: View {
                         if s.riskMonths.contains(month), let why = s.riskReason {
                             Text(why)
                                 .font(.caption2)
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(DS.Ink.fineprint)
                         }
                         if let bait = s.bait {
                             Label(bait, systemImage: "fish")
@@ -180,7 +180,7 @@ struct GuidanceFooter: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             if let updated = guide?.updated {
-                Text("Guidance updated \(updated)").font(.caption2).foregroundStyle(.tertiary)
+                Text("Guidance updated \(updated)").font(.caption2).foregroundStyle(DS.Ink.fineprint)
             }
         }
         .padding(12)

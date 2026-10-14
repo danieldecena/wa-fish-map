@@ -94,9 +94,9 @@ struct RiverDetailSheet: View {
                 }
                 Divider()
                 Text("USGS gauge \(stats.gaugeName.capitalized), \(stats.yearsOfRecord) years of record")
-                    .font(.caption2).foregroundStyle(.tertiary)
+                    .font(.caption2).foregroundStyle(DS.Ink.fineprint)
                 Text("Compared against this river's own flow for the time of year, not against other rivers.")
-                    .font(.caption2).foregroundStyle(.tertiary)
+                    .font(.caption2).foregroundStyle(DS.Ink.fineprint)
             } else if stats == nil {
                 // Distinguishing these two matters: "no gauge exists" is
                 // permanent, "no reading right now" is not.
@@ -107,14 +107,14 @@ struct RiverDetailSheet: View {
                     .font(.subheadline).foregroundStyle(.secondary)
                 if let stats {
                     Text("USGS gauge \(stats.gaugeName.capitalized)")
-                        .font(.caption2).foregroundStyle(.tertiary)
+                        .font(.caption2).foregroundStyle(DS.Ink.fineprint)
                 }
             } else {
                 Text("This river has a gauge, but it is not reporting right now.")
                     .font(.subheadline).foregroundStyle(.secondary)
                 if let stats {
                     Text("USGS gauge \(stats.gaugeName.capitalized)")
-                        .font(.caption2).foregroundStyle(.tertiary)
+                        .font(.caption2).foregroundStyle(DS.Ink.fineprint)
                 }
             }
         }

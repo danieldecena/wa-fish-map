@@ -571,7 +571,7 @@ private struct HeatLegend: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 2))
             Text("More").font(.caption2).foregroundStyle(.secondary)
-            Text("· density of well-rated spots").font(.caption2).foregroundStyle(.tertiary)
+            Text("· density of well-rated spots").font(.caption2).foregroundStyle(DS.Ink.fineprint)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Heat map key: darker cells have more well-rated spots")
