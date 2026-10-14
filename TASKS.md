@@ -15,7 +15,7 @@
 - [ ] [you] Release to the App Store after approval (manual release)
 - [x] Design critique 1: lead the sheets with What's biting — b18e4af
 - [x] Design critique 2: raise the fine print contrast
-- [ ] Design critique 3: readable pier Closed chip
+- [x] Design critique 3: readable pier Closed chip
 - [ ] Design critique 4: 44pt recentre touch target
 - [ ] Design critique 5: Rivers and Heat as real toggles
 - [ ] Design critique 6: species pill and chrome type roles
