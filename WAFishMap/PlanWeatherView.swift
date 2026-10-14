@@ -59,7 +59,7 @@ struct PlanWeatherView: View {
             }
             Text("Forecast for \(Self.hourLabel.string(from: weather.hour)), not an observation.")
                 .font(.caption2)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(DS.Ink.fineprint)
         } else if outOfRange {
             // The forecast does not reach the chosen date. Saying which is the
             // point — falling back to the nearest available hour would answer a

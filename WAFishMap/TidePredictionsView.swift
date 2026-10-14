@@ -44,7 +44,7 @@ struct TidePredictionsView: View {
             }
             Text("NOAA predictions at the nearest station. Not a tide book.")
                 .font(.caption2)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(DS.Ink.fineprint)
         } else if failed {
             Text("Tides unavailable right now.")
                 .font(.subheadline)

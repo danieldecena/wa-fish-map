@@ -38,6 +38,27 @@ struct RatingBadge: View {
     }
 }
 
+/// The "Closed" capsule on a pier sheet.
+///
+/// Built like `RatingBadge`, for the same reason: white on opaque system gray
+/// measured about 3.3:1. Primary ink on a light wash, with the stroke carrying
+/// the shape.
+struct ClosedBadge: View {
+    static let labelColor: Color = .primary
+    static let fill: Color = .gray
+    static let washOpacity = 0.2
+
+    var body: some View {
+        Label("Closed", systemImage: "xmark.octagon.fill")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(Self.labelColor)
+            .padding(.horizontal, 8).padding(.vertical, 3)
+            .background(Self.fill.opacity(Self.washOpacity), in: Capsule())
+            .overlay(Capsule().stroke(Self.fill, lineWidth: 1))
+            .accessibilityIdentifier("closedBadge")
+    }
+}
+
 /// Opens Apple Maps with driving directions to the spot. A maps.apple.com
 /// link, not `MKMapItem`: its coordinate initializer is iOS 26 only and the
 /// placemark one is deprecated there, while this app targets iOS 18.
@@ -88,6 +109,7 @@ struct BitingNowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("What's biting").font(.headline)
+                .accessibilityIdentifier("whatsBitingHeading")
             if fishery == nil {
                 Text("No seasonal guidance for this spot's area yet. Marker shown neutral.")
                     .font(.subheadline).foregroundStyle(.secondary)
@@ -137,7 +159,7 @@ struct BitingNowView: View {
                         if s.riskMonths.contains(month), let why = s.riskReason {
                             Text(why)
                                 .font(.caption2)
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(DS.Ink.fineprint)
                         }
                         if let bait = s.bait {
                             Label(bait, systemImage: "fish")
@@ -179,7 +201,7 @@ struct GuidanceFooter: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             if let updated = guide?.updated {
-                Text("Guidance updated \(updated)").font(.caption2).foregroundStyle(.tertiary)
+                Text("Guidance updated \(updated)").font(.caption2).foregroundStyle(DS.Ink.fineprint)
             }
         }
         .padding(12)
@@ -297,6 +319,13 @@ struct SiteDetailSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     header
+                    // The guidance leads: it is what the medium detent shows
+                    // and the one thing this app knows that Maps does not.
+                    // The protected-area qualifier stays above it and the
+                    // footer right after it, since both qualify it.
+                    ProtectedAreaSection(check: protectedAreaCheck)
+                    BitingNowView(fishery: fishery, month: month)
+                    GuidanceFooter(guide: guide)
                     facilitySection
                     DirectionsButton(name: site.facilityName, coordinate: site.coordinate)
                     amenitiesSection
@@ -309,9 +338,6 @@ struct SiteDetailSheet: View {
                     )
                     BuoyConditionsView(coordinate: site.coordinate, isMarine: isMarine)
                     PlanWeatherView(coordinate: site.coordinate, planDate: planDate)
-                    ProtectedAreaSection(check: protectedAreaCheck)
-                    BitingNowView(fishery: fishery, month: month)
-                    GuidanceFooter(guide: guide)
                     if !site.directions.isEmpty { directionsSection }
                 }
                 .padding()
@@ -423,12 +449,7 @@ struct PierDetailSheet: View {
                 VStack(alignment: .leading, spacing: 18) {
                     HStack(spacing: 10) {
                         if pier.isClosed {
-                            Label("Closed", systemImage: "xmark.octagon.fill")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 8).padding(.vertical, 3)
-                                .background(.gray, in: Capsule())
-                                .accessibilityIdentifier("closedBadge")
+                            ClosedBadge()
                         } else {
                             RatingBadge(rating: rating)
                         }
@@ -438,6 +459,9 @@ struct PierDetailSheet: View {
                         Text("WDFW lists this pier as closed. Check the WDFW page before you go.")
                             .font(.subheadline).foregroundStyle(.secondary)
                     }
+                    ProtectedAreaSection(check: protectedAreaCheck)
+                    BitingNowView(fishery: fishery, month: month)
+                    GuidanceFooter(guide: guide)
                     VStack(alignment: .leading, spacing: 6) {
                         Label("\(pier.countyName) County", systemImage: "mappin.and.ellipse")
                         Label(isMarine ? "Marine water" : "Freshwater",
@@ -458,9 +482,6 @@ struct PierDetailSheet: View {
                     )
                     BuoyConditionsView(coordinate: pier.coordinate, isMarine: isMarine)
                     PlanWeatherView(coordinate: pier.coordinate, planDate: planDate)
-                    ProtectedAreaSection(check: protectedAreaCheck)
-                    BitingNowView(fishery: fishery, month: month)
-                    GuidanceFooter(guide: guide)
                 }
                 .padding()
             }

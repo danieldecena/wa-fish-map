@@ -63,4 +63,17 @@ struct RatingBadgeContrastTests {
                     "\(state.name) label is \(String(format: "%.2f", contrast)):1 in \(style == .light ? "light" : "dark"); needs 4.5:1.")
         }
     }
+
+    /// The pier sheet's Closed chip, measured the same way as the rating
+    /// badges: the label against the fill as composited over the sheet.
+    @Test(arguments: [UIUserInterfaceStyle.light, .dark])
+    func closedBadgeLabelIsReadable(style: UIUserInterfaceStyle) {
+        let surface = Self.components(Color(uiColor: .systemBackground), style)
+        let fill = Self.components(ClosedBadge.fill, style)
+        let label = Self.components(ClosedBadge.labelColor, style)
+        let drawn = Self.composite(fill, alpha: ClosedBadge.washOpacity, over: surface)
+        let contrast = Self.ratio(label, drawn)
+        #expect(contrast >= 4.5,
+                "Closed label is \(String(format: "%.2f", contrast)):1 in \(style == .light ? "light" : "dark"); needs 4.5:1.")
+    }
 }

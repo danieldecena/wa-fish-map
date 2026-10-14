@@ -48,7 +48,7 @@ struct BuoyConditionsView: View {
             }
             Text("Latest NDBC buoy observation, not a forecast.")
                 .font(.caption2)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(DS.Ink.fineprint)
         } else if observation != nil {
             // The station answered and reported neither number. Saying so beats
             // rendering nothing, which reads as "nothing to report".
@@ -73,7 +73,7 @@ struct BuoyConditionsView: View {
             Text(value).font(.subheadline.monospacedDigit())
             Text(Self.age.localizedString(for: observed, relativeTo: .now))
                 .font(.caption2)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(DS.Ink.fineprint)
                 .frame(width: 74, alignment: .trailing)
         }
     }

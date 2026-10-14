@@ -85,6 +85,24 @@ enum DS {
         static let density = DS.adaptive(light: 0x7A29B8, dark: 0xA86FD6)
     }
 
+    // MARK: - Chrome
+
+    enum Chrome {
+        /// Fill behind the Rivers toggle when on.
+        ///
+        /// The button toggle style fills with its tint and puts the label
+        /// over it, so this has to carry white text. System teal does not
+        /// (about 2.6:1 by calculation), so this is a literal: a deep teal
+        /// between the app icon's two gradient stops. One value for both
+        /// appearances because the label on it is white in both.
+        static let riversOn = Color(red: 0x00 / 255, green: 0x7C / 255, blue: 0x9E / 255)
+
+        /// Fill behind the Heat toggle when on: the overlay violet's light
+        /// value, in both appearances. The overlay's own dark value is
+        /// lightened for a dark map and cannot carry white text.
+        static let heatOn = Color(red: 0x7A / 255, green: 0x29 / 255, blue: 0xB8 / 255)
+    }
+
     // MARK: - Surfaces
 
     enum Surface {
@@ -104,6 +122,18 @@ enum DS {
         /// A species row inside "What's biting".
         static let speciesRow = Color(.quaternarySystemFill)
         static let speciesRowRadius: CGFloat = 10
+    }
+
+    // MARK: - Ink
+
+    enum Ink {
+        /// Disclaimers, attributions, "updated" stamps, axis words.
+        ///
+        /// Was `.tertiary`, about 1.7:1 on white: below any floor, and it
+        /// carried a season-risk reason, which is safety-relevant. It is the
+        /// secondary label colour so that size, not lightness, separates fine
+        /// print from the supporting text above it.
+        static let fineprint = Color(uiColor: .secondaryLabel)
     }
 
     // MARK: - Type
@@ -173,5 +203,30 @@ private extension UIColor {
             blue: CGFloat(rgb & 0xFF) / 255,
             alpha: 1
         )
+    }
+}
+
+/// A layer switch in the map's control bar: a solid `onFill` with a white
+/// label when on, a neutral capsule when off.
+///
+/// The system button toggle style was tried first and draws a pale wash with
+/// tinted text instead, which is nearly unreadable in dark appearance. This
+/// draws the fill itself so `ToggleTintContrastTests` measures what is on
+/// screen. It stays a `Toggle`, and `isSelected` is what makes assistive tech
+/// hear the state.
+struct LayerToggleStyle: ToggleStyle {
+    let onFill: Color
+
+    func makeBody(configuration: Configuration) -> some View {
+        Button {
+            configuration.isOn.toggle()
+        } label: {
+            configuration.label
+                .foregroundStyle(configuration.isOn ? Color.white : Color.primary)
+                .padding(.horizontal, 10).padding(.vertical, 5)
+                .background(configuration.isOn ? onFill : Color(.tertiarySystemFill), in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(configuration.isOn ? .isSelected : [])
     }
 }

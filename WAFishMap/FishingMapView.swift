@@ -291,6 +291,9 @@ struct FishingMapView: View {
         )
     }
 
+    /// Drawn at 36pt so it stays small chrome over the map; touched at 44pt,
+    /// the same split `MarkerMetrics` makes for pins. The padding shrinks by
+    /// the 4pt the target grows on each side, so the drawing does not move.
     private var recenterButton: some View {
         Button {
             recenterRequested = true
@@ -299,10 +302,13 @@ struct FishingMapView: View {
                 .font(.system(size: 15, weight: .medium))
                 .frame(width: 36, height: 36)
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                .frame(width: MarkerMetrics.minimumTapTarget, height: MarkerMetrics.minimumTapTarget)
+                .contentShape(Rectangle())
         }
         .accessibilityLabel("Center on my location")
-        .padding(.trailing, 10)
-        .padding(.top, 6)
+        .accessibilityIdentifier("recenterButton")
+        .padding(.trailing, 6)
+        .padding(.top, 2)
     }
 
     /// `River` is already `Identifiable` by name, so the sheet binds to the
@@ -364,7 +370,7 @@ struct FishingMapView: View {
                 }
             }
         }
-        .font(.caption2)
+        .font(DS.TypeScale.legend)
         .controlSize(.small)
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
@@ -386,7 +392,7 @@ struct FishingMapView: View {
     private var planPicker: some View {
         Button { showPlanPicker.toggle() } label: {
             Label(Self.planLabel(planDate), systemImage: "calendar")
-                .font(.caption2.weight(.semibold))
+                .font(DS.TypeScale.control)
                 .lineLimit(1)
         }
         .buttonStyle(.bordered)
@@ -424,7 +430,7 @@ struct FishingMapView: View {
     /// the info popover where a reader goes when they want the explanation.
     private var timeOfDayHint: some View {
         Label(timeOfDay.label, systemImage: timeOfDay.symbol)
-            .font(.caption2.weight(.semibold))
+            .font(DS.TypeScale.control)
             .foregroundStyle(timeOfDay.isPrimeLight ? .green : .secondary)
             .labelStyle(.titleAndIcon)
             .fixedSize()
@@ -433,7 +439,7 @@ struct FishingMapView: View {
 
     private var nowButton: some View {
         Button("Now") { planDate = Date() }
-            .font(.caption2.weight(.semibold))
+            .font(DS.TypeScale.control)
             .buttonStyle(.bordered)
             .fixedSize()
     }
@@ -447,10 +453,16 @@ struct FishingMapView: View {
             }
         } label: {
             Label(selectedSpecies ?? "All species", systemImage: "fish")
-                .font(.caption2.weight(.semibold))
+                .font(DS.TypeScale.control)
                 .lineLimit(1)
         }
         .fixedSize()
+        // Same pill as the date and Now: a bare-text menu between two pills
+        // read as a different kind of thing, and in dark it was the faintest
+        // text on the bar.
+        .menuStyle(.button)
+        .buttonStyle(.bordered)
+        .controlSize(.small)
     }
 
     private var statusBar: some View {
@@ -461,24 +473,24 @@ struct FishingMapView: View {
                         .controlSize(.mini)
                 }
                 Text(model.statusMessage)
-                    .font(.caption2)
+                    .font(DS.TypeScale.legend)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Button { showRivers.toggle() } label: {
+                // Toggles, not buttons: the on-state is a fill, and assistive
+                // tech can read whether the layer is showing.
+                Toggle(isOn: $showRivers) {
                     Label("Rivers", systemImage: "water.waves")
-                        .font(.caption2.weight(.semibold))
+                        .font(DS.TypeScale.control)
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .tint(showRivers ? .teal : .secondary)
-                Button { showHeat.toggle() } label: {
+                .toggleStyle(LayerToggleStyle(onFill: DS.Chrome.riversOn))
+                .accessibilityIdentifier("riversToggle")
+                Toggle(isOn: $showHeat) {
                     Label("Heat", systemImage: showHeat ? "flame.fill" : "flame")
-                        .font(.caption2.weight(.semibold))
+                        .font(DS.TypeScale.control)
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                // The overlay's own violet: orange is the Good rating.
-                .tint(showHeat ? DS.Overlay.density : .secondary)
+                // The overlay's violet family: orange is the Good rating.
+                .toggleStyle(LayerToggleStyle(onFill: DS.Chrome.heatOn))
+                .accessibilityIdentifier("heatToggle")
                 Button { showDisclaimer.toggle() } label: {
                     Image(systemName: "info.circle")
                         .font(.body)
@@ -521,7 +533,7 @@ struct FishingMapView: View {
                     }
                 } label: {
                     Label("Location is off — turn it on in Settings", systemImage: "location.slash")
-                        .font(.caption2)
+                        .font(DS.TypeScale.legend)
                 }
                 .buttonStyle(.borderless)
             }
@@ -558,7 +570,7 @@ private struct GlassCard: ViewModifier {
 private struct HeatLegend: View {
     var body: some View {
         HStack(spacing: 6) {
-            Text("Fewer").font(.caption2).foregroundStyle(.secondary)
+            Text("Fewer").font(DS.TypeScale.legend).foregroundStyle(.secondary)
             // Discrete swatches, one per band, because that is exactly what the
             // map draws — a continuous gradient promised a precision the banded
             // fills do not have.
@@ -570,8 +582,8 @@ private struct HeatLegend: View {
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 2))
-            Text("More").font(.caption2).foregroundStyle(.secondary)
-            Text("· density of well-rated spots").font(.caption2).foregroundStyle(.tertiary)
+            Text("More").font(DS.TypeScale.legend).foregroundStyle(.secondary)
+            Text("· density of well-rated spots").font(DS.TypeScale.legend).foregroundStyle(DS.Ink.fineprint)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Heat map key: darker cells have more well-rated spots")
@@ -585,12 +597,12 @@ private struct RatingLegend: View {
             ForEach([FishingRating.excellent, .good, .fair, .poor], id: \.rawValue) { r in
                 HStack(spacing: 3) {
                     Circle().fill(r.color).frame(width: 8, height: 8)
-                    Text(r.label).font(.caption2).foregroundStyle(.secondary)
+                    Text(r.label).font(DS.TypeScale.legend).foregroundStyle(.secondary)
                 }
             }
             HStack(spacing: 3) {
                 Circle().fill(.gray).frame(width: 8, height: 8)
-                Text("No data").font(.caption2).foregroundStyle(.secondary)
+                Text("No data").font(DS.TypeScale.legend).foregroundStyle(.secondary)
             }
         }
         .accessibilityElement(children: .ignore)
