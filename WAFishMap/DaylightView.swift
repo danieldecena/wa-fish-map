@@ -25,6 +25,7 @@ struct DaylightView: View {
         if let solar = SolarTimes.compute(on: planDate, at: coordinate, calendar: Self.calendar) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Daylight").font(.headline)
+                    .accessibilityIdentifier("daylightHeading")
                 row("Sunrise", "sunrise", solar.sunrise)
                 row("Sunset", "sunset", solar.sunset)
             }

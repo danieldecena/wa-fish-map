@@ -88,6 +88,7 @@ struct BitingNowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("What's biting").font(.headline)
+                .accessibilityIdentifier("whatsBitingHeading")
             if fishery == nil {
                 Text("No seasonal guidance for this spot's area yet. Marker shown neutral.")
                     .font(.subheadline).foregroundStyle(.secondary)
@@ -297,6 +298,13 @@ struct SiteDetailSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     header
+                    // The guidance leads: it is what the medium detent shows
+                    // and the one thing this app knows that Maps does not.
+                    // The protected-area qualifier stays above it and the
+                    // footer right after it, since both qualify it.
+                    ProtectedAreaSection(check: protectedAreaCheck)
+                    BitingNowView(fishery: fishery, month: month)
+                    GuidanceFooter(guide: guide)
                     facilitySection
                     DirectionsButton(name: site.facilityName, coordinate: site.coordinate)
                     amenitiesSection
@@ -309,9 +317,6 @@ struct SiteDetailSheet: View {
                     )
                     BuoyConditionsView(coordinate: site.coordinate, isMarine: isMarine)
                     PlanWeatherView(coordinate: site.coordinate, planDate: planDate)
-                    ProtectedAreaSection(check: protectedAreaCheck)
-                    BitingNowView(fishery: fishery, month: month)
-                    GuidanceFooter(guide: guide)
                     if !site.directions.isEmpty { directionsSection }
                 }
                 .padding()
@@ -438,6 +443,9 @@ struct PierDetailSheet: View {
                         Text("WDFW lists this pier as closed. Check the WDFW page before you go.")
                             .font(.subheadline).foregroundStyle(.secondary)
                     }
+                    ProtectedAreaSection(check: protectedAreaCheck)
+                    BitingNowView(fishery: fishery, month: month)
+                    GuidanceFooter(guide: guide)
                     VStack(alignment: .leading, spacing: 6) {
                         Label("\(pier.countyName) County", systemImage: "mappin.and.ellipse")
                         Label(isMarine ? "Marine water" : "Freshwater",
@@ -458,9 +466,6 @@ struct PierDetailSheet: View {
                     )
                     BuoyConditionsView(coordinate: pier.coordinate, isMarine: isMarine)
                     PlanWeatherView(coordinate: pier.coordinate, planDate: planDate)
-                    ProtectedAreaSection(check: protectedAreaCheck)
-                    BitingNowView(fishery: fishery, month: month)
-                    GuidanceFooter(guide: guide)
                 }
                 .padding()
             }
