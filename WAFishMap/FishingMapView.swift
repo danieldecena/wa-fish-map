@@ -291,6 +291,9 @@ struct FishingMapView: View {
         )
     }
 
+    /// Drawn at 36pt so it stays small chrome over the map; touched at 44pt,
+    /// the same split `MarkerMetrics` makes for pins. The padding shrinks by
+    /// the 4pt the target grows on each side, so the drawing does not move.
     private var recenterButton: some View {
         Button {
             recenterRequested = true
@@ -299,10 +302,13 @@ struct FishingMapView: View {
                 .font(.system(size: 15, weight: .medium))
                 .frame(width: 36, height: 36)
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                .frame(width: MarkerMetrics.minimumTapTarget, height: MarkerMetrics.minimumTapTarget)
+                .contentShape(Rectangle())
         }
         .accessibilityLabel("Center on my location")
-        .padding(.trailing, 10)
-        .padding(.top, 6)
+        .accessibilityIdentifier("recenterButton")
+        .padding(.trailing, 6)
+        .padding(.top, 2)
     }
 
     /// `River` is already `Identifiable` by name, so the sheet binds to the
