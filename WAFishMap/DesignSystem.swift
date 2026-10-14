@@ -85,6 +85,24 @@ enum DS {
         static let density = DS.adaptive(light: 0x7A29B8, dark: 0xA86FD6)
     }
 
+    // MARK: - Chrome
+
+    enum Chrome {
+        /// Fill behind the Rivers toggle when on.
+        ///
+        /// The button toggle style fills with its tint and puts the label
+        /// over it, so this has to carry white text. System teal does not
+        /// (about 2.6:1 by calculation), so this is a literal: a deep teal
+        /// between the app icon's two gradient stops. One value for both
+        /// appearances because the label on it is white in both.
+        static let riversOn = Color(red: 0x00 / 255, green: 0x7C / 255, blue: 0x9E / 255)
+
+        /// Fill behind the Heat toggle when on: the overlay violet's light
+        /// value, in both appearances. The overlay's own dark value is
+        /// lightened for a dark map and cannot carry white text.
+        static let heatOn = Color(red: 0x7A / 255, green: 0x29 / 255, blue: 0xB8 / 255)
+    }
+
     // MARK: - Surfaces
 
     enum Surface {

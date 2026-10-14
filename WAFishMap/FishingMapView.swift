@@ -470,21 +470,25 @@ struct FishingMapView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Button { showRivers.toggle() } label: {
+                // Toggles, not buttons: the on-state is a fill, and assistive
+                // tech can read whether the layer is showing.
+                Toggle(isOn: $showRivers) {
                     Label("Rivers", systemImage: "water.waves")
-                        .font(.caption2.weight(.semibold))
+                        .font(DS.TypeScale.control)
                 }
-                .buttonStyle(.bordered)
+                .toggleStyle(.button)
                 .controlSize(.small)
-                .tint(showRivers ? .teal : .secondary)
-                Button { showHeat.toggle() } label: {
+                .tint(showRivers ? DS.Chrome.riversOn : .secondary)
+                .accessibilityIdentifier("riversToggle")
+                Toggle(isOn: $showHeat) {
                     Label("Heat", systemImage: showHeat ? "flame.fill" : "flame")
-                        .font(.caption2.weight(.semibold))
+                        .font(DS.TypeScale.control)
                 }
-                .buttonStyle(.bordered)
+                .toggleStyle(.button)
                 .controlSize(.small)
-                // The overlay's own violet: orange is the Good rating.
-                .tint(showHeat ? DS.Overlay.density : .secondary)
+                // The overlay's violet family: orange is the Good rating.
+                .tint(showHeat ? DS.Chrome.heatOn : .secondary)
+                .accessibilityIdentifier("heatToggle")
                 Button { showDisclaimer.toggle() } label: {
                     Image(systemName: "info.circle")
                         .font(.body)
