@@ -476,18 +476,14 @@ struct FishingMapView: View {
                     Label("Rivers", systemImage: "water.waves")
                         .font(DS.TypeScale.control)
                 }
-                .toggleStyle(.button)
-                .controlSize(.small)
-                .tint(showRivers ? DS.Chrome.riversOn : .secondary)
+                .toggleStyle(LayerToggleStyle(onFill: DS.Chrome.riversOn))
                 .accessibilityIdentifier("riversToggle")
                 Toggle(isOn: $showHeat) {
                     Label("Heat", systemImage: showHeat ? "flame.fill" : "flame")
                         .font(DS.TypeScale.control)
                 }
-                .toggleStyle(.button)
-                .controlSize(.small)
                 // The overlay's violet family: orange is the Good rating.
-                .tint(showHeat ? DS.Chrome.heatOn : .secondary)
+                .toggleStyle(LayerToggleStyle(onFill: DS.Chrome.heatOn))
                 .accessibilityIdentifier("heatToggle")
                 Button { showDisclaimer.toggle() } label: {
                     Image(systemName: "info.circle")

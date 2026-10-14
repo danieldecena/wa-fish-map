@@ -205,3 +205,28 @@ private extension UIColor {
         )
     }
 }
+
+/// A layer switch in the map's control bar: a solid `onFill` with a white
+/// label when on, a neutral capsule when off.
+///
+/// The system button toggle style was tried first and draws a pale wash with
+/// tinted text instead, which is nearly unreadable in dark appearance. This
+/// draws the fill itself so `ToggleTintContrastTests` measures what is on
+/// screen. It stays a `Toggle`, and `isSelected` is what makes assistive tech
+/// hear the state.
+struct LayerToggleStyle: ToggleStyle {
+    let onFill: Color
+
+    func makeBody(configuration: Configuration) -> some View {
+        Button {
+            configuration.isOn.toggle()
+        } label: {
+            configuration.label
+                .foregroundStyle(configuration.isOn ? Color.white : Color.primary)
+                .padding(.horizontal, 10).padding(.vertical, 5)
+                .background(configuration.isOn ? onFill : Color(.tertiarySystemFill), in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(configuration.isOn ? .isSelected : [])
+    }
+}
