@@ -1,4 +1,13 @@
 ## Tasks
+- [ ] [you] Check the attached recording shows the far-date state
+- [ ] [you] Reply to Apple only if build 10 is rejected
+- [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
+- [ ] [you] Release to the App Store after approval (manual release)
+
+## Completed
+
+### 2026-10-14 — cleared from Tasks
+
 - [x] Harden WeatherKit attribution: larger mark + legal link
 - [x] Device UI test asserts attribution mark and legal link
 - [x] Review notes: WeatherKit attribution paragraph + STATUS log
@@ -9,10 +18,6 @@
 - [x] Link the unit-only test plan into the scheme and verify it
 - [x] Edge-tap UI test for the 44pt marker target
 - [x] Pin VoiceOver probe fails on a stale element index — 1dbfb36
-- [ ] [you] Check the attached recording shows the far-date state
-- [ ] [you] Reply to Apple only if build 10 is rejected
-- [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
-- [ ] [you] Release to the App Store after approval (manual release)
 - [x] Design critique 1: lead the sheets with What's biting — b18e4af
 - [x] Design critique 2: raise the fine print contrast
 - [x] Design critique 3: readable pier Closed chip
@@ -21,7 +26,6 @@
 - [x] Design critique 6: species pill and chrome type roles
 - [x] Design critique 7: verify all and record in STATUS
 
-## Completed
 
 ### 2026-09-20 — cleared from Tasks
 
