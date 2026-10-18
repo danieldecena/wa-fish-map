@@ -8,6 +8,8 @@
   var LABEL = { prime: 'Excellent', good: 'Good', fair: 'Fair', unrated: 'No report' };
   var SP_NAME = { coho: 'Coho', chinook: 'Chinook' };
   var STALE_DAYS = 7;
+  /* Display order of every species with at least one report. Each is an exact species name from the app's species list. */
+  var SPECIES = ['Coho Salmon', 'Chinook Salmon'];
   var DAY = 86400000;
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -109,7 +111,7 @@
   function ratingWord(vw) { return LABEL[vw.r] + (vw.release ? ', release only' : ''); }
 
   return {
-    SITES: SITES, RANK: RANK, LABEL: LABEL, SP_NAME: SP_NAME, STALE_DAYS: STALE_DAYS,
+    SITES: SITES, RANK: RANK, LABEL: LABEL, SP_NAME: SP_NAME, STALE_DAYS: STALE_DAYS, SPECIES: SPECIES,
     viewOf: viewOf, freshness: freshness, ageDays: ageDays, formatDay: formatDay, describeAge: describeAge,
     latestReport: latestReport, staleNotice: staleNotice, rankSites: rankSites, ratingWord: ratingWord
   };
