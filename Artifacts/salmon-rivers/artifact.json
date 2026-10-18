@@ -3,8 +3,9 @@
   "title": "SW Washington Salmon Rivers",
   "identified": "2026-10-18, named by Daniel when asking for improvements",
   "account": "danieldecena@icloud.com",
-  "what": "Full-bleed river map of six southwest Washington salmon fisheries (Cowlitz, Lower Columbia, Lewis, Wind, Klickitat, Drano Lake) with a coho/chinook filter and a detail sheet. Catch-report ratings, not season dates.",
+  "what": "Full-bleed river map of six southwest Washington salmon fisheries (Cowlitz, Lower Columbia, Lewis, Wind, Klickitat, Drano Lake) with a species picker built from the app's exact species names (Coho Salmon, Chinook Salmon, Fall Chinook) and a detail sheet. Fall Chinook has one report (Lewis River); other rivers show gray No report. Catch-report ratings, not season dates.",
   "baselineVersion": "1792352926-fede",
-  "currentVersion": "1792356723-f3e9",
+  "currentVersion": "1792359157-b658",
+  "previousVersion": "1792356723-f3e9",
   "note": "Source is index.html plus geo.js and reports.js in this folder; baseline.html is the pre-split single-file page and the rollback source. Refresh by PASSING THIS URL and files={geo.js, reports.js}."
 }
