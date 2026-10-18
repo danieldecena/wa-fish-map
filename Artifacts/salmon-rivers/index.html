@@ -167,6 +167,17 @@ a { color: var(--on-text); }
 .listbtn[aria-expanded="true"] { background: var(--on); border-color: var(--on); color: #fff; }
 .lrow { border: 0; width: 100%; text-align: left; cursor: pointer; min-height: 44px; font: inherit; color: inherit; }
 .lede { margin: 0 0 10px; font-size: 12px; line-height: 16px; color: var(--ink2); }
+.modes button { flex: 1 1 auto; }
+#spbtn { text-align: left; max-width: 100%; }
+.sppanel { max-height: min(40vh, 300px); overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 10px; padding: 2px; }
+.sppanel .gl { margin: 0 0 6px; font-size: 11px; line-height: 13px; font-weight: 600; color: var(--ink2); }
+.row.sel { outline: 2px solid var(--on); outline-offset: -2px; }
+.row .sub2 { font-size: 12px; line-height: 16px; color: var(--ink2); }
+#app.typ .hl { display: none; }
+#tbase { display: none; }
+#app.typ #tbase { display: inline; }
+#tbase .w { fill: var(--river); fill-opacity: 0.35; fill-rule: evenodd; stroke: var(--river); stroke-width: 0.7px; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+#tbase .b { fill: none; stroke: var(--ink2); stroke-width: 1px; stroke-dasharray: 5 4; opacity: 0.6; vector-effect: non-scaling-stroke; }
 
 .bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
 .legend { padding: 10px 12px; max-width: 360px; flex: 1 1 auto; min-width: 0; }
@@ -287,27 +298,33 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
           <path fill="#fff" fill-rule="evenodd" d="M337.92 512.00C501.76 386.39 665.60 386.39 829.44 512.00C665.60 637.61 501.76 637.61 337.92 512.00ZM767.18 503.81C767.18 488.43 754.71 475.96 739.33 475.96C723.95 475.96 711.48 488.43 711.48 503.81C711.48 519.19 723.95 531.66 739.33 531.66C754.71 531.66 767.18 519.19 767.18 503.81Z"/>
         </svg>
         <div class="t">
-          <div class="title">Salmon this month</div>
+          <div class="title" id="ttl">Salmon this month</div>
           <div class="sub" id="sub"></div>
         </div>
       </div>
+      <div class="seg modes" id="modes" role="radiogroup" aria-label="Map mode">
+        <button type="button" role="radio" aria-checked="true" data-mode="reports">Recent reports</button>
+        <button type="button" role="radio" aria-checked="false" data-mode="typical">Typical season</button>
+      </div>
       <div class="ctl">
-        <div class="seg" role="radiogroup" aria-label="Species"></div>
+        <div class="seg" id="spseg" role="radiogroup" aria-label="Species"></div>
+        <button type="button" class="listbtn" id="spbtn" aria-expanded="false" aria-controls="sppanel" hidden></button>
         <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
       </div>
+      <div class="sppanel" id="sppanel" role="radiogroup" aria-label="Species" hidden></div>
       <div class="notice" id="notice" role="status" hidden></div>
     </div>
 
     <div class="bottom" id="bottom">
       <div class="glass legend" id="legend">
-        <div class="lt">Recent catch reports</div>
-        <ul>
+        <div class="lt" id="legt">Recent catch reports</div>
+        <ul id="legl">
           <li style="--c:var(--prime)"><i></i>Excellent</li>
           <li style="--c:var(--good)"><i></i>Good</li>
           <li style="--c:var(--fair)"><i></i>Fair</li>
           <li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li>
         </ul>
-        <div class="fine">Catch reports, not season dates. Confirm rules on WDFW.</div>
+        <div class="fine" id="legf">Catch reports, not season dates. Confirm rules on WDFW.</div>
       </div>
       <div class="glass zoom">
         <button type="button" id="zin" aria-label="Zoom in"><svg viewBox="0 0 18 18"><path d="M9 3v12M3 9h12"/></svg></button>
@@ -326,6 +343,9 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 <script src="geo.js"></script>
 <script src="reports.js"></script>
 <script src="counts.js"></script>
+<script src="typical.js"></script>
+<script src="season.js"></script>
+<script src="cluster.js"></script>
 <script>
 (function () {
   'use strict';
@@ -354,11 +374,29 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 
   var species = null;
   var selected = null;
+  // 'reports' (sourced catch reports, the default) or 'typical' (the app's seasonal guidance). The two never share a pin set.
+  var view = 'reports';
+  var MONTH = +TODAY.slice(5, 7), YEAR = +TODAY.slice(0, 4);
+  var TYPICAL_LINE = 'Typical timing from WA Fish Map guidance, not a catch report and not a claim a fishery is open.';
+  var TS = null, TBY = null, prep = null;
 
   function viewOf(s) { return Reports.viewOf(s, species, TODAY); }
+  function initTypical() {
+    if (TS) return;
+    prep = Season.prepare(TypicalData, YEAR);
+    TS = TypicalData.sites.map(function (t) {
+      return { id: t.id, name: t.name, kind: t.kind, ll: [t.lat, t.lon], xy: xy(t.lon, t.lat), site: t, vw: { r: 'unrated', release: false } };
+    });
+    TBY = new Map(TS.map(function (t) { return [t.id, t]; }));
+  }
+  function siteOf(id) { return view === 'typical' ? TBY.get(id) : SITES.filter(function (q) { return q.id === id; })[0]; }
 
   /* ---- basemap ---- */
   var vp = $('#vp');
+  // Typical mode only: WDFW marine areas (the saltwater) and Washington's straight borders, so statewide pins have a coast to sit on.
+  var tbase = el('g', { id: 'tbase' }, vp);
+  el('path', { 'class': 'w', d: TypicalData.basemap.water }, tbase);
+  el('path', { 'class': 'b', d: TypicalData.basemap.border }, tbase);
   Object.keys(D.base).forEach(function (o) {
     el('path', { 'class': 'r o' + o, d: D.base[o] }, vp);
   });
@@ -405,9 +443,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   });
   lms.sort(function (a, b) { return a.pr - b.pr; });
 
-  var pinNodes = {};
-  SITES.forEach(function (s) {
-    var g = el('g', { 'class': 'pin', 'data-id': s.id, tabindex: '0', role: 'button' }, over);
+  function buildPin(id, text) {
+    var g = el('g', { 'class': 'pin', 'data-id': id, tabindex: '0', role: 'button' }, over);
     var sc = el('g', { 'class': 'pin-s' }, g);
     el('ellipse', { 'class': 'tipshadow', cx: 0, cy: 0, rx: 6, ry: 2.2 }, sc);
     el('circle', { r: 26, cy: -16, fill: 'transparent' }, sc);
@@ -416,10 +453,16 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     el('path', { d: BODY, 'fill-rule': 'evenodd' }, gl);
     el('path', { d: TAIL }, gl);
     var lab = el('text', { 'class': 'lab' }, over);
-    lab.textContent = s.name.replace(' River', '');
-    pinNodes[s.id] = { g: g, sc: sc, lab: lab, w: 0 };
-    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSheet(s.id); } });
-  });
+    lab.textContent = text;
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSheet(g.getAttribute('data-id')); } });
+    return { g: g, sc: sc, lab: lab, w: 0 };
+  }
+  var pinNodes = {};
+  SITES.forEach(function (s) { pinNodes[s.id] = buildPin(s.id, s.name.replace(' River', '')); });
+  // Typical mode draws from a pool: only what is on screen has nodes, so hundreds or thousands of sites cost the same.
+  var tPool = [];
+  function getTPin(i) { return tPool[i] || (tPool[i] = buildPin('', '')); }
+  var shown = { pins: [], labs: [], cls: [] };
 
   var clusterPool = [];
   function getCluster(i) {
@@ -431,6 +474,17 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); zoomToCluster(g); } });
     clusterPool[i] = o;
     return o;
+  }
+  var labW = new Map(), measure = null;
+  function textW(str) {
+    var w = labW.get(str);
+    if (w === undefined) {
+      if (!measure) { measure = el('text', { 'class': 'lab' }, over); measure.style.visibility = 'hidden'; }
+      measure.textContent = str; measure.style.display = '';
+      w = measure.getBBox().width; labW.set(str, w);
+      measure.style.display = 'none';
+    }
+    return w;
   }
 
   // measure landmark label widths once
@@ -468,8 +522,10 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     return t;
   }
   function limits() {
+    // Reports mode may zoom out to the unpadded state; Typical mode opens on the whole state, so its floor fits the state inside the chrome.
     var f = fitFor(D.bounds.state, { t: 0, b: 0, l: 0, r: 0 });
-    minS = f.s * 0.9; maxS = f.s * 90;
+    var home = view === 'typical' ? fitFor(D.bounds.state, pads()).s : f.s;
+    minS = home * 0.9; maxS = f.s * 90;
   }
   function setView(t) {
     t.s = Math.min(Math.max(t.s, minS), maxS);
@@ -500,12 +556,27 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var ns = Math.min(Math.max(v.s * k, minS), maxS); k = ns / v.s;
     setView({ s: ns, tx: px - (px - v.tx) * k, ty: py - (py - v.ty) * k });
   }
-  function resetView() { animateTo(fitFor(D.bounds.sw, pads()), 350); }
+  function homeBounds() { return view === 'typical' ? D.bounds.state : D.bounds.sw; }
+  function resetView() { animateTo(fitFor(homeBounds(), pads()), 350); }
 
   /* ---- render ---- */
   function colorVar(r) { return 'var(--' + r + ')'; }
   function glyphColor(r) { return r === 'fair' || r === 'good' ? 'rgba(0,0,0,0.72)' : '#fff'; }
+  function tAria(t) {
+    var what = species === null ? 'all species' : species;
+    var word = t.vw.r === 'unrated' ? 'no seasonal guidance' : Season.LABEL[t.vw.r].toLowerCase() + ' typical timing for ' + what + ' in ' + Season.MONTHS[MONTH - 1] + (t.vw.release ? ', season often varies' : '');
+    return t.name + ', ' + Season.KIND_LABEL[t.kind].toLowerCase() + ', ' + word;
+  }
+  function tLabel(t) { return t.name + ' \u00b7 ' + (t.vw.r === 'unrated' ? 'No guidance' : Season.LABEL[t.vw.r]); }
   function applyStyles() {
+    if (view === 'typical') {
+      initTypical();
+      TS.forEach(function (t) {
+        var sv = Season.siteView(prep, t.site, MONTH, species);
+        t.vw = { r: sv.r, release: sv.closure };
+      });
+      return;
+    }
     SITES.forEach(function (s) {
       var vw = viewOf(s);
       var pn = pinNodes[s.id];
@@ -524,33 +595,43 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 
   function render() {
     vp.setAttribute('transform', 'translate(' + v.tx + ' ' + v.ty + ') scale(' + v.s + ')');
-    var pts = SITES.map(function (s) {
-      return { s: s, x: s.xy[0] * v.s + v.tx, y: s.xy[1] * v.s + v.ty, vw: viewOf(s) };
-    });
+    var typ = view === 'typical';
+    var items = typ ? TS : SITES;
+    var pts = [], i, s, x, y;
+    for (i = 0; i < items.length; i++) {
+      s = items[i];
+      x = s.xy[0] * v.s + v.tx; y = s.xy[1] * v.s + v.ty;
+      // Off-screen sites cannot cluster with anything visible, so thousands of them cost nothing.
+      if (typ && s.id !== selected && (x < -60 || x > W + 60 || y < -60 || y > H + 60)) continue;
+      pts.push({ s: s, id: s.id, x: x, y: y, vw: typ ? s.vw : viewOf(s) });
+    }
     pts.sort(function (a, b) {
       var ra = RANK[a.vw.r] - (a.vw.release ? 10 : 0), rb = RANK[b.vw.r] - (b.vw.release ? 10 : 0);
       return rb - ra;
     });
-    var used = {}, groups = [];
-    pts.forEach(function (p) {
-      if (used[p.s.id]) return;
-      var g = [p]; used[p.s.id] = 1;
-      if (p.s.id !== selected) {
-        pts.forEach(function (q) {
-          if (used[q.s.id] || q.s.id === selected) return;
-          if (Math.hypot(p.x - q.x, p.y - q.y) < 30) { g.push(q); used[q.s.id] = 1; }
-        });
-      }
-      groups.push(g);
-    });
+    var groups = Cluster.group(pts, 30, selected);
     var boxes = [];
-    var ci = 0;
-    SITES.forEach(function (s) { pinNodes[s.id].g.style.display = 'none'; pinNodes[s.id].lab.style.display = 'none'; });
+    var ci = 0, pi = 0;
+    SITES.forEach(function (q) { pinNodes[q.id].g.style.display = 'none'; pinNodes[q.id].lab.style.display = 'none'; });
+    shown.pins.forEach(function (n) { n.style.display = 'none'; });
+    shown.labs.forEach(function (n) { n.style.display = 'none'; });
+    shown.pins = []; shown.labs = [];
     clusterPool.forEach(function (c) { c.g.style.display = 'none'; });
     groups.forEach(function (g) {
       if (g.length === 1) {
-        var p = g[0], pn = pinNodes[p.s.id];
+        var p = g[0], pn = typ ? getTPin(pi++) : pinNodes[p.s.id];
         var sc = p.s.id === selected ? 0.98 : 0.8;
+        if (typ) {
+          pn.g.setAttribute('data-id', p.s.id);
+          pn.g.style.setProperty('--rc', colorVar(p.vw.r));
+          pn.g.style.setProperty('--gl', glyphColor(p.vw.r));
+          pn.g.classList.toggle('closed', p.vw.release);
+          pn.g.setAttribute('aria-label', tAria(p.s));
+          pn.lab.textContent = tLabel(p.s);
+          pn.w = textW(pn.lab.textContent);
+          shown.pins.push(pn.g);
+        }
+        p.node = pn;
         pn.g.style.display = '';
         pn.g.setAttribute('transform', 'translate(' + p.x.toFixed(1) + ' ' + p.y.toFixed(1) + ') scale(' + sc + ')');
         boxes.push([p.x - 15, p.y - 36, 30, 38]);
@@ -562,8 +643,9 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
         c.g.style.setProperty('--rc', colorVar(g[0].vw.r));
         c.g.style.setProperty('--gl', glyphColor(g[0].vw.r));
         c.t.textContent = g.length;
-        c.g.setAttribute('data-cluster', g.map(function (m) { return m.s.id; }).join(','));
-        c.g.setAttribute('aria-label', g.length + ' rivers close together, zoom in');
+        c.g.__members = g.map(function (m) { return m.s; });
+        c.g.setAttribute('data-cluster', g.length <= 12 ? g.map(function (m) { return m.s.id; }).join(',') : String(g.length));
+        c.g.setAttribute('aria-label', g.length + (typ ? ' sites' : ' rivers') + ' close together, zoom in');
         boxes.push([cx - 16, cy - 34, 32, 36]);
       }
     });
@@ -572,7 +654,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var labelGroups = groups.filter(function (g) { return g.length === 1; });
     labelGroups.sort(function (a, b) { return (b[0].s.id === selected) - (a[0].s.id === selected); });
     labelGroups.forEach(function (g) {
-      var p = g[0], pn = pinNodes[p.s.id];
+      var p = g[0], pn = p.node;
       var left = p.x + 15 + pn.w + 4 > W - 8;
       var bx = [left ? p.x - 15 - (pn.w + 4) : p.x + 15, p.y - 30, pn.w + 4, 14];
       var hit = p.s.id !== selected && boxes.some(function (b) { return overlap(bx, b); });
@@ -580,6 +662,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
         pn.lab.style.display = '';
         pn.lab.setAttribute('text-anchor', left ? 'end' : 'start');
         pn.lab.setAttribute('x', (left ? p.x - 15 : p.x + 15).toFixed(1)); pn.lab.setAttribute('y', (p.y - 19).toFixed(1));
+        if (typ) shown.labs.push(pn.lab);
         boxes.push(bx);
       }
     });
@@ -675,13 +758,17 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     if ($('#sheet').classList.contains('open')) closeSheet();
   }
   function zoomToCluster(node) {
-    var ids = node.getAttribute('data-cluster').split(',');
     var xs = [], ys = [];
-    ids.forEach(function (id) { var s = SITES.filter(function (q) { return q.id === id; })[0]; xs.push(s.xy[0]); ys.push(s.xy[1]); });
+    node.__members.forEach(function (s) { xs.push(s.xy[0]); ys.push(s.xy[1]); });
     var b = [[Math.min.apply(null, xs), Math.min.apply(null, ys)], [Math.max.apply(null, xs), Math.max.apply(null, ys)]];
     var cx = (b[0][0] + b[1][0]) / 2, cy = (b[0][1] + b[1][1]) / 2;
     var ns = Math.min(v.s * 2.6, maxS);
     var p = pads();
+    if (view === 'typical') {
+      // A statewide cluster needs more than 2.6x to come apart: fit its members, between 2x and 8x.
+      var fit = fitFor(b, { t: p.t + 30, b: p.b + 30, l: p.l + 30, r: p.r + 30 }).s;
+      ns = Math.min(maxS, Math.max(v.s * 2, Math.min(fit, v.s * 8)));
+    }
     animateTo({ s: ns, tx: (p.l + (W - p.l - p.r) / 2) - cx * ns, ty: (p.t + (H - p.t - p.b) / 2) - cy * ns }, 320);
   }
 
@@ -689,23 +776,64 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   $('#zin').addEventListener('click', function () { zoomAt(W / 2, H / 2, 1.6); });
   $('#zout').addEventListener('click', function () { zoomAt(W / 2, H / 2, 1 / 1.6); });
   $('#zfit').addEventListener('click', resetView);
-  var seg = document.querySelector('.seg');
-  [null].concat(Reports.SPECIES).forEach(function (name) {
+  var spseg = $('#spseg'), spbtn = $('#spbtn'), sppanel = $('#sppanel');
+  var CHEV = '<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" style="margin-left:6px;vertical-align:-1px"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function mkChip(name, parent) {
     var b = document.createElement('button');
     b.type = 'button';
     b.setAttribute('role', 'radio');
     b.setAttribute('aria-checked', name === species ? 'true' : 'false');
     b.setAttribute('data-species', name || '');
     b.textContent = name || 'All species';
-    seg.appendChild(b);
-  });
-  document.querySelectorAll('.seg button').forEach(function (b) {
-    b.addEventListener('click', function () {
-      species = b.getAttribute('data-species') || null;
-      document.querySelectorAll('.seg button').forEach(function (o) { o.setAttribute('aria-checked', o === b ? 'true' : 'false'); });
-      applyStyles(); render();
-      if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList();
+    b.addEventListener('click', function () { pickSpecies(name); });
+    parent.appendChild(b);
+  }
+  function pickSpecies(name) {
+    species = name;
+    document.querySelectorAll('#spseg button, #sppanel button').forEach(function (o) {
+      o.setAttribute('aria-checked', (o.getAttribute('data-species') || null) === species ? 'true' : 'false');
     });
+    spbtn.innerHTML = 'Species: ' + esc(species || 'All species') + CHEV;
+    if (view === 'typical') toggleSpecies(false);
+    applyStyles(); render();
+    if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList();
+  }
+  function toggleSpecies(open) {
+    sppanel.hidden = !open;
+    spbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  spbtn.addEventListener('click', function () { toggleSpecies(sppanel.hidden); });
+  var GROUPS = ['Salmon', 'Other saltwater', 'Freshwater', 'Salt and fresh water'];
+  function groupOf(sp) {
+    if (/salmon|chinook|coho/i.test(sp.name)) return GROUPS[0];
+    return sp.water === 'salt' ? GROUPS[1] : sp.water === 'fresh' ? GROUPS[2] : GROUPS[3];
+  }
+  function buildSpecies() {
+    spseg.innerHTML = ''; sppanel.innerHTML = '';
+    if (view === 'reports') {
+      spseg.hidden = false; spbtn.hidden = true; sppanel.hidden = true; $('#listbtn').hidden = false;
+      [null].concat(Reports.SPECIES).forEach(function (name) { mkChip(name, spseg); });
+      return;
+    }
+    // Typical mode lists only species some site has guidance for (22+), grouped and scrollable so they stay usable at 375 px.
+    spseg.hidden = true; spbtn.hidden = false; $('#listbtn').hidden = true;
+    spbtn.innerHTML = 'Species: ' + esc(species || 'All species') + CHEV;
+    toggleSpecies(false);
+    var top = document.createElement('div'); top.className = 'seg'; sppanel.appendChild(top);
+    mkChip(null, top);
+    GROUPS.forEach(function (gn) {
+      var list = TypicalData.species.filter(function (sp) { return groupOf(sp) === gn; });
+      if (!list.length) return;
+      var wrap = document.createElement('div');
+      wrap.setAttribute('role', 'group'); wrap.setAttribute('aria-label', gn);
+      var h = document.createElement('div'); h.className = 'gl'; h.textContent = gn; h.setAttribute('aria-hidden', 'true');
+      var row = document.createElement('div'); row.className = 'seg';
+      wrap.appendChild(h); wrap.appendChild(row); sppanel.appendChild(wrap);
+      list.forEach(function (sp) { mkChip(sp.name, row); });
+    });
+  }
+  document.querySelectorAll('#modes button').forEach(function (b) {
+    b.addEventListener('click', function () { setMode(b.getAttribute('data-mode')); });
   });
 
   /* ---- detail sheet ---- */
@@ -751,8 +879,54 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       '<a class="csrc" href="' + esc(w.source) + '" target="_blank" rel="noopener">WDFW creel report, ' + esc(w.week) + ' (PDF)</a>' +
       '</div></section>';
   }
+  function typicalFootHtml() {
+    return '<div class="foot"><div>' + TYPICAL_LINE + ' Not for navigation or safety decisions.</div>' +
+      '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a>' +
+      '<div>Guidance last updated ' + esc(TypicalData.guideUpdated) + '. Site list generated ' + esc(TypicalData.generated) + ' from WDFW access and pier data.</div></div>';
+  }
+  function scopeText(site) {
+    if (site.area) return 'Marine Area ' + site.area + ', ' + TypicalData.areas[site.area].title;
+    if (site.guide === null) return 'No seasonal guidance';
+    var sc = TypicalData.guides[site.guide].scope.split(/:(.*)/);
+    if (sc[0] === 'waterbody') return 'Freshwater guidance for ' + sc[1];
+    if (sc[0] === 'county') return 'Freshwater guidance for ' + sc[1] + ' County';
+    return 'Statewide freshwater guidance';
+  }
+  function fillTypical(id) {
+    var t = TBY.get(id), site = t.site, month = Season.MONTHS[MONTH - 1];
+    var sv = Season.siteView(prep, site, MONTH, species);
+    var rows = Season.siteRows(prep, site, MONTH);
+    $('#stitle').textContent = t.name;
+    var word = sv.r === 'unrated' ? Season.LABEL.unrated : Season.LABEL[sv.r] + ' · ' + (species || 'All species');
+    var head = '<div class="head"><p>' + esc(Season.KIND_LABEL[t.kind]) + (site.county ? ' · ' + esc(site.county) + ' County' : '') + '</p>' +
+      '<p>' + esc(scopeText(site)) + '</p>' +
+      '<span class="badge' + (sv.closure ? ' faded' : '') + '" style="--c:var(--' + sv.r + ')">' + esc(word) + (sv.closure ? ' · season often varies' : '') + '</span>' +
+      (site.closed ? '<span class="chip">WDFW marks this pier closed</span>' : '') + '</div>';
+    var body = rows.map(function (r) {
+      return '<div class="row' + (species === r.species ? ' sel' : '') + '"><div class="rt"><div class="nm">' + esc(r.species) + '</div>' +
+        '<div class="dt">Best: ' + esc(Season.monthsText(r.best)) + ' · Good: ' + esc(Season.monthsText(r.good)) + '</div>' +
+        (r.note ? '<div class="dt">' + esc(r.note) + '</div>' : '') +
+        (r.verify ? '<div class="sub2">Season varies, verify: ' + esc(r.verify) + '</div>' : '') + '</div>' +
+        '<div class="ch"><span class="badge" style="--c:var(--' + r.r + ')">' + Season.LABEL[r.r] + '</span>' +
+        (r.offYear ? '<span class="chip">Off year</span>' : '') + '</div></div>';
+    }).join('');
+    var miss = '';
+    if (site.guide === null) miss = 'WA Fish Map has no seasonal guidance for this site.';
+    else if (species !== null && !rows.some(function (r) { return r.species === species; })) miss = 'The guidance for this site does not list ' + species + '.';
+    else if (species === null) miss = 'All species averages this site’s three best species for ' + month + ', as the app does.';
+    var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
+    var dir = 'https://maps.apple.com/?ll=' + t.ll[0] + ',' + t.ll[1] + '&q=' + encodeURIComponent(t.name);
+    $('#sbody').innerHTML = head +
+      '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
+      '<section><h3>Typical timing, ' + month + '</h3><p class="miss">' + TYPICAL_LINE + '</p>' + (miss ? '<p class="miss">' + esc(miss) + '</p>' : '') +
+      (body ? '<div class="rows">' + body + '</div>' : '') + '</section>' +
+      '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Seasons, areas and limits change year to year and can close with little notice. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
+      typicalFootHtml();
+    $('#sbody').scrollTop = 0;
+  }
   function fillSheet(id) {
-    var s = SITES.filter(function (q) { return q.id === id; })[0];
+    if (view === 'typical') { fillTypical(id); return; }
+    var s = siteOf(id);
     var vw = viewOf(s);
     $('#stitle').textContent = s.name;
     var head = '<div class="head"><p>' + esc(s.sub) + '</p>' +
@@ -798,10 +972,10 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     showSheet();
     $('#listbtn').setAttribute('aria-expanded', 'false');
     applyStyles();
-    var s = SITES.filter(function (q) { return q.id === id; })[0];
+    var s = siteOf(id);
     var wide = window.innerWidth >= 760;
     var sh = sheet.getBoundingClientRect().height || 0;
-    var ns = Math.max(v.s, s0 * 1.5);
+    var ns = Math.max(v.s, s0 * (view === 'typical' ? 5 : 1.5));
     var barB = $('#bar').getBoundingClientRect().bottom;
     var tx, ty;
     if (wide) { tx = (W - 392) / 2 - s.xy[0] * ns; ty = H / 2 + 20 - s.xy[1] * ns; }
@@ -817,6 +991,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   }
   function closeSheet() {
     selected = null; mode = null;
+    // Focus leaves the sheet before it is hidden from assistive technology, or the browser blocks aria-hidden on a focused element.
+    if (sheet.contains(document.activeElement)) document.activeElement.blur();
     sheet.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true');
     appEl.classList.remove('sheet-open');
     $('#listbtn').setAttribute('aria-expanded', 'false');
@@ -832,10 +1008,40 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   });
   window.addEventListener('keydown', function (e) { if (e.key === 'Escape' && mode) closeSheet(); });
 
+  /* ---- mode ---- */
+  function setMode(m) {
+    if (m === view) return;
+    view = m; species = null; selected = null;
+    if (mode) closeSheet();
+    appEl.classList.toggle('typ', m === 'typical');
+    document.querySelectorAll('#modes button').forEach(function (b) { b.setAttribute('aria-checked', b.getAttribute('data-mode') === m ? 'true' : 'false'); });
+    var typ = m === 'typical';
+    if (typ) initTypical();
+    $('#ttl').textContent = typ ? 'Typical season' : 'Salmon this month';
+    $('#sub').textContent = typ ? 'Washington piers, boat launches and shore access · ' + Season.MONTHS[MONTH - 1]
+      : 'Southwest Washington · reports through ' + Reports.formatDay(Reports.latestReport(SITES));
+    $('#legt').textContent = typ ? 'Typical timing, ' + Season.MONTHS[MONTH - 1] : 'Recent catch reports';
+    $('#legl').innerHTML = typ
+      ? '<li style="--c:var(--prime)"><i></i>Prime</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li style="--c:var(--slow)"><i></i>Slow</li><li style="--c:var(--unrated)"><i></i>No seasonal guidance</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: season often varies</li>'
+      : '<li style="--c:var(--prime)"><i></i>Excellent</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li>';
+    $('#legf').textContent = typ ? TYPICAL_LINE + ' Confirm rules on WDFW.' : 'Catch reports, not season dates. Confirm rules on WDFW.';
+    var n = typ ? TYPICAL_LINE : Reports.staleNotice(SITES, TODAY);
+    $('#notice').textContent = n || ''; $('#notice').hidden = !n;
+    map.setAttribute('aria-label', typ
+      ? 'Map of Washington piers, boat launches and shore access sites colored by typical seasonal timing. Drag to pan, pinch or use the buttons to zoom, select a marker for details.'
+      : 'Map of salmon rivers in southwest Washington. Drag to pan, pinch or use the buttons to zoom, select a river marker for details.');
+    buildSpecies();
+    applyStyles();
+    limits();
+    var f = fitFor(homeBounds(), pads()); s0 = f.s;
+    if (reduce) setView(f); else animateTo(f, 350);
+    render();
+  }
+
   /* ---- boot ---- */
   function init() {
     size(); limits();
-    var f = fitFor(D.bounds.sw, pads());
+    var f = fitFor(homeBounds(), pads());
     s0 = f.s;
     applyStyles();
     setView(f);
@@ -843,14 +1049,16 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   var ro = window.ResizeObserver ? new ResizeObserver(function () {
     var wasS = v.s / s0;
     size(); limits();
-    var f = fitFor(D.bounds.sw, pads()); s0 = f.s;
+    var f = fitFor(homeBounds(), pads()); s0 = f.s;
     if (Math.abs(wasS - 1) < 0.01) setView(f); else setView({ s: v.s, tx: v.tx, ty: v.ty });
   }) : null;
   if (ro) ro.observe(map); else window.addEventListener('resize', function () { size(); limits(); render(); });
+  buildSpecies();
   var notice = Reports.staleNotice(SITES, TODAY);
   if (notice) { $('#notice').textContent = notice; $('#notice').hidden = false; }
   $('#sub').textContent = 'Southwest Washington · reports through ' + Reports.formatDay(Reports.latestReport(SITES));
   init();
+  // ?mode=typical opens the page in Typical season (a shareable link); anything else keeps Recent reports.
+  if (/[?&]mode=typical(&|$)/.test(location.search)) setMode('typical');
 })();
 </script>
-

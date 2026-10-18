@@ -305,6 +305,45 @@ def lake_filtered(fw, county, waterbody, lake_species):
     return kept or None
 
 
+# The page projects lon/lat with the constants in geo.js; the basemap paths below use the same ones.
+GEO = ROOT / "Artifacts" / "salmon-rivers" / "geo.js"
+# Washington's land borders that are straight lines, for orientation only: the 49th parallel from
+# Semiahmoo Bay to the Idaho line, the 117.04 W meridian south to Lewiston, and the 46th parallel
+# from the Columbia to the Snake. Every other edge is a river (already in geo.js) or the coast.
+BORDER = [
+    [(-122.77, 49.0), (-117.03, 49.0), (-117.04, 46.42)],
+    [(-119.0, 46.0), (-116.92, 46.0)],
+]
+
+
+def projection():
+    m = re.search(
+        r'"proj":\{"kx":([\d.]+),"k":([\d.]+),"lat0":([\d.]+),"lon0":(-?[\d.]+)\}',
+        GEO.read_text()[:400],
+    )
+    if not m:
+        sys.exit("could not read the projection from geo.js")
+    kx, k, lat0, lon0 = (float(g) for g in m.groups())
+    return lambda lon, lat: ((lon - lon0) * kx, (lat0 - lat) * k)
+
+
+def path_of(rings, proj, close):
+    """SVG path in map units, one decimal like geo.js, repeated points dropped."""
+    parts = []
+    for ring in rings:
+        pts = []
+        for lon, lat in ring:
+            x, y = proj(lon, lat)
+            q = (round(x, 1), round(y, 1))
+            if not pts or pts[-1] != q:
+                pts.append(q)
+        if len(pts) >= 2:
+            parts.append(
+                "M" + " ".join(f"{x:g} {y:g}" for x, y in pts) + ("Z" if close else "")
+            )
+    return "".join(parts)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--refresh", action="store_true", help="fetch marine areas again")
@@ -436,6 +475,10 @@ def main():
             a.name: {"title": a.title, "wac": a.wac}
             for a in areas
             if a.name in area_rows
+        },
+        "basemap": {
+            "water": path_of([r for a in areas for r in a.rings], projection(), True),
+            "border": path_of(BORDER, projection(), False),
         },
         "species": species,
         "guides": guides,

@@ -193,3 +193,23 @@ test('Recent reports pin colours still equal the baseline published on 2026-10-1
 test('typical.js never reads the clock or the network (the page does the rating)', () => {
   assert.doesNotMatch(text.split('\n').slice(4).join('\n'), /Date\(|fetch\(|XMLHttpRequest/);
 });
+
+test('Typical season says what it is on the legend, the notice, every sheet and the footer', () => {
+  const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
+  const line = 'Typical timing from WA Fish Map guidance, not a catch report and not a claim a fishery is open.';
+  assert.equal(html.split(line).length - 1, 1, 'the sentence is defined once, verbatim');
+  assert.match(html, /var TYPICAL_LINE = '/);
+  const uses = (html.match(/TYPICAL_LINE/g) || []).length;
+  assert.ok(uses >= 5, `TYPICAL_LINE appears ${uses} times; expected the definition plus the notice, legend, sheet body and footer`);
+  const sheet = html.slice(html.indexOf('function typicalFootHtml'), html.indexOf('function fillSheet'));
+  assert.match(sheet, /TYPICAL_LINE/);
+  assert.match(sheet, /<h3>Before you go<\/h3>/, 'typical sheet keeps Before you go');
+  assert.match(sheet, /wdfw\.wa\.gov\/fishing\/regulations/, 'typical sheet keeps the WDFW rules link');
+  assert.match(sheet, /typicalFootHtml\(\);/, 'typical sheet ends with the footer');
+  const mode = html.slice(html.indexOf('function setMode'), html.indexOf('/* ---- boot ---- */'));
+  assert.match(mode, /legf'\)\.textContent = typ \? TYPICAL_LINE/, 'legend');
+  assert.match(mode, /var n = typ \? TYPICAL_LINE/, 'notice');
+  // Recent reports stays the default.
+  assert.match(html, /var view = 'reports';/);
+  assert.match(html, /aria-checked="true" data-mode="reports"/);
+});
