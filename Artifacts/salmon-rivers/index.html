@@ -343,6 +343,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 <script src="geo.js"></script>
 <script src="reports.js"></script>
 <script src="counts.js"></script>
+<script src="creel.js"></script>
 <script src="typical.js"></script>
 <script src="season.js"></script>
 <script src="cluster.js"></script>
@@ -883,6 +884,33 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       '<a class="csrc" href="' + esc(w.source) + '" target="_blank" rel="noopener">WDFW creel report, ' + esc(w.week) + ' (PDF)</a>' +
       '</div></section>';
   }
+  // Typical season sheets only: recent WDFW angler-survey counts for a site, from creel.js. Display only:
+  // nothing here touches ratings, pin colours, clustering or species chips. If creel.js did not load, no sheet shows the section.
+  var CREEL_LINE = 'Counts from WDFW angler surveys, raw data that can change after review. They are not ratings, and a site with no row was not sampled.';
+  var CREEL_OLD_DAYS = 14;
+  function creelSiteHtml(id) {
+    var c = typeof CreelSites !== 'undefined' ? CreelSites.forSite(id) : null;
+    if (!c || !c.rows.length) return '';
+    var links = [];
+    var blocks = c.rows.map(function (r) {
+      var age = Reports.ageDays(r.windowEnd, TODAY);
+      var old = age > CREEL_OLD_DAYS;
+      var span = r.windowStart === r.windowEnd ? Reports.describeAge(r.windowEnd, TODAY) : Reports.formatDay(r.windowStart) + ' to ' + Reports.describeAge(r.windowEnd, TODAY);
+      var cells = [['Anglers', r.anglers], ['Interviews', r.interviews]].concat(CreelSites.SPECIES.filter(function (k) {
+        return Object.prototype.hasOwnProperty.call(r.species, k);
+      }).map(function (k) { return [k, r.species[k]]; }));
+      var body = cells.map(function (x) { return '<tr><th scope="row">' + esc(x[0]) + '</th><td>' + countCell(x[1]) + '</td></tr>'; }).join('');
+      if (links.every(function (l) { return l.url !== r.source; })) links.push({ url: r.source, label: 'WDFW creel report, ' + r.ramp + ', ' + c.filter.toLowerCase() });
+      return '<div class="ctop"><span class="wk">' + esc(r.ramp) + ' · ' + esc(r.catchArea) + '</span><span class="chip' + (old ? ' old' : '') + '">' + esc(span) + '</span></div>' +
+        '<table class="ctab"><caption class="sr">WDFW creel counts, ' + esc(r.ramp) + ', ' + esc(r.catchArea) + ', ' + esc(span) + '</caption><thead><tr><th scope="col">Count</th><th scope="col">Window total</th></tr></thead><tbody>' + body + '</tbody></table>' +
+        '<p class="cnote">Totals over ' + r.surveyDays + ' survey day' + (r.surveyDays === 1 ? '' : 's') + '. WDFW interviews anglers on a random sampling schedule.' +
+        (old ? ' The newest survey day in this window was ' + age + ' days ago.' : '') + '</p>';
+    }).join('');
+    return '<section><h3>Recent WDFW creel counts</h3><div class="creel">' + blocks +
+      '<p class="cnote">' + CREEL_LINE + '</p>' +
+      links.map(function (l) { return '<a class="csrc" href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.label) + '</a>'; }).join('') +
+      '</div></section>';
+  }
   function typicalFootHtml() {
     return '<div class="foot"><div>' + TYPICAL_LINE + ' Not for navigation or safety decisions.</div>' +
       '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a>' +
@@ -924,6 +952,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
       '<section><h3>Typical timing, ' + month + '</h3><p class="miss">' + TYPICAL_LINE + '</p>' + (miss ? '<p class="miss">' + esc(miss) + '</p>' : '') +
       (body ? '<div class="rows">' + body + '</div>' : '') + '</section>' +
+      creelSiteHtml(id) +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Seasons, areas and limits change year to year and can close with little notice. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
       typicalFootHtml();
     $('#sbody').scrollTop = 0;
