@@ -693,6 +693,12 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function badge(r, faded) { return '<span class="badge' + (faded ? ' faded' : '') + '" style="--c:var(--' + r + ')">' + LABEL[r] + '</span>'; }
   var mode = null; // 'detail' | 'list' | null
+  // Disclaimer and WDFW route, shared by the list and every river sheet.
+  function footHtml(extra) {
+    return '<div class="foot"><div>Recent catch reports, not season dates. Not for navigation or safety decisions.</div>' +
+      '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a>' +
+      (extra || '') + '</div>';
+  }
   function fillList() {
     var rows = Reports.rankSites(SITES, filter, TODAY).map(function (e) {
       var s = e.site, vw = e.vw;
@@ -703,7 +709,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     }).join('');
     $('#stitle').textContent = 'Rivers';
     $('#sbody').innerHTML = '<p class="lede">' + (filter === 'all' ? 'All salmon' : SP_NAME[filter]) +
-      ', best first. Fresh reports rank above older ones.</p><div class="rows">' + rows + '</div>';
+      ', best first. Fresh reports rank above older ones.</p><div class="rows">' + rows + '</div>' + footHtml();
     $('#sbody').scrollTop = 0;
   }
   function fillSheet(id) {
@@ -727,9 +733,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
       '<section><h3>What’s biting</h3><div class="rows">' + rows + '</div></section>' +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Rules change in season and differ by river and species. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
-      '<div class="foot"><div>Recent catch reports, not season dates. Not for navigation or safety decisions.</div>' +
-      '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a>' +
-      '<div class="src">' + src + '</div></div>';
+      footHtml('<div class="src">' + src + '</div>');
     $('#sbody').scrollTop = 0;
   }
   var returnFocus = null;
