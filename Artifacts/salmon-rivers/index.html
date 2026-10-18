@@ -1,4 +1,4 @@
-<title>Washington Salmon Rivers</title>
+<title>SW Washington Salmon Rivers</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* Layout concept: a full-bleed, muted river map in the WA Fish Map app's language. Glass chrome floats over it; detail opens as a bottom sheet on phones and a trailing inspector on wide screens. */
@@ -151,6 +151,7 @@ a { color: var(--on); }
 .brand .t { min-width: 0; }
 .brand .title { font-size: 17px; line-height: 22px; font-weight: 600; text-wrap: balance; }
 .brand .sub { font-size: 12px; line-height: 16px; color: var(--ink2); }
+.notice { font-size: 12px; line-height: 16px; background: var(--fill-advisory); border-radius: 10px; padding: 8px 10px; }
 .seg { display: flex; flex-wrap: wrap; gap: 6px; }
 .seg button { border: 0; cursor: pointer; padding: 6px 12px; min-height: 30px; border-radius: 999px; background: var(--fill-toggle); font-size: 12px; line-height: 16px; font-weight: 600; }
 .seg button[aria-checked="true"] { background: var(--on); color: #fff; }
@@ -201,6 +202,7 @@ a { color: var(--on); }
 .badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 700; background: color-mix(in srgb, var(--c) 20%, transparent); border: 1px solid var(--c); white-space: nowrap; }
 .badge.faded { opacity: 0.7; }
 .chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; line-height: 16px; font-weight: 600; background: var(--fill-toggle); color: var(--ink2); white-space: nowrap; }
+.chip.old { outline: 1px dashed var(--ink2); outline-offset: -1px; }
 h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 .rows { display: flex; flex-direction: column; gap: 8px; }
 .row { background: var(--fill-row); border-radius: 10px; padding: 10px; display: flex; gap: 10px; justify-content: space-between; align-items: flex-start; }
@@ -261,7 +263,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
         </svg>
         <div class="t">
           <div class="title">Salmon this month</div>
-          <div class="sub">Southwest Washington · reports through Oct 17</div>
+          <div class="sub" id="sub"></div>
         </div>
       </div>
       <div class="seg" role="radiogroup" aria-label="Species">
@@ -269,6 +271,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
         <button type="button" role="radio" aria-checked="false" data-f="coho">Coho</button>
         <button type="button" role="radio" aria-checked="false" data-f="chinook">Chinook</button>
       </div>
+      <div class="notice" id="notice" role="status" hidden></div>
     </div>
 
     <div class="bottom" id="bottom">
@@ -676,7 +679,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       (vw.k ? '<span class="badge' + (vw.release ? ' faded' : '') + '" style="--c:var(--' + vw.r + ')">' + LABEL[vw.r] + ' · ' + SP_NAME[vw.k] + (vw.release ? ' · release only' : '') + '</span>' : '') + '</div>';
     var rows = ['coho', 'chinook'].map(function (k) {
       var sp = s[k];
-      return '<div class="row"><div class="rt"><div class="nm">' + SP_NAME[k] + '</div><div class="dt">' + esc(sp.d) + '</div></div><div class="ch">' + badge(sp.r, sp.release) + (sp.release ? '<span class="chip">Release only</span>' : '') + '</div></div>';
+      return '<div class="row"><div class="rt"><div class="nm">' + SP_NAME[k] + '</div><div class="dt">' + esc(sp.d) + '</div></div><div class="ch">' + badge(sp.r, sp.release) + (sp.release ? '<span class="chip">Release only</span>' : '') +
+        '<span class="chip' + (Reports.freshness(sp.asOf, TODAY) === 'fresh' ? '' : ' old') + '">' + esc(Reports.describeAge(sp.asOf, TODAY)) + '</span></div></div>';
     }).join('');
     var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
     var dir = 'https://maps.apple.com/?ll=' + s.ll[0] + ',' + s.ll[1] + '&q=' + encodeURIComponent(s.name);
@@ -733,6 +737,9 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     if (Math.abs(wasS - 1) < 0.01) setView(f); else setView({ s: v.s, tx: v.tx, ty: v.ty });
   }) : null;
   if (ro) ro.observe(map); else window.addEventListener('resize', function () { size(); limits(); render(); });
+  var notice = Reports.staleNotice(SITES, TODAY);
+  if (notice) { $('#notice').textContent = notice; $('#notice').hidden = false; }
+  $('#sub').textContent = 'Southwest Washington · reports through ' + Reports.formatDay(Reports.latestReport(SITES));
   init();
 })();
 </script>
