@@ -1,0 +1,225 @@
+{
+  "reviewed": "2026-10-18",
+  "rules": "Only confidence 'high' entries are used by scripts/build_creel_sites.py, and only after exact-name matching finds nothing. 'high' needs two independent signals. 'medium' entries are candidates for the owner to approve (change confidence to high) and are never applied. Every entry needs evidence. A ramp that WDFW counts boat and shore interviews at is attached to the map site at the same facility; the sheet keeps showing the source ramp name, so a pier site reads, for example, 'Kingston Public Ramp'.",
+  "entries": [
+    {
+      "wdfw_ramp_name": "Boston Harbor Ramp/Marina",
+      "site_id": "boston-harbor",
+      "confidence": "high",
+      "evidence": [
+        "Name: after dropping the generic words Ramp and Marina the source name is 'Boston Harbor', the whole name of the map site (WDFW access layer, concrete launch, Thurston County).",
+        "https://www.openstreetmap.org/way/218159023 : OSM slipway named 'Boston Harbor Boat Ramp', 42 m from the map site's coordinates (Overpass around 47.13966,-122.9055, 2026-10-18).",
+        "https://www.openstreetmap.org/relation/18051670 : OSM marina 'Boston Harbor Marina' (https://www.bostonharbormarina.com/), 133 m from the map site; Nominatim gives its address as 312 73rd Avenue Northeast, Olympia, Thurston County.",
+        "WDFW catch area on every source row is Area 13, South Puget Sound, which is where this Thurston County ramp is."
+      ],
+      "note": "A ramp-and-marina facility; WDFW's one sampling unit is matched to the one launch site there."
+    },
+    {
+      "wdfw_ramp_name": "Brownsville Dock/Ramp",
+      "site_id": "brownsville-dock",
+      "confidence": "high",
+      "evidence": [
+        "Name: 'Brownsville Dock' is the map site's whole name; the source adds only '/Ramp'.",
+        "https://www.openstreetmap.org/node/1053639712 and /node/9955748371 : OSM slipways 91 m and 95 m from the map site; https://www.openstreetmap.org/node/1053639716 : 'Port of Brownsville Marina' (https://www.portofbrownsville.org/), 126 m away, Kitsap County.",
+        "The map has exactly one site named 'Brownsville Dock' (Kitsap County), so the name is not shared."
+      ],
+      "note": "Pier-and-ramp pair at the Port of Brownsville: WDFW counts boat and shore interviews at the facility, so the counts describe the facility, not only the pier. The source also has 'Brownsville Marina' and 'Brownsville Marina/Dock/Ramp'; those are different WDFW names, were not sampled in 2026, and are not in this crosswalk. Last sampled 2026-07-24, so it shows nothing in the 30-day window."
+    },
+    {
+      "wdfw_ramp_name": "Cornet Bay Public Ramp",
+      "site_id": "cornet-bay-docks",
+      "confidence": "high",
+      "evidence": [
+        "Name: 'Cornet Bay' is the shared place name; the source adds Public Ramp, the map site adds Docks.",
+        "https://parks.wa.gov/sites/default/files/2023-07/Deception%20Pass%20Park%20Brochure.pdf : under Cornet Bay, 'Six-lane boat launch' and 'Mooring docks and nearby marine services' (pdftotext of the brochure, 2026-10-18).",
+        "https://www.openstreetmap.org/way/1425057894 and neighbouring slipways: OSM boat ramps 105 m to 126 m from the map site; Overpass is_in puts the map site inside the OSM polygon 'Deception Pass State Park'."
+      ],
+      "note": "State-park launch and docks at one facility: WDFW counts boat and shore interviews there. The dropdown's separate 'Cornet Bay Marina' (OSM 'Deception Pass Marina', 381 m away) is a different WDFW name, was not sampled in 2026, and is not matched."
+    },
+    {
+      "wdfw_ramp_name": "Kingston Public Ramp",
+      "site_id": "kingston-public-pier",
+      "confidence": "high",
+      "evidence": [
+        "Name: 'Kingston Public' is identical once Ramp and Pier are dropped.",
+        "https://www.washingtonports.org/business-directory/port-of-kingston/ : the Port of Kingston lists 'Public boat launch/ramp, truck and trailer parking' and 'Recreational fishing pier' as one port's facilities.",
+        "OSM (Overpass 2026-10-18): the map site's coordinates are inside the OSM marina polygon 'Port of Kingston' (https://www.openstreetmap.org/relation/3829217), and OSM 'Public Boat Launch' slipways (https://www.openstreetmap.org/node/2921322149) are 232 m from the pier."
+      ],
+      "note": "Ramp and pier are neighbouring parts of the Port of Kingston facility. WDFW counts boat and shore interviews at the facility, so the counts describe Kingston's public ramp and pier together; the sheet keeps the visible source name 'Kingston Public Ramp'."
+    },
+    {
+      "wdfw_ramp_name": "Luhr Beach Ramp",
+      "site_id": "luhr-s-landing",
+      "confidence": "high",
+      "evidence": [
+        "https://www.openstreetmap.org/node/51361591 : OSM slipway 'Luhr Beach Boat Launch', operator Washington Department of Fish and Wildlife, 56 m from the map site's coordinates.",
+        "https://nisquallyriver.org/watershed-services/recreation-opportunities/fishing-and-boating/ : lists 'Luhr's Landing' as 'Located at the Nisqually Reach Nature Center, the boat launch is open year round and permits motorized boats'; Luhr Beach and Luhr's Landing are one launch at the Nisqually Reach Nature Center (OSM: the same 56 m node).",
+        "WDFW catch areas on the source rows are Area 13, South Puget Sound and Nisqually River, both at this Thurston County site."
+      ],
+      "note": "The map also has 'Luhr's Beach Dock (CLOSED)' 80 m away. It is not used: the source ramp is the launch."
+    },
+    {
+      "wdfw_ramp_name": "Point Defiance Boathouse",
+      "site_id": "point-defiance-marina-boathouse",
+      "confidence": "high",
+      "evidence": [
+        "Name: 'Point Defiance Boathouse' equals the map site 'Point Defiance Marina Boathouse' once the generic word Marina is dropped.",
+        "https://www.openstreetmap.org/way/414285105 : OSM boat rental 'The Boat House', 32 m from the map site.",
+        "https://www.southsoundtalk.com/2026/06/15/boathouse-has-drawn-visitors-to-point-defiance-park-since-1903/ : the Boathouse 'forms the heart of Point Defiance Marina at Owen Beach' (Metro Parks Tacoma, Pierce County)."
+      ],
+      "note": "WDFW counts boat and shore interviews at the boathouse and dock. The public launch ramp is a separate WDFW unit (Point Defiance Public Ramp) about 380 m away; see the medium entry."
+    },
+    {
+      "wdfw_ramp_name": "Port of Friday Harbor Marina, San Juan Is",
+      "site_id": "friday-harbor-marina-docks",
+      "confidence": "high",
+      "evidence": [
+        "Name: 'Friday Harbor Marina' appears in both; the source adds Port of and the county, the map site adds Docks. The source name itself says San Juan Is and its main catch area is Area 7, San Juan Islands.",
+        "https://www.portfridayharbor.org/?p=2193 : 'The Port of Friday Harbor owns and operates the largest public marina in the San Juan Islands.'",
+        "https://www.openstreetmap.org/way/404795011 : OSM marina 'Port of Friday Harbor', 198 m from the map site, which sits 50 m from the marina's A Dock (way 4743201)."
+      ],
+      "note": "Marina docks, not a launch ramp (the Port's launch is Jackson Beach, a different place). WDFW counts boat and shore interviews at the marina."
+    },
+    {
+      "wdfw_ramp_name": "Triton Cove State Park",
+      "site_id": "triton-cove",
+      "confidence": "high",
+      "evidence": [
+        "Name: 'Triton Cove' is the whole map name once the generic words State Park are dropped; it is the only Triton Cove site, in Jefferson County.",
+        "https://parks.wa.gov/find-parks/state-parks/triton-cove-state-park : 'a small day use park on Hood Canal', Brinnon WA 98320, with a boat ramp and ADA launch.",
+        "https://nominatim.openstreetmap.org (search 'Triton Cove State Park'): Jefferson County, 47.6086, -122.9900, about 700 m from the map site; the OSM slipway (https://www.openstreetmap.org/node/3999766297) is 485 m from it. The source's only catch area is Area 12, Hood Canal."
+      ],
+      "note": "The map lists the launch as 'Hand launch' while the State Parks page lists a boat ramp; the map point is a few hundred metres from the OSM ramp inside the same small park. Distance is the weak point of this match."
+    },
+    {
+      "wdfw_ramp_name": "Twanoh State Park",
+      "site_id": "twanoh-park-pier",
+      "confidence": "high",
+      "evidence": [
+        "Name: 'Twanoh' is the shared place name; both are the state park.",
+        "https://parks.wa.gov/find-parks/state-parks/twanoh-state-park : 'This park has one watercraft launch and 100 feet of dock', address 12190 E SR 106, Union WA 98592. The page does not use the word pier.",
+        "OSM (Overpass is_in, 2026-10-18): the map site's coordinates are inside the polygon 'Twanoh State Park' (https://www.openstreetmap.org/relation/3740268), operator Washington State Parks; an OSM pier is 51 m from the site and the OSM slipway is 366 m away. The source's catch area is Area 12, Hood Canal."
+      ],
+      "note": "WDFW counts boat (launch) and shore (dock or pier) interviews at the park, so the counts describe Twanoh State Park as a whole; the sheet keeps the source name 'Twanoh State Park'."
+    },
+    {
+      "wdfw_ramp_name": "Allyn Public Ramp",
+      "site_id": "allyn-pier",
+      "confidence": "medium",
+      "evidence": [
+        "Name: 'Allyn' only; Public Ramp vs Pier.",
+        "https://www.openstreetmap.org/node/50017641 : OSM slipway 18 m from the map site, and OSM 'Port of Allyn Dock' (way 667910153) 77 m away, in 'Allyn Waterfront Park'.",
+        "https://www.portofallyn.com/ says 'Allyn Waterfront Pier and Marina CLOSED for repairs until further notice!' and lists no public boat launch on its front page."
+      ],
+      "note": "Same waterfront, but the pier is closed, so counts from the ramp would sit on a closed pier's sheet. Not applied; owner to decide."
+    },
+    {
+      "wdfw_ramp_name": "Point Defiance Public Ramp",
+      "site_id": "point-defiance-marina-boathouse",
+      "confidence": "medium",
+      "evidence": [
+        "Name: 'Point Defiance' only.",
+        "OSM slipways (https://www.openstreetmap.org/node/4080920301) are 366 m to 399 m from the map site; Metro Parks Tacoma describes an 8-lane ramp next to the Vashon Ferry Terminal (https://www.parkstacoma.gov/boat-launch/, seen in a search summary; the page itself returned 403)."
+      ],
+      "note": "Different part of Point Defiance Park from the Boathouse and its dock. Not applied. The map has no site for this ramp; this is the nearest one."
+    },
+    {
+      "wdfw_ramp_name": "Mukilteo Lighthouse Park (State Park Public Ramp)",
+      "site_id": "mukilteo-fishing-piers",
+      "confidence": "medium",
+      "evidence": [
+        "Name: 'Mukilteo' only.",
+        "OSM: the map site is 223 m north of the 'Mukilteo Lighthouse Park' polygon (City of Mukilteo) and the OSM slipway is 161 m away (https://www.openstreetmap.org/way/290570862, tagged access=no).",
+        "https://en.wikipedia.org/wiki/Mukilteo_Lighthouse_Park : the park was formerly Mukilteo State Park and is now run by the City of Mukilteo; no source found that names a fishing pier at the park."
+      ],
+      "note": "Not applied: no page found that puts the fishing piers at the Lighthouse Park launch."
+    },
+    {
+      "wdfw_ramp_name": "Shilshole Public Ramp",
+      "site_id": "shilshole-marina-pier",
+      "confidence": "medium",
+      "evidence": [
+        "Name: 'Shilshole' only.",
+        "https://www.openstreetmap.org/node/679497545 : OSM slipway 'Eddie Vine Boat Ramp' (Seattle Parks), 37 m from the map site; Seattle describes Eddie Vine as the northernmost saltwater ramp, between Golden Gardens and Shilshole Marina (search summary of https://www.seattle.gov/parks/allparks/eddie-vine-boat-ramp). That Eddie Vine is WDFW's 'Shilshole Public Ramp' is an inference, not a page that says so.",
+        "The map also has 'Shilshole Marina (A-Dock)' 1.3 km south, so the name alone does not pick one."
+      ],
+      "note": "Plausible; approve only if you can confirm that WDFW's Shilshole Public Ramp is the Eddie Vine ramp. Not applied."
+    },
+    {
+      "wdfw_ramp_name": "Everett Ramp (formerly Norton Street Ramp (2010))",
+      "site_id": "everett-10th-street-marine-park-pier",
+      "confidence": "medium",
+      "evidence": [
+        "A search summary (Port of Everett grant news, https://pacificports.org/port-of-everett-awarded-1m-state-recreation-conservation-office-grant/) says the Norton Avenue launch is now the Jetty Landing and Boat Launch at 10th Street; the article fetched separately (https://www.liveineverett.com/blog//out-to-launch-where-to-get-your-boat-in-the-water) names the 10th Street Boat Launch but not Norton.",
+        "OSM slipway (https://www.openstreetmap.org/node/2942900429) is 89 m from the map site 'Everett - 10th Street Marine Park Pier'.",
+        "No name in common between the source ramp and the map site."
+      ],
+      "note": "Not applied: the link runs through a rename that was not confirmed on a primary page."
+    },
+    {
+      "wdfw_ramp_name": "Hoodsport Shore",
+      "site_id": "hoodsport-hatchery-handicap-platform",
+      "confidence": "medium",
+      "evidence": [
+        "The source's only catch area is 'Hoodsport Hatchery', WDFW's Hoodsport Hatchery Zone (https://wdfw.wa.gov/places-to-go/fishing-piers/hoodsport-hatchery-handicap-platform).",
+        "That WDFW page says the platform is for anglers who permanently use a wheelchair, while able-bodied anglers fish other designated areas at the hatchery, so 'Hoodsport Shore' is most likely those other areas, not the platform. The map also has 'Hoodsport Pier', about 390 m away."
+      ],
+      "note": "Probably should be rejected: shore counts for the hatchery zone are not counts for a wheelchair-only platform."
+    }
+  ],
+  "reviewed_no_match": [
+    {"wdfw_ramp_name": "Armeni Public Ramp", "reason": "Seattle Elliott Bay ramp. The only nearby map site is the closed Elliott Bay Fishing Pier at Terminal 86 (OSM 'Closed', access=no), a different facility."},
+    {"wdfw_ramp_name": "Bellingham Ramp (Glenn St.) Squalicum Harbor", "reason": "Squalicum Harbor is not in the map. Bellingham Cruise Terminal and Boulevard Park Pier are other places."},
+    {"wdfw_ramp_name": "Bellingham-6th St Ramp", "reason": "No map site in Bellingham at 6th Street."},
+    {"wdfw_ramp_name": "Camano Island Ramp", "reason": "No Camano Island site in the map."},
+    {"wdfw_ramp_name": "Camano Island State Park Public Ramp", "reason": "Camano Island State Park is not in the map."},
+    {"wdfw_ramp_name": "Cline Spit Ramp", "reason": "Not in the map."},
+    {"wdfw_ramp_name": "Curleys Resort", "reason": "A resort in the Sekiu area (catch areas 3 to 5). The map's 'Sekiu' launch (Clallam) is not shown to be this resort."},
+    {"wdfw_ramp_name": "Dungeness Bay Public Ramp", "reason": "Not in the map."},
+    {"wdfw_ramp_name": "East Bay Marina/Ramp (Oly. Isle)", "reason": "Not in the map."},
+    {"wdfw_ramp_name": "Ediz Hook, Port Angeles Public Ramp", "reason": "The map's only Port Angeles site is the City Pier (48.12084, -123.42854), not shown to be at this ramp."},
+    {"wdfw_ramp_name": "Edmonds Boat Basin (Public Sling)", "reason": "Port of Edmonds marina is 378 m from Edmonds Pier (OSM 'Edmonds Fishing Pier'); the pier is the city fishing pier, a different facility."},
+    {"wdfw_ramp_name": "Edmonds Dry Storage (Boat Loft (Priv. fork lift))", "reason": "Private dry storage, not the pier."},
+    {"wdfw_ramp_name": "Fort Casey Public Ramp and Shore (Keystone)", "reason": "Not in the map; Coupeville Pier is a different place."},
+    {"wdfw_ramp_name": "Gig Harbor Ramp", "reason": "Not in the map."},
+    {"wdfw_ramp_name": "Hartstine Is. Ramp (aka Latimer's Landing)", "reason": "Not in the map."},
+    {"wdfw_ramp_name": "Mason's East Docks (*1159)*", "reason": "A resort in the Sekiu area, not in the map."},
+    {"wdfw_ramp_name": "Mason's Ramp & Docks (*1159)*", "reason": "A resort in the Sekiu area, not in the map."},
+    {"wdfw_ramp_name": "Port Angeles West Ramp", "reason": "Port Angeles Boat Haven ramp; Port Angeles City Pier is a different place."},
+    {"wdfw_ramp_name": "Port Townsend Boat Haven Ramp", "reason": "Boat Haven is not in the map; the Port Townsend City Dock, Union Wharf and Maritime Center pier are other places."},
+    {"wdfw_ramp_name": "Quilcene Tide Flats", "reason": "Shore sampling on the tide flats; 'Big Quilcene' in the map is a river access."},
+    {"wdfw_ramp_name": "Saltwater Park Ramp (Hood Canal Rmp Tacoma Light)", "reason": "Hood Canal ramp (catch area 12) with no map site."},
+    {"wdfw_ramp_name": "Union Ramp", "reason": "Town of Union on Hood Canal; the map's 'Union River' is a hand launch near Belfair, a different place."},
+    {"wdfw_ramp_name": "Van Riper's North*", "reason": "A resort in the Sekiu area, not in the map."},
+    {"wdfw_ramp_name": "Van Riper's South*", "reason": "A resort in the Sekiu area, not in the map."},
+    {"wdfw_ramp_name": "Washington Park Launch Ramp", "reason": "Anacortes Washington Park; Anacortes Municipal Pier (closed) is a different place."},
+    {"wdfw_ramp_name": "Zittels Marina", "reason": "Not in the map."},
+    {"wdfw_ramp_name": "Arcadia Ramp", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Concrete Dock", "reason": "The page gives no place for it; nothing ties it to a map site."},
+    {"wdfw_ramp_name": "Dagmar's Landing, Forklift Launch", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Fox Island Public Ramp", "reason": "The map has Fox Island Fishing Pier, but nothing found ties this public ramp to it."},
+    {"wdfw_ramp_name": "Grapeview Public Ramp", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Griffin Bay Ramp, San Juan Is", "reason": "Not in the map; Friday Harbor Marina Docks is a different place."},
+    {"wdfw_ramp_name": "Home Public Ramp", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Joemma Beach Ramp", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Longbranch Public Ramp", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Marrowstone Beach", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Mason's Resort", "reason": "A resort in the Sekiu area (catch areas 3 to 5), not in the map."},
+    {"wdfw_ramp_name": "Mason's South Dock", "reason": "A resort dock in the Sekiu area, not in the map."},
+    {"wdfw_ramp_name": "Mason's West Docks (*1159)*", "reason": "A resort dock in the Sekiu area, not in the map."},
+    {"wdfw_ramp_name": "Mats Mats Bay Ramp", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Point Wilson Beach", "reason": "Shore sampling at Point Wilson. The nearest map sites (Fort Worden Marine Science Center Dock, Port Hudson Jetty) are other places and nothing ties them to it."},
+    {"wdfw_ramp_name": "Port Hadlock Marina", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Port Townsend Boat Haven (Docks)", "reason": "Boat Haven is not in the map; the Port Townsend City Dock, Union Wharf and Maritime Center pier are other places."},
+    {"wdfw_ramp_name": "Quilcene Bay Ramp", "reason": "Not in the map; 'Big Quilcene' is a river access."},
+    {"wdfw_ramp_name": "Roche Harbor Moorage and Ramp, San Juan Is", "reason": "Roche Harbor is not in the map; Friday Harbor Marina Docks is a different marina."},
+    {"wdfw_ramp_name": "Salsbury County Park Ramp", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Solo Point (Tatsolo Pt-Ft Lewis) Rm", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Solo Point Shore", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Swinomish Channel Ramp", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Van Ripers Resort", "reason": "A resort in the Sekiu area, not in the map."},
+    {"wdfw_ramp_name": "Wauna Ramp", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Wauna Shore", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Wildcat Cove Ramp, Larrabee State Park", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."}
+  ]
+}

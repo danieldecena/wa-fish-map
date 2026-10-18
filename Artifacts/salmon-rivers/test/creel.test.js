@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const os = require('node:os');
 const { spawnSync } = require('node:child_process');
 const R = require('../reports.js');
 const T = require('../typical.js');
@@ -91,16 +92,57 @@ test('every row cites its WDFW source page', () => {
   }
 });
 
-test('matching held: each row came from a source ramp whose name equals the map site name exactly', () => {
+// The reviewed crosswalk: only entries with confidence "high" are applied by the build.
+const CROSSWALK = JSON.parse(fs.readFileSync(path.join(repo, 'scripts', 'creel_crosswalk.json'), 'utf8'));
+const MAP_SITES = JSON.parse(fs.readFileSync(path.join(repo, 'site', 'data', 'sites.json'), 'utf8')).sites;
+const HIGH = new Map(CROSSWALK.entries.filter(e => e.confidence === 'high').map(e => [normalize(e.wdfw_ramp_name), e.site_id]));
+const MEDIUM = CROSSWALK.entries.filter(e => e.confidence === 'medium');
+
+test('matching held: each row came from a source ramp whose name equals the site name exactly, or from a high crosswalk entry for that site', () => {
   const name = Object.fromEntries(T.sites.map(s => [s.id, normalize(s.name)]));
+  let viaCrosswalk = 0;
   for (const [id, c] of SITES) {
     for (const r of c.rows) {
-      assert.ok(['exact-name', 'name+coordinates'].includes(r.match), `${id}: match rule "${r.match}"`);
-      if (r.match === 'exact-name') {
-        for (const part of r.ramp.split(' + ')) assert.equal(normalize(part), name[id], `${id}: source ramp "${part}" is not the site's name`);
+      for (const rule of r.match.split(' + ')) assert.ok(['exact-name', 'name+coordinates', 'crosswalk'].includes(rule), `${id}: match rule "${rule}"`);
+      for (const part of r.ramp.split(' + ')) {
+        if (normalize(part) === name[id]) continue;
+        assert.ok(r.match.includes('crosswalk'), `${id}: source ramp "${part}" is not the site's name and the row is not marked crosswalk`);
+        assert.equal(HIGH.get(normalize(part)), id, `${id}: source ramp "${part}" is not a high crosswalk entry for this site`);
+        viaCrosswalk++;
       }
     }
   }
+  assert.ok(viaCrosswalk > 0, 'control: the loop above must have met at least one crosswalk row, or it proved nothing');
+});
+
+test('no medium crosswalk entry is applied: its ramp is in no creel.js row', () => {
+  assert.ok(MEDIUM.length > 0, 'control: there are medium entries to check');
+  const used = new Set(SITES.flatMap(([, c]) => c.rows.flatMap(r => r.ramp.split(' + ').map(normalize))));
+  for (const e of MEDIUM) assert.ok(!used.has(normalize(e.wdfw_ramp_name)), `${e.wdfw_ramp_name} is medium and must not be applied`);
+});
+
+test('crosswalk file: every site_id is a site in sites.json, every entry has evidence, high has two pieces, ramp names are unique', () => {
+  const ids = new Set(MAP_SITES.map(s => s.id));
+  assert.ok(CROSSWALK.entries.length >= 1 && HIGH.size >= 1, 'control: the file has entries');
+  const seen = new Set();
+  for (const e of CROSSWALK.entries) {
+    assert.ok(ids.has(e.site_id), `${e.wdfw_ramp_name}: site_id ${e.site_id} is not in sites.json`);
+    assert.ok(['high', 'medium'].includes(e.confidence), `${e.wdfw_ramp_name}: confidence ${e.confidence}`);
+    assert.ok(Array.isArray(e.evidence) && e.evidence.length >= 1 && e.evidence.every(x => typeof x === 'string' && x.trim()), `${e.wdfw_ramp_name}: no evidence`);
+    if (e.confidence === 'high') assert.ok(e.evidence.length >= 2, `${e.wdfw_ramp_name}: high needs two pieces of evidence`);
+    assert.equal(typeof e.note, 'string');
+    const k = normalize(e.wdfw_ramp_name);
+    assert.ok(!seen.has(k), `${e.wdfw_ramp_name} listed twice`);
+    seen.add(k);
+  }
+  for (const n of CROSSWALK.reviewed_no_match) {
+    assert.ok(n.reason && n.reason.trim(), `${n.wdfw_ramp_name}: no reason`);
+    assert.ok(!seen.has(normalize(n.wdfw_ramp_name)), `${n.wdfw_ramp_name} is in both lists`);
+  }
+});
+
+test('crosswalk file has no em dash', () => {
+  assert.doesNotMatch(fs.readFileSync(path.join(repo, 'scripts', 'creel_crosswalk.json'), 'utf8'), /—/);
 });
 
 // ---- counts never reach ratings, pins, clustering or chips ----
@@ -189,4 +231,72 @@ test('fixture: a blank stays null, a zero stays zero, and one blank day makes th
   assert.equal(r.interviews, 5);
   assert.equal(r.species.Coho, 0);
   assert.equal(r.species.Chinook, null);
+});
+
+test('fixture: a high crosswalk entry resolves a ramp the exact-name rule cannot', { skip: skipFx }, () => {
+  assert.deepEqual(FX.matched['Zeta Public Ramp'], ['zeta-pier', 'crosswalk']);
+  assert.equal(FX.sites['zeta-pier'].rows[0].match, 'crosswalk');
+  assert.equal(FX.sites['zeta-pier'].rows[0].ramp, 'Zeta Public Ramp', 'the visible source ramp name is kept');
+  assert.equal(FX.sites['zeta-pier'].rows[0].interviews, 2);
+});
+
+test('fixture: a near name that is not in the crosswalk does NOT match, even beside a listed one', { skip: skipFx }, () => {
+  assert.ok(!('Zeta Ramp' in FX.matched), 'Zeta Ramp is not listed');
+  assert.match(FX.unmatched['Zeta Ramp'], /no site has this normalized name/);
+  assert.equal(FX.sites['zeta-pier'].rows.length, 1);
+  assert.ok(!FX.sites['zeta-pier'].rows[0].ramp.includes('Zeta Ramp'), 'its counts are not mixed in');
+});
+
+test('fixture: a medium crosswalk entry is not applied', { skip: skipFx }, () => {
+  assert.ok(!('Eta Public Ramp' in FX.matched));
+  assert.ok('Eta Public Ramp' in FX.unmatched);
+  assert.ok(!('eta-pier' in FX.sites), 'no counts for the medium candidate site');
+});
+
+test('fixture: a high entry still has to be within 1 km when the source gives coordinates', { skip: skipFx }, () => {
+  assert.ok(!('Theta Public Ramp' in FX.matched));
+  assert.match(FX.unmatched['Theta Public Ramp'], /more than 1 km/);
+  assert.ok(!('theta-pier' in FX.sites));
+});
+
+test('fixture: exact-name and crosswalk ramps for one site are summed only when sampled on the same days', { skip: skipFx }, () => {
+  const k = FX.sites['kappa-pier'].rows;
+  assert.equal(k.length, 1, 'same two days: one summed row');
+  assert.equal(k[0].interviews, 1 + 2 + 4 + 1);
+  assert.equal(k[0].anglers, 2 + 3 + 5 + 1);
+  assert.equal(k[0].match, 'crosswalk + exact-name');
+  assert.ok(FX.notes.some(n => /kappa-pier .*summed$/.test(n)));
+  const l = FX.sites['lambda-pier'].rows;
+  assert.equal(l.length, 2, 'different days: kept apart');
+  assert.ok(FX.notes.some(n => /lambda-pier .*kept separate/.test(n)));
+});
+
+// A malformed crosswalk must stop the build, not be skipped: each case below is run through the generator.
+function runBad(mutate) {
+  const fx = JSON.parse(fs.readFileSync(path.join(__dirname, 'creel-fixture.json'), 'utf8'));
+  mutate(fx);
+  const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'creel-')), 'bad.json');
+  fs.writeFileSync(file, JSON.stringify(fx));
+  for (const py of ['/opt/homebrew/bin/python3', 'python3']) {
+    const r = spawnSync(py, [path.join(repo, 'scripts', 'build_creel_sites.py'), '--fixture', file], { encoding: 'utf8' });
+    if (!r.error) return r;
+  }
+  return null;
+}
+
+test('fixture: control, the unmutated fixture builds; each malformed crosswalk stops the build with a reason', { skip: skipFx }, () => {
+  assert.equal(runBad(() => {}).status, 0, 'control: the good fixture must pass or the failures below mean nothing');
+  const cases = [
+    [fx => { fx.crosswalk[0].site_id = 'no-such-site'; }, /not a site in sites\.json/],
+    [fx => { fx.crosswalk[0].evidence = []; }, /evidence must be a non-empty list/],
+    [fx => { delete fx.crosswalk[0].evidence; }, /evidence must be a non-empty list/],
+    [fx => { fx.crosswalk[0].evidence = ['only one']; }, /at least two pieces/],
+    [fx => { fx.crosswalk[0].confidence = 'low'; }, /confidence must be/],
+    [fx => { fx.crosswalk.push({ ...fx.crosswalk[0] }); }, /listed twice/],
+  ];
+  for (const [mutate, why] of cases) {
+    const r = runBad(mutate);
+    assert.notEqual(r.status, 0, `${why} should have stopped the build`);
+    assert.match(r.stderr, why);
+  }
 });

@@ -63,6 +63,46 @@
    "county": "Mason",
    "lat": 47.6,
    "lon": -123.2
+  },
+  {
+   "id": "zeta-pier",
+   "name": "Zeta Pier",
+   "kind": "pier",
+   "county": "Kitsap",
+   "lat": 47.8,
+   "lon": -122.6
+  },
+  {
+   "id": "eta-pier",
+   "name": "Eta Pier",
+   "kind": "pier",
+   "county": "Kitsap",
+   "lat": 47.7,
+   "lon": -122.7
+  },
+  {
+   "id": "theta-pier",
+   "name": "Theta Pier",
+   "kind": "pier",
+   "county": "Mason",
+   "lat": 47.5,
+   "lon": -123.0
+  },
+  {
+   "id": "kappa-pier",
+   "name": "Kappa Pier",
+   "kind": "pier",
+   "county": "Pierce",
+   "lat": 47.2,
+   "lon": -122.5
+  },
+  {
+   "id": "lambda-pier",
+   "name": "Lambda Pier",
+   "kind": "pier",
+   "county": "Pierce",
+   "lat": 47.1,
+   "lon": -122.5
   }
  ],
  "rows": [
@@ -205,6 +245,169 @@
     "Coho": 0,
     "Chinook": 2
    }
+  },
+  {
+   "site": "Zeta Public Ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 2,
+   "anglers": 5,
+   "species": {
+    "Coho": 3
+   }
+  },
+  {
+   "site": "Zeta Ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 9,
+   "anglers": 9,
+   "species": {
+    "Coho": 9
+   }
+  },
+  {
+   "site": "Eta Public Ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 2,
+   "species": {
+    "Coho": 1
+   }
+  },
+  {
+   "site": "Theta Public Ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 1,
+   "species": {
+    "Coho": 0
+   },
+   "lat": 47.9,
+   "lon": -123.0
+  },
+  {
+   "site": "Kappa Pier",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 2,
+   "species": {
+    "Coho": 1
+   }
+  },
+  {
+   "site": "Kappa Pier",
+   "date": "2026-10-02",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 2,
+   "anglers": 3,
+   "species": {
+    "Coho": 2
+   }
+  },
+  {
+   "site": "Kappa Public Ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 4,
+   "anglers": 5,
+   "species": {
+    "Coho": 3
+   }
+  },
+  {
+   "site": "Kappa Public Ramp",
+   "date": "2026-10-02",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 1,
+   "species": {
+    "Coho": 0
+   }
+  },
+  {
+   "site": "Lambda Pier",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 2,
+   "species": {
+    "Coho": 1
+   }
+  },
+  {
+   "site": "Lambda Pier",
+   "date": "2026-10-02",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 2,
+   "species": {
+    "Coho": 1
+   }
+  },
+  {
+   "site": "Lambda Public Ramp",
+   "date": "2026-10-03",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 3,
+   "anglers": 4,
+   "species": {
+    "Coho": 2
+   }
+  }
+ ],
+ "crosswalk": [
+  {
+   "wdfw_ramp_name": "Zeta Public Ramp",
+   "site_id": "zeta-pier",
+   "confidence": "high",
+   "evidence": [
+    "https://example.invalid/a says the pier and ramp are one facility",
+    "https://example.invalid/b puts the ramp 40 m from the pier"
+   ],
+   "note": "fixture"
+  },
+  {
+   "wdfw_ramp_name": "Eta Public Ramp",
+   "site_id": "eta-pier",
+   "confidence": "medium",
+   "evidence": [
+    "https://example.invalid/a says the pier and ramp are one facility"
+   ],
+   "note": "fixture"
+  },
+  {
+   "wdfw_ramp_name": "Theta Public Ramp",
+   "site_id": "theta-pier",
+   "confidence": "high",
+   "evidence": [
+    "https://example.invalid/a says the pier and ramp are one facility",
+    "https://example.invalid/b puts the ramp 40 m from the pier"
+   ],
+   "note": "fixture: the source coordinates are 11 km from the site"
+  },
+  {
+   "wdfw_ramp_name": "Kappa Public Ramp",
+   "site_id": "kappa-pier",
+   "confidence": "high",
+   "evidence": [
+    "https://example.invalid/a says the pier and ramp are one facility",
+    "https://example.invalid/b puts the ramp 40 m from the pier"
+   ],
+   "note": "fixture"
+  },
+  {
+   "wdfw_ramp_name": "Lambda Public Ramp",
+   "site_id": "lambda-pier",
+   "confidence": "high",
+   "evidence": [
+    "https://example.invalid/a says the pier and ramp are one facility",
+    "https://example.invalid/b puts the ramp 40 m from the pier"
+   ],
+   "note": "fixture"
   }
  ]
 }

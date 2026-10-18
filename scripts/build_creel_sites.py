@@ -18,10 +18,14 @@ Rules this script keeps:
  * A row that cannot be parsed goes to the not-parsed list in the report; it is
    never dropped silently, and an unknown column header fails the whole table
    the same way.
- * A ramp becomes a map site only by exact normalized name. If the source gave
-   coordinates (this one does not), a name match must also be within 1 km. A
-   name shared by several sites is ambiguous and stays unmatched. There is no
-   fuzzy matching: a wrong site is worse than a missing one.
+ * A ramp becomes a map site by exact normalized name, else by a reviewed
+   entry in scripts/creel_crosswalk.json with confidence "high" (at least two
+   independent pieces of evidence). "medium" entries are candidates for the
+   owner to approve and are never applied. If the source gave coordinates (this
+   one does not), either kind of match must also be within 1 km. A name shared
+   by several sites is ambiguous and stays unmatched unless a high entry
+   resolves it. There is no fuzzy matching: a wrong site is worse than a
+   missing one.
  * Several source ramps that match one site (and the same catch area) are summed
    only when they were sampled on exactly the same set of days; otherwise they
    stay separate rows.
@@ -42,7 +46,6 @@ import json
 import math
 import re
 import sys
-import urllib.error
 import urllib.parse
 import urllib.request
 from collections import defaultdict
@@ -55,6 +58,7 @@ SITES_JSON = ROOT / "site" / "data" / "sites.json"
 CACHE = ROOT / ".cache" / "wdfw" / "creel"
 OUT = ROOT / "Artifacts" / "salmon-rivers" / "creel.js"
 REVIEW = ROOT / "docs" / "research" / "2026-10-18-creel-site-matching.md"
+CROSSWALK = ROOT / "scripts" / "creel_crosswalk.json"
 
 PUGET = "https://wdfw.wa.gov/fishing/reports/creel/puget"
 PUGET_ANNUAL = "https://wdfw.wa.gov/fishing/reports/creel/puget-annual"
@@ -113,6 +117,7 @@ class TableParser(HTMLParser):
         self._kind = ""
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        del attrs  # unused; the name has to match HTMLParser's signature
         if tag == "table":
             self._table = Table()
         elif self._table is None:
@@ -313,6 +318,45 @@ def fetch_window(
     return rows, bad, names
 
 
+def annual_year(page: str) -> int:
+    """The season the annual page's first filter option stands for (the newest year)."""
+    m = re.search(r'<select[^>]*name="sample_date".*?</select>', page, re.DOTALL)
+    opt = re.search(r'<option value="1"[^>]*>\s*(\d{4})\s*<', m.group(0)) if m else None
+    if opt is None:
+        raise SystemExit("the annual page has no season filter; the page changed")
+    return int(opt.group(1))
+
+
+def fetch_annual(
+    year: int, refresh: bool
+) -> tuple[dict[str, tuple[str, int]], list[NotParsed]]:
+    """Every ramp with a row this season on the annual page: (newest sampled day, number of sampled days)."""
+    days: dict[str, set[str]] = defaultdict(set)
+    bad: list[NotParsed] = []
+    for n in range(MAX_PAGES):
+        page = fetch(
+            f"{PUGET_ANNUAL}?sample_date=1&page={n}",
+            f"puget-annual-{year}-p{n}.html",
+            refresh,
+        )
+        if n == 0 and annual_year(page) != year:
+            raise SystemExit(
+                f"the annual page's newest season is {annual_year(page)}, not {year}; stopping rather than guessing"
+            )
+        tables = tables_of(page)
+        if not any(t.rows for t in tables):
+            if n == 0:
+                raise SystemExit(f"{PUGET_ANNUAL}: page 0 has no data rows")
+            break
+        got, nb = parse_puget_tables(tables, f"annual page {n}")
+        bad += nb
+        for r in got:
+            days[r.site].add(r.date)
+    else:
+        raise SystemExit(f"more than {MAX_PAGES} pages; stopping rather than guessing")
+    return {k: (max(v), len(v)) for k, v in days.items()}, bad
+
+
 # ------------------------------------------------------------------- matching
 
 
@@ -333,8 +377,99 @@ def metres(a: tuple[float, float], b: tuple[float, float]) -> float:
 @dataclass
 class Match:
     site_id: str | None
-    rule: str  # 'exact-name' | 'name+coordinates' | 'unmatched'
+    rule: str  # 'exact-name' | 'name+coordinates' | 'crosswalk' | 'unmatched'
     why: str
+
+
+@dataclass
+class CrosswalkEntry:
+    ramp: str
+    site_id: str
+    confidence: str
+    evidence: list[str]
+    note: str
+
+
+@dataclass
+class Crosswalk:
+    """Reviewed ramp -> site entries, keyed by normalized ramp name. Only `high` is ever applied."""
+
+    high: dict[str, CrosswalkEntry] = field(default_factory=dict)
+    medium: dict[str, CrosswalkEntry] = field(default_factory=dict)
+    no_match: dict[str, str] = field(default_factory=dict)  # normalized name -> reason
+    names: dict[str, str] = field(
+        default_factory=dict
+    )  # normalized name -> name as written
+
+
+def parse_crosswalk(data: object, site_ids: set[str]) -> Crosswalk:
+    """Validate the crosswalk data. Anything malformed stops the build: a bad entry must not be skipped silently."""
+    if not isinstance(data, dict):
+        raise SystemExit(
+            "creel_crosswalk.json: expected an object with an 'entries' list"
+        )
+    cw = Crosswalk()
+    for i, e in enumerate(data.get("entries", [])):
+        where = f"creel_crosswalk.json entry {i + 1}"
+        if not isinstance(e, dict):
+            raise SystemExit(f"{where}: not an object")
+        ramp = e.get("wdfw_ramp_name")
+        site_id = e.get("site_id")
+        conf = e.get("confidence")
+        evidence = e.get("evidence")
+        note = e.get("note", "")
+        if not isinstance(ramp, str) or not normalize(ramp):
+            raise SystemExit(f"{where}: wdfw_ramp_name is missing")
+        where = f"{where} ({ramp})"
+        if not isinstance(site_id, str) or site_id not in site_ids:
+            raise SystemExit(
+                f"{where}: site_id {site_id!r} is not a site in sites.json"
+            )
+        if conf not in ("high", "medium"):
+            raise SystemExit(
+                f"{where}: confidence must be 'high' or 'medium', got {conf!r}"
+            )
+        if (
+            not isinstance(evidence, list)
+            or not evidence
+            or not all(isinstance(x, str) and x.strip() for x in evidence)
+        ):
+            raise SystemExit(f"{where}: evidence must be a non-empty list of strings")
+        if conf == "high" and len(evidence) < 2:
+            raise SystemExit(
+                f"{where}: a high entry needs at least two pieces of evidence"
+            )
+        key = normalize(ramp)
+        if key in cw.names:
+            raise SystemExit(f"{where}: ramp listed twice")
+        cw.names[key] = ramp
+        (cw.high if conf == "high" else cw.medium)[key] = CrosswalkEntry(
+            ramp, site_id, conf, [str(x) for x in evidence], str(note)
+        )
+    for i, e in enumerate(data.get("reviewed_no_match", [])):
+        ramp, reason = e.get("wdfw_ramp_name"), e.get("reason")
+        if (
+            not isinstance(ramp, str)
+            or not isinstance(reason, str)
+            or not reason.strip()
+        ):
+            raise SystemExit(
+                f"creel_crosswalk.json reviewed_no_match {i + 1}: needs a ramp name and a reason"
+            )
+        key = normalize(ramp)
+        if key in cw.names:
+            raise SystemExit(
+                f"{ramp}: listed in both entries and reviewed_no_match, or twice"
+            )
+        cw.names[key] = ramp
+        cw.no_match[key] = reason
+    return cw
+
+
+def load_crosswalk(site_list: list[dict[str, object]]) -> Crosswalk:
+    return parse_crosswalk(
+        json.loads(CROSSWALK.read_text()), {str(s["id"]) for s in site_list}
+    )
 
 
 def match_name(
@@ -378,6 +513,41 @@ def match_name(
         None,
         "unmatched",
         f"ambiguous: {len(found)} sites share this name and the source gives no coordinates",
+    )
+
+
+def match_ramp(
+    name: str,
+    by_name: dict[str, list[dict[str, object]]],
+    crosswalk: Crosswalk,
+    by_id: dict[str, dict[str, object]],
+    lat: float | None = None,
+    lon: float | None = None,
+) -> Match:
+    """Exact normalized name first; only if that finds nothing, a high crosswalk entry."""
+    m = match_name(name, by_name, lat, lon)
+    if m.site_id is not None:
+        return m
+    entry = crosswalk.high.get(normalize(name))
+    if entry is None:
+        return m
+    site = by_id[entry.site_id]
+    far = (
+        lat is not None
+        and lon is not None
+        and metres((lat, lon), (float(str(site["lat"])), float(str(site["lon"]))))
+        > MAX_METRES
+    )
+    if far:
+        return Match(
+            None,
+            "unmatched",
+            "a high crosswalk entry names this ramp but the site is more than 1 km from the source coordinates",
+        )
+    return Match(
+        entry.site_id,
+        "crosswalk",
+        "reviewed crosswalk entry, high confidence (see scripts/creel_crosswalk.json)",
     )
 
 
@@ -463,10 +633,11 @@ def assemble(
     rows: list[SourceRow],
     filter_label: str,
     source_for: dict[str, str],
+    crosswalk: Crosswalk | None = None,
 ) -> Assembled:
-    by_name: dict[str, list[dict[str, object]]] = defaultdict(list)
-    for s in site_list:
-        by_name[normalize(str(s["name"]))].append(s)
+    crosswalk = crosswalk or Crosswalk()
+    by_name = _index(site_list)
+    by_id = {str(s["id"]): s for s in site_list}
     ramps: dict[str, list[SourceRow]] = defaultdict(list)
     for r in rows:
         ramps[r.site].append(r)
@@ -478,7 +649,7 @@ def assemble(
     per_site: dict[str, list[Group]] = defaultdict(list)
     for ramp in sorted(ramps):
         lat, lon = coords.get(ramp, (None, None))
-        m = match_name(ramp, by_name, lat, lon)
+        m = match_ramp(ramp, by_name, crosswalk, by_id, lat, lon)
         groups = group_rows(ramps[ramp])
         if m.site_id is None:
             unmatched.append((ramp, m, groups))
@@ -602,6 +773,47 @@ def near_names(
     return [s for s in site_list if normalize(str(s["name"])).split(" ")[:n] == key][:4]
 
 
+KIND_ORDER = ["exact", "crosswalk high", "medium, not applied", "none"]
+
+
+def classify_ramp(
+    ramp: str,
+    by_name: dict[str, list[dict[str, object]]],
+    crosswalk: Crosswalk,
+    by_id: dict[str, dict[str, object]],
+    site_list: list[dict[str, object]],
+) -> tuple[str, str | None, str]:
+    """(match type, site id, evidence) for the review table."""
+    m = match_ramp(ramp, by_name, crosswalk, by_id)
+    key = normalize(ramp)
+    if m.rule == "exact-name":
+        return "exact", m.site_id, m.why
+    if m.rule == "crosswalk":
+        e = crosswalk.high[key]
+        return (
+            "crosswalk high",
+            e.site_id,
+            " / ".join(e.evidence) + f" / Note: {e.note}",
+        )
+    if key in crosswalk.medium:
+        e = crosswalk.medium[key]
+        return (
+            "medium, not applied",
+            e.site_id,
+            " / ".join(e.evidence) + f" / Note: {e.note}",
+        )
+    if key in crosswalk.no_match:
+        return "none", None, "Reviewed, no map site: " + crosswalk.no_match[key]
+    near = "; ".join(
+        f"{s['name']} ({s['kind']}, {s['county']})" for s in near_names(ramp, site_list)
+    )
+    return (
+        "none",
+        None,
+        f"NOT REVIEWED: {m.why}. Near names (not matched): {near or 'none'}",
+    )
+
+
 def render_review(
     a: Assembled,
     site_list: list[dict[str, object]],
@@ -612,14 +824,18 @@ def render_review(
     north: list[tuple[str, str, int]],
     north_matches: list[tuple[str, Match]],
     shapes: dict[str, list[tuple[str, list[str], int]]],
-    annual_checks: list[str],
+    crosswalk: Crosswalk,
+    season: int,
+    seen: dict[str, tuple[str, int]],
+    recent_days: dict[str, int],
 ) -> str:
     by_id = {str(s["id"]): s for s in site_list}
+    by_name = _index(site_list)
     L: list[str] = []
     L.append("# Creel counts: site matching review (2026-10-18)")
     L.append("")
     L.append(
-        f"Generated by `scripts/build_creel_sites.py` on {generated}. Do not edit by hand."
+        f"Generated by `scripts/build_creel_sites.py` on {generated}. Do not edit by hand. The crosswalk it applies is `scripts/creel_crosswalk.json`."
     )
     L.append("")
     L.append(
@@ -637,15 +853,44 @@ def render_review(
         "2. If the source gave coordinates, the match must also be within 1 km. The Puget page gives none, and no WDFW dataset found publishes coordinates for these ramps, so this tier is coded and tested but did not fire."
     )
     L.append("3. A name shared by several map sites is ambiguous, so unmatched.")
-    L.append("4. Otherwise unmatched. No fuzzy matching.")
     L.append(
-        "5. Several source ramps for one site and catch area are summed only when they were sampled on exactly the same days; otherwise they stay separate rows. Different catch areas are never summed."
+        "4. Only if exact-name matching finds nothing: a `high` entry in the reviewed crosswalk (`scripts/creel_crosswalk.json`) resolves the ramp to a site. `high` needs at least two independent signals (name plus an independent coordinate or a page naming the same facility). `medium` entries are candidates for the owner to approve and are never applied."
     )
     L.append(
-        "6. A window total is null if any sampled day in it did not state the value."
+        "5. Otherwise unmatched. No fuzzy matching: a near name that is not in the crosswalk does not match."
+    )
+    L.append(
+        "6. Several source ramps for one site and catch area are summed only when they were sampled on exactly the same days; otherwise they stay separate rows. Different catch areas are never summed."
+    )
+    L.append(
+        "7. A window total is null if any sampled day in it did not state the value."
+    )
+    L.append(
+        "8. A ramp attached to a pier (or a pier to a ramp) means WDFW counts boat and shore interviews at the facility. The sheet keeps showing the source ramp name, so a pier site reads, for example, `Kingston Public Ramp`."
     )
     L.append("")
-    L.append("## Matched")
+
+    table: list[tuple[str, str, str | None, str]] = []
+    for ramp in sorted(seen):
+        kind, sid, ev = classify_ramp(ramp, by_name, crosswalk, by_id, site_list)
+        table.append((kind, ramp, sid, ev))
+    recent = {r for r, _, _ in a.matched} | {r for r, _, _ in a.unmatched}
+    L.append("## Summary")
+    L.append("")
+    L.append(
+        f"| Match type | Ramps sampled in the last {days} days ({len(recent)}) | Ramps sampled in {season} ({len(seen)}) |"
+    )
+    L.append("| --- | --- | --- |")
+    for k in KIND_ORDER:
+        L.append(
+            f"| {k} | {sum(1 for t in table if t[0] == k and t[1] in recent)} | {sum(1 for t in table if t[0] == k)} |"
+        )
+    L.append("")
+    L.append(
+        "Before the crosswalk, 1 of 41 ramps sampled in the last 30 days matched (John Wayne Marina, exact name)."
+    )
+    L.append("")
+    L.append(f"## Matched (rows in the last {days} days)")
     L.append("")
     if a.matched:
         L.append(
@@ -668,39 +913,50 @@ def render_review(
     ]:
         L.append(f"- {n}")
     L.append("")
-    L.append(f"## Unmatched ({len(a.unmatched)} source ramps with rows in the window)")
+    L.append(f"## Every ramp sampled in {season}, by match type")
     L.append("")
     L.append(
-        "`Near names` are map sites sharing the first word, shown for a human to judge. They are NOT matches: the source gives no coordinates, and a ramp and a pier of the same name are different places."
+        f"`Recent days` is the number of sampled days in the last {days} days. `Evidence` for crosswalk rows is the evidence list in the crosswalk file, joined with ` / `. `none` rows say whether a human reviewed them. `Near names` are map sites sharing the first word, for a human to judge; they are NOT matches."
     )
     L.append("")
-    L.append("| Source ramp | Why unmatched | Survey days | Near names (not matched) |")
-    L.append("| --- | --- | --- | --- |")
-    for ramp, m, groups in a.unmatched:
-        near = (
-            "; ".join(
-                f"{s['name']} ({s['kind']}, {s['county']})"
-                for s in near_names(ramp, site_list)
+    L.append(
+        f"| Source ramp | Match type | Map site | Recent days | Last sampled in {season} | Evidence |"
+    )
+    L.append("| --- | --- | --- | --- | --- | --- |")
+    for k in KIND_ORDER:
+        for kind, ramp, sid, ev in table:
+            if kind != k:
+                continue
+            site = (
+                f"{by_id[sid]['name']} (`{sid}`, {by_id[sid]['kind']}, {by_id[sid]['county']})"
+                if sid
+                else ""
             )
-            or "none"
-        )
-        days_n = len({d for g in groups for d in g.dates})
-        L.append(f"| {md_cell(ramp)} | {md_cell(m.why)} | {days_n} | {md_cell(near)} |")
+            L.append(
+                f"| {md_cell(ramp)} | {kind} | {md_cell(site)} | {recent_days.get(ramp, 0)} | {seen[ramp][0]} | {md_cell(ev)} |"
+            )
     L.append("")
     L.append("## All ramps in the page's dropdown")
     L.append("")
-    dd = [(n, match_name(n, _index(site_list))) for n in ramp_dropdown]
-    hit = [(n, m) for n, m in dd if m.site_id]
+    dd_rows = [
+        (n, classify_ramp(n, by_name, crosswalk, by_id, site_list))
+        for n in ramp_dropdown
+    ]
+    hit = [(n, c) for n, c in dd_rows if c[1]]
     L.append(
-        f"The Puget page lists {len(ramp_dropdown)} ramps across all years. {len(hit)} match a map site by exact name:"
+        f"The Puget page lists {len(ramp_dropdown)} ramps across all years. {sum(1 for _, c in hit if c[0] == 'exact')} match a map site by exact name, {sum(1 for _, c in hit if c[0] == 'crosswalk high')} more by a high crosswalk entry and {sum(1 for _, c in hit if c[0].startswith('medium'))} are medium candidates (not applied). Season {season}:"
     )
     L.append("")
-    for n, m in hit:
-        s = by_id[str(m.site_id)]
-        L.append(f"- {n} -> {s['name']} (`{s['id']}`, {s['kind']}, {s['county']})")
-    L.append("")
-    for c in annual_checks:
-        L.append(f"- {c}")
+    for n, (kind, sid, _) in hit:
+        s = by_id[str(sid)]
+        last = (
+            f"newest sampled day {seen[n][0]}"
+            if n in seen
+            else f"no {season} rows, so it cannot show counts now"
+        )
+        L.append(
+            f"- {n} -> {s['name']} (`{s['id']}`, {s['kind']}, {s['county']}): {kind}; {last}."
+        )
     L.append("")
     L.append("## Not parsed")
     L.append("")
@@ -717,7 +973,7 @@ def render_review(
     for label, url in (("Buoy 10", BUOY10), ("Willapa Bay", WILLAPA)):
         L.append(f"### {label}: {url}")
         L.append("")
-        for cap, hs, n in shapes[label]:
+        for _, hs, n in shapes[label]:
             L.append(
                 f"Table headers: {', '.join(hs)} ({n} rows). No ramp, site or river column: one fishery-wide total per day or week, so there is nothing to put on a map site. Skipped."
             )
@@ -782,7 +1038,10 @@ def from_fixture(path: Path) -> dict[str, object]:
     src = {
         r.site: "https://example.invalid/" + urllib.parse.quote(r.site) for r in rows
     }
-    a = assemble(fx["sites"], rows, "fixture", src)
+    crosswalk = parse_crosswalk(
+        {"entries": fx.get("crosswalk", [])}, {str(s["id"]) for s in fx["sites"]}
+    )
+    a = assemble(fx["sites"], rows, "fixture", src, crosswalk)
     return {
         "sites": a.sites,
         "matched": {ramp: [m.site_id, m.rule] for ramp, m, _ in a.matched},
@@ -813,6 +1072,7 @@ def main() -> None:
 
     today = datetime.datetime.now().astimezone().date()
     site_list = load_sites()
+    crosswalk = load_crosswalk(site_list)
     rows, unparsed, names = fetch_window(args.window, args.refresh)
     if not rows:
         raise SystemExit("no rows parsed")
@@ -842,7 +1102,7 @@ def main() -> None:
         + urllib.parse.urlencode({"ramp": r.site, "sample_date": code})
         for r in rows
     }
-    a = assemble(site_list, rows, label, src)
+    a = assemble(site_list, rows, label, src, crosswalk)
 
     # Cross-check each matched ramp against the page's own ramp-filtered view.
     for ramp, _, groups in a.matched:
@@ -898,30 +1158,25 @@ def main() -> None:
             f"creel.js would be {len(js.encode())} bytes, over the {SIZE_CAP} cap; nothing written"
         )
 
-    # Review file: dropdown, annual-page check, other sources.
+    # Review file: dropdown, whole-season ramp table, other sources.
     dd = dropdown_ramps(fetch(PUGET, "puget-form.html", args.refresh))
-    annual_checks: list[str] = []
-    for n in dd:
-        if match_name(n, _index(site_list)).site_id and n not in {
-            r for r, _, _ in a.matched
-        }:
-            q = urllib.parse.urlencode({"ramp": n, "sample_date": "1"})
-            pg = fetch(
-                f"{PUGET_ANNUAL}?{q}",
-                f"annual-2026-{re.sub(r'[^a-z0-9]+', '-', n.casefold())}.html",
-                args.refresh,
-            )
-            dates = sorted(
-                {d for t in tables_of(pg) for d in [caption_date(t.caption)] if d}
-            )
-            annual_checks.append(
-                f"{n}: no row in the last {args.window} days. The 2026 annual page ({PUGET_ANNUAL}) has "
-                + (
-                    f"{len(dates)} sampled day(s), newest {dates[-1]}; too old to call recent, so not used."
-                    if dates
-                    else "no 2026 rows."
-                )
-            )
+    dd_keys = {normalize(n) for n in dd}
+    missing = sorted(n for k, n in crosswalk.names.items() if k not in dd_keys)
+    if missing:
+        raise SystemExit(
+            f"creel_crosswalk.json names ramps that are not in the Puget page's ramp dropdown (misspelled or renamed): {missing}"
+        )
+    season = today.year
+    seen, annual_bad = fetch_annual(season, args.refresh)
+    unparsed = unparsed + annual_bad
+    recent_days = {
+        site: len({r.date for r in rows if r.site == site})
+        for site in {r.site for r in rows}
+    }
+    # A ramp sampled late last year is missing from this year's annual page.
+    for site, n_days in recent_days.items():
+        if site not in seen:
+            seen[site] = (max(r.date for r in rows if r.site == site), n_days)
     north = north_coast_waters(60, today, args.refresh)
     by_name = _index(site_list)
     north_matches = [(w, match_name(w, by_name)) for w, _, _ in north]
@@ -942,7 +1197,10 @@ def main() -> None:
         north,
         north_matches,
         shapes,
-        annual_checks,
+        crosswalk,
+        season,
+        seen,
+        recent_days,
     )
     OUT.write_text(js)
     REVIEW.write_text(review)
@@ -954,7 +1212,7 @@ def main() -> None:
     )
     print(f"not parsed: {len(unparsed)}")
     print(
-        f"matched ramps: {len(a.matched)}; map sites with counts: {len(a.sites)}; unmatched ramps: {len(a.unmatched)}"
+        f"matched ramps: {len(a.matched)} ({sum(1 for _, m, _ in a.matched if m.rule == 'crosswalk')} by crosswalk); map sites with counts: {len(a.sites)}; unmatched ramps: {len(a.unmatched)}"
     )
     for ramp, _, _ in a.unmatched:
         print(f"  unmatched: {ramp}")
