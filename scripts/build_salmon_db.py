@@ -380,9 +380,14 @@ SELECT e.river || CASE WHEN e.reach = '' THEN '' ELSE ', ' || e.reach END AS Riv
 FROM entries e JOIN reports r USING (pdf) LEFT JOIN catch c ON c.entry_id = e.id
 WHERE e.status IN ('reported', 'no catch', 'not parsed')
 ORDER BY r.week_start DESC, e.river, e.reach, c.species;
-CREATE VIEW no_counts AS
-SELECT week_start || ' to ' || substr(week_end, 6) AS Week, report_date AS Reported, note AS Why, url AS Source
-FROM reports WHERE note IS NOT NULL ORDER BY week_start DESC;
+CREATE VIEW weeks AS
+SELECT week_start || ' to ' || substr(week_end, 6) AS Week, report_date AS Reported,
+       week_source AS "Week from", entries AS Entries, note AS Note, url AS Source
+FROM reports ORDER BY week_start DESC;
+CREATE VIEW not_parsed AS
+SELECT COALESCE(r.week_start || ' to ' || substr(r.week_end, 6), '') AS Week, f.river AS River,
+       f.reason AS Reason, f.line AS "Report text", r.url AS Source
+FROM parse_failures f LEFT JOIN reports r USING (pdf) ORDER BY r.week_start DESC, f.river;
 CREATE VIEW flight_counts AS
 SELECT r.week_start || ' to ' || substr(r.week_end, 6) AS Week, f.boats AS Boats,
        f.bank_rods AS "Bank rods", r.report_date AS Reported, r.url AS Source, f.line AS "Report text"
