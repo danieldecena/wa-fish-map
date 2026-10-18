@@ -297,6 +297,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 </div>
 
 <script src="geo.js"></script>
+<script src="reports.js"></script>
 <script>
 (function () {
   'use strict';
@@ -310,46 +311,24 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   var BODY = 'M337.92 512.00C501.76 386.39 665.60 386.39 829.44 512.00C665.60 637.61 501.76 637.61 337.92 512.00ZM767.18 503.81C767.18 488.43 754.71 475.96 739.33 475.96C723.95 475.96 711.48 488.43 711.48 503.81C711.48 519.19 723.95 531.66 739.33 531.66C754.71 531.66 767.18 519.19 767.18 503.81Z';
   var TAIL = 'M456.70 512.00L194.56 389.12L194.56 634.88Z';
 
-  var RANK = { prime: 3, good: 2, fair: 1, slow: 0, unrated: -1 };
-  var LABEL = { prime: 'Excellent', good: 'Good', fair: 'Fair', unrated: 'No report' };
-  var SP_NAME = { coho: 'Coho', chinook: 'Chinook' };
+  var RANK = Reports.RANK, LABEL = Reports.LABEL, SP_NAME = Reports.SP_NAME;
+  var STALE_DAYS = Reports.STALE_DAYS;
 
-  /* ---- site content: reports through Oct 17, 2026 ---- */
-  var SITES = [
-    { id: 'cowlitz', name: 'Cowlitz River', sub: 'Below the hatchery at Salkum', hl: true,
-      coho: { r: 'prime', d: 'Tacoma Power recovered 3,094 adult coho and 1,876 jacks at the hatchery separator over six days (Oct 17 report).' },
-      chinook: { r: 'fair', release: true, d: 'Chinook are being caught here but must be released (Oct 3 report).' } },
-    { id: 'columbia', name: 'Lower Columbia River', sub: 'Tongue Point to Bonneville Dam', hl: true,
-      coho: { r: 'prime', d: 'Coho fishing was excellent in the Oct 11 flight count: 157 salmonid boats and 22 Washington bank rods on this stretch.' },
-      chinook: { r: 'fair', release: true, d: 'The mainstem is closed for Chinook retention. Plenty are still caught and released.' } },
-    { id: 'lewis', name: 'Lewis River', sub: 'Mouth to Merwin Dam', hl: true,
-      coho: { r: 'good', d: '138 bank anglers kept 14 coho and 2 jacks and released 10 coho in the Oct 13 creel.' },
-      chinook: { r: 'fair', d: 'Same creel: 3 Chinook and 1 jack kept.' }, extra: 'nws' },
-    { id: 'wind', name: 'Wind River', sub: 'Lower river near Carson', hl: true,
-      coho: { r: 'good', d: 'Reported very good for coho (Oct 15).' },
-      chinook: { r: 'fair', d: 'Chinook were still biting on the Wind River and Drano Lake in the Oct 3 report.' } },
-    { id: 'klickitat', name: 'Klickitat River', sub: 'Lower river near Lyle', hl: true,
-      coho: { r: 'good', d: 'Coho rated good (Oct 15).' },
-      chinook: { r: 'good', d: 'Chinook rated good (Oct 15).' } },
-    { id: 'drano', name: 'Drano Lake', sub: 'Mouth of the Little White Salmon River', hl: false,
-      coho: { r: 'good', d: 'Coho rated good (Oct 15).' },
-      chinook: { r: 'good', d: 'Chinook rated good (Oct 15).' } }
-  ];
+  function todayISO() {
+    var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  // ?today=YYYY-MM-DD lets a reviewer see how the page ages; it changes nothing on the live page for normal visitors.
+  var override = /[?&]today=(\d{4}-\d{2}-\d{2})/.exec(location.search);
+  var TODAY = override ? override[1] : todayISO();
+
+  var SITES = Reports.SITES;
   SITES.forEach(function (s) { var p = D.pins[s.id]; s.ll = p.ll; s.xy = p.xy; });
 
   var filter = 'all';
   var selected = null;
 
-  function viewOf(s) {
-    var keys = filter === 'all' ? ['coho', 'chinook'] : [filter];
-    var best = null;
-    keys.forEach(function (k) {
-      var sp = s[k]; if (!sp) return;
-      var c = { r: sp.r, release: !!sp.release, k: k };
-      if (!best || (best.release && !c.release) || (best.release === c.release && RANK[c.r] > RANK[best.r])) best = c;
-    });
-    return best || { r: 'unrated', release: false, k: null };
-  }
+  function viewOf(s) { return Reports.viewOf(s, filter, TODAY); }
 
   /* ---- basemap ---- */
   var vp = $('#vp');
