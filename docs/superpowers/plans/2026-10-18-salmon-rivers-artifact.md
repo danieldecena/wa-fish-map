@@ -4,7 +4,7 @@
 
 **Goal:** Make the published "Washington Salmon Rivers" page honest about how old its catch reports are, readable without colour, and quick to scan, while keeping its source in this repo.
 
-**Architecture:** The page is one static HTML file that today carries everything inline: a 428 KB map-geometry blob, the six river reports, the rating logic and the UI. Split it into `geo.js` (geometry, treated as data), `reports.js` (report data plus pure logic, unit-tested with Node's built-in test runner) and `index.html` (markup, CSS, DOM code). Then add dated reports with a freshness rule, a rating word on every pin, a ranked river list, and sheet accessibility fixes.
+**Architecture:** The page is one static HTML file that today carries everything inline: a 428 KB map-geometry blob, the six river reports, the rating logic and the UI. Split it into `geo.js` (geometry, treated as data), `reports.js` (report data plus pure logic, unit-tested with Node's built-in test runner) and `index.html` (markup, CSS, DOM code). Then add dated reports with a freshness rule, fix the pin labels that never display and put a rating word and a visible edge on every pin, add a ranked river list, and fix sheet accessibility and contrast. A design critique of the live page (2026-10-18) added the label fix, the pin contrast work and the dark-mode teal and Directions changes.
 
 **Tech Stack:** Plain HTML, CSS and ES5-style JavaScript (no framework, no build step, no dependencies), Node 20+ `node:test` for logic tests (host has Node 26), the Claude Browser pane for DOM checks, the `Artifact` tool for publishing.
 
@@ -21,7 +21,8 @@ Every task's requirements include these.
 - Pure logic never reads the clock. `reports.js` functions take `today` as a `YYYY-MM-DD` string; only `index.html` reads `new Date()`.
 - Stale means older than 7 days: `STALE_DAYS = 7`; a report exactly 7 days old is still fresh.
 - Every button is at least 44 px tall (matches this repo's 44pt marker target rule).
-- Colour tokens stay as defined on `:root` (light and dark). No new colours. Rating must also be readable as text, never by hue alone.
+- Rating colours stay as defined on `:root` (light and dark); no new rating hues. The only token additions are `--pin-edge` (Task 4) and `--on-text` (Task 6). Rating must also be readable as text, never by hue alone.
+- Contrast floors: 4.5:1 for text, 3:1 for pins and other graphics against what is behind them, in light and dark.
 - No emoji and no em dashes in UI copy, code or comments.
 - `geo.js` is data extracted from the published page. Do not hand-edit it.
 - Publishing replaces a live page that Daniel owns: get a clear yes in chat before the publish step (Task 7).
@@ -654,18 +655,63 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ---
 
-### Task 4: Say the rating in words on every pin
+### Task 4: Make pin labels appear, say the rating in words, and give pins an edge
 
-**Why:** Measured with this repo's own colour-blind gate (`scripts/cvd_check.py` and `CVDSeparationTests.swift`: Machado 2009 severity 1.0, a pair passes if ΔL\* ≥ 12 or ΔE76 ≥ 30), the page's Good (orange) and Fair (yellow) fail for deuteranopia: ΔL\* 11.3 and ΔE 12.9 in light mode, 11.7 and 13.5 in dark mode. Excellent/Good pass. Pins show rating by hue only; the words exist only inside the sheet. The palette stays (it is the app's), so the words move onto the map.
+**Why:** Three findings from the design critique (2026-10-18, live page at 1280 and 375 px wide):
+
+1. **Pin labels never appear.** `render()` hides a label when its box overlaps an already placed box. The pin's own box (`[p.x - 15, p.y - 36, 30, 38]`) reaches `p.x + 15` while the label box starts at `p.x + 13`, so every label overlaps its own pin by 2 px and is hidden. At the default view all six labels have `display: none`, and the selected pin shows no name either. Adding words to labels that never display would change nothing, so this is fixed first.
+2. **Rating is hue only on the map.** Measured with this repo's colour-blind gate (`scripts/cvd_check.py` and `CVDSeparationTests.swift`: Machado 2009 severity 1.0, a pair passes if ΔL\* ≥ 12 or ΔE76 ≥ 30), Good (orange) and Fair (yellow) fail for deuteranopia: ΔL\* 11.3 and ΔE 12.9 in light mode, 11.7 and 13.5 in dark mode. Excellent/Good pass. The palette stays (it is the app's), so the words move onto the map.
+3. **Pins are faint on the light map.** Against the basemap `#f2f2f7`: Excellent 3.18:1, Good 1.97:1, Fair 1.35:1 (non-text contrast needs 3:1), and the white count inside an orange cluster badge is 2.2:1 (bold 11 px text needs 4.5:1). The white edge does nothing on a light map. Dark mode is fine (4.99 to 12.05:1).
 
 **Files:**
-- Modify: `Artifacts/salmon-rivers/index.html` (`applyStyles`, boot measurement)
+- Modify: `Artifacts/salmon-rivers/index.html` (CSS tokens, `render`, `applyStyles`, boot measurement)
 
 **Interfaces:**
 - Consumes: `Reports.ratingWord(vw)` from Task 2.
-- Produces: pin labels reading `<short name> · <rating word>`.
+- Produces: pin labels reading `<short name> · <rating word>`; `glyphColor(r)`; `--pin-edge` token.
 
-- [ ] **Step 1: Write the label from the view**
+- [ ] **Step 1: Reproduce the missing labels**
+
+Load `http://127.0.0.1:4173/?today=2026-10-18` at 1280x800 and run:
+
+```js
+[...document.querySelectorAll('#over > text.lab')].filter(t => t.style.display !== 'none').map(t => t.textContent)
+```
+
+Expected now: `[]`. If it is not empty, the bug is already fixed elsewhere; skip to Step 4.
+
+- [ ] **Step 2: Fix the collision box**
+
+In `render()`, in the pin-label loop, change the label box so it starts where the pin box ends. Old:
+
+```js
+      var bx = [p.x + 13, p.y - 30, pn.w + 4, 14];
+```
+
+New:
+
+```js
+      var bx = [p.x + 15, p.y - 30, pn.w + 4, 14];
+```
+
+`overlap()` uses strict `<`, so boxes that only touch do not collide.
+
+- [ ] **Step 3: Verify and commit the bug fix on its own**
+
+Rerun the Step 1 snippet. Expected: non-empty and includes `Cowlitz`. At the `mobile` preset expect at least `Cowlitz` (Wind and Drano cluster at that width, so a missing label there is correct). Open a river and confirm the selected pin shows its name.
+
+```bash
+git add Artifacts/salmon-rivers/index.html
+git commit -m "Show the salmon pin labels
+
+Each label's collision box started 2 px inside its own pin's box, so
+render() hid every label at every zoom. Start the label box where the pin
+box ends.
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+- [ ] **Step 4: Write the label from the view**
 
 In `applyStyles`, inside the `SITES.forEach` after `var pn = pinNodes[s.id];`, add:
 
@@ -677,9 +723,7 @@ In `applyStyles`, inside the `SITES.forEach` after `var pn = pinNodes[s.id];`, a
 
 Every caller of `applyStyles` is followed by `render()` (filter change, `openSheet`, `closeSheet`, and boot via `setView`), which sets each label's display again, so the temporary `display = ''` never persists.
 
-- [ ] **Step 2: Delete the now-redundant boot measurement**
-
-Remove this line (labels are measured in `applyStyles` at boot):
+Delete the now-redundant boot measurement (labels are measured in `applyStyles` at boot):
 
 ```js
   SITES.forEach(function (s) { pinNodes[s.id].w = pinNodes[s.id].lab.getBBox().width; });
@@ -687,7 +731,29 @@ Remove this line (labels are measured in `applyStyles` at boot):
 
 Keep the landmark measurement line above it.
 
-- [ ] **Step 3: Verify the words**
+- [ ] **Step 5: Give pins a dark edge on the light map and a dark mark on orange**
+
+Tokens. In the light `:root` block add `--pin-edge: rgba(0,0,0,0.55);`. In both dark blocks (the `@media (prefers-color-scheme: dark)` one and `:root[data-theme="dark"]`) add `--pin-edge: rgba(255,255,255,0.95);`. A 0.55 black edge over `#f2f2f7` composites to about `#6d6d6f`, 4.6:1 against the map.
+
+CSS: replace the hard-coded white edges.
+
+```css
+.pin .balloon { fill: var(--rc); stroke: var(--pin-edge); stroke-width: 1.5; }
+.cluster circle { fill: var(--rc); stroke: var(--pin-edge); stroke-width: 2; }
+```
+
+JS: Good needs the dark mark as well as Fair. Add the helper near `colorVar` and use it in both places that set `--gl`:
+
+```js
+  function glyphColor(r) { return r === 'fair' || r === 'good' ? 'rgba(0,0,0,0.72)' : '#fff'; }
+```
+
+In `applyStyles`: `pn.g.style.setProperty('--gl', glyphColor(vw.r));`
+In `render()`, cluster branch: `c.g.style.setProperty('--gl', glyphColor(g[0].vw.r));`
+
+Black at 0.72 over `#ff9500` composites to about `#472a00`, 6.5:1, which clears 4.5:1 for the cluster count. A helper is warranted here because two copies of this condition drifting apart is exactly how the old Fair-only rule came about.
+
+- [ ] **Step 6: Verify**
 
 Load `http://127.0.0.1:4173/?today=2026-10-18` and run:
 
@@ -695,21 +761,21 @@ Load `http://127.0.0.1:4173/?today=2026-10-18` and run:
 [...document.querySelectorAll('#over > text.lab')].map(t => t.textContent)
 ```
 
-Expected for `All salmon`: `["Cowlitz · Excellent","Lower Columbia · Excellent","Lewis · Good","Wind · Good","Klickitat · Good","Drano Lake · Good"]`.
+Expected for `All salmon`: `["Cowlitz · Excellent","Lower Columbia · Excellent","Lewis · Good","Wind · Good","Klickitat · Good","Drano Lake · Good"]`. Click Chinook and rerun; expected: `["Cowlitz · Fair, release only","Lower Columbia · Fair, release only","Lewis · Fair","Wind · Fair","Klickitat · Good","Drano Lake · Good"]`.
 
-Click the Chinook button and rerun. Expected: `["Cowlitz · Fair, release only","Lower Columbia · Fair, release only","Lewis · Fair","Wind · Fair","Klickitat · Good","Drano Lake · Good"]`.
+Screenshot at 1280x800 and at the `mobile` preset, light and dark (`resize_window` with `colorScheme`). Confirm: the visible labels are legible against the halo; the Good and Fair pins have a clear dark outline in light mode and still read in dark mode; the cluster count on the orange badge is dark. Record in the commit body which labels show at the default view in each size. Crowded pins losing a label is expected, and Task 5's list is the fallback.
 
-Then look at the map at 1280x800 and at the `mobile` preset. Longer labels hide more often when pins crowd; that is expected, and Task 5's list is the fallback. Record in the commit body which pins show a label at the default view in each size. Switch dark mode (`resize_window` with `colorScheme: "dark"`) and confirm label text is still legible against the halo.
-
-- [ ] **Step 4: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add Artifacts/salmon-rivers/index.html
-git commit -m "Print the rating word on each salmon pin
+git commit -m "Print the rating word on salmon pins and give pins a visible edge
 
 Orange and yellow collapse for deuteranopes under this repo's colour-blind
-gate, and the pins relied on hue alone. The label now reads 'Lewis · Good',
-with 'release only' spelled out where it applies.
+gate, and the pins relied on hue alone. Labels now read 'Lewis · Good',
+with 'release only' spelled out. Good and Fair pins were 1.97:1 and 1.35:1
+against the light basemap, so pins get a dark edge in light mode, and the
+cluster count on orange is dark instead of white (2.2:1).
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
@@ -858,28 +924,30 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ---
 
-### Task 6: Sheet accessibility and touch targets
+### Task 6: Sheet accessibility, readable teal, Directions above the fold, 44 px buttons
+
+**Why:** Findings from the design critique: the river name appears twice in the sheet; focus stays on the map when the sheet opens; filter buttons are 30 px and Done is 32 px; the teal used for links and the Done button is 3.55:1 on the dark sheet (needs 4.5:1; it is 4.80:1 on white, fine); on a phone the Directions button sits below the fold (sheet content 616 px in a 476 px viewport), though it is the main action.
 
 **Files:**
-- Modify: `Artifacts/salmon-rivers/index.html` (sheet markup, CSS, `fillSheet`, `showSheet`, `closeSheet`)
+- Modify: `Artifacts/salmon-rivers/index.html` (sheet markup, CSS tokens and rules, `fillSheet`, `showSheet`, `closeSheet`)
 
 **Interfaces:**
 - Consumes: `showSheet`, `closeSheet`, `mode` from Task 5.
-- Produces: one heading per sheet (`#stitle` is an `h2`), focus moves into the sheet on open and back to the opener on close.
+- Produces: one heading per sheet (`#stitle` is an `h2`), focus into the sheet on open and back to the opener on close, `--on-text` token.
 
 - [ ] **Step 1: One title, not two**
 
-The sheet shows the river name twice: in the top bar and again as the `h2` in the body. Keep the bar title (it stays visible while the body scrolls) and make it the heading.
+Keep the bar title (it stays visible while the body scrolls) and make it the heading.
 
 Markup: change `<span class="st" id="stitle"></span>` to `<h2 class="st" id="stitle"></h2>`, and on the aside replace `aria-label="River details"` with `aria-labelledby="stitle" tabindex="-1"`.
 
-CSS: change `.sbar .st { ... margin-top: 6px; }` to also zero the other margins:
+CSS: replace the `.sbar .st` rule:
 
 ```css
 .sbar .st { margin: 6px 0 0; font-size: 15px; line-height: 20px; font-weight: 600; }
 ```
 
-In `fillSheet`, remove `<h2>` from the head template. Old: `'<div class="head"><h2>' + esc(s.name) + '</h2><p>' + esc(s.sub) + '</p>' +`. New: `'<div class="head"><p>' + esc(s.sub) + '</p>' +`. Also delete the now-unused `.head h2` CSS rule.
+In `fillSheet`, remove `<h2>` from the head template. Old: `'<div class="head"><h2>' + esc(s.name) + '</h2><p>' + esc(s.sub) + '</p>' +`. New: `'<div class="head"><p>' + esc(s.sub) + '</p>' +`. Delete the now-unused `.head h2` CSS rule.
 
 - [ ] **Step 2: Move focus into the sheet and back out**
 
@@ -906,11 +974,7 @@ Replace `showSheet` and `closeSheet` with:
 
 Restoring focus after `render()` matters: a pin that was clustered is only displayed again once `render()` runs. `showSheet` records the opener only when the sheet was closed, so opening a river from the list keeps the original opener.
 
-CSS: the focused sheet container must not show a ring on every programmatic focus:
-
-```css
-#sheet:focus { outline: none; }
-```
+CSS: `#sheet:focus { outline: none; }` (programmatic focus on the container should not draw a ring).
 
 - [ ] **Step 3: 44 px targets**
 
@@ -919,14 +983,32 @@ CSS: the focused sheet container must not show a ring on every programmatic focu
 .sbar button { min-height: 44px; }
 ```
 
-(Replace the existing `min-height: 30px` and `min-height: 32px` and the `padding: 6px 12px` / `padding: 6px 4px` declarations.)
+Replace the existing `min-height: 30px` and `min-height: 32px` and the `padding: 6px 12px` / `padding: 6px 4px` declarations on those two rules.
 
-- [ ] **Step 4: Verify**
+- [ ] **Step 4: Readable teal in dark mode**
+
+Add a text-colour token. Light `:root` block: `--on-text: #007c9e;` (4.80:1 on white). Both dark blocks: `--on-text: #4fc3dc;` (about 8.3:1 on `#1c1c1e`). Keep `--on` as is for fills, because white on `--on` is 4.80:1 in both modes.
+
+Use it wherever teal is text on the surface or sheet:
+
+```css
+a { color: var(--on-text); }
+.sbar button { color: var(--on-text); }
+.lab.water { fill: var(--on-text); }
+```
+
+(In `.sbar button` the existing rule sets `color: var(--on)`; change that declaration, do not add a second one.)
+
+- [ ] **Step 5: Directions right under the header**
+
+In `fillSheet`, move the `dir` link so it follows `head` instead of following the advisory. Old order of the final concatenation: `head + '<section>…What’s biting…</section>' + '<section class="advisory">…' + '<a class="dir" …>…</a>' + '<div class="foot">…'`. New order: `head + '<a class="dir" …>…</a>' + '<section>…What’s biting…</section>' + '<section class="advisory">…' + '<div class="foot">…'`. The advisory and footer stay in the sheet, unchanged.
+
+- [ ] **Step 6: Verify**
 
 Load `http://127.0.0.1:4173/?today=2026-10-18`, then:
 
 ```js
-// every visible button is tall enough
+// every button is tall enough
 [...document.querySelectorAll('button')].filter(b => b.getBoundingClientRect().height < 44).map(b => b.textContent)
 // expect []
 
@@ -940,18 +1022,27 @@ window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
 document.activeElement === pin  // expect true
 ```
 
-Then open the list and click a row: focus is in the sheet; Escape returns focus to `#listbtn`. Take a screenshot at the `mobile` preset and confirm the bar (header, notice if any, species row with the 44 px buttons) still leaves the map usable; if the bar covers more than about a third of the screen, drop `.brand .sub` onto the same line as the title rather than shrinking buttons below 44 px.
+At the `mobile` preset with the Cowlitz sheet open:
 
-- [ ] **Step 5: Commit**
+```js
+document.querySelector('.dir').getBoundingClientRect().bottom <= document.querySelector('#sbody').getBoundingClientRect().bottom
+// expect true: Directions is visible without scrolling
+```
+
+In dark mode confirm `getComputedStyle(document.querySelector('#sdone')).color` is `rgb(79, 195, 220)`. Open the list and click a row: focus is in the sheet; Escape returns focus to `#listbtn`. Take a screenshot at `mobile`: if the species bar plus header covers more than about a third of the screen, move `.brand .sub` onto the title line rather than shrinking buttons below 44 px.
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add Artifacts/salmon-rivers/index.html
-git commit -m "Give the salmon sheet one heading, focus handling and 44 px buttons
+git commit -m "Tidy the salmon sheet: one heading, focus handling, readable teal
 
-The river name appeared twice in the sheet, focus stayed on the map when
-the sheet opened, and the filter buttons were 30 px tall. The sheet title
-is now the single heading, focus moves in and returns to the pin or the
-Rivers button on close, and every button is at least 44 px.
+The river name appeared twice, focus stayed on the map when the sheet
+opened, filter buttons were 30 px, teal text was 3.55:1 on the dark sheet,
+and Directions sat below the fold on a phone. The sheet title is now the
+single heading, focus moves in and returns to the opener, teal text uses a
+lighter token in dark mode, Directions follows the header, and every
+button is at least 44 px.
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
