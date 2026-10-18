@@ -12,21 +12,22 @@ be parsed is kept as a visible row, not dropped.
 """
 
 import argparse
-from typing import Any
 import datetime
 import re
 import sqlite3
 import subprocess
 import sys
+import urllib.parse
 import urllib.request
 from pathlib import Path
+from typing import Any
 
 HOST = "https://wdfw.wa.gov"
 INDEX = HOST + "/fishing/reports/creel/southwest"
 ROOT = Path.home() / "database" / "salmon-rivers"
 PDFS = ROOT / "pdf"
 DB = ROOT / "salmon.db"
-YEARS = ("2025", "2026")
+YEARS = tuple(str(y) for y in range(2019, 2027))
 
 MONTHS = {
     m: i
@@ -97,8 +98,8 @@ def fetch():
     html = urllib.request.urlopen(INDEX, timeout=60).read().decode("utf-8", "replace")
     urls = pdf_urls(html)
     if not urls:
-        sys.exit("fetch: the index page listed no 2025/2026 PDFs")
-    (ROOT / "urls-2025-2026.txt").write_text("\n".join(urls) + "\n")
+        sys.exit("fetch: the index page listed no PDFs")
+    (ROOT / "urls.txt").write_text("\n".join(urls) + "\n")
     for u in urls:
         dest = PDFS / Path(u).name
         if not dest.exists() or not dest.stat().st_size:
@@ -106,25 +107,47 @@ def fetch():
             print("fetched", dest.name)
 
 
-def week_from_name(stem):
-    """The report week as (start, end) dates, from the file name."""
+def week_from_name(stem, rd):
+    """(start, end) of the week named in the file name, or None. The year comes
+    from the report date, not the name: old names have no year or a mangled one."""
     toks = []
-    for t in re.findall(r"[a-z]+|\d+", stem.lower()):
-        m = re.fullmatch(r"(\d{1,2})(2025|2026)", t)
+    for t in re.findall(r"[a-z]+|\d+", urllib.parse.unquote(stem).lower()):
+        m = re.fullmatch(r"(\d{1,2})(20\d\d)", t)
         toks += list(m.groups()) if m else [t]
-    year = next(int(t) for t in toks if t in YEARS)
-    toks = toks[: toks.index(str(year))]
-    seq = [t for t in toks if t.isdigit() or t[:3] in MONTHS and len(t) > 2]
-    seq = [t for t in seq if not (t[:3] == "rep" or t[:3] == "sum")]
-    seq = [t for t in seq if t.isdigit() or t[:3] in MONTHS]
-    m1 = MONTHS[seq[0][:3]]
-    d1 = int(seq[1])
-    if seq[2].isdigit():
-        m2, d2 = m1, int(seq[2])
-    else:
-        m2, d2 = MONTHS[seq[2][:3]], int(seq[3])
-    y1 = year - 1 if m1 > m2 else year
-    return datetime.date(y1, m1, d1), datetime.date(year, m2, d2)
+    seq = []
+    for t in toks:
+        if t.isdigit() and len(t) > 2:
+            break
+        if t.isdigit() or (t[:3] in MONTHS and len(t) >= 3 and t not in ("report", "reports")):
+            seq.append(t)
+    try:
+        m1 = MONTHS[seq[0][:3]]
+        d1 = int(seq[1])
+        if seq[2].isdigit():
+            m2, d2 = m1, int(seq[2])
+        else:
+            m2, d2 = MONTHS[seq[2][:3]], int(seq[3])
+    except (IndexError, KeyError, ValueError):
+        return None
+    for year in (rd.year, rd.year - 1):
+        try:
+            end = datetime.date(year, m2, d2)
+            start = datetime.date(year - 1 if m1 > m2 else year, m1, d1)
+        except ValueError:
+            continue
+        if 0 <= (rd - end).days <= 10 and 4 <= (end - start).days <= 8:
+            return start, end
+    return None
+
+
+def week_for(stem, rd):
+    """(start, end, where it came from). With no usable name, the Monday to
+    Sunday week before the report date: every report is dated 1-4 days after its week."""
+    named = week_from_name(stem, rd)
+    if named:
+        return (*named, "file name")
+    end = rd - datetime.timedelta(days=(rd.weekday() + 1) % 7 or 7)
+    return end - datetime.timedelta(days=6), end, "report date"
 
 
 def report_date(text):
@@ -162,10 +185,11 @@ def entries(text):
     out, cur, in_block = [], None, False
     for raw in text.splitlines():
         line = raw.strip().lstrip("\u2022").strip()
+        heading = line.rstrip(":")
         if line.startswith("Washington Department of Fish and Wildlife") or not line:
             continue
-        if line in HEADINGS:
-            in_block = line == "Salmon/Steelhead"
+        if heading in HEADINGS:
+            in_block = heading == "Salmon/Steelhead"
             cur = None
             continue
         if not in_block:
@@ -291,33 +315,48 @@ def parse_body(body: str) -> dict[str, Any]:
 
 
 SCHEMA = """
-CREATE TABLE reports (pdf TEXT PRIMARY KEY, week_start TEXT, week_end TEXT, report_date TEXT,
-                      url TEXT, text_chars INTEGER, entries INTEGER);
+CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
+CREATE TABLE reports (pdf TEXT PRIMARY KEY, week_start TEXT, week_end TEXT, week_source TEXT,
+                      report_date TEXT, url TEXT, text_chars INTEGER, entries INTEGER);
 CREATE TABLE entries (id INTEGER PRIMARY KEY, pdf TEXT, river TEXT, reach TEXT, status TEXT,
                       bank_anglers INTEGER, boat_rods INTEGER, anglers INTEGER, line TEXT);
 CREATE TABLE catch (entry_id INTEGER, species TEXT, kept INTEGER, released INTEGER);
+CREATE TABLE flights (pdf TEXT, boats INTEGER, bank_rods INTEGER, line TEXT);
 CREATE TABLE parse_failures (pdf TEXT, week TEXT, river TEXT, reason TEXT, line TEXT);
 CREATE VIEW board AS
 SELECT e.river || CASE WHEN e.reach = '' THEN '' ELSE ', ' || e.reach END AS River,
        COALESCE(c.species, CASE e.status WHEN 'no catch' THEN '(no catch)'
                                          WHEN 'not parsed' THEN '(not parsed)' END) AS Species,
        r.week_start || ' to ' || substr(r.week_end, 6) AS Week,
-       e.anglers AS Anglers, c.kept AS Kept, c.released AS Released, r.url AS Source
+       e.anglers AS Anglers, c.kept AS Kept, c.released AS Released,
+       CASE WHEN c.kept IS NOT NULL AND e.anglers > 0
+            THEN round(c.kept * 100.0 / e.anglers, 1) END AS "Kept/100",
+       e.bank_anglers AS Bank, e.boat_rods AS "Boat rods",
+       r.report_date AS Reported, r.url AS Source, e.line AS "Report text"
 FROM entries e JOIN reports r USING (pdf) LEFT JOIN catch c ON c.entry_id = e.id
 WHERE e.status IN ('reported', 'no catch', 'not parsed')
 ORDER BY r.week_start DESC, e.river, e.reach, c.species;
+CREATE VIEW flight_counts AS
+SELECT r.week_start || ' to ' || substr(r.week_end, 6) AS Week, f.boats AS Boats,
+       f.bank_rods AS "Bank rods", r.report_date AS Reported, r.url AS Source, f.line AS "Report text"
+FROM flights f JOIN reports r USING (pdf)
+ORDER BY r.week_start DESC;
 """
+
+FLIGHT = re.compile(r"([\d,]+)\s+salmonid\s+boats\s+and\s+([\d,]+)\s+Washington\s+bank\s+rods", re.I)
 
 
 def build():
-    urls = {Path(u).name: u for u in (ROOT / "urls-2025-2026.txt").read_text().split()}
+    urls = {Path(u).name: u for u in (ROOT / "urls.txt").read_text().split()}
     db_tmp = DB.with_suffix(".db.new")
     db_tmp.unlink(missing_ok=True)
     con = sqlite3.connect(db_tmp)
     con.executescript(SCHEMA)
+    con.execute(
+        "INSERT INTO meta VALUES ('built_at', ?)",
+        (datetime.datetime.now().isoformat(timespec="seconds"),),
+    )
     for pdf in sorted(PDFS.glob("*.pdf")):
-        ws, we = week_from_name(pdf.stem)
-        week = f"{ws} to {we}"
         text = subprocess.run(
             ["pdftotext", "-layout", str(pdf), "-"],
             capture_output=True,
@@ -326,84 +365,77 @@ def build():
         ).stdout
         url = HOST + urls[pdf.name]
         rd = report_date(text)
-        found = entries(text)
-        con.execute(
-            "INSERT INTO reports VALUES (?,?,?,?,?,?,?)",
-            (
-                pdf.name,
-                str(ws),
-                str(we),
-                str(rd) if rd else None,
-                url,
-                len(text),
-                len(found),
-            ),
-        )
 
-        def fail(river, reason, line=""):
+        def fail(river, reason, line="", week=""):
             con.execute(
                 "INSERT INTO parse_failures VALUES (?,?,?,?,?)",
                 (pdf.name, week, river, reason, line),
             )
 
-        if len(text.strip()) < 500:
+        if len(text.strip()) < 300:
             fail("", "no text layer (image-only PDF?)")
             continue
-        if rd is None or not 0 <= (rd - we).days <= 10:
-            fail("", f"report date {rd} is not within 10 days after the week end {we}")
+        if rd is None:
+            fail("", "no report date found, so the week cannot be placed")
+            continue
+        ws, we, how = week_for(pdf.stem, rd)
+        week = f"{ws} to {we}"
+        found = entries(text)
+        con.execute(
+            "INSERT INTO reports VALUES (?,?,?,?,?,?,?,?)",
+            (pdf.name, str(ws), str(we), how, str(rd), url, len(text), len(found)),
+        )
         if not found:
-            fail("", "no river entries found in a Salmon/Steelhead block")
+            fail("", "no river entries found in a Salmon/Steelhead block", week=week)
             continue
         for name, body in found:
             cls = classify(name)
-            if cls in (None, "skip"):
+            if cls is None:
+                continue
+            line = f"{name} - {body}"
+            if cls == "skip":
+                m = FLIGHT.search(body)
+                if m:
+                    con.execute(
+                        "INSERT INTO flights VALUES (?,?,?,?)",
+                        (pdf.name, num(m.group(1)), num(m.group(2)), line),
+                    )
+                else:
+                    fail("Flight count", "flight count sentence not recognised", line, week)
                 continue
             river, reach = cls
-            line = f"{name} - {body}"
             try:
                 for bad, good in TYPOS.items():
                     body = body.replace(bad, good)
                 p = parse_body(body)
             except ValueError as err:
-                cur = con.execute(
+                con.execute(
                     "INSERT INTO entries (pdf, river, reach, status, line) VALUES (?,?,?,?,?)",
                     (pdf.name, river, reach, "not parsed", line),
                 )
-                fail(f"{river} {reach}".strip(), str(err), line)
+                fail(f"{river} {reach}".strip(), str(err), line, week)
                 continue
             cur = con.execute(
                 "INSERT INTO entries (pdf, river, reach, status, bank_anglers, boat_rods, anglers, line)"
                 " VALUES (?,?,?,?,?,?,?,?)",
-                (
-                    pdf.name,
-                    river,
-                    reach,
-                    p["status"],
-                    p["bank"],
-                    p["boat"],
-                    p["anglers"],
-                    line,
-                ),
+                (pdf.name, river, reach, p["status"], p["bank"], p["boat"], p["anglers"], line),
             )
             for sp in sorted(set(p["kept"]) | set(p["released"])):
                 con.execute(
                     "INSERT INTO catch VALUES (?,?,?,?)",
                     (cur.lastrowid, sp, p["kept"].get(sp), p["released"].get(sp)),
                 )
-    dup = con.execute(
+    for pdf, river, reach, n in con.execute(
         "SELECT pdf, river, reach, count(*) FROM entries GROUP BY 1,2,3 HAVING count(*) > 1"
-    ).fetchall()
-    for pdf, river, reach, n in dup:
+    ).fetchall():
         con.execute(
             "INSERT INTO parse_failures VALUES (?,?,?,?,?)",
-            (
-                pdf,
-                "",
-                f"{river} {reach}".strip(),
-                f"{n} entries for the same river and reach",
-                "",
-            ),
+            (pdf, "", f"{river} {reach}".strip(), f"{n} entries for the same river and reach", ""),
         )
+    for pdf, d in con.execute(
+        "SELECT pdf, report_date FROM reports WHERE week_source = 'report date'"
+    ).fetchall():
+        pass
     con.commit()
     con.close()
     db_tmp.replace(DB)
@@ -422,5 +454,7 @@ if __name__ == "__main__":
         ("catch rows", "SELECT count(*) FROM catch"),
         ("parse failures", "SELECT count(*) FROM parse_failures"),
         ("board rows", "SELECT count(*) FROM board"),
+        ("flight counts", "SELECT count(*) FROM flights"),
+        ("weeks placed by report date", "SELECT count(*) FROM reports WHERE week_source = 'report date'"),
     ]:
         print(label, con.execute(q).fetchone()[0])
