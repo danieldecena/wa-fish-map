@@ -1,0 +1,53 @@
+# Salmon rivers page
+
+The published page "SW Washington Salmon Rivers": a full-bleed river map of six southwest Washington salmon fisheries (Cowlitz, Lower Columbia, Lewis, Wind, Klickitat, Drano Lake) with a coho/chinook filter, a ranked Rivers list and a detail sheet. It shows recent catch reports, not season dates, and routes people to WDFW to confirm rules. It is not part of the iOS app.
+
+Live: https://claude.ai/artifact/9oA145toRsmFcDYurdJbey (binding and versions in `artifact.json`).
+
+## Files
+
+| File | What it is |
+| --- | --- |
+| `index.html` | Page source: CSS, markup, map and sheet code. No doctype or head; the publisher wraps it. |
+| `reports.js` | The six rivers' report data (`SITES`) plus pure logic: rating pick, freshness, ranking, date text. Runs in the browser and in Node. |
+| `geo.js` | Map geometry. Generated elsewhere (the generator is not in this repo). Do not hand-edit. |
+| `test/reports.test.js` | Node tests for `reports.js`. |
+| `test/baseline-pins.json` | Pin colours per species filter from the page as first published; a Task 2 check that nothing changed visibly. |
+| `baseline.html` | The page as first published, single file. The rollback source. |
+| `serve.js` | Local static server that wraps `index.html` the way the publisher does. |
+
+## Run and test
+
+```bash
+node Artifacts/salmon-rivers/serve.js          # http://127.0.0.1:4173/
+node --test "Artifacts/salmon-rivers/test/*.test.js"
+```
+
+No dependencies to install. Add `?today=2026-10-26` to the local URL to see how the page looks on another date (the stale-reports banner appears once the newest report is more than 7 days old).
+
+## Refresh the reports
+
+Edit `SITES` in `reports.js`. Each species entry has `r` (`prime`, `good` or `fair`), `asOf` (the date of the report it comes from, `YYYY-MM-DD`) and `d` (the sentence shown). Rules:
+
+- Never invent a date. If the source does not date a statement, use `asOf: null` and the page says "Date not given".
+- Keep dates out of the sentence; the date chip shows them.
+- Run the tests; one of them rejects a bad date or a date left in the prose.
+
+## Publish and roll back
+
+Publishing replaces the live page. Read the live artifact first (it refuses a stale base), then publish `index.html` to the same URL with both scripts:
+
+```
+Artifact  file_path=Artifacts/salmon-rivers/index.html
+          url=https://claude.ai/artifact/9oA145toRsmFcDYurdJbey
+          files={ "geo.js": "Artifacts/salmon-rivers/geo.js", "reports.js": "Artifacts/salmon-rivers/reports.js" }
+```
+
+Record the new version id in `artifact.json`. To roll back, publish `baseline.html` to the same URL as the page file (pass `files={ "geo.js": null, "reports.js": null }` to remove the scripts). Never pass `force`.
+
+## Rules that bind this page
+
+- Guidance, not regulation. The advisory, the WDFW link and the "not season dates" line stay on every sheet and on the list.
+- Rating is always also written as text; colour alone is not enough (orange and yellow fail this repo's colour-blind gate for deuteranopia).
+- Text 4.5:1, pins 3:1, buttons at least 44 px, light and dark.
+- No network requests from the page.
