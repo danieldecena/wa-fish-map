@@ -119,3 +119,31 @@ test('every rating has its own word for a pin label, and a single pin falls back
   assert.match(html, /pn\.cands = \[tLabel\(p\.s\), tShort\(p\.s\)\];/, 'Typical pins offer the full label, then the rating word');
   assert.match(html, /function tShort\(t\) \{ return Season\.SHORT\[t\.vw\.r\]; \}/);
 });
+
+// ---- the neutral cluster token ----
+
+const over = (fg, a, bg) => fg.map((c, i) => c * a + bg[i] * (1 - a));
+const contrast = (a, b) => { const y = rgb => { const l = rgb.map(lin); return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]; }; const p = y(a), q = y(b); return (Math.max(p, q) + 0.05) / (Math.min(p, q) + 0.05); };
+const rgbaOf = v => { const m = /rgba\((\d+),(\d+),(\d+),([\d.]+)\)/.exec(v.replace(/\s/g, '')); return { rgb: [+m[1], +m[2], +m[3]], a: +m[4] }; };
+
+test('--cluster is a neutral token in both themes and cannot be mistaken for a rating', () => {
+  const dark = { ...light, ...darkForced };
+  for (const [theme, t] of [['light', light], ['dark', dark]]) {
+    assert.match(t['--cluster'], /^#[0-9a-f]{6}$/, `${theme} --cluster`);
+    const [r, g, b] = hex(t['--cluster']);
+    assert.ok(Math.max(r, g, b) - Math.min(r, g, b) <= 4, `${theme} --cluster is a neutral (no hue)`);
+    for (const k of Object.keys(RAMP)) assert.notEqual(t['--cluster'], t[k], `${theme} --cluster equals ${k}`);
+    const ground = hex(t['--ground']);
+    // The number reads on the fill, and the ring (pin-edge) separates the fill from the ground, at the 4.5:1 text and 3:1 graphic floors.
+    assert.ok(contrast(hex(t['--ink']), hex(t['--cluster'])) >= 4.5, `${theme} ink on cluster`);
+    const ring = rgbaOf(t['--pin-edge']);
+    assert.ok(contrast(over(ring.rgb, ring.a, ground), ground) >= 3, `${theme} ring on ground`);
+  }
+  assert.notEqual(light['--cluster'], darkForced['--cluster'], 'the token has a light and a dark value');
+});
+
+test('neutral cluster styling and its legend entry exist, and no rating colour is applied to a neutral cluster', () => {
+  assert.match(html, /\.cluster\.neutral text \{ fill: var\(--ink\); \}/);
+  assert.equal((html.match(/Count: several sites/g) || []).length, 3, 'one legend entry in the page and one in each mode switch string');
+  assert.match(html, /\.legend li\.cl i \{ box-shadow: inset 0 0 0 1px var\(--pin-edge\); \}/);
+});

@@ -157,10 +157,27 @@
     return list.slice().sort(function (a, b) { return a - b; }).map(function (m) { return MONTHS[m - 1].slice(0, 3); }).join(', ');
   }
 
+  /* "Most sites rate the same": more than 80 percent of the rated sites in view share one rating. Unrated sites carry no rating and are
+     not counted, and fewer than 10 rated sites is too few to say "most". The caller passes the page's rating tokens, one per site. */
+  var SAME_SHARE = 0.8, SAME_MIN = 10;
+  function agreement(tokens) {
+    var count = {}, n = 0, best = null;
+    tokens.forEach(function (r) {
+      if (r === 'unrated') return;
+      n++; count[r] = (count[r] || 0) + 1;
+      if (best === null || count[r] > count[best]) best = r;
+    });
+    return n === 0 ? null : { r: best, share: count[best] / n, n: n };
+  }
+  function mostlySame(tokens) {
+    var a = agreement(tokens);
+    return a !== null && a.n >= SAME_MIN && a.share > SAME_SHARE;
+  }
+
   var KIND_LABEL = { pier: 'Pier', launch: 'Boat launch', access: 'Shore access' };
 
   return {
-    POOR: POOR, FAIR: FAIR, GOOD: GOOD, EXCELLENT: EXCELLENT, TOKEN: TOKEN, LABEL: LABEL, SHORT: SHORT, RANK: RANK, MONTHS: MONTHS, KIND_LABEL: KIND_LABEL,
+    POOR: POOR, FAIR: FAIR, GOOD: GOOD, EXCELLENT: EXCELLENT, TOKEN: TOKEN, LABEL: LABEL, SHORT: SHORT, SAME_SHARE: SAME_SHARE, SAME_MIN: SAME_MIN, agreement: agreement, mostlySame: mostlySame, RANK: RANK, MONTHS: MONTHS, KIND_LABEL: KIND_LABEL,
     circularMonthDistance: circularMonthDistance, riskMatches: riskMatches, resolveRisk: resolveRisk, offYear: offYear, stamp: stamp,
     speciesRating: speciesRating, breadthRating: breadthRating, areaRating: areaRating, closurePlausible: closurePlausible,
     inSeason: inSeason, prepare: prepare, siteView: siteView, siteRows: siteRows, monthsText: monthsText

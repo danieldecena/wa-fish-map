@@ -23,6 +23,7 @@
   --fair: #ffcc00;
   --slow: #007aff;
   --unrated: #8e8e93;
+  --cluster: #ffffff;
   --brand-a: #1797ae;
   --brand-b: #004a79;
   --lift: 0 6px 22px rgba(0,0,0,0.14);
@@ -49,6 +50,7 @@
     --good: #ff9f0a;
     --fair: #ffd60a;
     --slow: #0a84ff;
+    --cluster: #2c2c2e;
     --lift: 0 6px 22px rgba(0,0,0,0.5);
     color-scheme: dark;
   }
@@ -72,6 +74,7 @@
   --good: #ff9f0a;
   --fair: #ffd60a;
   --slow: #0a84ff;
+  --cluster: #2c2c2e;
   --lift: 0 6px 22px rgba(0,0,0,0.5);
   color-scheme: dark;
 }
@@ -123,6 +126,8 @@ a { color: var(--on-text); }
 .cluster { pointer-events: auto; cursor: pointer; outline: none; }
 .cluster circle { fill: var(--rc); stroke: var(--pin-edge); stroke-width: 2; }
 .cluster text { fill: var(--gl, #fff); font: 700 11px/13px var(--sans); text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; }
+.cluster.neutral circle { fill: var(--cluster); }
+.cluster.neutral text { fill: var(--ink); }
 .cluster:focus-visible circle { stroke: var(--on); stroke-width: 3; }
 
 .lab { font: 600 11px/13px var(--sans); fill: var(--ink); paint-order: stroke; stroke: var(--halo); stroke-width: 3.2px; stroke-linejoin: round; }
@@ -162,6 +167,7 @@ a { color: var(--on-text); }
 .brand .listbtn { flex: none; margin-left: auto; align-self: flex-start; }
 .brand .title { font-size: 17px; line-height: 22px; font-weight: 600; text-wrap: balance; }
 .brand .sub { font-size: 12px; line-height: 16px; color: var(--ink2); }
+.hint { margin: -4px 2px 0; font-size: 12px; line-height: 16px; color: var(--ink2); }
 .notice { font-size: 12px; line-height: 16px; background: var(--fill-advisory); border-radius: 10px; padding: 8px 10px; }
 @media (max-width: 759px) { #app.sheet-open .notice { display: none; } }
 .seg { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -191,6 +197,7 @@ a { color: var(--on-text); }
 .legend li { display: flex; align-items: center; gap: 3px; font-size: 11px; line-height: 13px; }
 .legend i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); display: block; }
 .legend li.fade i { opacity: 0.55; }
+.legend li.cl i { box-shadow: inset 0 0 0 1px var(--pin-edge); }
 .legend .fine { margin-top: 6px; font-size: 11px; line-height: 13px; color: var(--ink2); }
 .zoom { flex: none; display: flex; flex-direction: column; overflow: hidden; }
 .zoom button { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: transparent; cursor: pointer; }
@@ -316,6 +323,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       </div>
       <div class="sppanel" id="sppanel" role="radiogroup" aria-label="Species" hidden></div>
       <div class="notice" id="notice" role="status" hidden></div>
+      <div class="hint" id="hint" hidden></div>
     </div>
 
     <div class="bottom" id="bottom">
@@ -326,6 +334,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
           <li style="--c:var(--good)"><i></i>Good</li>
           <li style="--c:var(--fair)"><i></i>Fair</li>
           <li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li>
+          <li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>
         </ul>
         <div class="fine" id="legf">Catch reports, not season dates. Confirm rules on WDFW.</div>
       </div>
@@ -382,6 +391,9 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   var view = 'reports';
   var MONTH = +TODAY.slice(5, 7), YEAR = +TODAY.slice(0, 4);
   var TYPICAL_LINE = 'Typical timing from WA Fish Map guidance, not a catch report and not a claim a fishery is open.';
+  var SAME_LINE = 'Most sites rate the same this month. Pick a species to see differences.';
+  var hintEl = $('#hint');
+  hintEl.textContent = SAME_LINE;
   var TS = null, TBY = null, prep = null;
 
   function viewOf(s) { return Reports.viewOf(s, species, TODAY); }
@@ -649,8 +661,11 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
         var c = getCluster(ci++);
         c.g.style.display = '';
         c.g.setAttribute('transform', 'translate(' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ') scale(0.95)');
-        c.g.style.setProperty('--rc', colorVar(g[0].vw.r));
-        c.g.style.setProperty('--gl', glyphColor(g[0].vw.r));
+        // A group is coloured only when its colour is true of every member (Cluster.look); otherwise it is neutral and shows the count.
+        var look = Cluster.look(g, view);
+        c.g.classList.toggle('neutral', look.neutral);
+        if (look.neutral) { c.g.style.removeProperty('--rc'); c.g.style.removeProperty('--gl'); }
+        else { c.g.style.setProperty('--rc', colorVar(look.r)); c.g.style.setProperty('--gl', glyphColor(look.r)); }
         c.t.textContent = g.length;
         c.g.__members = g.map(function (m) { return m.s; });
         c.g.setAttribute('data-cluster', g.length <= 12 ? g.map(function (m) { return m.s.id; }).join(',') : String(g.length));
@@ -658,6 +673,9 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
         boxes.push([cx - 16, cy - 34, 32, 36]);
       }
     });
+    // Computed from the sites in view, not stored: it appears only in All species, where one rating can hide that species differ.
+    var showHint = typ && species === null && Season.mostlySame(pts.map(function (q) { return q.vw.r; }));
+    if (hintEl.hidden === showHint) hintEl.hidden = !showHint;
     // pin labels first, then landmarks by priority
     // The selected pin's label goes first and may sit over a neighbouring pin; a label that would run off the right edge flips to the left of its pin.
     var labelGroups = groups.filter(function (g) { return g.length === 1; });
@@ -1070,8 +1088,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       : 'Southwest Washington · reports through ' + Reports.formatDay(Reports.latestReport(SITES));
     $('#legt').textContent = typ ? 'Typical timing, ' + Season.MONTHS[MONTH - 1] : 'Recent catch reports';
     $('#legl').innerHTML = typ
-      ? '<li style="--c:var(--prime)"><i></i>Prime</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li style="--c:var(--slow)"><i></i>Slow</li><li style="--c:var(--unrated)"><i></i>No seasonal guidance</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: season often varies</li>'
-      : '<li style="--c:var(--prime)"><i></i>Excellent</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li>';
+      ? '<li style="--c:var(--prime)"><i></i>Prime</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li style="--c:var(--slow)"><i></i>Slow</li><li style="--c:var(--unrated)"><i></i>No seasonal guidance</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: season often varies</li><li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>'
+      : '<li style="--c:var(--prime)"><i></i>Excellent</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li><li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>';
     $('#legf').textContent = typ ? TYPICAL_LINE + ' Confirm rules on WDFW.' : 'Catch reports, not season dates. Confirm rules on WDFW.';
     var n = typ ? TYPICAL_LINE : Reports.staleNotice(SITES, TODAY);
     $('#notice').textContent = n || ''; $('#notice').hidden = !n;

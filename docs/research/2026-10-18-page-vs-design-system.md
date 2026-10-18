@@ -57,7 +57,9 @@ Recommendation for the design-system owner: update `rating-*` to the system valu
 | cluster scale | 0.95 | marker-cluster 0.95 | match |
 | pin shape | teardrop balloon with the fish brand glyph on every kind | MapKit balloon with a per-kind glyph (boat, angler, fish) | drift kept: per-kind glyph art does not exist for the page; the design system's own previews draw stand-ins. Recommend adding the three glyphs |
 | closure-plausible pin treatment | whole pin faded to 0.55 | pale balloon with the rating colour on the glyph; faded is for "closed" | drift kept: needs a pin redraw, outside this pass. Recommend adopting the pale-balloon treatment so the state survives for a colour-blind reader |
-| cluster colour | best member's colour | best member's colour (map-language) | match now; changes in Typical season in commit 4, on purpose (see that section when it lands) |
+| cluster colour, Typical season | neutral (`--cluster`) with the count | best member's colour (map-language, SiteMarker) | drift kept: deliberate, see "Clusters" below |
+| cluster colour, Recent reports | best member's colour only when every member agrees, else neutral | best member's colour | drift kept: deliberate, see "Clusters" below |
+| `--cluster` | `#ffffff` / `#2c2c2e` | none | no system value |
 | glass card inset | 16 px both widths, was | 8 px compact, 12 px regular | drift fixed (8 and 12) |
 | glass card padding | 10 px vertical, 12 px horizontal | 10 px vertical, platform inset horizontal | match |
 | glass card max width | 460 px | 460 px | match |
@@ -116,3 +118,14 @@ Lightness steps (L*) between ramp stops after a Machado severity 1.0 simulation 
 | good vs fair (orange vs yellow) | 12.8 | 11.3 / 11.7 | 15.4 / 15.6 |
 
 The app's gate is 12 L* between adjacent stops. Red vs orange clears it, narrowly under deuteranopia. The weak pair is orange vs yellow, which falls just under it, as the README already said. So the fix is not new hues. Every single pin in Typical season now carries a word: the full "Name, rating" label where it fits, otherwise the rating word alone (`Season.SHORT`), the way Recent reports labels pins. The glyph already switches between white (prime, slow) and dark (good, fair), a free second cue between red and orange.
+
+## Clusters (commit 4)
+
+`map-language.md` says a cluster "takes the colour of its best-rated member, so a dense area still reads as worth going to". On this page a statewide Typical season cluster holds up to about 90 sites, and the best member says nothing about the others. In October only 8 of 538 rated sites are Prime and 463 are Good, yet at 375 px wide four statewide clusters (of 24, 10, 90 and 86 sites) drew red. The brief for this pass asked for neutral clusters for that reason.
+
+Decision, a deliberate departure from the design system, not an oversight:
+
+- Typical season: every cluster is neutral (`--cluster`, a plain fill with the count). Colour appears only on single pins.
+- Recent reports: a cluster keeps its colour only when every member has the same rating and the same release-only state, otherwise it is neutral. It never holds more than three rivers (observed at 375 px, zoomed all the way out: Cowlitz with Columbia, and Wind with Klickitat and Drano). In All species and Coho those groups agree, so the colour is true. In Chinook they do not: Lewis (Fair) and Columbia (Fair, release only) would have drawn one Fair colour and hidden the release-only state, so they now draw neutral.
+
+The design-system decision for the owner: either adopt "neutral unless unanimous" in `SiteClusterView`, or keep best-member where the group is small. The page implements the first.

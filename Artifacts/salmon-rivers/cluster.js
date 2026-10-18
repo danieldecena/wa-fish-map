@@ -40,5 +40,19 @@
     return groups;
   }
 
-  return { group: group };
+  /* How a group is drawn. A colour on this map means one rating, so a group may carry a colour only when every member has it.
+     Typical season clusters are always neutral: a statewide cluster holds hundreds of sites and its best member says nothing about the rest.
+     Recent reports groups at most the six rivers, so it keeps its colour when all members agree (same rating, same release-only state)
+     and goes neutral when they do not. */
+  function look(members, view) {
+    if (view === 'typical') return { neutral: true };
+    var first = members[0].vw;
+    for (var i = 1; i < members.length; i++) {
+      var w = members[i].vw;
+      if (w.r !== first.r || !!w.release !== !!first.release) return { neutral: true };
+    }
+    return { neutral: false, r: first.r };
+  }
+
+  return { group: group, look: look };
 });

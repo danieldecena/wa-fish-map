@@ -70,3 +70,34 @@ test('thousands of points stay responsive: 5,000 in a few ms, and growth is not 
   console.log(`# all-pairs reference: 5,000 points ${tref.toFixed(1)} ms`);
   assert.ok(tref > t5k, 'control: the reference is slower than the grid');
 });
+
+// ---- how a group is drawn ----
+
+const fs = require('node:fs');
+const path = require('node:path');
+const mk = (...rs) => rs.map((r, i) => ({ id: 'm' + i, vw: typeof r === 'string' ? { r, release: false } : r }));
+
+test('Typical season: a cluster is always neutral, even when every member agrees', () => {
+  assert.deepEqual(C.look(mk('prime', 'good', 'slow'), 'typical'), { neutral: true });
+  assert.deepEqual(C.look(mk('prime', 'prime', 'prime'), 'typical'), { neutral: true }, 'unanimous Prime still says nothing about a statewide group');
+  assert.deepEqual(C.look(mk('good', 'good'), 'typical'), { neutral: true });
+});
+
+test('Recent reports: a cluster keeps its colour only when every member has it', () => {
+  // known-good input: members agree, so the colour is true of all of them
+  assert.deepEqual(C.look(mk('good', 'good'), 'reports'), { neutral: false, r: 'good' });
+  // known-bad inputs: one member differs in rating, or in release-only state, so a colour would mislead
+  assert.deepEqual(C.look(mk('prime', 'good'), 'reports'), { neutral: true });
+  assert.deepEqual(C.look(mk('good', 'prime'), 'reports'), { neutral: true }, 'order does not decide it');
+  assert.deepEqual(C.look(mk('fair', { r: 'fair', release: true }), 'reports'), { neutral: true });
+  assert.deepEqual(C.look(mk('unrated', 'good'), 'reports'), { neutral: true });
+});
+
+test('the page draws clusters through Cluster.look and never from the best member', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const render = html.slice(html.indexOf('function render()'), html.indexOf('/* ---- gestures ---- */'));
+  assert.match(render, /var look = Cluster\.look\(g, view\);/);
+  assert.match(render, /c\.g\.classList\.toggle\('neutral', look\.neutral\);/);
+  assert.doesNotMatch(render, /colorVar\(g\[0\]\.vw\.r\)/, 'a cluster must not take its first (best) member colour');
+  assert.match(html, /\.cluster\.neutral circle \{ fill: var\(--cluster\); \}/);
+});
