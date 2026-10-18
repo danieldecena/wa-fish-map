@@ -18,6 +18,9 @@ graphify-out/
 # throwaway captures (screenshots, icon previews)
 .scratch/
 
+# subagent-driven-development ledgers, briefs and review packages
+.superpowers/
+
 # Simulated colour-blind frames: regenerate with scripts/cvd_check.py
 docs/design/ramp-check/ramp-*-deuteranopia.png
 docs/design/ramp-check/ramp-*-protanopia.png
