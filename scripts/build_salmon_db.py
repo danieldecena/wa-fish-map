@@ -199,6 +199,10 @@ def classify(name):
         return "Cowlitz", "below I-5 Br" if "downstream" in n else "above I-5 Br"
     if n.startswith("lewis"):
         return "Lewis", ""
+    if n.startswith("kalama"):
+        return "Kalama", ""
+    if n.startswith("washougal"):
+        return "Washougal", ""
     if n.startswith("wind"):
         return "Wind", ""
     if n.startswith("drano") or n.startswith("little white"):
