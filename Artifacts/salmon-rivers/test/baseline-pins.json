@@ -1,0 +1,26 @@
+{
+  "all": [
+    "columbia:var(--prime):false",
+    "cowlitz:var(--prime):false",
+    "drano:var(--good):false",
+    "klickitat:var(--good):false",
+    "lewis:var(--good):false",
+    "wind:var(--good):false"
+  ],
+  "coho": [
+    "columbia:var(--prime):false",
+    "cowlitz:var(--prime):false",
+    "drano:var(--good):false",
+    "klickitat:var(--good):false",
+    "lewis:var(--good):false",
+    "wind:var(--good):false"
+  ],
+  "chinook": [
+    "columbia:var(--fair):true",
+    "cowlitz:var(--fair):true",
+    "drano:var(--good):false",
+    "klickitat:var(--good):false",
+    "lewis:var(--fair):false",
+    "wind:var(--fair):false"
+  ]
+}

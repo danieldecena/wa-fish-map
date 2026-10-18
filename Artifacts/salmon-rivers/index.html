@@ -1,0 +1,760 @@
+<title>Washington Salmon Rivers</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout concept: a full-bleed, muted river map in the WA Fish Map app's language. Glass chrome floats over it; detail opens as a bottom sheet on phones and a trailing inspector on wide screens. */
+:root {
+  --ground: #f2f2f7;
+  --surface: #ffffff;
+  --sheet: rgba(255,255,255,0.97);
+  --ink: #000000;
+  --ink2: rgba(60,60,67,0.78);
+  --fill-advisory: rgba(120,120,128,0.16);
+  --fill-row: rgba(116,116,128,0.08);
+  --fill-toggle: rgba(118,118,128,0.14);
+  --glass: rgba(255,255,255,0.76);
+  --glass-line: rgba(60,60,67,0.16);
+  --river: rgba(0,124,158,0.42);
+  --halo: #f2f2f7;
+  --on: #007c9e;
+  --prime: #ff3b30;
+  --good: #ff9500;
+  --fair: #ffcc00;
+  --slow: #007aff;
+  --unrated: #8e8e93;
+  --brand-a: #1797ae;
+  --brand-b: #004a79;
+  --lift: 0 6px 22px rgba(0,0,0,0.14);
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #1c1c1e;
+    --surface: #000000;
+    --sheet: rgba(28,28,30,0.97);
+    --ink: #ffffff;
+    --ink2: rgba(235,235,245,0.74);
+    --fill-advisory: rgba(120,120,128,0.32);
+    --fill-row: rgba(118,118,128,0.24);
+    --fill-toggle: rgba(118,118,128,0.26);
+    --glass: rgba(44,44,46,0.74);
+    --glass-line: rgba(235,235,245,0.18);
+    --river: rgba(64,196,222,0.4);
+    --halo: #1c1c1e;
+    --prime: #ff453a;
+    --good: #ff9f0a;
+    --fair: #ffd60a;
+    --slow: #0a84ff;
+    --lift: 0 6px 22px rgba(0,0,0,0.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #1c1c1e;
+  --surface: #000000;
+  --sheet: rgba(28,28,30,0.97);
+  --ink: #ffffff;
+  --ink2: rgba(235,235,245,0.74);
+  --fill-advisory: rgba(120,120,128,0.32);
+  --fill-row: rgba(118,118,128,0.24);
+  --fill-toggle: rgba(118,118,128,0.26);
+  --glass: rgba(44,44,46,0.74);
+  --glass-line: rgba(235,235,245,0.18);
+  --river: rgba(64,196,222,0.4);
+  --halo: #1c1c1e;
+  --prime: #ff453a;
+  --good: #ff9f0a;
+  --fair: #ffd60a;
+  --slow: #0a84ff;
+  --lift: 0 6px 22px rgba(0,0,0,0.5);
+  color-scheme: dark;
+}
+
+html { box-sizing: border-box; height: 100%; }
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 20px;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+a { color: var(--on); }
+:focus-visible { outline: 2px solid var(--on); outline-offset: 2px; }
+
+#app { position: relative; height: 100%; overflow: hidden; }
+
+/* ---- map ---- */
+#map { position: absolute; inset: 0; overflow: hidden; background: var(--ground); touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+#map.drag { cursor: grabbing; }
+#map svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#over { pointer-events: none; }
+.r { fill: none; stroke: var(--river); stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.r.o2 { stroke-width: 0.5px; opacity: 0.75; }
+.r.o3 { stroke-width: 0.7px; }
+.r.o4 { stroke-width: 1px; }
+.r.o5 { stroke-width: 1.4px; }
+.r.o6 { stroke-width: 1.9px; }
+.r.o7 { stroke-width: 2.5px; }
+.hl path { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.hl .casing { stroke: var(--halo); stroke-width: 7px; opacity: 0.92; }
+.hl .line { stroke: var(--rc); stroke-width: 3.6px; }
+.hl .hit { stroke: transparent; stroke-width: 24px; pointer-events: stroke; cursor: pointer; }
+.hl.closed .line { opacity: 0.55; }
+.hl.sel .line { stroke-width: 5px; }
+
+.pin { pointer-events: auto; cursor: pointer; outline: none; }
+.pin .balloon { fill: var(--rc); stroke: rgba(255,255,255,0.95); stroke-width: 1.5; }
+.pin .glyph path { fill: var(--gl, #fff); }
+.pin .tipshadow { fill: rgba(0,0,0,0.28); }
+.pin.closed .pin-s { opacity: 0.55; }
+.pin:focus-visible .balloon { stroke: var(--on); stroke-width: 3; }
+.cluster { pointer-events: auto; cursor: pointer; outline: none; }
+.cluster circle { fill: var(--rc); stroke: rgba(255,255,255,0.95); stroke-width: 2; }
+.cluster text { fill: var(--gl, #fff); font: 700 11px/13px var(--sans); text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; }
+.cluster:focus-visible circle { stroke: var(--on); stroke-width: 3; }
+
+.lab { font: 600 11px/13px var(--sans); fill: var(--ink); paint-order: stroke; stroke: var(--halo); stroke-width: 3.2px; stroke-linejoin: round; }
+.lab.city { font-weight: 500; fill: var(--ink2); }
+.lab.peak, .lab.dam { font-weight: 500; fill: var(--ink2); }
+.lab.water { font-style: italic; font-weight: 500; fill: var(--on); letter-spacing: 0.04em; text-anchor: middle; }
+.lab.region { font-weight: 600; letter-spacing: 0.32em; fill: var(--ink2); opacity: 0.6; text-anchor: middle; font-size: 10px; }
+.lm-dot { fill: var(--ink2); stroke: var(--halo); stroke-width: 1.5; }
+.lm-peak { fill: var(--ink2); stroke: var(--halo); stroke-width: 1.2; }
+.lm-dam { fill: var(--surface); stroke: var(--ink2); stroke-width: 1.5; }
+
+/* ---- chrome ---- */
+#chrome {
+  position: absolute; inset: 0; pointer-events: none;
+  padding-block: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
+}
+#chrome > * { pointer-events: auto; }
+.glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: saturate(1.8) blur(20px);
+  backdrop-filter: saturate(1.8) blur(20px);
+  border: 1px solid var(--glass-line);
+  border-radius: 14px;
+  box-shadow: var(--lift);
+}
+.bar { align-self: flex-start; width: 100%; max-width: 460px; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand svg { width: 32px; height: 32px; flex: none; }
+.brand .t { min-width: 0; }
+.brand .title { font-size: 17px; line-height: 22px; font-weight: 600; text-wrap: balance; }
+.brand .sub { font-size: 12px; line-height: 16px; color: var(--ink2); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { border: 0; cursor: pointer; padding: 6px 12px; min-height: 30px; border-radius: 999px; background: var(--fill-toggle); font-size: 12px; line-height: 16px; font-weight: 600; }
+.seg button[aria-checked="true"] { background: var(--on); color: #fff; }
+
+.bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.legend { padding: 10px 12px; max-width: 360px; flex: 1 1 auto; min-width: 0; }
+.legend .lt { font-size: 11px; line-height: 13px; font-weight: 600; margin-bottom: 6px; }
+.legend ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.legend li { display: flex; align-items: center; gap: 4px; font-size: 11px; line-height: 13px; }
+.legend i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); display: block; }
+.legend li.fade i { opacity: 0.55; }
+.legend .fine { margin-top: 6px; font-size: 11px; line-height: 13px; color: var(--ink2); }
+.zoom { flex: none; display: flex; flex-direction: column; overflow: hidden; }
+.zoom button { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: transparent; cursor: pointer; }
+.zoom button + button { border-top: 1px solid var(--glass-line); }
+.zoom svg { width: 18px; height: 18px; stroke: var(--ink); fill: none; stroke-width: 2; stroke-linecap: round; }
+
+/* ---- detail sheet ---- */
+#sheet {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  max-height: min(66vh, 580px);
+  display: flex; flex-direction: column;
+  background: var(--sheet);
+  -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px);
+  border-top: 1px solid var(--glass-line);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.18);
+  transform: translateY(104%); visibility: hidden;
+  transition: transform 0.28s cubic-bezier(.2,.8,.2,1), visibility 0s 0.28s;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 5;
+}
+#sheet.open { transform: none; visibility: visible; transition: transform 0.28s cubic-bezier(.2,.8,.2,1); }
+.sbar {
+  position: relative; flex: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--glass-line);
+  background: var(--sheet);
+}
+.sbar .grab { position: absolute; top: 6px; left: 50%; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--fill-advisory); }
+.sbar .st { font-size: 15px; line-height: 20px; font-weight: 600; margin-top: 6px; }
+.sbar button { margin-top: 6px; border: 0; background: transparent; color: var(--on); font-weight: 600; cursor: pointer; padding: 6px 4px; min-height: 32px; }
+.sbody { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 18px max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 18px; }
+.head { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.head h2 { margin: 0; font-size: 20px; line-height: 25px; font-weight: 700; text-wrap: balance; }
+.head p { margin: 0; color: var(--ink2); }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 700; background: color-mix(in srgb, var(--c) 20%, transparent); border: 1px solid var(--c); white-space: nowrap; }
+.badge.faded { opacity: 0.7; }
+.chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; line-height: 16px; font-weight: 600; background: var(--fill-toggle); color: var(--ink2); white-space: nowrap; }
+h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
+.rows { display: flex; flex-direction: column; gap: 8px; }
+.row { background: var(--fill-row); border-radius: 10px; padding: 10px; display: flex; gap: 10px; justify-content: space-between; align-items: flex-start; }
+.row .rt { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.row .nm { font-size: 15px; line-height: 20px; font-weight: 600; }
+.row .dt { font-size: 12px; line-height: 16px; color: var(--ink2); }
+.row .ch { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
+.row .badge { padding: 3px 8px; }
+.advisory { background: var(--fill-advisory); border-radius: 12px; padding: 12px; display: flex; gap: 10px; }
+.advisory svg { flex: none; width: 20px; height: 20px; fill: none; stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; margin-top: 1px; }
+.advisory h3 { margin-bottom: 2px; }
+.advisory p { margin: 0; font-size: 14px; line-height: 19px; }
+.dir { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; background: var(--on); color: #fff; font-weight: 600; text-decoration: none; min-height: 44px; }
+.dir svg { width: 16px; height: 16px; fill: #fff; }
+.foot { display: flex; flex-direction: column; gap: 8px; font-size: 11px; line-height: 14px; color: var(--ink2); }
+.foot a { color: var(--ink2); }
+.foot .src { display: flex; flex-wrap: wrap; gap: 2px 12px; }
+
+@media (min-width: 760px) {
+  .bar { max-width: 460px; }
+  #sheet {
+    left: auto; right: 12px; top: 12px; bottom: 12px; width: 380px; max-height: none;
+    border: 1px solid var(--glass-line); border-radius: 14px;
+    transform: translateX(112%);
+    padding-bottom: 0;
+  }
+  #sheet.open { transform: none; }
+  .sbar { border-radius: 14px 14px 0 0; padding-right: 16px; padding-left: 16px; }
+  .sbar .grab { display: none; }
+  .sbar .st { margin-top: 0; }
+  .sbar button { margin-top: 0; }
+  .sbody { padding-right: 16px; padding-left: 16px; }
+  .zoom { transition: transform 0.28s cubic-bezier(.2,.8,.2,1); }
+  #app.sheet-open .zoom { transform: translateX(-392px); }
+}
+@media (max-width: 759px) {
+  #app.sheet-open .bottom { visibility: hidden; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #sheet, #sheet.open, .zoom { transition: none; }
+}
+</style>
+
+<div id="app">
+  <div id="map" role="application" aria-label="Map of salmon rivers in southwest Washington. Drag to pan, pinch or use the buttons to zoom, select a river marker for details.">
+    <svg id="base" aria-hidden="true"><g id="vp"></g></svg>
+    <svg id="over"></svg>
+  </div>
+
+  <div id="chrome">
+    <div class="glass bar" id="bar">
+      <div class="brand">
+        <svg viewBox="0 0 1024 1024" aria-hidden="true">
+          <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1797ae"/><stop offset="1" stop-color="#004a79"/></linearGradient></defs>
+          <rect width="1024" height="1024" rx="230" fill="url(#bg)"/>
+          <path fill="#fff" d="M456.70 512.00L194.56 389.12L194.56 634.88Z"/>
+          <path fill="#fff" fill-rule="evenodd" d="M337.92 512.00C501.76 386.39 665.60 386.39 829.44 512.00C665.60 637.61 501.76 637.61 337.92 512.00ZM767.18 503.81C767.18 488.43 754.71 475.96 739.33 475.96C723.95 475.96 711.48 488.43 711.48 503.81C711.48 519.19 723.95 531.66 739.33 531.66C754.71 531.66 767.18 519.19 767.18 503.81Z"/>
+        </svg>
+        <div class="t">
+          <div class="title">Salmon this month</div>
+          <div class="sub">Southwest Washington · reports through Oct 17</div>
+        </div>
+      </div>
+      <div class="seg" role="radiogroup" aria-label="Species">
+        <button type="button" role="radio" aria-checked="true" data-f="all">All salmon</button>
+        <button type="button" role="radio" aria-checked="false" data-f="coho">Coho</button>
+        <button type="button" role="radio" aria-checked="false" data-f="chinook">Chinook</button>
+      </div>
+    </div>
+
+    <div class="bottom" id="bottom">
+      <div class="glass legend" id="legend">
+        <div class="lt">Recent catch reports</div>
+        <ul>
+          <li style="--c:var(--prime)"><i></i>Excellent</li>
+          <li style="--c:var(--good)"><i></i>Good</li>
+          <li style="--c:var(--fair)"><i></i>Fair</li>
+          <li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li>
+        </ul>
+        <div class="fine">Catch reports, not season dates. Confirm rules on WDFW.</div>
+      </div>
+      <div class="glass zoom">
+        <button type="button" id="zin" aria-label="Zoom in"><svg viewBox="0 0 18 18"><path d="M9 3v12M3 9h12"/></svg></button>
+        <button type="button" id="zout" aria-label="Zoom out"><svg viewBox="0 0 18 18"><path d="M3 9h12"/></svg></button>
+        <button type="button" id="zfit" aria-label="Reset view"><svg viewBox="0 0 18 18"><path d="M3 6.5V3h3.5M11.5 3H15v3.5M15 11.5V15h-3.5M6.5 15H3v-3.5"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <aside id="sheet" aria-label="River details" aria-hidden="true">
+    <div class="sbar"><span class="grab"></span><span class="st" id="stitle"></span><button type="button" id="sdone">Done</button></div>
+    <div class="sbody" id="sbody"></div>
+  </aside>
+</div>
+
+<script src="geo.js"></script>
+<script>
+(function () {
+  'use strict';
+  var D = window.GEO;
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (s) { return document.querySelector(s); };
+  function el(n, a, p) { var e = document.createElementNS(NS, n); if (a) for (var k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
+  function xy(lon, lat) { return [(lon - D.proj.lon0) * D.proj.kx, (D.proj.lat0 - lat) * D.proj.k]; }
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var BODY = 'M337.92 512.00C501.76 386.39 665.60 386.39 829.44 512.00C665.60 637.61 501.76 637.61 337.92 512.00ZM767.18 503.81C767.18 488.43 754.71 475.96 739.33 475.96C723.95 475.96 711.48 488.43 711.48 503.81C711.48 519.19 723.95 531.66 739.33 531.66C754.71 531.66 767.18 519.19 767.18 503.81Z';
+  var TAIL = 'M456.70 512.00L194.56 389.12L194.56 634.88Z';
+
+  var RANK = { prime: 3, good: 2, fair: 1, slow: 0, unrated: -1 };
+  var LABEL = { prime: 'Excellent', good: 'Good', fair: 'Fair', unrated: 'No report' };
+  var SP_NAME = { coho: 'Coho', chinook: 'Chinook' };
+
+  /* ---- site content: reports through Oct 17, 2026 ---- */
+  var SITES = [
+    { id: 'cowlitz', name: 'Cowlitz River', sub: 'Below the hatchery at Salkum', hl: true,
+      coho: { r: 'prime', d: 'Tacoma Power recovered 3,094 adult coho and 1,876 jacks at the hatchery separator over six days (Oct 17 report).' },
+      chinook: { r: 'fair', release: true, d: 'Chinook are being caught here but must be released (Oct 3 report).' } },
+    { id: 'columbia', name: 'Lower Columbia River', sub: 'Tongue Point to Bonneville Dam', hl: true,
+      coho: { r: 'prime', d: 'Coho fishing was excellent in the Oct 11 flight count: 157 salmonid boats and 22 Washington bank rods on this stretch.' },
+      chinook: { r: 'fair', release: true, d: 'The mainstem is closed for Chinook retention. Plenty are still caught and released.' } },
+    { id: 'lewis', name: 'Lewis River', sub: 'Mouth to Merwin Dam', hl: true,
+      coho: { r: 'good', d: '138 bank anglers kept 14 coho and 2 jacks and released 10 coho in the Oct 13 creel.' },
+      chinook: { r: 'fair', d: 'Same creel: 3 Chinook and 1 jack kept.' }, extra: 'nws' },
+    { id: 'wind', name: 'Wind River', sub: 'Lower river near Carson', hl: true,
+      coho: { r: 'good', d: 'Reported very good for coho (Oct 15).' },
+      chinook: { r: 'fair', d: 'Chinook were still biting on the Wind River and Drano Lake in the Oct 3 report.' } },
+    { id: 'klickitat', name: 'Klickitat River', sub: 'Lower river near Lyle', hl: true,
+      coho: { r: 'good', d: 'Coho rated good (Oct 15).' },
+      chinook: { r: 'good', d: 'Chinook rated good (Oct 15).' } },
+    { id: 'drano', name: 'Drano Lake', sub: 'Mouth of the Little White Salmon River', hl: false,
+      coho: { r: 'good', d: 'Coho rated good (Oct 15).' },
+      chinook: { r: 'good', d: 'Chinook rated good (Oct 15).' } }
+  ];
+  SITES.forEach(function (s) { var p = D.pins[s.id]; s.ll = p.ll; s.xy = p.xy; });
+
+  var filter = 'all';
+  var selected = null;
+
+  function viewOf(s) {
+    var keys = filter === 'all' ? ['coho', 'chinook'] : [filter];
+    var best = null;
+    keys.forEach(function (k) {
+      var sp = s[k]; if (!sp) return;
+      var c = { r: sp.r, release: !!sp.release, k: k };
+      if (!best || (best.release && !c.release) || (best.release === c.release && RANK[c.r] > RANK[best.r])) best = c;
+    });
+    return best || { r: 'unrated', release: false, k: null };
+  }
+
+  /* ---- basemap ---- */
+  var vp = $('#vp');
+  Object.keys(D.base).forEach(function (o) {
+    el('path', { 'class': 'r o' + o, d: D.base[o] }, vp);
+  });
+  var hlNodes = {};
+  SITES.forEach(function (s) {
+    if (!s.hl) return;
+    var g = el('g', { 'class': 'hl', 'data-id': s.id }, vp);
+    el('path', { 'class': 'casing', d: D.hl[s.id] }, g);
+    el('path', { 'class': 'line', d: D.hl[s.id] }, g);
+    el('path', { 'class': 'hit', d: D.hl[s.id] }, g);
+    hlNodes[s.id] = g;
+  });
+
+  /* ---- overlay: landmarks, pins, clusters ---- */
+  var over = $('#over');
+  var LM = [
+    // name, lat, lon, kind, priority (lower wins)
+    ['Portland', 45.52, -122.68, 'city', 2], ['Longview', 46.14, -122.94, 'city', 2], ['Astoria', 46.19, -123.83, 'city', 3],
+    ['Vancouver', 45.64, -122.66, 'city', 4], ['Olympia', 47.04, -122.90, 'city', 3], ['Seattle', 47.61, -122.33, 'city', 1],
+    ['Tacoma', 47.25, -122.44, 'city', 3], ['Centralia', 46.72, -122.95, 'city', 5], ['Yakima', 46.60, -120.51, 'city', 2],
+    ['Spokane', 47.66, -117.43, 'city', 1], ['Walla Walla', 46.06, -118.34, 'city', 3], ['Kennewick', 46.21, -119.14, 'city', 3],
+    ['Wenatchee', 47.42, -120.31, 'city', 3], ['Bellingham', 48.75, -122.48, 'city', 3], ['Aberdeen', 46.98, -123.81, 'city', 4],
+    ['Carson', 45.72, -121.82, 'city', 8], ['Lyle', 45.69, -121.29, 'city', 8], ['Goldendale', 45.82, -120.82, 'city', 6],
+    ['Packwood', 46.61, -121.67, 'city', 7], ['Castle Rock', 46.28, -122.91, 'city', 7], ['Woodland', 45.90, -122.74, 'city', 8],
+    ['Morton', 46.56, -122.28, 'city', 8], ['Toledo', 46.44, -122.85, 'city', 8], ['Chehalis', 46.66, -122.96, 'city', 8],
+    ['Hood River', 45.71, -121.51, 'city', 7], ['Cascade Locks', 45.67, -121.89, 'city', 9], ['The Dalles', 45.59, -121.18, 'city', 6],
+    ['Camas', 45.59, -122.40, 'city', 9],
+    ['Mt. St. Helens', 46.20, -122.19, 'peak', 2], ['Mt. Adams', 46.20, -121.49, 'peak', 2], ['Mt. Rainier', 46.85, -121.76, 'peak', 2],
+    ['Mt. Hood', 45.37, -121.70, 'peak', 3], ['Mt. Baker', 48.78, -121.81, 'peak', 3],
+    ['Bonneville Dam', 45.644, -121.94, 'dam', 5], ['Merwin Dam', 45.957, -122.556, 'dam', 6],
+    ['Pacific Ocean', 46.72, -124.42, 'water', 4],
+    ['OREGON', 45.43, -122.25, 'region', 11], ['WASHINGTON', 46.98, -120.6, 'region', 11]
+  ];
+  var lms = LM.map(function (r) {
+    var g = el('g', { 'class': 'lm' }, over);
+    var kind = r[3];
+    var shape = null;
+    if (kind === 'city') shape = el('circle', { r: 2.8, 'class': 'lm-dot' }, g);
+    if (kind === 'peak') shape = el('path', { d: 'M0 -4.5L4.5 3.5H-4.5Z', 'class': 'lm-peak' }, g);
+    if (kind === 'dam') shape = el('rect', { x: -3, y: -3, width: 6, height: 6, 'class': 'lm-dam' }, g);
+    var t = el('text', { 'class': 'lab ' + kind }, g);
+    t.textContent = r[0];
+    return { name: r[0], xy: xy(r[2], r[1]), kind: kind, pr: r[4], g: g, t: t, shape: shape, w: 0 };
+  });
+  lms.sort(function (a, b) { return a.pr - b.pr; });
+
+  var pinNodes = {};
+  SITES.forEach(function (s) {
+    var g = el('g', { 'class': 'pin', 'data-id': s.id, tabindex: '0', role: 'button' }, over);
+    var sc = el('g', { 'class': 'pin-s' }, g);
+    el('ellipse', { 'class': 'tipshadow', cx: 0, cy: 0, rx: 6, ry: 2.2 }, sc);
+    el('circle', { r: 26, cy: -16, fill: 'transparent' }, sc);
+    el('path', { 'class': 'balloon', d: 'M0 0L-6.5 -10.5A13 13 0 1 1 6.5 -10.5Z' }, sc);
+    var gl = el('g', { 'class': 'glyph', transform: 'translate(0 -21.8) scale(.0225) translate(-512 -512)' }, sc);
+    el('path', { d: BODY, 'fill-rule': 'evenodd' }, gl);
+    el('path', { d: TAIL }, gl);
+    var lab = el('text', { 'class': 'lab' }, over);
+    lab.textContent = s.name.replace(' River', '');
+    pinNodes[s.id] = { g: g, sc: sc, lab: lab, w: 0 };
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSheet(s.id); } });
+  });
+
+  var clusterPool = [];
+  function getCluster(i) {
+    if (clusterPool[i]) return clusterPool[i];
+    var g = el('g', { 'class': 'cluster', tabindex: '0', role: 'button' }, over);
+    el('circle', { r: 15, cy: -15 }, g);
+    var t = el('text', { y: -15 }, g);
+    var o = { g: g, t: t };
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); zoomToCluster(g); } });
+    clusterPool[i] = o;
+    return o;
+  }
+
+  // measure label widths once
+  lms.forEach(function (l) { l.w = l.t.getBBox().width; });
+  SITES.forEach(function (s) { pinNodes[s.id].w = pinNodes[s.id].lab.getBBox().width; });
+
+  /* ---- view state ---- */
+  var map = $('#map');
+  var W = 0, H = 0;
+  var v = { s: 1, tx: 0, ty: 0 };
+  var minS = 1, maxS = 100, s0 = 1;
+  var anim = null;
+
+  function size() { var r = map.getBoundingClientRect(); W = r.width; H = r.height; }
+  function pads() {
+    var barB = $('#bar').getBoundingClientRect().bottom + 10;
+    var legT = $('#legend').getBoundingClientRect().top;
+    var wide = window.innerWidth >= 760;
+    var sheetOpen = $('#sheet').classList.contains('open');
+    return { t: barB, b: Math.max(24, H - legT + 10), l: 16, r: (wide && sheetOpen) ? 400 : 16 };
+  }
+  function fitFor(b, p) {
+    var x0 = b[0][0], y0 = b[0][1], x1 = b[1][0], y1 = b[1][1];
+    var aw = Math.max(40, W - p.l - p.r), ah = Math.max(40, H - p.t - p.b);
+    var s = Math.min(aw / (x1 - x0), ah / (y1 - y0));
+    var cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    return { s: s, tx: p.l + aw / 2 - cx * s, ty: p.t + ah / 2 - cy * s };
+  }
+  function clampView(t) {
+    var sb = D.bounds.state;
+    var cx = (W / 2 - t.tx) / t.s, cy = (H / 2 - t.ty) / t.s;
+    var m = 40;
+    cx = Math.min(Math.max(cx, sb[0][0] - m), sb[1][0] + m);
+    cy = Math.min(Math.max(cy, sb[0][1] - m), sb[1][1] + m);
+    t.tx = W / 2 - cx * t.s; t.ty = H / 2 - cy * t.s;
+    return t;
+  }
+  function limits() {
+    var f = fitFor(D.bounds.state, { t: 0, b: 0, l: 0, r: 0 });
+    minS = f.s * 0.9; maxS = f.s * 90;
+  }
+  function setView(t) {
+    t.s = Math.min(Math.max(t.s, minS), maxS);
+    clampView(t);
+    v.s = t.s; v.tx = t.tx; v.ty = t.ty;
+    render();
+  }
+  function animateTo(t, ms) {
+    t.s = Math.min(Math.max(t.s, minS), maxS);
+    clampView(t);
+    if (reduce) { setView(t); return; }
+    var a = { s: v.s, tx: v.tx, ty: v.ty }, t0 = performance.now();
+    var token = {}; anim = token;
+    (function step(now) {
+      if (anim !== token) return;
+      var k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+      var s = a.s * Math.pow(t.s / a.s, e);
+      // interpolate the map-space center so the move stays smooth while zooming
+      var acx = (W / 2 - a.tx) / a.s, acy = (H / 2 - a.ty) / a.s;
+      var bcx = (W / 2 - t.tx) / t.s, bcy = (H / 2 - t.ty) / t.s;
+      var cx = acx + (bcx - acx) * e, cy = acy + (bcy - acy) * e;
+      v.s = s; v.tx = W / 2 - cx * s; v.ty = H / 2 - cy * s;
+      render();
+      if (k < 1) requestAnimationFrame(step); else anim = null;
+    })(t0);
+  }
+  function zoomAt(px, py, k) {
+    var ns = Math.min(Math.max(v.s * k, minS), maxS); k = ns / v.s;
+    setView({ s: ns, tx: px - (px - v.tx) * k, ty: py - (py - v.ty) * k });
+  }
+  function resetView() { animateTo(fitFor(D.bounds.sw, pads()), 350); }
+
+  /* ---- render ---- */
+  function colorVar(r) { return 'var(--' + r + ')'; }
+  function applyStyles() {
+    SITES.forEach(function (s) {
+      var vw = viewOf(s);
+      var pn = pinNodes[s.id];
+      pn.g.style.setProperty('--rc', colorVar(vw.r));
+      pn.g.style.setProperty('--gl', vw.r === 'fair' ? 'rgba(0,0,0,0.72)' : '#fff');
+      pn.g.classList.toggle('closed', vw.release);
+      pn.g.setAttribute('aria-label', s.name + ', ' + LABEL[vw.r].toLowerCase() + ' reports' + (vw.k ? ' for ' + SP_NAME[vw.k].toLowerCase() : '') + (vw.release ? ', release only' : ''));
+      var h = hlNodes[s.id];
+      if (h) { h.style.setProperty('--rc', colorVar(vw.r)); h.classList.toggle('closed', vw.release); h.classList.toggle('sel', selected === s.id); }
+    });
+  }
+  function overlap(a, b) { return a[0] < b[0] + b[2] && a[0] + a[2] > b[0] && a[1] < b[1] + b[3] && a[1] + a[3] > b[1]; }
+
+  function render() {
+    vp.setAttribute('transform', 'translate(' + v.tx + ' ' + v.ty + ') scale(' + v.s + ')');
+    var pts = SITES.map(function (s) {
+      return { s: s, x: s.xy[0] * v.s + v.tx, y: s.xy[1] * v.s + v.ty, vw: viewOf(s) };
+    });
+    pts.sort(function (a, b) {
+      var ra = RANK[a.vw.r] - (a.vw.release ? 10 : 0), rb = RANK[b.vw.r] - (b.vw.release ? 10 : 0);
+      return rb - ra;
+    });
+    var used = {}, groups = [];
+    pts.forEach(function (p) {
+      if (used[p.s.id]) return;
+      var g = [p]; used[p.s.id] = 1;
+      if (p.s.id !== selected) {
+        pts.forEach(function (q) {
+          if (used[q.s.id] || q.s.id === selected) return;
+          if (Math.hypot(p.x - q.x, p.y - q.y) < 30) { g.push(q); used[q.s.id] = 1; }
+        });
+      }
+      groups.push(g);
+    });
+    var boxes = [];
+    var ci = 0;
+    SITES.forEach(function (s) { pinNodes[s.id].g.style.display = 'none'; pinNodes[s.id].lab.style.display = 'none'; });
+    clusterPool.forEach(function (c) { c.g.style.display = 'none'; });
+    groups.forEach(function (g) {
+      if (g.length === 1) {
+        var p = g[0], pn = pinNodes[p.s.id];
+        var sc = p.s.id === selected ? 0.98 : 0.8;
+        pn.g.style.display = '';
+        pn.g.setAttribute('transform', 'translate(' + p.x.toFixed(1) + ' ' + p.y.toFixed(1) + ') scale(' + sc + ')');
+        boxes.push([p.x - 15, p.y - 36, 30, 38]);
+      } else {
+        var cx = 0, cy = 0; g.forEach(function (m) { cx += m.x; cy += m.y; }); cx /= g.length; cy /= g.length;
+        var c = getCluster(ci++);
+        c.g.style.display = '';
+        c.g.setAttribute('transform', 'translate(' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ') scale(0.95)');
+        c.g.style.setProperty('--rc', colorVar(g[0].vw.r));
+        c.g.style.setProperty('--gl', g[0].vw.r === 'fair' ? 'rgba(0,0,0,0.72)' : '#fff');
+        c.t.textContent = g.length;
+        c.g.setAttribute('data-cluster', g.map(function (m) { return m.s.id; }).join(','));
+        c.g.setAttribute('aria-label', g.length + ' rivers close together, zoom in');
+        boxes.push([cx - 16, cy - 34, 32, 36]);
+      }
+    });
+    // pin labels first, then landmarks by priority
+    groups.forEach(function (g) {
+      if (g.length !== 1) return;
+      var p = g[0], pn = pinNodes[p.s.id];
+      var bx = [p.x + 13, p.y - 30, pn.w + 4, 14];
+      var hit = boxes.some(function (b) { return overlap(bx, b); });
+      if (!hit) {
+        pn.lab.style.display = '';
+        pn.lab.setAttribute('x', (p.x + 15).toFixed(1)); pn.lab.setAttribute('y', (p.y - 19).toFixed(1));
+        boxes.push(bx);
+      }
+    });
+    lms.forEach(function (l) {
+      var x = l.xy[0] * v.s + v.tx, y = l.xy[1] * v.s + v.ty;
+      var show = x > -80 && x < W + 80 && y > -20 && y < H + 20;
+      if (show) {
+        var bx = l.kind === 'water' || l.kind === 'region'
+          ? [x - l.w / 2, y - 8, l.w, 14]
+          : [x - 4, y - 8, l.w + 14, 15];
+        show = !boxes.some(function (b) { return overlap(bx, b); });
+        if (show) boxes.push(bx);
+      }
+      l.g.style.display = show ? '' : 'none';
+      if (show) {
+        l.g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
+        if (l.kind === 'water' || l.kind === 'region') { l.t.setAttribute('x', 0); l.t.setAttribute('y', 4); }
+        else { l.t.setAttribute('x', 7); l.t.setAttribute('y', 3.5); }
+      }
+    });
+  }
+
+  /* ---- gestures ---- */
+  var ptrs = new Map(), down = null, pinch = null;
+  map.addEventListener('pointerdown', function (e) {
+    if (e.button !== undefined && e.button > 0) return;
+    anim = null;
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.size === 1) {
+      down = { x: e.clientX, y: e.clientY, tgt: e.target, moved: 0, pan: false };
+      map.classList.add('drag');
+    } else if (ptrs.size === 2) {
+      var a = Array.from(ptrs.values());
+      pinch = { d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y), mx: (a[0].x + a[1].x) / 2, my: (a[0].y + a[1].y) / 2 };
+      if (down) down.moved = 99;
+    }
+  });
+  window.addEventListener('pointermove', function (e) {
+    var pt = ptrs.get(e.pointerId); if (!pt) return;
+    var r = map.getBoundingClientRect();
+    if (ptrs.size >= 2 && pinch) {
+      pt.x = e.clientX; pt.y = e.clientY;
+      var a = Array.from(ptrs.values());
+      var d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y);
+      var mx = (a[0].x + a[1].x) / 2, my = (a[0].y + a[1].y) / 2;
+      var k = d / pinch.d;
+      var ns = Math.min(Math.max(v.s * k, minS), maxS); k = ns / v.s;
+      var px = mx - r.left, py = my - r.top;
+      setView({ s: ns, tx: px - (px - v.tx) * k + (mx - pinch.mx), ty: py - (py - v.ty) * k + (my - pinch.my) });
+      pinch.d = d; pinch.mx = mx; pinch.my = my;
+      return;
+    }
+    var dx = e.clientX - pt.x, dy = e.clientY - pt.y;
+    pt.x = e.clientX; pt.y = e.clientY;
+    if (down) {
+      down.moved += Math.abs(dx) + Math.abs(dy);
+      if (down.moved > 6) { down.pan = true; setView({ s: v.s, tx: v.tx + dx, ty: v.ty + dy }); }
+    }
+  });
+  function endPtr(e) {
+    if (!ptrs.has(e.pointerId)) return;
+    ptrs.delete(e.pointerId);
+    if (ptrs.size < 2) pinch = null;
+    if (ptrs.size === 0) {
+      map.classList.remove('drag');
+      if (down && down.moved <= 6 && e.type === 'pointerup') tap(down.tgt);
+      down = null;
+    }
+  }
+  window.addEventListener('pointerup', endPtr);
+  window.addEventListener('pointercancel', endPtr);
+  map.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    var r = map.getBoundingClientRect();
+    zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0018)));
+  }, { passive: false });
+  map.addEventListener('keydown', function (e) {
+    if (e.target !== map) return;
+    var st = 60;
+    if (e.key === 'ArrowLeft') setView({ s: v.s, tx: v.tx + st, ty: v.ty });
+    else if (e.key === 'ArrowRight') setView({ s: v.s, tx: v.tx - st, ty: v.ty });
+    else if (e.key === 'ArrowUp') setView({ s: v.s, tx: v.tx, ty: v.ty + st });
+    else if (e.key === 'ArrowDown') setView({ s: v.s, tx: v.tx, ty: v.ty - st });
+    else if (e.key === '+' || e.key === '=') zoomAt(W / 2, H / 2, 1.5);
+    else if (e.key === '-') zoomAt(W / 2, H / 2, 1 / 1.5);
+  });
+  map.setAttribute('tabindex', '0');
+
+  function tap(tgt) {
+    var n = tgt && tgt.closest ? tgt.closest('[data-id],[data-cluster]') : null;
+    if (n && n.getAttribute('data-cluster')) { zoomToCluster(n); return; }
+    if (n) { openSheet(n.getAttribute('data-id')); return; }
+    if ($('#sheet').classList.contains('open')) closeSheet();
+  }
+  function zoomToCluster(node) {
+    var ids = node.getAttribute('data-cluster').split(',');
+    var xs = [], ys = [];
+    ids.forEach(function (id) { var s = SITES.filter(function (q) { return q.id === id; })[0]; xs.push(s.xy[0]); ys.push(s.xy[1]); });
+    var b = [[Math.min.apply(null, xs), Math.min.apply(null, ys)], [Math.max.apply(null, xs), Math.max.apply(null, ys)]];
+    var cx = (b[0][0] + b[1][0]) / 2, cy = (b[0][1] + b[1][1]) / 2;
+    var ns = Math.min(v.s * 2.6, maxS);
+    var p = pads();
+    animateTo({ s: ns, tx: (p.l + (W - p.l - p.r) / 2) - cx * ns, ty: (p.t + (H - p.t - p.b) / 2) - cy * ns }, 320);
+  }
+
+  /* ---- controls ---- */
+  $('#zin').addEventListener('click', function () { zoomAt(W / 2, H / 2, 1.6); });
+  $('#zout').addEventListener('click', function () { zoomAt(W / 2, H / 2, 1 / 1.6); });
+  $('#zfit').addEventListener('click', resetView);
+  document.querySelectorAll('.seg button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      filter = b.getAttribute('data-f');
+      document.querySelectorAll('.seg button').forEach(function (o) { o.setAttribute('aria-checked', o === b ? 'true' : 'false'); });
+      applyStyles(); render();
+      if (selected) fillSheet(selected);
+    });
+  });
+
+  /* ---- detail sheet ---- */
+  var sheet = $('#sheet'), appEl = $('#app');
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function badge(r, faded) { return '<span class="badge' + (faded ? ' faded' : '') + '" style="--c:var(--' + r + ')">' + LABEL[r] + '</span>'; }
+  function fillSheet(id) {
+    var s = SITES.filter(function (q) { return q.id === id; })[0];
+    var vw = viewOf(s);
+    $('#stitle').textContent = s.name;
+    var head = '<div class="head"><h2>' + esc(s.name) + '</h2><p>' + esc(s.sub) + '</p>' +
+      (vw.k ? '<span class="badge' + (vw.release ? ' faded' : '') + '" style="--c:var(--' + vw.r + ')">' + LABEL[vw.r] + ' · ' + SP_NAME[vw.k] + (vw.release ? ' · release only' : '') + '</span>' : '') + '</div>';
+    var rows = ['coho', 'chinook'].map(function (k) {
+      var sp = s[k];
+      return '<div class="row"><div class="rt"><div class="nm">' + SP_NAME[k] + '</div><div class="dt">' + esc(sp.d) + '</div></div><div class="ch">' + badge(sp.r, sp.release) + (sp.release ? '<span class="chip">Release only</span>' : '') + '</div></div>';
+    }).join('');
+    var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
+    var dir = 'https://maps.apple.com/?ll=' + s.ll[0] + ',' + s.ll[1] + '&q=' + encodeURIComponent(s.name);
+    var src = '<a href="https://www.theguidesforecast.com/free/coho-run-heats-up/287017/" target="_blank" rel="noopener">The Guide’s Forecast, Oct 17</a>' +
+      '<a href="https://www.theguidesforecast.com/sw-washington-fishing-reports/" target="_blank" rel="noopener">SW Washington reports, Oct 15</a>' +
+      (s.extra === 'nws' ? '<a href="https://nwsportsmanmag.com/sw-wa-buoy-10-lower-columbia-hanford-reach-report-10-13-2026/" target="_blank" rel="noopener">NW Sportsman, Oct 13</a>' : '');
+    $('#sbody').innerHTML =
+      head +
+      '<section><h3>What’s biting</h3><div class="rows">' + rows + '</div></section>' +
+      '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Rules change in season and differ by river and species. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
+      '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
+      '<div class="foot"><div>Recent catch reports, not season dates. Not for navigation or safety decisions.</div>' +
+      '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a>' +
+      '<div class="src">' + src + '</div></div>';
+    $('#sbody').scrollTop = 0;
+  }
+  function openSheet(id) {
+    selected = id;
+    fillSheet(id);
+    sheet.classList.add('open'); sheet.setAttribute('aria-hidden', 'false');
+    appEl.classList.add('sheet-open');
+    applyStyles();
+    var s = SITES.filter(function (q) { return q.id === id; })[0];
+    var wide = window.innerWidth >= 760;
+    var sh = sheet.getBoundingClientRect().height || 0;
+    var ns = Math.max(v.s, s0 * 1.5);
+    var barB = $('#bar').getBoundingClientRect().bottom;
+    var tx, ty;
+    if (wide) { tx = (W - 392) / 2 - s.xy[0] * ns; ty = H / 2 + 20 - s.xy[1] * ns; }
+    else { tx = W / 2 - s.xy[0] * ns; ty = (barB + (H - Math.min(sh, H * 0.66))) / 2 + 24 - s.xy[1] * ns; }
+    animateTo({ s: ns, tx: tx, ty: ty }, 320);
+  }
+  function closeSheet() {
+    selected = null;
+    sheet.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true');
+    appEl.classList.remove('sheet-open');
+    applyStyles(); render();
+  }
+  $('#sdone').addEventListener('click', closeSheet);
+  window.addEventListener('keydown', function (e) { if (e.key === 'Escape' && selected) closeSheet(); });
+
+  /* ---- boot ---- */
+  function init() {
+    size(); limits();
+    var f = fitFor(D.bounds.sw, pads());
+    s0 = f.s;
+    applyStyles();
+    setView(f);
+  }
+  var ro = window.ResizeObserver ? new ResizeObserver(function () {
+    var wasS = v.s / s0;
+    size(); limits();
+    var f = fitFor(D.bounds.sw, pads()); s0 = f.s;
+    if (Math.abs(wasS - 1) < 0.01) setView(f); else setView({ s: v.s, tx: v.tx, ty: v.ty });
+  }) : null;
+  if (ro) ro.observe(map); else window.addEventListener('resize', function () { size(); limits(); render(); });
+  init();
+})();
+</script>
+
