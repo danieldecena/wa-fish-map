@@ -23,6 +23,7 @@ Months are copied verbatim from fisheries.json. The page does the rating.
 
 import argparse
 import datetime
+import heapq
 import json
 import math
 import re
@@ -316,6 +317,160 @@ BORDER = [
 ]
 
 
+# The land tint and the state outline use only geometry the page already carries. The inland edge is the
+# straight borders above plus the Columbia found in geo.js (from the 46th parallel to its mouth); no
+# border is typed in by hand. geo.js has no Snake River below Lewiston (the Idaho line), so the tint
+# crosses that short edge in a straight line and the outline leaves it open, as the dashed line did. The tint
+# polygon is closed through marine-area water (a route listed below, checked to lie inside the WDFW
+# polygons), which the page paints over, so the tint only shows on land and never on Canada or Oregon.
+LEWISTON = (-117.04, 46.42)
+SNAKE_MOUTH = (-116.92, 46.0)  # where the 46th parallel meets the Idaho line
+COLUMBIA_46 = (-119.0, 46.0)
+TONGUE_POINT = (-123.76, 46.21)
+# lon/lat waypoints from the Columbia mouth, offshore to Cape Flattery, along the Strait of Juan de Fuca
+# band, then north through Haro and Rosario Straits to Semiahmoo. `free` legs cross land or an estuary.
+CLOSURE = [
+    ((-124.12, 46.26), True),
+    ((-124.95, 46.30), False),
+    ((-124.95, 48.40), False),
+    ((-124.40, 48.35), True),
+    ((-124.18, 48.28), False),
+    ((-124.00, 48.19), False),
+    ((-122.90, 48.19), False),
+    ((-123.00, 48.40), False),
+    ((-123.00, 48.65), False),
+    ((-122.85, 48.82), False),
+    ((-122.90, 48.94), False),
+    ((-122.77, 49.0), False),
+]
+
+
+def frags_of(d):
+    out = []
+    for part in d.split("M"):
+        n = [float(v) for v in part.replace("L", " ").split()]
+        if len(n) >= 4:
+            out.append([(n[i], n[i + 1]) for i in range(0, len(n) - 1, 2)])
+    return out
+
+
+def river_route(frags, start, goal, tol):
+    """Shortest path along river fragments (joined where endpoints meet) between the nodes nearest two points."""
+    key = lambda q: (round(q[0], 1), round(q[1], 1))
+    adj = {}
+    for f in frags:
+        w = sum(math.dist(f[i], f[i + 1]) for i in range(len(f) - 1))
+        adj.setdefault(key(f[0]), []).append((key(f[-1]), w, f))
+        adj.setdefault(key(f[-1]), []).append((key(f[0]), w, f[::-1]))
+    # Fragments drawn at different resolutions can stop a fraction of a unit apart: join endpoints closer than 1.
+    cells = {}
+    for q in adj:
+        cells.setdefault((int(q[0]), int(q[1])), []).append(q)
+    for q in list(adj):
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                for r in cells.get((int(q[0]) + dx, int(q[1]) + dy), []):
+                    if r != q and math.dist(q, r) < 1.0:
+                        adj[q].append((r, math.dist(q, r), [q, r]))
+
+    def nearest(pt):
+        k = min(adj, key=lambda q: math.dist(q, pt))
+        if math.dist(k, pt) > tol:
+            sys.exit(f"no river node within {tol} map units of {pt}")
+        return k
+
+    src, dst = nearest(start), nearest(goal)
+    dist, prev, heap = {src: 0.0}, {}, [(0.0, src)]
+    while heap:
+        d, u = heapq.heappop(heap)
+        if u == dst:
+            break
+        if d > dist.get(u, 1e18):
+            continue
+        for v, w, f in adj[u]:
+            if d + w < dist.get(v, 1e18):
+                dist[v] = d + w
+                prev[v] = (u, f)
+                heapq.heappush(heap, (d + w, v))
+    if dst not in prev and src != dst:
+        sys.exit(f"no river route from {start} to {goal}")
+    path, u = [], dst
+    while u != src:
+        u, f = prev[u]
+        path = f + path
+    out = []
+    for q in path:
+        if not out or out[-1] != q:
+            out.append(q)
+    return out
+
+
+def land_outline(areas, proj):
+    """(land polygon path, outline path) in map units. Checks the water route and the river borders as it goes."""
+    t = GEO.read_text()
+    geo = json.loads(t[t.index("{") : t.rindex("}") + 1])
+    columbia = river_route(
+        frags_of(geo["hl"]["columbia"])
+        + frags_of(geo["base"]["7"])
+        + frags_of(geo["base"]["6"]),
+        proj(*COLUMBIA_46),
+        proj(*TONGUE_POINT),
+        6,
+    )
+    # The Columbia route must end at Tongue Point and start at the 46th parallel, and be long enough to be the river.
+    if (
+        math.dist(columbia[-1], proj(*TONGUE_POINT)) > 6
+        or math.dist(columbia[0], proj(*COLUMBIA_46)) > 6
+    ):
+        sys.exit("the Columbia route does not reach both ends")
+    if (
+        sum(math.dist(columbia[i], columbia[i + 1]) for i in range(len(columbia) - 1))
+        < 380
+    ):
+        sys.exit("the Columbia route is too short to be the river")
+    # Every non-free leg of the closure must lie inside a marine-area polygon (or one of its island holes, which is
+    # Washington land), so the tint can never reach Canadian land or water.
+    x0, y0 = proj(0.0, 0.0)
+    kx, ky = proj(1.0, 0.0)[0] - x0, proj(0.0, 1.0)[1] - y0
+    unproj = lambda x, y: ((x - x0) / kx, (y - y0) / ky)
+    here = columbia[-1]
+    legs = []
+    for (lon, lat), free in CLOSURE:
+        a = here
+        b = proj(lon, lat)
+        if not free:
+            n = max(2, int(math.dist(a, b) / 0.5))
+            for i in range(n + 1):
+                x, y = a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n
+                lo, la = unproj(x, y)
+                # A sample on a polygon edge can read as outside; a 300 m nudge in any direction settles it.
+                if not any(
+                    ring_contains(r, lo + dx, la + dy)
+                    for dx, dy in (
+                        (0, 0),
+                        (0.003, 0),
+                        (-0.003, 0),
+                        (0, 0.003),
+                        (0, -0.003),
+                    )
+                    for ar in areas
+                    for r in ar.rings
+                ):
+                    sys.exit(
+                        f"closure leg to ({lon}, {lat}) leaves the marine-area water at map ({x:.1f}, {y:.1f})"
+                    )
+        legs.append(b)
+        here = b
+    top_left = proj(-122.77, 49.0)
+    ne = proj(-117.03, 49.0)
+    lewiston = proj(-117.04, 46.42)
+    tail = proj(*SNAKE_MOUTH)
+    mcnary = proj(*COLUMBIA_46)
+    land = [top_left, ne, lewiston, tail, mcnary] + columbia + legs
+    outline = [[top_left, ne, lewiston], [tail, mcnary] + columbia]
+    return land, outline
+
+
 def projection():
     m = re.search(
         r'"proj":\{"kx":([\d.]+),"k":([\d.]+),"lat0":([\d.]+),"lon0":(-?[\d.]+)\}',
@@ -466,6 +621,15 @@ def main():
         for n in sorted(used)
     ]
 
+    land, outline = land_outline(areas, projection())
+    land_path = (
+        "M" + " ".join(f"{round(x, 1):g} {round(y, 1):g}" for x, y in land) + "Z"
+    )
+    outline_path = "".join(
+        "M" + " ".join(f"{round(x, 1):g} {round(y, 1):g}" for x, y in ln)
+        for ln in outline
+    )
+
     data = {
         "generated": datetime.datetime.now().astimezone().date().isoformat(),
         "guideUpdated": fish["updated"],
@@ -479,6 +643,8 @@ def main():
         "basemap": {
             "water": path_of([r for a in areas for r in a.rings], projection(), True),
             "border": path_of(BORDER, projection(), False),
+            "land": land_path,
+            "outline": outline_path,
         },
         "species": species,
         "guides": guides,

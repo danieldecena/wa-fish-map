@@ -147,3 +147,45 @@ test('neutral cluster styling and its legend entry exist, and no rating colour i
   assert.equal((html.match(/Count: several sites/g) || []).length, 3, 'one legend entry in the page and one in each mode switch string');
   assert.match(html, /\.legend li\.cl i \{ box-shadow: inset 0 0 0 1px var\(--pin-edge\); \}/);
 });
+
+// ---- land tint, state outline and text size ----
+
+test('--land and --state-line are neutral tokens in both themes: a very light tint with a readable outline', () => {
+  const dark = { ...light, ...darkForced };
+  for (const [theme, t] of [['light', light], ['dark', dark]]) {
+    const ground = hex(t['--ground']), landRgb = hex(t['--land']);
+    assert.match(t['--land'], /^#[0-9a-f]{6}$/, `${theme} --land`);
+    assert.ok(Math.max(...landRgb) - Math.min(...landRgb) <= 4, `${theme} --land is a neutral (no hue)`);
+    // Visible, but only just: between 1 and 6 L* from the ground.
+    const step = Math.abs(Lstar(landRgb) - Lstar(ground));
+    assert.ok(step >= 1 && step <= 6, `${theme} land is ${step.toFixed(1)} L* from the ground`);
+    for (const k of Object.keys(RAMP)) assert.notEqual(t['--land'], t[k]);
+    const line = rgbaOf(t['--state-line']);
+    assert.ok(contrast(over(line.rgb, line.a, landRgb), landRgb) >= 3, `${theme} outline on land is under 3:1`);
+    assert.ok(contrast(over(line.rgb, line.a, ground), ground) >= 3, `${theme} outline on ground is under 3:1`);
+  }
+  assert.notEqual(light['--land'], darkForced['--land'], 'the token has a light and a dark value');
+  // Control: the same check rejects a tint that is too strong and one that is invisible.
+  assert.ok(Math.abs(Lstar(hex('#d8d8dc')) - Lstar(hex('#f2f2f7'))) > 6);
+  assert.ok(Math.abs(Lstar(hex('#f2f2f7')) - Lstar(hex('#f2f2f7'))) < 1);
+});
+
+test('legend, footer and sheet fine print are at least 12 px; only text drawn on the map is smaller', () => {
+  const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
+  const small = [];
+  for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const px = /font-size:\s*(\d+(?:\.\d+)?)px/.exec(m[2]) || /font:\s*[\w-]*\s*(\d+(?:\.\d+)?)px/.exec(m[2]);
+    if (px && +px[1] < 12) small.push(m[1].trim().replace(/\s+/g, ' ') + ' ' + px[1] + 'px');
+  }
+  // Map labels and the count inside a cluster mark follow the design system's mapLabel and clusterCount roles (11 px); the region name is a watermark.
+  assert.deepEqual(small.sort(), ['.cluster text 11px', '.lab 11px', '.lab.region 10px']);
+  assert.match(css, /\.legend li \{[^}]*font-size: 12px/);
+  assert.match(css, /\.legend \.fine \{[^}]*font-size: 12px/);
+  assert.match(css, /\.legend \.lt \{[^}]*font-size: 12px/);
+  assert.match(css, /\.foot \{[^}]*font-size: 12px/);
+});
+
+test('the map under the empty part of the bottom row takes taps and drags', () => {
+  assert.match(html, /#chrome > \.bottom \{ pointer-events: none; \}/);
+  assert.match(html, /\.bottom > \* \{ pointer-events: auto; \}/);
+});

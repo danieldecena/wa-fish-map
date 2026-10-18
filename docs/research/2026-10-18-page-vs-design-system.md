@@ -71,8 +71,11 @@ Recommendation for the design-system owner: update `rating-*` to the system valu
 | legend entry gap | was 12 px | 10 px (space-10) | drift fixed |
 | legend words, Typical season | Prime, Good, Fair, Slow, No seasonal guidance | Prime, Good, Fair, Slow, No data | drift kept: "No seasonal guidance" says what the gray means |
 | legend words, Recent reports | Excellent, Good, Fair | none (not an app concept) | no system value |
-| legend text size | 11 px / 13 px | legend 11 / 13 | match now; raised to 12 px in commit 5 on purpose (the design system README names `legend` and `control` as the roles to promote) |
-| footer text size | 11 px / 14 px | fineprint 11 / 13 | drift, raised to 12 px in commit 5 |
+| legend text size | 12 px / 16 px | legend 11 / 13 | drift kept: raised on purpose for the brief's 12 px floor; the design system README names `legend` and `control` as the roles to promote |
+| footer text size | 12 px / 16 px | fineprint 11 / 13 | drift kept: raised on purpose to 12 px, with the legend |
+| `--land` | `#fcfcfd` / `#262629` | none (the app draws MapKit's own land) | no system value |
+| `--state-line` | `rgba(60,60,67,0.6)` / `rgba(235,235,245,0.5)` | none | no system value |
+| basemap, both modes | land tint, WDFW salt water, state outline, rivers, in both modes | MapKit's muted basemap, same in both modes | match in intent: one basemap, not a different one per mode |
 | title | 17 / 22, 600 | sectionTitle 17 / 22, 600 | match |
 | item title | 15 / 20, 600 | itemTitle 15 / 20, 600 | match |
 | supporting | 15 / 20 | supporting 15 / 20 | match |
@@ -91,15 +94,14 @@ Recommendation for the design-system owner: update `rating-*` to the system valu
 
 ## Tally
 
-59 rows. Counted by hand from the table: each row once, the five rating rows light and dark together.
+64 rows, counted by hand from the Status column: each table row once from its Status column, the five rating rows light and dark together.
 
-- 40 match.
-- 5 drift fixed in commit 1 (glass card inset, in-row badge padding, legend dot size, dot gap, entry gap).
-- 1 drift to be fixed in commit 5 (footer text size, raised to 12 px).
-- 8 drift kept, each with its reason in the table.
-- 5 no system value (nothing to compare).
+- 39 match.
+- 5 drift fixed in this pass (glass card inset, in-row badge padding, legend dot size, dot gap, entry gap).
+- 12 drift kept, each with its reason in the table (including the two cluster rows and the 12 px text, which are deliberate departures).
+- 8 no system value (nothing to compare).
 
-Headline: of the 54 rows the system has a value for, 40 match, 6 drift and were or will be fixed, 8 drift on purpose. The rating colours all match the app.
+Headline: of the 56 rows the system has a value for, 39 match, 5 drifted and were fixed, 12 differ on purpose. The rating colours all match the app.
 
 ## Notes for the design-system owner
 

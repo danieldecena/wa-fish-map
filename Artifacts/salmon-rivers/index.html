@@ -24,6 +24,8 @@
   --slow: #007aff;
   --unrated: #8e8e93;
   --cluster: #ffffff;
+  --land: #fcfcfd;
+  --state-line: rgba(60,60,67,0.6);
   --brand-a: #1797ae;
   --brand-b: #004a79;
   --lift: 0 6px 22px rgba(0,0,0,0.14);
@@ -51,6 +53,8 @@
     --fair: #ffd60a;
     --slow: #0a84ff;
     --cluster: #2c2c2e;
+    --land: #262629;
+    --state-line: rgba(235,235,245,0.5);
     --lift: 0 6px 22px rgba(0,0,0,0.5);
     color-scheme: dark;
   }
@@ -75,6 +79,8 @@
   --fair: #ffd60a;
   --slow: #0a84ff;
   --cluster: #2c2c2e;
+  --land: #262629;
+  --state-line: rgba(235,235,245,0.5);
   --lift: 0 6px 22px rgba(0,0,0,0.5);
   color-scheme: dark;
 }
@@ -152,6 +158,9 @@ a { color: var(--on-text); }
   #chrome { padding-block: 12px; padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px)); gap: 12px; }
 }
 #chrome > * { pointer-events: auto; }
+/* The bottom row spans the screen but only the legend and zoom buttons are chrome: the map under the rest must still take taps and drags. */
+#chrome > .bottom { pointer-events: none; }
+.bottom > * { pointer-events: auto; }
 .glass {
   background: var(--glass);
   -webkit-backdrop-filter: saturate(1.8) blur(20px);
@@ -181,24 +190,25 @@ a { color: var(--on-text); }
 .modes button { flex: 1 1 auto; }
 #spbtn { text-align: left; max-width: 100%; }
 .sppanel { max-height: min(40vh, 300px); overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 10px; padding: 2px; }
-.sppanel .gl { margin: 0 0 6px; font-size: 11px; line-height: 13px; font-weight: 600; color: var(--ink2); }
+.sppanel .gl { margin: 0 0 6px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); }
 .row.sel { outline: 2px solid var(--on); outline-offset: -2px; }
 .row .sub2 { font-size: 12px; line-height: 16px; color: var(--ink2); }
 #app.typ .hl { display: none; }
-#tbase { display: none; }
-#app.typ #tbase { display: inline; }
+/* One basemap for both modes: a light land tint inside Washington, WDFW salt water over it, the state outline, then rivers. */
+#tbase .l { fill: var(--land); stroke: none; }
+#tbase .w0 { fill: var(--ground); fill-rule: evenodd; stroke: none; }
 #tbase .w { fill: var(--river); fill-opacity: 0.35; fill-rule: evenodd; stroke: var(--river); stroke-width: 0.7px; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-#tbase .b { fill: none; stroke: var(--ink2); stroke-width: 1px; stroke-dasharray: 5 4; opacity: 0.6; vector-effect: non-scaling-stroke; }
+#tbase .o { fill: none; stroke: var(--state-line); stroke-width: 1.2px; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 
 .bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
 .legend { padding: 10px 12px; max-width: 360px; flex: 1 1 auto; min-width: 0; }
-.legend .lt { font-size: 11px; line-height: 13px; font-weight: 600; margin-bottom: 6px; }
+.legend .lt { font-size: 12px; line-height: 16px; font-weight: 600; margin-bottom: 6px; }
 .legend ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; }
-.legend li { display: flex; align-items: center; gap: 3px; font-size: 11px; line-height: 13px; }
+.legend li { display: flex; align-items: center; gap: 3px; font-size: 12px; line-height: 16px; }
 .legend i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); display: block; }
 .legend li.fade i { opacity: 0.55; }
 .legend li.cl i { box-shadow: inset 0 0 0 1px var(--pin-edge); }
-.legend .fine { margin-top: 6px; font-size: 11px; line-height: 13px; color: var(--ink2); }
+.legend .fine { margin-top: 6px; font-size: 12px; line-height: 16px; color: var(--ink2); }
 .zoom { flex: none; display: flex; flex-direction: column; overflow: hidden; }
 .zoom button { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: transparent; cursor: pointer; }
 .zoom button + button { border-top: 1px solid var(--glass-line); }
@@ -236,7 +246,7 @@ a { color: var(--on-text); }
 .head p { margin: 0; color: var(--ink2); }
 .badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 700; background: color-mix(in srgb, var(--c) 20%, transparent); border: 1px solid var(--c); white-space: nowrap; }
 .badge.faded { opacity: 0.7; }
-.chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; line-height: 16px; font-weight: 600; background: var(--fill-toggle); color: var(--ink2); white-space: nowrap; }
+.chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 600; background: var(--fill-toggle); color: var(--ink2); white-space: nowrap; }
 .chip.old { outline: 1px dashed var(--ink2); outline-offset: -1px; }
 h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 .rows { display: flex; flex-direction: column; gap: 8px; }
@@ -253,7 +263,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 .ctab { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 18px; font-variant-numeric: tabular-nums; }
 .ctab th, .ctab td { padding: 5px 0 5px 8px; text-align: right; vertical-align: top; }
 .ctab th:first-child, .ctab td:first-child { padding-left: 0; text-align: left; }
-.ctab thead th { font-size: 11px; line-height: 16px; font-weight: 600; color: var(--ink2); border-bottom: 1px solid var(--glass-line); }
+.ctab thead th { font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); border-bottom: 1px solid var(--glass-line); }
 .ctab tbody th { font-weight: 400; }
 .ctab tr.grp th { padding-top: 10px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); text-align: left; }
 .creel .cnote { margin: 0; font-size: 12px; line-height: 16px; color: var(--ink2); }
@@ -264,7 +274,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 .advisory p { margin: 0; font-size: 14px; line-height: 19px; }
 .dir { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; background: var(--on); color: #fff; font-weight: 600; text-decoration: none; min-height: 44px; }
 .dir svg { width: 16px; height: 16px; fill: #fff; }
-.foot { display: flex; flex-direction: column; gap: 8px; font-size: 11px; line-height: 14px; color: var(--ink2); }
+.foot { display: flex; flex-direction: column; gap: 8px; font-size: 12px; line-height: 16px; color: var(--ink2); }
 .foot a { color: var(--ink2); }
 .foot .src { display: flex; flex-wrap: wrap; gap: 2px 12px; }
 
@@ -409,13 +419,15 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 
   /* ---- basemap ---- */
   var vp = $('#vp');
-  // Typical mode only: WDFW marine areas (the saltwater) and Washington's straight borders, so statewide pins have a coast to sit on.
+  // Both modes: WDFW marine areas (the saltwater), a light tint on Washington's land and the state outline, so pins have a coast and a state to sit on.
   // If typical.js did not load, Recent reports still works and the mode switch is hidden.
   var HAS_TYPICAL = typeof TypicalData !== 'undefined' && typeof Season !== 'undefined';
   if (HAS_TYPICAL) {
     var tbase = el('g', { id: 'tbase' }, vp);
+    el('path', { 'class': 'l', d: TypicalData.basemap.land }, tbase);
+    el('path', { 'class': 'w0', d: TypicalData.basemap.water }, tbase);
     el('path', { 'class': 'w', d: TypicalData.basemap.water }, tbase);
-    el('path', { 'class': 'b', d: TypicalData.basemap.border }, tbase);
+    el('path', { 'class': 'o', d: TypicalData.basemap.outline }, tbase);
   } else { $('#modes').hidden = true; }
   Object.keys(D.base).forEach(function (o) {
     el('path', { 'class': 'r o' + o, d: D.base[o] }, vp);
@@ -523,7 +535,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var legT = $('#legend').getBoundingClientRect().top;
     var wide = window.innerWidth >= 760;
     var sheetOpen = $('#sheet').classList.contains('open');
-    return { t: barB, b: Math.max(24, H - legT + 10), l: 16, r: (wide && sheetOpen) ? 400 : 16 };
+    return { t: barB, b: Math.max(24, H - legT + 10), l: 8, r: (wide && sheetOpen) ? 400 : 8 };
   }
   function fitFor(b, p) {
     var x0 = b[0][0], y0 = b[0][1], x1 = b[1][0], y1 = b[1][1];
@@ -544,7 +556,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function limits() {
     // Reports mode may zoom out to the unpadded state; Typical mode opens on the whole state, so its floor fits the state inside the chrome.
     var f = fitFor(D.bounds.state, { t: 0, b: 0, l: 0, r: 0 });
-    var home = view === 'typical' ? fitFor(D.bounds.state, pads()).s : f.s;
+    var home = view === 'typical' ? homeFit().s : f.s;
     minS = home * 0.9; maxS = f.s * 90;
   }
   function setView(t) {
@@ -576,8 +588,26 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var ns = Math.min(Math.max(v.s * k, minS), maxS); k = ns / v.s;
     setView({ s: ns, tx: px - (px - v.tx) * k, ty: py - (py - v.ty) * k });
   }
-  function homeBounds() { return view === 'typical' ? D.bounds.state : D.bounds.sw; }
-  function resetView() { animateTo(fitFor(homeBounds(), pads()), 350); }
+  // Typical season opens on all of Washington. Recent reports opens on the southwest, down to the Columbia (y 356 is 45.54 N, below Camas),
+  // so the view does not spend its bottom edge on blank Oregon ground.
+  function homeBounds() { return view === 'typical' ? D.bounds.state : [D.bounds.sw[0], [D.bounds.sw[1][0], 356]]; }
+  // The opening view. Wide windows keep the card and legend in a left column and give the map everything to their right; narrow windows
+  // stack the card, map and legend. Either way the bounds' southern edge sits on the bottom of the free area, so any blank band is
+  // above the map (Canada side, under the card) and Oregon ground is off-screen.
+  function homeFit() {
+    var wide = window.innerWidth >= 760, b = homeBounds(), p = pads();
+    // The southwest bounds end on the Columbia, so the legend can sit over Oregon ground: let the map run to the bottom edge on wide windows.
+    if (wide && view === 'reports') p.b = 12;
+    var f = fitFor(b, p), bottom = p.b;
+    if (wide) {
+      var col = $('#bar').getBoundingClientRect().right + 12;
+      var c = fitFor(b, { t: 12, b: 12, l: col, r: p.r > 8 ? p.r : 68 });
+      if (c.s > f.s) { f = c; bottom = 12; }
+    }
+    f.ty = (H - bottom) - b[1][1] * f.s;
+    return f;
+  }
+  function resetView() { animateTo(homeFit(), 350); }
 
   /* ---- render ---- */
   function colorVar(r) { return 'var(--' + r + ')'; }
@@ -1099,7 +1129,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     buildSpecies();
     applyStyles();
     limits();
-    var f = fitFor(homeBounds(), pads()); s0 = f.s;
+    var f = homeFit(); s0 = f.s;
     if (reduce) setView(f); else animateTo(f, 350);
     render();
   }
@@ -1107,7 +1137,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   /* ---- boot ---- */
   function init() {
     size(); limits();
-    var f = fitFor(homeBounds(), pads());
+    var f = homeFit();
     s0 = f.s;
     applyStyles();
     setView(f);
@@ -1115,7 +1145,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   var ro = window.ResizeObserver ? new ResizeObserver(function () {
     var wasS = v.s / s0;
     size(); limits();
-    var f = fitFor(homeBounds(), pads()); s0 = f.s;
+    var f = homeFit(); s0 = f.s;
     if (Math.abs(wasS - 1) < 0.01) setView(f); else setView({ s: v.s, tx: v.tx, ty: v.ty });
   }) : null;
   if (ro) ro.observe(map); else window.addEventListener('resize', function () { size(); limits(); render(); });
