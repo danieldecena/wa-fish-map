@@ -547,14 +547,18 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       }
     });
     // pin labels first, then landmarks by priority
-    groups.forEach(function (g) {
-      if (g.length !== 1) return;
+    // The selected pin's label goes first and may sit over a neighbouring pin; a label that would run off the right edge flips to the left of its pin.
+    var labelGroups = groups.filter(function (g) { return g.length === 1; });
+    labelGroups.sort(function (a, b) { return (b[0].s.id === selected) - (a[0].s.id === selected); });
+    labelGroups.forEach(function (g) {
       var p = g[0], pn = pinNodes[p.s.id];
-      var bx = [p.x + 15, p.y - 30, pn.w + 4, 14];
-      var hit = boxes.some(function (b) { return overlap(bx, b); });
+      var left = p.x + 15 + pn.w + 4 > W - 8;
+      var bx = [left ? p.x - 15 - (pn.w + 4) : p.x + 15, p.y - 30, pn.w + 4, 14];
+      var hit = p.s.id !== selected && boxes.some(function (b) { return overlap(bx, b); });
       if (!hit) {
         pn.lab.style.display = '';
-        pn.lab.setAttribute('x', (p.x + 15).toFixed(1)); pn.lab.setAttribute('y', (p.y - 19).toFixed(1));
+        pn.lab.setAttribute('text-anchor', left ? 'end' : 'start');
+        pn.lab.setAttribute('x', (left ? p.x - 15 : p.x + 15).toFixed(1)); pn.lab.setAttribute('y', (p.y - 19).toFixed(1));
         boxes.push(bx);
       }
     });
