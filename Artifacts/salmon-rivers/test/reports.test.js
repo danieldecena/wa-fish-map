@@ -138,3 +138,36 @@ test('pinLabel: rating and species, release caveat, and the no-report case in wo
   assert.equal(R.pinLabel(lone, R.viewOf(lone, 'Chinook Salmon', TODAY), 'Chinook Salmon'), 'X River, no report for Chinook Salmon');
   assert.equal(R.pinLabel({ id: 'y', name: 'Y River' }, R.viewOf({ id: 'y', name: 'Y River' }, null, TODAY), null), 'Y River, no report');
 });
+
+test('reportRows lists only the species a site has, in SPECIES order', () => {
+  const lone = { id: 'x', name: 'X', reports: { 'Chinook Salmon': { r: 'fair', asOf: null, d: 'a' } } };
+  assert.deepEqual(R.reportRows(lone).map(r => r.name), ['Chinook Salmon']);
+  assert.deepEqual(R.reportRows(site('wind')).map(r => r.name), ['Coho Salmon', 'Chinook Salmon']);
+  assert.deepEqual(R.reportRows({ id: 'y', name: 'Y' }), []);
+});
+
+test('missingNote speaks only when a chosen species has no report on that water', () => {
+  const lone = { id: 'x', name: 'X', reports: { 'Coho Salmon': { r: 'good', asOf: null, d: '' } } };
+  assert.equal(R.missingNote(lone, null), null);
+  assert.equal(R.missingNote(lone, 'Coho Salmon'), null);
+  assert.match(R.missingNote(lone, 'Chinook Salmon'), /^No report for Chinook Salmon on this water\. Confirm what is open and what you may keep on WDFW before you fish\.$/);
+});
+
+// The twelve reports that predate per-report sources. They are covered by the page-level
+// source links and must not gain a guessed attribution. This list only ever shrinks.
+const LEGACY = new Set(['cowlitz', 'columbia', 'lewis', 'wind', 'klickitat', 'drano']
+  .flatMap(id => ['Coho Salmon', 'Chinook Salmon'].map(n => id + '/' + n)));
+
+test('every report added after the species change names its source', () => {
+  for (const s of R.SITES) {
+    for (const [name, sp] of Object.entries(s.reports)) {
+      if (LEGACY.has(s.id + '/' + name)) continue;
+      assert.ok(sp.src && sp.src.label && /^https:\/\//.test(sp.src.url), `${s.id}/${name} needs src {label, url}`);
+    }
+  }
+});
+
+test('control: the legacy list matches reality, so the source check is not vacuous', () => {
+  const actual = R.SITES.flatMap(s => Object.keys(s.reports).map(n => s.id + '/' + n));
+  for (const key of LEGACY) assert.ok(actual.includes(key), `${key} is listed as legacy but is not in SITES`);
+});

@@ -220,6 +220,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 .row { background: var(--fill-row); border-radius: 10px; padding: 10px; display: flex; gap: 10px; justify-content: space-between; align-items: flex-start; }
 .row .rt { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .row .nm { font-size: 15px; line-height: 20px; font-weight: 600; }
+.miss { margin: 0 0 8px; font-size: 13px; line-height: 18px; color: var(--ink2); }
 .row .dt { font-size: 12px; line-height: 16px; color: var(--ink2); }
 .row .ch { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
 .row .badge { padding: 3px 8px; }
@@ -724,20 +725,27 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     $('#stitle').textContent = s.name;
     var head = '<div class="head"><p>' + esc(s.sub) + '</p>' +
       (vw.k ? '<span class="badge' + (vw.release ? ' faded' : '') + '" style="--c:var(--' + vw.r + ')">' + LABEL[vw.r] + ' · ' + esc(vw.k) + (vw.release ? ' · release only' : '') + '</span>' : '') + '</div>';
-    var rows = Reports.SPECIES.filter(function (k) { return !!s.reports[k]; }).map(function (k) {
-      var sp = s.reports[k];
+    var rows = Reports.reportRows(s).map(function (r) {
+      var k = r.name, sp = r.sp;
       return '<div class="row"><div class="rt"><div class="nm">' + esc(k) + '</div><div class="dt">' + esc(sp.d) + '</div></div><div class="ch">' + badge(sp.r, sp.release) + (sp.release ? '<span class="chip">Release only</span>' : '') +
         '<span class="chip' + (Reports.freshness(sp.asOf, TODAY) === 'fresh' ? '' : ' old') + '">' + esc(Reports.describeAge(sp.asOf, TODAY)) + '</span></div></div>';
     }).join('');
+    var missing = Reports.missingNote(s, species);
+    var extraSrc = [];
+    Reports.reportRows(s).forEach(function (r) {
+      var q = r.sp.src;
+      if (q && extraSrc.every(function (e) { return e.url !== q.url; })) extraSrc.push(q);
+    });
     var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
     var dir = 'https://maps.apple.com/?ll=' + s.ll[0] + ',' + s.ll[1] + '&q=' + encodeURIComponent(s.name);
     var src = '<a href="https://www.theguidesforecast.com/free/coho-run-heats-up/287017/" target="_blank" rel="noopener">The Guide’s Forecast, Oct 17</a>' +
       '<a href="https://www.theguidesforecast.com/sw-washington-fishing-reports/" target="_blank" rel="noopener">SW Washington reports, Oct 15</a>' +
-      (s.extra === 'nws' ? '<a href="https://nwsportsmanmag.com/sw-wa-buoy-10-lower-columbia-hanford-reach-report-10-13-2026/" target="_blank" rel="noopener">NW Sportsman, Oct 13</a>' : '');
+      (s.extra === 'nws' ? '<a href="https://nwsportsmanmag.com/sw-wa-buoy-10-lower-columbia-hanford-reach-report-10-13-2026/" target="_blank" rel="noopener">NW Sportsman, Oct 13</a>' : '') +
+      extraSrc.map(function (e) { return '<a href="' + esc(e.url) + '" target="_blank" rel="noopener">' + esc(e.label) + '</a>'; }).join('');
     $('#sbody').innerHTML =
       head +
       '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
-      '<section><h3>What’s biting</h3><div class="rows">' + rows + '</div></section>' +
+      '<section><h3>What’s biting</h3>' + (missing ? '<p class="miss">' + esc(missing) + '</p>' : '') + '<div class="rows">' + rows + '</div></section>' +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Rules change in season and differ by river and species. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
       footHtml('<div class="src">' + src + '</div>');
     $('#sbody').scrollTop = 0;

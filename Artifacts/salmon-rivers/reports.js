@@ -114,11 +114,20 @@
     if (vw.k === null) return site.name + ', no report' + (species ? ' for ' + species : '');
     return site.name + ', ' + LABEL[vw.r].toLowerCase() + ' reports for ' + vw.k.toLowerCase() + (vw.release ? ', release only' : '');
   }
+  function reportRows(site) {
+    var have = reportsOf(site);
+    return SPECIES.filter(function (k) { return !!have[k]; }).map(function (k) { return { name: k, sp: have[k] }; });
+  }
+  function missingNote(site, species) {
+    if (species === null || reportsOf(site)[species]) return null;
+    return 'No report for ' + species + ' on this water. Confirm what is open and what you may keep on WDFW before you fish.';
+  }
   function ratingWord(vw) { return LABEL[vw.r] + (vw.release ? ', release only' : ''); }
 
   return {
     SITES: SITES, RANK: RANK, LABEL: LABEL, STALE_DAYS: STALE_DAYS, SPECIES: SPECIES,
     viewOf: viewOf, freshness: freshness, ageDays: ageDays, formatDay: formatDay, describeAge: describeAge,
-    latestReport: latestReport, staleNotice: staleNotice, rankSites: rankSites, ratingWord: ratingWord, pinLabel: pinLabel
+    latestReport: latestReport, staleNotice: staleNotice, rankSites: rankSites, ratingWord: ratingWord, pinLabel: pinLabel,
+    reportRows: reportRows, missingNote: missingNote
   };
 });
