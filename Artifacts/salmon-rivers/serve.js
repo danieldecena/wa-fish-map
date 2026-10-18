@@ -1,6 +1,6 @@
 // Local check server: node Artifacts/salmon-rivers/serve.js  ->  http://127.0.0.1:4173/
-// Wraps index.html in the document skeleton the publisher adds, so quirks mode
-// and default styles match the live page.
+// Wraps index.html in the same document skeleton the publisher uses, so default
+// styles match the live page.
 const http = require('http'), fs = require('fs'), path = require('path');
 const root = __dirname;
 const types = { '.js': 'text/javascript; charset=utf-8', '.json': 'application/json' };

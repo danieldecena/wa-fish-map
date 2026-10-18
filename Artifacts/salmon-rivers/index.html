@@ -330,7 +330,6 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   var TAIL = 'M456.70 512.00L194.56 389.12L194.56 634.88Z';
 
   var RANK = Reports.RANK, LABEL = Reports.LABEL, SP_NAME = Reports.SP_NAME;
-  var STALE_DAYS = Reports.STALE_DAYS;
 
   function todayISO() {
     var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
@@ -424,7 +423,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     return o;
   }
 
-  // measure label widths once
+  // measure landmark label widths once
   lms.forEach(function (l) { l.w = l.t.getBBox().width; });
 
   /* ---- view state ---- */
