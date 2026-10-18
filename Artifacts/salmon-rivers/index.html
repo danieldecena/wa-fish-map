@@ -17,6 +17,7 @@
   --halo: #f2f2f7;
   --pin-edge: rgba(0,0,0,0.55);
   --on: #007c9e;
+  --on-text: #007c9e;
   --prime: #ff3b30;
   --good: #ff9500;
   --fair: #ffcc00;
@@ -43,6 +44,7 @@
     --river: rgba(64,196,222,0.4);
     --halo: #1c1c1e;
     --pin-edge: rgba(255,255,255,0.95);
+    --on-text: #4fc3dc;
     --prime: #ff453a;
     --good: #ff9f0a;
     --fair: #ffd60a;
@@ -65,6 +67,7 @@
   --river: rgba(64,196,222,0.4);
   --halo: #1c1c1e;
   --pin-edge: rgba(255,255,255,0.95);
+  --on-text: #4fc3dc;
   --prime: #ff453a;
   --good: #ff9f0a;
   --fair: #ffd60a;
@@ -87,7 +90,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 button { font: inherit; color: inherit; }
-a { color: var(--on); }
+a { color: var(--on-text); }
 :focus-visible { outline: 2px solid var(--on); outline-offset: 2px; }
 
 #app { position: relative; height: 100%; overflow: hidden; }
@@ -125,7 +128,7 @@ a { color: var(--on); }
 .lab { font: 600 11px/13px var(--sans); fill: var(--ink); paint-order: stroke; stroke: var(--halo); stroke-width: 3.2px; stroke-linejoin: round; }
 .lab.city { font-weight: 500; fill: var(--ink2); }
 .lab.peak, .lab.dam { font-weight: 500; fill: var(--ink2); }
-.lab.water { font-style: italic; font-weight: 500; fill: var(--on); letter-spacing: 0.04em; text-anchor: middle; }
+.lab.water { font-style: italic; font-weight: 500; fill: var(--on-text); letter-spacing: 0.04em; text-anchor: middle; }
 .lab.region { font-weight: 600; letter-spacing: 0.32em; fill: var(--ink2); opacity: 0.6; text-anchor: middle; font-size: 10px; }
 .lm-dot { fill: var(--ink2); stroke: var(--halo); stroke-width: 1.5; }
 .lm-peak { fill: var(--ink2); stroke: var(--halo); stroke-width: 1.2; }
@@ -156,7 +159,7 @@ a { color: var(--on); }
 .brand .sub { font-size: 12px; line-height: 16px; color: var(--ink2); }
 .notice { font-size: 12px; line-height: 16px; background: var(--fill-advisory); border-radius: 10px; padding: 8px 10px; }
 .seg { display: flex; flex-wrap: wrap; gap: 6px; }
-.seg button { border: 0; cursor: pointer; padding: 6px 12px; min-height: 30px; border-radius: 999px; background: var(--fill-toggle); font-size: 12px; line-height: 16px; font-weight: 600; }
+.seg button { border: 0; cursor: pointer; padding: 0 14px; min-height: 44px; border-radius: 999px; background: var(--fill-toggle); font-size: 12px; line-height: 16px; font-weight: 600; }
 .seg button[aria-checked="true"] { background: var(--on); color: #fff; }
 .ctl { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
 .listbtn { border: 1px solid var(--glass-line); background: transparent; cursor: pointer; padding: 6px 14px; min-height: 44px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 600; }
@@ -201,11 +204,11 @@ a { color: var(--on); }
   background: var(--sheet);
 }
 .sbar .grab { position: absolute; top: 6px; left: 50%; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--fill-advisory); }
-.sbar .st { font-size: 15px; line-height: 20px; font-weight: 600; margin-top: 6px; }
-.sbar button { margin-top: 6px; border: 0; background: transparent; color: var(--on); font-weight: 600; cursor: pointer; padding: 6px 4px; min-height: 32px; }
+.sbar .st { margin: 6px 0 0; font-size: 15px; line-height: 20px; font-weight: 600; }
+.sbar button { margin-top: 6px; border: 0; background: transparent; color: var(--on-text); font-weight: 600; cursor: pointer; padding: 0 4px; min-height: 44px; }
+#sheet:focus { outline: none; }
 .sbody { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 18px max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 18px; }
 .head { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
-.head h2 { margin: 0; font-size: 20px; line-height: 25px; font-weight: 700; text-wrap: balance; }
 .head p { margin: 0; color: var(--ink2); }
 .badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 700; background: color-mix(in srgb, var(--c) 20%, transparent); border: 1px solid var(--c); white-space: nowrap; }
 .badge.faded { opacity: 0.7; }
@@ -304,8 +307,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     </div>
   </div>
 
-  <aside id="sheet" aria-label="River details" aria-hidden="true">
-    <div class="sbar"><span class="grab"></span><span class="st" id="stitle"></span><button type="button" id="sdone">Done</button></div>
+  <aside id="sheet" aria-labelledby="stitle" tabindex="-1" aria-hidden="true">
+    <div class="sbar"><span class="grab"></span><h2 class="st" id="stitle"></h2><button type="button" id="sdone">Done</button></div>
     <div class="sbody" id="sbody"></div>
   </aside>
 </div>
@@ -707,7 +710,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var s = SITES.filter(function (q) { return q.id === id; })[0];
     var vw = viewOf(s);
     $('#stitle').textContent = s.name;
-    var head = '<div class="head"><h2>' + esc(s.name) + '</h2><p>' + esc(s.sub) + '</p>' +
+    var head = '<div class="head"><p>' + esc(s.sub) + '</p>' +
       (vw.k ? '<span class="badge' + (vw.release ? ' faded' : '') + '" style="--c:var(--' + vw.r + ')">' + LABEL[vw.r] + ' · ' + SP_NAME[vw.k] + (vw.release ? ' · release only' : '') + '</span>' : '') + '</div>';
     var rows = ['coho', 'chinook'].map(function (k) {
       var sp = s[k];
@@ -721,17 +724,20 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       (s.extra === 'nws' ? '<a href="https://nwsportsmanmag.com/sw-wa-buoy-10-lower-columbia-hanford-reach-report-10-13-2026/" target="_blank" rel="noopener">NW Sportsman, Oct 13</a>' : '');
     $('#sbody').innerHTML =
       head +
+      '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
       '<section><h3>What’s biting</h3><div class="rows">' + rows + '</div></section>' +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Rules change in season and differ by river and species. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
-      '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
       '<div class="foot"><div>Recent catch reports, not season dates. Not for navigation or safety decisions.</div>' +
       '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a>' +
       '<div class="src">' + src + '</div></div>';
     $('#sbody').scrollTop = 0;
   }
+  var returnFocus = null;
   function showSheet() {
+    if (!sheet.classList.contains('open')) returnFocus = document.activeElement;
     sheet.classList.add('open'); sheet.setAttribute('aria-hidden', 'false');
     appEl.classList.add('sheet-open');
+    sheet.focus({ preventScroll: true });
   }
   function openSheet(id) {
     selected = id; mode = 'detail';
@@ -762,6 +768,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     appEl.classList.remove('sheet-open');
     $('#listbtn').setAttribute('aria-expanded', 'false');
     applyStyles(); render();
+    var back = returnFocus; returnFocus = null;
+    if (back && back !== document.body && document.contains(back) && back.focus) back.focus({ preventScroll: true });
   }
   $('#sdone').addEventListener('click', closeSheet);
   $('#listbtn').addEventListener('click', function () { if (mode === 'list') closeSheet(); else openList(); });
