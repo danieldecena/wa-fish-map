@@ -129,3 +129,12 @@ test('report data: ids unique, species exact, ratings valid, dates real, no date
   assert.equal(ids.size, 6);
   for (const n of R.SPECIES) assert.ok(used.has(n), `${n} is in SPECIES but no river has a report for it`);
 });
+
+test('pinLabel: rating and species, release caveat, and the no-report case in words', () => {
+  const v = (id, sp) => R.viewOf(site(id), sp, TODAY);
+  assert.equal(R.pinLabel(site('cowlitz'), v('cowlitz', null), null), 'Cowlitz River, excellent reports for coho salmon');
+  assert.equal(R.pinLabel(site('cowlitz'), v('cowlitz', 'Chinook Salmon'), 'Chinook Salmon'), 'Cowlitz River, fair reports for chinook salmon, release only');
+  const lone = { id: 'x', name: 'X River', reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-17', d: '' } } };
+  assert.equal(R.pinLabel(lone, R.viewOf(lone, 'Chinook Salmon', TODAY), 'Chinook Salmon'), 'X River, no report for Chinook Salmon');
+  assert.equal(R.pinLabel({ id: 'y', name: 'Y River' }, R.viewOf({ id: 'y', name: 'Y River' }, null, TODAY), null), 'Y River, no report');
+});

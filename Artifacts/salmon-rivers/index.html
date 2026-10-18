@@ -279,11 +279,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
         </div>
       </div>
       <div class="ctl">
-        <div class="seg" role="radiogroup" aria-label="Species">
-          <button type="button" role="radio" aria-checked="true" data-species="">All salmon</button>
-          <button type="button" role="radio" aria-checked="false" data-species="Coho Salmon">Coho</button>
-          <button type="button" role="radio" aria-checked="false" data-species="Chinook Salmon">Chinook</button>
-        </div>
+        <div class="seg" role="radiogroup" aria-label="Species"></div>
         <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
       </div>
       <div class="notice" id="notice" role="status" hidden></div>
@@ -505,7 +501,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       pn.lab.style.display = '';          // getBBox needs a displayed node; render() re-hides it
       pn.w = pn.lab.getBBox().width;
       pn.g.classList.toggle('closed', vw.release);
-      pn.g.setAttribute('aria-label', s.name + ', ' + LABEL[vw.r].toLowerCase() + ' reports' + (vw.k ? ' for ' + vw.k.toLowerCase() : '') + (vw.release ? ', release only' : ''));
+      pn.g.setAttribute('aria-label', Reports.pinLabel(s, vw, species));
       var h = hlNodes[s.id];
       if (h) { h.style.setProperty('--rc', colorVar(vw.r)); h.classList.toggle('closed', vw.release); h.classList.toggle('sel', selected === s.id); }
     });
@@ -679,6 +675,16 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   $('#zin').addEventListener('click', function () { zoomAt(W / 2, H / 2, 1.6); });
   $('#zout').addEventListener('click', function () { zoomAt(W / 2, H / 2, 1 / 1.6); });
   $('#zfit').addEventListener('click', resetView);
+  var seg = document.querySelector('.seg');
+  [null].concat(Reports.SPECIES).forEach(function (name) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('role', 'radio');
+    b.setAttribute('aria-checked', name === species ? 'true' : 'false');
+    b.setAttribute('data-species', name || '');
+    b.textContent = name || 'All species';
+    seg.appendChild(b);
+  });
   document.querySelectorAll('.seg button').forEach(function (b) {
     b.addEventListener('click', function () {
       species = b.getAttribute('data-species') || null;

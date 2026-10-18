@@ -110,11 +110,15 @@
       return a.site.name < b.site.name ? -1 : a.site.name > b.site.name ? 1 : 0;
     });
   }
+  function pinLabel(site, vw, species) {
+    if (vw.k === null) return site.name + ', no report' + (species ? ' for ' + species : '');
+    return site.name + ', ' + LABEL[vw.r].toLowerCase() + ' reports for ' + vw.k.toLowerCase() + (vw.release ? ', release only' : '');
+  }
   function ratingWord(vw) { return LABEL[vw.r] + (vw.release ? ', release only' : ''); }
 
   return {
     SITES: SITES, RANK: RANK, LABEL: LABEL, STALE_DAYS: STALE_DAYS, SPECIES: SPECIES,
     viewOf: viewOf, freshness: freshness, ageDays: ageDays, formatDay: formatDay, describeAge: describeAge,
-    latestReport: latestReport, staleNotice: staleNotice, rankSites: rankSites, ratingWord: ratingWord
+    latestReport: latestReport, staleNotice: staleNotice, rankSites: rankSites, ratingWord: ratingWord, pinLabel: pinLabel
   };
 });
