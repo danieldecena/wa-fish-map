@@ -15,6 +15,7 @@
   --glass-line: rgba(60,60,67,0.16);
   --river: rgba(0,124,158,0.42);
   --halo: #f2f2f7;
+  --pin-edge: rgba(0,0,0,0.55);
   --on: #007c9e;
   --prime: #ff3b30;
   --good: #ff9500;
@@ -41,6 +42,7 @@
     --glass-line: rgba(235,235,245,0.18);
     --river: rgba(64,196,222,0.4);
     --halo: #1c1c1e;
+    --pin-edge: rgba(255,255,255,0.95);
     --prime: #ff453a;
     --good: #ff9f0a;
     --fair: #ffd60a;
@@ -62,6 +64,7 @@
   --glass-line: rgba(235,235,245,0.18);
   --river: rgba(64,196,222,0.4);
   --halo: #1c1c1e;
+  --pin-edge: rgba(255,255,255,0.95);
   --prime: #ff453a;
   --good: #ff9f0a;
   --fair: #ffd60a;
@@ -109,13 +112,13 @@ a { color: var(--on); }
 .hl.sel .line { stroke-width: 5px; }
 
 .pin { pointer-events: auto; cursor: pointer; outline: none; }
-.pin .balloon { fill: var(--rc); stroke: rgba(255,255,255,0.95); stroke-width: 1.5; }
+.pin .balloon { fill: var(--rc); stroke: var(--pin-edge); stroke-width: 1.5; }
 .pin .glyph path { fill: var(--gl, #fff); }
 .pin .tipshadow { fill: rgba(0,0,0,0.28); }
 .pin.closed .pin-s { opacity: 0.55; }
 .pin:focus-visible .balloon { stroke: var(--on); stroke-width: 3; }
 .cluster { pointer-events: auto; cursor: pointer; outline: none; }
-.cluster circle { fill: var(--rc); stroke: rgba(255,255,255,0.95); stroke-width: 2; }
+.cluster circle { fill: var(--rc); stroke: var(--pin-edge); stroke-width: 2; }
 .cluster text { fill: var(--gl, #fff); font: 700 11px/13px var(--sans); text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; }
 .cluster:focus-visible circle { stroke: var(--on); stroke-width: 3; }
 
@@ -411,7 +414,6 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 
   // measure label widths once
   lms.forEach(function (l) { l.w = l.t.getBBox().width; });
-  SITES.forEach(function (s) { pinNodes[s.id].w = pinNodes[s.id].lab.getBBox().width; });
 
   /* ---- view state ---- */
   var map = $('#map');
@@ -481,12 +483,16 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 
   /* ---- render ---- */
   function colorVar(r) { return 'var(--' + r + ')'; }
+  function glyphColor(r) { return r === 'fair' || r === 'good' ? 'rgba(0,0,0,0.72)' : '#fff'; }
   function applyStyles() {
     SITES.forEach(function (s) {
       var vw = viewOf(s);
       var pn = pinNodes[s.id];
       pn.g.style.setProperty('--rc', colorVar(vw.r));
-      pn.g.style.setProperty('--gl', vw.r === 'fair' ? 'rgba(0,0,0,0.72)' : '#fff');
+      pn.g.style.setProperty('--gl', glyphColor(vw.r));
+      pn.lab.textContent = s.name.replace(' River', '') + ' · ' + Reports.ratingWord(vw);
+      pn.lab.style.display = '';          // getBBox needs a displayed node; render() re-hides it
+      pn.w = pn.lab.getBBox().width;
       pn.g.classList.toggle('closed', vw.release);
       pn.g.setAttribute('aria-label', s.name + ', ' + LABEL[vw.r].toLowerCase() + ' reports' + (vw.k ? ' for ' + SP_NAME[vw.k].toLowerCase() : '') + (vw.release ? ', release only' : ''));
       var h = hlNodes[s.id];
@@ -533,7 +539,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
         c.g.style.display = '';
         c.g.setAttribute('transform', 'translate(' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ') scale(0.95)');
         c.g.style.setProperty('--rc', colorVar(g[0].vw.r));
-        c.g.style.setProperty('--gl', g[0].vw.r === 'fair' ? 'rgba(0,0,0,0.72)' : '#fff');
+        c.g.style.setProperty('--gl', glyphColor(g[0].vw.r));
         c.t.textContent = g.length;
         c.g.setAttribute('data-cluster', g.map(function (m) { return m.s.id; }).join(','));
         c.g.setAttribute('aria-label', g.length + ' rivers close together, zoom in');
