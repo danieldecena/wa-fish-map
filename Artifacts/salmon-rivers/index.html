@@ -158,7 +158,8 @@ a { color: var(--on-text); }
 .bar { align-self: flex-start; width: 100%; max-width: 460px; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .brand svg { width: 32px; height: 32px; flex: none; }
-.brand .t { min-width: 0; }
+.brand .t { min-width: 0; flex: 1 1 auto; }
+.brand .listbtn { flex: none; margin-left: auto; align-self: flex-start; }
 .brand .title { font-size: 17px; line-height: 22px; font-weight: 600; text-wrap: balance; }
 .brand .sub { font-size: 12px; line-height: 16px; color: var(--ink2); }
 .notice { font-size: 12px; line-height: 16px; background: var(--fill-advisory); border-radius: 10px; padding: 8px 10px; }
@@ -304,15 +305,14 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
           <div class="title" id="ttl">Salmon this month</div>
           <div class="sub" id="sub"></div>
         </div>
+        <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
       </div>
       <div class="seg modes" id="modes" role="radiogroup" aria-label="Map mode">
         <button type="button" role="radio" aria-checked="true" data-mode="reports">Recent reports</button>
         <button type="button" role="radio" aria-checked="false" data-mode="typical">Typical season</button>
       </div>
       <div class="ctl">
-        <div class="seg" id="spseg" role="radiogroup" aria-label="Species"></div>
-        <button type="button" class="listbtn" id="spbtn" aria-expanded="false" aria-controls="sppanel" hidden></button>
-        <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
+        <button type="button" class="listbtn" id="spbtn" aria-expanded="false" aria-controls="sppanel"></button>
       </div>
       <div class="sppanel" id="sppanel" role="radiogroup" aria-label="Species" hidden></div>
       <div class="notice" id="notice" role="status" hidden></div>
@@ -790,7 +790,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   $('#zin').addEventListener('click', function () { zoomAt(W / 2, H / 2, 1.6); });
   $('#zout').addEventListener('click', function () { zoomAt(W / 2, H / 2, 1 / 1.6); });
   $('#zfit').addEventListener('click', resetView);
-  var spseg = $('#spseg'), spbtn = $('#spbtn'), sppanel = $('#sppanel');
+  var spbtn = $('#spbtn'), sppanel = $('#sppanel');
   var CHEV = '<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" style="margin-left:6px;vertical-align:-1px"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   function mkChip(name, parent) {
     var b = document.createElement('button');
@@ -804,17 +804,20 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   }
   function pickSpecies(name) {
     species = name;
-    document.querySelectorAll('#spseg button, #sppanel button').forEach(function (o) {
+    document.querySelectorAll('#sppanel button').forEach(function (o) {
       o.setAttribute('aria-checked', (o.getAttribute('data-species') || null) === species ? 'true' : 'false');
     });
     spbtn.innerHTML = 'Species: ' + esc(species || 'All species') + CHEV;
-    if (view === 'typical') toggleSpecies(false);
+    toggleSpecies(false);
     applyStyles(); render();
     if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList();
   }
+  // One species dropdown for both modes. Closing hands focus back to the button, and opening puts it on the chosen species, so the keyboard never loses its place.
   function toggleSpecies(open) {
+    if (!open && sppanel.contains(document.activeElement)) spbtn.focus({ preventScroll: true });
     sppanel.hidden = !open;
     spbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) { var on = sppanel.querySelector('[aria-checked="true"]'); if (on) on.focus({ preventScroll: true }); }
   }
   spbtn.addEventListener('click', function () { toggleSpecies(sppanel.hidden); });
   var GROUPS = ['Salmon', 'Other saltwater', 'Freshwater', 'Salt and fresh water'];
@@ -823,18 +826,17 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     return sp.water === 'salt' ? GROUPS[1] : sp.water === 'fresh' ? GROUPS[2] : GROUPS[3];
   }
   function buildSpecies() {
-    spseg.innerHTML = ''; sppanel.innerHTML = '';
-    if (view === 'reports') {
-      spseg.hidden = false; spbtn.hidden = true; sppanel.hidden = true; $('#listbtn').hidden = false;
-      [null].concat(Reports.SPECIES).forEach(function (name) { mkChip(name, spseg); });
-      return;
-    }
-    // Typical mode lists only species some site has guidance for (22+), grouped and scrollable so they stay usable at 375 px.
-    spseg.hidden = true; spbtn.hidden = false; $('#listbtn').hidden = true;
+    sppanel.innerHTML = '';
+    $('#listbtn').hidden = view !== 'reports';
     spbtn.innerHTML = 'Species: ' + esc(species || 'All species') + CHEV;
     toggleSpecies(false);
     var top = document.createElement('div'); top.className = 'seg'; sppanel.appendChild(top);
     mkChip(null, top);
+    if (view === 'reports') {
+      Reports.SPECIES.forEach(function (name) { mkChip(name, top); });
+      return;
+    }
+    // Typical mode lists only species some site has guidance for (22+), grouped and scrollable so they stay usable at 375 px.
     GROUPS.forEach(function (gn) {
       var list = TypicalData.species.filter(function (sp) { return groupOf(sp) === gn; });
       if (!list.length) return;
@@ -1048,7 +1050,11 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var b = e.target.closest ? e.target.closest('.lrow') : null;
     if (b) openSheet(b.getAttribute('data-id'));
   });
-  window.addEventListener('keydown', function (e) { if (e.key === 'Escape' && mode) closeSheet(); });
+  window.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (!sppanel.hidden) { toggleSpecies(false); spbtn.focus({ preventScroll: true }); return; }
+    if (mode) closeSheet();
+  });
 
   /* ---- mode ---- */
   function setMode(m) {

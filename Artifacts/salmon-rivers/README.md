@@ -2,7 +2,7 @@
 
 The published page "SW Washington Salmon Rivers" has two modes behind one switch at the top of the page. It is not part of the iOS app.
 
-- **Recent reports** (the default): a full-bleed river map of six southwest Washington salmon fisheries (Cowlitz, Lower Columbia, Lewis, Wind, Klickitat, Drano Lake) with a coho/chinook filter, a ranked Rivers list and a detail sheet. It shows recent catch reports, not season dates, and routes people to WDFW to confirm rules.
+- **Recent reports** (the default): a full-bleed river map of six southwest Washington salmon fisheries (Cowlitz, Lower Columbia, Lewis, Wind, Klickitat, Drano Lake) with a species dropdown, a ranked Rivers list and a detail sheet. It shows recent catch reports, not season dates, and routes people to WDFW to confirm rules.
 - **Typical season** (new, not yet published): about 540 WDFW piers, boat launches and shore access sites across Washington, each coloured by the WA Fish Map app's own seasonal rating for the chosen species in the current month. It is typical timing from the app's curated guidance. It is not a catch report and not a claim that a fishery is open. `?mode=typical` opens the page in this mode.
 
 The two modes never share a map view: switching swaps the pin set, the legend, the species list and the sheets. Catch-report colours and seasonal colours are never drawn together.
@@ -28,6 +28,8 @@ Live: https://claude.ai/artifact/9oA145toRsmFcDYurdJbey (binding and versions in
 | `test/creel-fixture.json` | Small fixture for the matching tests. |
 | `test/cluster.test.js` | Grid clustering equals the all-pairs rule, and stays fast at 5,000 and 20,000 points. |
 | `test/counts.test.js` | Node tests for `counts.js` (generated header, dates, integer counts, no steelhead, Columbia sums against the table, counts kept out of ratings). |
+| `test/design.test.js` | Design-system pins: the rating tokens equal the app's system colours in both appearances, the app source still draws the ramp from `DS.Rating`, the two dark token blocks agree, glass-card and legend spacing, colour-blindness simulation of the page's own tokens, and the pin label words. |
+| `test/controls.test.js` | The control card: one species dropdown for both modes, Rivers on the title row, the title names the mode, 44 px targets, keyboard and focus handling. |
 | `test/baseline-pins.json` | Pin colours per species filter from the page as first published; a Task 2 check that nothing changed visibly. |
 | `baseline.html` | The page as first published, single file. The rollback source. |
 | `serve.js` | Local static server that wraps `index.html` the way the publisher does. |
