@@ -280,9 +280,9 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       </div>
       <div class="ctl">
         <div class="seg" role="radiogroup" aria-label="Species">
-          <button type="button" role="radio" aria-checked="true" data-f="all">All salmon</button>
-          <button type="button" role="radio" aria-checked="false" data-f="coho">Coho</button>
-          <button type="button" role="radio" aria-checked="false" data-f="chinook">Chinook</button>
+          <button type="button" role="radio" aria-checked="true" data-species="">All salmon</button>
+          <button type="button" role="radio" aria-checked="false" data-species="Coho Salmon">Coho</button>
+          <button type="button" role="radio" aria-checked="false" data-species="Chinook Salmon">Chinook</button>
         </div>
         <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
       </div>
@@ -329,7 +329,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   var BODY = 'M337.92 512.00C501.76 386.39 665.60 386.39 829.44 512.00C665.60 637.61 501.76 637.61 337.92 512.00ZM767.18 503.81C767.18 488.43 754.71 475.96 739.33 475.96C723.95 475.96 711.48 488.43 711.48 503.81C711.48 519.19 723.95 531.66 739.33 531.66C754.71 531.66 767.18 519.19 767.18 503.81Z';
   var TAIL = 'M456.70 512.00L194.56 389.12L194.56 634.88Z';
 
-  var RANK = Reports.RANK, LABEL = Reports.LABEL, SP_NAME = Reports.SP_NAME;
+  var RANK = Reports.RANK, LABEL = Reports.LABEL;
 
   function todayISO() {
     var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
@@ -342,10 +342,10 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   var SITES = Reports.SITES;
   SITES.forEach(function (s) { var p = D.pins[s.id]; s.ll = p.ll; s.xy = p.xy; });
 
-  var filter = 'all';
+  var species = null;
   var selected = null;
 
-  function viewOf(s) { return Reports.viewOf(s, filter, TODAY); }
+  function viewOf(s) { return Reports.viewOf(s, species, TODAY); }
 
   /* ---- basemap ---- */
   var vp = $('#vp');
@@ -505,7 +505,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       pn.lab.style.display = '';          // getBBox needs a displayed node; render() re-hides it
       pn.w = pn.lab.getBBox().width;
       pn.g.classList.toggle('closed', vw.release);
-      pn.g.setAttribute('aria-label', s.name + ', ' + LABEL[vw.r].toLowerCase() + ' reports' + (vw.k ? ' for ' + SP_NAME[vw.k].toLowerCase() : '') + (vw.release ? ', release only' : ''));
+      pn.g.setAttribute('aria-label', s.name + ', ' + LABEL[vw.r].toLowerCase() + ' reports' + (vw.k ? ' for ' + vw.k.toLowerCase() : '') + (vw.release ? ', release only' : ''));
       var h = hlNodes[s.id];
       if (h) { h.style.setProperty('--rc', colorVar(vw.r)); h.classList.toggle('closed', vw.release); h.classList.toggle('sel', selected === s.id); }
     });
@@ -681,7 +681,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   $('#zfit').addEventListener('click', resetView);
   document.querySelectorAll('.seg button').forEach(function (b) {
     b.addEventListener('click', function () {
-      filter = b.getAttribute('data-f');
+      species = b.getAttribute('data-species') || null;
       document.querySelectorAll('.seg button').forEach(function (o) { o.setAttribute('aria-checked', o === b ? 'true' : 'false'); });
       applyStyles(); render();
       if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList();
@@ -700,15 +700,15 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       (extra || '') + '</div>';
   }
   function fillList() {
-    var rows = Reports.rankSites(SITES, filter, TODAY).map(function (e) {
+    var rows = Reports.rankSites(SITES, species, TODAY).map(function (e) {
       var s = e.site, vw = e.vw;
-      var line = vw.k ? SP_NAME[vw.k] + ' · ' + Reports.describeAge(vw.asOf, TODAY) : 'No report';
+      var line = vw.k ? vw.k + ' · ' + Reports.describeAge(vw.asOf, TODAY) : 'No report';
       return '<button type="button" class="row lrow" data-id="' + s.id + '"><span class="rt"><span class="nm">' + esc(s.name) +
         '</span><span class="dt">' + esc(line) + '</span></span><span class="ch">' + badge(vw.r, vw.release) +
         (vw.release ? '<span class="chip">Release only</span>' : '') + '</span></button>';
     }).join('');
     $('#stitle').textContent = 'Rivers';
-    $('#sbody').innerHTML = '<p class="lede">' + (filter === 'all' ? 'All salmon' : SP_NAME[filter]) +
+    $('#sbody').innerHTML = '<p class="lede">' + (species === null ? 'All salmon' : esc(species)) +
       ', best first. Fresh reports rank above older ones.</p><div class="rows">' + rows + '</div>' + footHtml();
     $('#sbody').scrollTop = 0;
   }
@@ -717,10 +717,10 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var vw = viewOf(s);
     $('#stitle').textContent = s.name;
     var head = '<div class="head"><p>' + esc(s.sub) + '</p>' +
-      (vw.k ? '<span class="badge' + (vw.release ? ' faded' : '') + '" style="--c:var(--' + vw.r + ')">' + LABEL[vw.r] + ' · ' + SP_NAME[vw.k] + (vw.release ? ' · release only' : '') + '</span>' : '') + '</div>';
-    var rows = ['coho', 'chinook'].map(function (k) {
-      var sp = s[k];
-      return '<div class="row"><div class="rt"><div class="nm">' + SP_NAME[k] + '</div><div class="dt">' + esc(sp.d) + '</div></div><div class="ch">' + badge(sp.r, sp.release) + (sp.release ? '<span class="chip">Release only</span>' : '') +
+      (vw.k ? '<span class="badge' + (vw.release ? ' faded' : '') + '" style="--c:var(--' + vw.r + ')">' + LABEL[vw.r] + ' · ' + esc(vw.k) + (vw.release ? ' · release only' : '') + '</span>' : '') + '</div>';
+    var rows = Reports.SPECIES.filter(function (k) { return !!s.reports[k]; }).map(function (k) {
+      var sp = s.reports[k];
+      return '<div class="row"><div class="rt"><div class="nm">' + esc(k) + '</div><div class="dt">' + esc(sp.d) + '</div></div><div class="ch">' + badge(sp.r, sp.release) + (sp.release ? '<span class="chip">Release only</span>' : '') +
         '<span class="chip' + (Reports.freshness(sp.asOf, TODAY) === 'fresh' ? '' : ' old') + '">' + esc(Reports.describeAge(sp.asOf, TODAY)) + '</span></div></div>';
     }).join('');
     var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
