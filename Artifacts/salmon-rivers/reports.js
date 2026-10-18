@@ -8,7 +8,7 @@
   var LABEL = { prime: 'Excellent', good: 'Good', fair: 'Fair', unrated: 'No report' };
   var STALE_DAYS = 7;
   /* Display order of every species with at least one report. Each is an exact species name from the app's species list. */
-  var SPECIES = ['Coho Salmon', 'Chinook Salmon'];
+  var SPECIES = ['Coho Salmon', 'Chinook Salmon', 'Fall Chinook'];
   var DAY = 86400000;
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -22,7 +22,9 @@
       'Chinook Salmon': { r: 'fair', release: true, asOf: null, d: 'The mainstem is closed for Chinook retention. Plenty are still caught and released.' } } },
     { id: 'lewis', name: 'Lewis River', sub: 'Mouth to Merwin Dam', hl: true,
       reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-13', d: '138 bank anglers kept 14 coho and 2 jacks and released 10 coho in the creel.' },
-      'Chinook Salmon': { r: 'fair', asOf: '2026-10-13', d: 'Same creel: 3 Chinook and 1 jack kept.' } }, extra: 'nws' },
+      'Chinook Salmon': { r: 'fair', asOf: '2026-10-13', d: 'Same creel: 3 Chinook and 1 jack kept.' },
+      'Fall Chinook': { r: 'good', asOf: '2026-09-26', d: 'Fall Chinook reported in good numbers, though the report says the run may be past its peak.',
+        src: { label: 'The Guide\u2019s Forecast, Sep 26', url: 'https://www.theguidesforecast.com/free/salmon-and-coho-retention-reopens/286727/' } } }, extra: 'nws' },
     { id: 'wind', name: 'Wind River', sub: 'Lower river near Carson', hl: true,
       reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-15', d: 'Reported very good for coho.' },
       'Chinook Salmon': { r: 'fair', asOf: '2026-10-03', d: 'Chinook were still biting on the Wind River and Drano Lake.' } } },
