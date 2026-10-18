@@ -158,6 +158,11 @@ a { color: var(--on); }
 .seg { display: flex; flex-wrap: wrap; gap: 6px; }
 .seg button { border: 0; cursor: pointer; padding: 6px 12px; min-height: 30px; border-radius: 999px; background: var(--fill-toggle); font-size: 12px; line-height: 16px; font-weight: 600; }
 .seg button[aria-checked="true"] { background: var(--on); color: #fff; }
+.ctl { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
+.listbtn { border: 1px solid var(--glass-line); background: transparent; cursor: pointer; padding: 6px 14px; min-height: 44px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 600; }
+.listbtn[aria-expanded="true"] { background: var(--on); border-color: var(--on); color: #fff; }
+.lrow { border: 0; width: 100%; text-align: left; cursor: pointer; min-height: 44px; font: inherit; color: inherit; }
+.lede { margin: 0 0 10px; font-size: 12px; line-height: 16px; color: var(--ink2); }
 
 .bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
 .legend { padding: 10px 12px; max-width: 360px; flex: 1 1 auto; min-width: 0; }
@@ -269,10 +274,13 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
           <div class="sub" id="sub"></div>
         </div>
       </div>
-      <div class="seg" role="radiogroup" aria-label="Species">
-        <button type="button" role="radio" aria-checked="true" data-f="all">All salmon</button>
-        <button type="button" role="radio" aria-checked="false" data-f="coho">Coho</button>
-        <button type="button" role="radio" aria-checked="false" data-f="chinook">Chinook</button>
+      <div class="ctl">
+        <div class="seg" role="radiogroup" aria-label="Species">
+          <button type="button" role="radio" aria-checked="true" data-f="all">All salmon</button>
+          <button type="button" role="radio" aria-checked="false" data-f="coho">Coho</button>
+          <button type="button" role="radio" aria-checked="false" data-f="chinook">Chinook</button>
+        </div>
+        <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
       </div>
       <div class="notice" id="notice" role="status" hidden></div>
     </div>
@@ -673,7 +681,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       filter = b.getAttribute('data-f');
       document.querySelectorAll('.seg button').forEach(function (o) { o.setAttribute('aria-checked', o === b ? 'true' : 'false'); });
       applyStyles(); render();
-      if (selected) fillSheet(selected);
+      if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList();
     });
   });
 
@@ -681,6 +689,20 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   var sheet = $('#sheet'), appEl = $('#app');
   function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function badge(r, faded) { return '<span class="badge' + (faded ? ' faded' : '') + '" style="--c:var(--' + r + ')">' + LABEL[r] + '</span>'; }
+  var mode = null; // 'detail' | 'list' | null
+  function fillList() {
+    var rows = Reports.rankSites(SITES, filter, TODAY).map(function (e) {
+      var s = e.site, vw = e.vw;
+      var line = vw.k ? SP_NAME[vw.k] + ' · ' + Reports.describeAge(vw.asOf, TODAY) : 'No report';
+      return '<button type="button" class="row lrow" data-id="' + s.id + '"><span class="rt"><span class="nm">' + esc(s.name) +
+        '</span><span class="dt">' + esc(line) + '</span></span><span class="ch">' + badge(vw.r, vw.release) +
+        (vw.release ? '<span class="chip">Release only</span>' : '') + '</span></button>';
+    }).join('');
+    $('#stitle').textContent = 'Rivers';
+    $('#sbody').innerHTML = '<p class="lede">' + (filter === 'all' ? 'All salmon' : SP_NAME[filter]) +
+      ', best first. Fresh reports rank above older ones.</p><div class="rows">' + rows + '</div>';
+    $('#sbody').scrollTop = 0;
+  }
   function fillSheet(id) {
     var s = SITES.filter(function (q) { return q.id === id; })[0];
     var vw = viewOf(s);
@@ -707,11 +729,15 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       '<div class="src">' + src + '</div></div>';
     $('#sbody').scrollTop = 0;
   }
-  function openSheet(id) {
-    selected = id;
-    fillSheet(id);
+  function showSheet() {
     sheet.classList.add('open'); sheet.setAttribute('aria-hidden', 'false');
     appEl.classList.add('sheet-open');
+  }
+  function openSheet(id) {
+    selected = id; mode = 'detail';
+    fillSheet(id);
+    showSheet();
+    $('#listbtn').setAttribute('aria-expanded', 'false');
     applyStyles();
     var s = SITES.filter(function (q) { return q.id === id; })[0];
     var wide = window.innerWidth >= 760;
@@ -723,14 +749,27 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     else { tx = W / 2 - s.xy[0] * ns; ty = (barB + (H - Math.min(sh, H * 0.66))) / 2 + 24 - s.xy[1] * ns; }
     animateTo({ s: ns, tx: tx, ty: ty }, 320);
   }
+  function openList() {
+    selected = null; mode = 'list';
+    fillList();
+    showSheet();
+    $('#listbtn').setAttribute('aria-expanded', 'true');
+    applyStyles(); render();
+  }
   function closeSheet() {
-    selected = null;
+    selected = null; mode = null;
     sheet.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true');
     appEl.classList.remove('sheet-open');
+    $('#listbtn').setAttribute('aria-expanded', 'false');
     applyStyles(); render();
   }
   $('#sdone').addEventListener('click', closeSheet);
-  window.addEventListener('keydown', function (e) { if (e.key === 'Escape' && selected) closeSheet(); });
+  $('#listbtn').addEventListener('click', function () { if (mode === 'list') closeSheet(); else openList(); });
+  $('#sbody').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.lrow') : null;
+    if (b) openSheet(b.getAttribute('data-id'));
+  });
+  window.addEventListener('keydown', function (e) { if (e.key === 'Escape' && mode) closeSheet(); });
 
   /* ---- boot ---- */
   function init() {
