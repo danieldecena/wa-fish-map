@@ -103,3 +103,16 @@ Headline: of the 54 rows the system has a value for, 40 match, 6 drift and were 
 
 - `GuidanceFooter` in the app still drew `.yellow.opacity(0.12)` at the time of the sync (README, "Known divergences", item 3). The page already uses the neutral advisory fill, so the page is ahead of that component there.
 - The web-demo palette in `docs/web-demo-spec.md` (`#E4572E` and friends) is not what the page uses and not what the app draws. The page follows the app.
+
+## Colour-blindness check of the Typical season pins (commit 2)
+
+The app's own checks are `docs/design/ramp-check/ramp-*-deuteranopia.png` and `*-protanopia.png`. They show the same thing the numbers below do: under deuteranopia red turns dark olive, orange and yellow turn two nearby golds, blue stays blue.
+
+Lightness steps (L*) between ramp stops after a Machado severity 1.0 simulation (`test/design.test.js` computes these from the page's own tokens):
+
+| Pair | Normal (light) | Deuteranopia (light / dark) | Protanopia (light / dark) |
+| --- | --- | --- | --- |
+| prime vs good (red vs orange) | 14.7 | 12.3 / 13.3 | 20.0 / 20.9 |
+| good vs fair (orange vs yellow) | 12.8 | 11.3 / 11.7 | 15.4 / 15.6 |
+
+The app's gate is 12 L* between adjacent stops. Red vs orange clears it, narrowly under deuteranopia. The weak pair is orange vs yellow, which falls just under it, as the README already said. So the fix is not new hues. Every single pin in Typical season now carries a word: the full "Name, rating" label where it fits, otherwise the rating word alone (`Season.SHORT`), the way Recent reports labels pins. The glyph already switches between white (prime, slow) and dark (good, fair), a free second cue between red and orange.

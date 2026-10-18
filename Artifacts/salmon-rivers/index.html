@@ -576,6 +576,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     return t.name + ', ' + Season.KIND_LABEL[t.kind].toLowerCase() + ', ' + word;
   }
   function tLabel(t) { return t.name + ' \u00b7 ' + (t.vw.r === 'unrated' ? 'No guidance' : Season.LABEL[t.vw.r]); }
+  // Where the full label does not fit, the rating word alone does: colour is never the only carrier of a rating.
+  function tShort(t) { return Season.SHORT[t.vw.r]; }
   function applyStyles() {
     if (view === 'typical') {
       initTypical();
@@ -635,8 +637,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
           pn.g.style.setProperty('--gl', glyphColor(p.vw.r));
           pn.g.classList.toggle('closed', p.vw.release);
           pn.g.setAttribute('aria-label', tAria(p.s));
-          pn.lab.textContent = tLabel(p.s);
-          pn.w = textW(pn.lab.textContent);
+          pn.cands = [tLabel(p.s), tShort(p.s)];
           shown.pins.push(pn.g);
         }
         p.node = pn;
@@ -663,15 +664,20 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     labelGroups.sort(function (a, b) { return (b[0].s.id === selected) - (a[0].s.id === selected); });
     labelGroups.forEach(function (g) {
       var p = g[0], pn = p.node;
-      var left = p.x + 15 + pn.w + 4 > W - 8;
-      var bx = [left ? p.x - 15 - (pn.w + 4) : p.x + 15, p.y - 30, pn.w + 4, 14];
-      var hit = p.s.id !== selected && boxes.some(function (b) { return overlap(bx, b); });
-      if (!hit) {
+      var cands = typ ? pn.cands : [null];
+      for (var k = 0; k < cands.length; k++) {
+        var lw = cands[k] === null ? pn.w : textW(cands[k]);
+        var left = p.x + 15 + lw + 4 > W - 8;
+        var bx = [left ? p.x - 15 - (lw + 4) : p.x + 15, p.y - 30, lw + 4, 14];
+        var hit = p.s.id !== selected && boxes.some(function (b) { return overlap(bx, b); });
+        if (hit) continue;
+        if (cands[k] !== null) pn.lab.textContent = cands[k];
         pn.lab.style.display = '';
         pn.lab.setAttribute('text-anchor', left ? 'end' : 'start');
         pn.lab.setAttribute('x', (left ? p.x - 15 : p.x + 15).toFixed(1)); pn.lab.setAttribute('y', (p.y - 19).toFixed(1));
         if (typ) shown.labs.push(pn.lab);
         boxes.push(bx);
+        break;
       }
     });
     lms.forEach(function (l) {

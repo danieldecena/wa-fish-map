@@ -13,6 +13,8 @@
   /* Swift enum case -> the page's existing colour token -> the app's label. */
   var TOKEN = ['slow', 'fair', 'good', 'prime'];
   var LABEL = { slow: 'Slow', fair: 'Fair', good: 'Good', prime: 'Prime', unrated: 'No seasonal guidance' };
+  /* The word a small pin label carries when the site name does not fit beside it. Every token has a different word. */
+  var SHORT = { slow: 'Slow', fair: 'Fair', good: 'Good', prime: 'Prime', unrated: 'No data' };
   var RANK = { prime: 3, good: 2, fair: 1, slow: 0, unrated: -1 };
   var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -158,7 +160,7 @@
   var KIND_LABEL = { pier: 'Pier', launch: 'Boat launch', access: 'Shore access' };
 
   return {
-    POOR: POOR, FAIR: FAIR, GOOD: GOOD, EXCELLENT: EXCELLENT, TOKEN: TOKEN, LABEL: LABEL, RANK: RANK, MONTHS: MONTHS, KIND_LABEL: KIND_LABEL,
+    POOR: POOR, FAIR: FAIR, GOOD: GOOD, EXCELLENT: EXCELLENT, TOKEN: TOKEN, LABEL: LABEL, SHORT: SHORT, RANK: RANK, MONTHS: MONTHS, KIND_LABEL: KIND_LABEL,
     circularMonthDistance: circularMonthDistance, riskMatches: riskMatches, resolveRisk: resolveRisk, offYear: offYear, stamp: stamp,
     speciesRating: speciesRating, breadthRating: breadthRating, areaRating: areaRating, closurePlausible: closurePlausible,
     inSeason: inSeason, prepare: prepare, siteView: siteView, siteRows: siteRows, monthsText: monthsText

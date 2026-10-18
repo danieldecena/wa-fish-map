@@ -91,7 +91,7 @@ Record the new version id in `artifact.json`. To roll back, publish `baseline.ht
 ## Rules that bind this page
 
 - Guidance, not regulation. The advisory, the WDFW link and the "not season dates" line stay on every sheet and on the list.
-- Rating is always also written as text; colour alone is not enough (orange and yellow fail this repo's colour-blind gate for deuteranopia).
+- Rating is always also written as text; colour alone is not enough (orange and yellow fail this repo's colour-blind gate for deuteranopia). In Typical season every single pin carries its rating word beside it: the full label where it fits, else the word alone (`Season.SHORT`). `test/design.test.js` simulates deuteranopia and protanopia on the page's own tokens.
 - Text 4.5:1, pins 3:1, buttons at least 44 px, light and dark.
 - No network requests from the page.
 - Typical season: the legend, the notice, every sheet and the footer say "Typical timing from WA Fish Map guidance, not a catch report and not a claim a fishery is open", keep the WDFW rules link and "Before you go", and never present season dates as authoritative. Colours are the same four tokens plus gray; Slow is blue, not a catch-report colour. Species names are the app's exact names. Notes are shown exactly where the app shows them (area, county, statewide), never moved to a narrower or wider place.

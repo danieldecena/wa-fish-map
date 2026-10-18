@@ -75,3 +75,47 @@ test('glass card and legend follow the design system spacing', () => {
   assert.match(html, /\.badge \{[^}]*padding: 5px 10px;/);
   assert.doesNotMatch(html, /\.row \.badge \{/);
 });
+
+// ---- colour-blindness: colour is never the only carrier of a rating ----
+
+// Machado et al. 2009, severity 1.0, applied in linear RGB: the same simulation the browser check used (an SVG feColorMatrix filter).
+const MACHADO = {
+  deuteranopia: [[0.367322, 0.860646, -0.227968], [0.280085, 0.672501, 0.047413], [-0.011820, 0.042940, 0.968881]],
+  protanopia: [[0.152286, 1.052583, -0.204868], [0.114503, 0.786281, 0.099216], [-0.003882, -0.048116, 1.051998]]
+};
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const lin = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+const gam = c => { c = Math.min(1, Math.max(0, c)); return 255 * (c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055); };
+const simulate = (rgb, kind) => { const l = rgb.map(lin); return MACHADO[kind].map(r => gam(r[0] * l[0] + r[1] * l[1] + r[2] * l[2])); };
+const Lstar = rgb => { const l = rgb.map(lin); const y = 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]; return y > 0.008856 ? 116 * Math.cbrt(y) - 16 : 903.3 * y; };
+const dL = (a, b, kind, theme) => {
+  const c = n => (kind ? simulate(hex((theme === 'dark' ? darkForced[n] || light[n] : light[n])), kind) : hex(theme === 'dark' ? darkForced[n] || light[n] : light[n]));
+  return Math.abs(Lstar(c(a)) - Lstar(c(b)));
+};
+// The app's own gate (RampLightnessTests) is a lightness step of 12 L* between adjacent ramp stops.
+const GATE = 12;
+
+test('red and orange stay apart under simulated deuteranopia and protanopia, in both themes', () => {
+  for (const theme of ['light', 'dark']) for (const kind of ['deuteranopia', 'protanopia']) {
+    const d = dL('--prime', '--good', kind, theme);
+    assert.ok(d >= GATE, `prime vs good, ${kind}, ${theme}: dL* ${d.toFixed(1)} is under ${GATE}`);
+  }
+});
+
+test('control: the lightness check can fail, and the weak pair is named (good vs fair under deuteranopia)', () => {
+  // Orange and yellow collapse toward one hue under deuteranopia (the repo README says the same). That pair is under the app gate, so a
+  // word on every pin is what separates them. If this stops being true the label may be reconsidered; until then it is the proof the check bites.
+  for (const theme of ['light', 'dark']) assert.ok(dL('--good', '--fair', 'deuteranopia', theme) < GATE, theme);
+  assert.ok(dL('--prime', '--slow', null, 'light') < GATE, 'control: red and blue are the same lightness in the app ramp, hue alone apart');
+});
+
+test('every rating has its own word for a pin label, and a single pin falls back to it', () => {
+  const S = require('../season.js');
+  const words = Object.keys(S.RANK).map(k => S.SHORT[k]);
+  assert.equal(words.length, 5);
+  assert.ok(words.every(w => typeof w === 'string' && w.length > 0 && w.length <= 8), words.join());
+  assert.equal(new Set(words).size, words.length, 'two ratings share a label word');
+  for (const t of S.TOKEN) assert.equal(S.SHORT[t], S.LABEL[t], `${t}: the short word is the rating word`);
+  assert.match(html, /pn\.cands = \[tLabel\(p\.s\), tShort\(p\.s\)\];/, 'Typical pins offer the full label, then the rating word');
+  assert.match(html, /function tShort\(t\) \{ return Season\.SHORT\[t\.vw\.r\]; \}/);
+});
