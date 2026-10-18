@@ -1,0 +1,105 @@
+# Loaded only by data-table for the salmon project (~/bin/data-tables.tsv). It starts from the
+# shared look in ~/bin/data-table.visidatarc (plain grid, header-click sort, wheel, profile), then
+# adds what the zillow table has: a top line saying how fresh the data is, B to open the source
+# PDF, number formats, and color only where it means something (a row with no catch or no parse).
+import os
+import sqlite3
+import subprocess
+from datetime import datetime
+
+exec(compile(open(os.path.expanduser("~/bin/data-table.visidatarc")).read(), "data-table.visidatarc", "exec"))
+
+from visidata import CellColorizer, RowColorizer, clipdraw_chunks, colors
+
+SALMON_DB = os.path.expanduser("~/database/salmon-rivers/salmon.db")
+
+vd.theme_option("color_swarn", "yellow underline", "salmon table: a row with no catch")
+vd.theme_option("color_sbad", "bold red underline", "salmon table: an entry that did not parse")
+vd.theme_option("color_stop", "", "salmon table: the top line")
+
+K = Sheet.knownCols
+for name in ("Anglers", "Kept", "Released", "Bank", "Boat rods"):
+    getattr(K, name).fmtstr = "{:,d}"
+for name in ("Anglers", "Kept", "Released", "Bank", "Boat rods"):
+    getattr(K, name).type = int
+getattr(K, "Kept/100").type = float
+getattr(K, "Kept/100").fmtstr = "{:.1f}"
+
+
+def salmonIsTable(sheet):
+    return "Species" in getattr(sheet, "colsByName", ()) and "Kept/100" in sheet.colsByName
+
+
+@Sheet.after
+def afterLoad(sheet):
+    for c in [c for c in sheet._colorizers if c.coloropt in ("color_swarn", "color_sbad")]:
+        sheet.removeColorizer(c)
+    species = sheet.colsByName.get("Species")
+    if species:
+        sheet.addColorizer(
+            RowColorizer(2, "color_sbad", lambda s, c, r, v: r is not None and species.getValue(r) == "(not parsed)")
+        )
+        sheet.addColorizer(
+            RowColorizer(2, "color_swarn", lambda s, c, r, v: r is not None and species.getValue(r) == "(no catch)")
+        )
+    vd.statuses.clear()
+
+
+@VisiData.api
+def launchBrowser(vd, *args):
+    vd.status("opening in Safari")
+    subprocess.call(["open", "-a", "Safari", *args])
+
+
+Sheet.addCommand(
+    "B", "open-source", 'vd.launchBrowser(sheet.column("Source").getValue(cursorRow))',
+    "open this row's WDFW report PDF in the browser",
+)
+
+SALMON_HINTS = "Enter profile · B open the WDFW PDF · click header sorts · counts, not ratings · q back"
+
+
+@VisiData.property
+def tableStatus(vd):
+    msgs = "  ".join(composeStatus(parts, n) for (_, parts), n in vd.statuses.items())
+    return msgs or SALMON_HINTS
+
+
+def salmonTopLine():
+    try:
+        con = sqlite3.connect(f"file:{SALMON_DB}?mode=ro", uri=True)
+        built, first, last, n = con.execute(
+            "SELECT (SELECT value FROM meta WHERE key='built_at'), min(week_start), max(week_end), count(*) FROM reports"
+        ).fetchone()
+        con.close()
+        ran = datetime.fromisoformat(built)
+    except (sqlite3.Error, TypeError, ValueError):
+        return "refresh time unknown"
+    now = datetime.now()
+    mins = max(0, int((now - ran).total_seconds() // 60))
+    ago = f"{mins} min ago" if mins < 60 else f"{mins // 60}h {mins % 60}m ago" if mins < 2880 else f"{mins // 1440} days ago"
+    day = "today" if ran.date() == now.date() else ran.strftime("%b %-d")
+    clock = f"{ran.hour % 12 or 12}:{ran.minute:02d} {'am' if ran.hour < 12 else 'pm'}"
+    return f"last refresh {day} {clock} ({ago}) · {n} weekly WDFW reports, {first} to {last}"
+
+
+_salmonDrawAll = VisiData.draw_all
+
+
+@VisiData.api
+def draw_all(vd):
+    want = salmonIsTable(vd.activeSheet)
+    if vd.options.disp_menu != want:
+        vd.options.disp_menu = want
+    _salmonDrawAll(vd)
+
+
+_salmonDrawMenu = VisiData.drawMenu
+
+
+@VisiData.api
+def drawMenu(vd, scr, sheet):
+    if vd.menuRunning or not salmonIsTable(sheet):
+        return _salmonDrawMenu(vd, scr, sheet)
+    _, w = scr.getmaxyx()
+    clipdraw_chunks(scr, 0, 0, [("", salmonTopLine())], colors.color_stop, w=w - 1)

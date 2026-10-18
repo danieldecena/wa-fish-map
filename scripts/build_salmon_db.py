@@ -56,6 +56,7 @@ UNITS = {
         "fifteen sixteen seventeen eighteen nineteen".split()
     )
 }
+UNITS["a"] = 1  # "released one Chinook and a steelhead"
 TENS = {
     w: 10 * i
     for i, w in enumerate(
@@ -72,7 +73,9 @@ SPECIES = {
     "chinook jack": "Chinook Salmon (jack)",
     "coho jack": "Coho Salmon (jack)",
     "jack": "Jack (species not stated)", "jack chinook": "Chinook Salmon (jack)",
-    "sturgeon": "Sturgeon", "oversize sturgeon": "Sturgeon",
+    "sturgeon": "Sturgeon", "oversize sturgeon": "Sturgeon", "sublegal sturgeon": "Sturgeon",
+    "sub-legal sturgeon": "Sturgeon", "legal sturgeon": "Sturgeon", "white sturgeon": "Sturgeon",
+    "chinook adult": "Chinook Salmon", "cutthroat": "Cutthroat Trout",
 }
 
 
@@ -151,10 +154,16 @@ def week_for(stem, rd):
 
 
 def report_date(text):
-    m = re.search(r"([A-Z][a-z]+ \d{1,2}, \d{4})", "\n".join(text.splitlines()[:12]))
-    if not m:
-        return None
-    return datetime.datetime.strptime(m.group(1), "%B %d, %Y").date()
+    head = "\n".join(text.splitlines()[:15])
+    for m in re.finditer(r"([A-Z][a-z]+)\.?\s+(\d{1,2}),?\s+(20\d\d)", head):
+        mon = MONTHS.get(m.group(1).lower()[:3])
+        if mon:
+            return datetime.date(int(m.group(3)), mon, int(m.group(2)))
+    m = re.search(r"\b(\d{1,2})/(\d{1,2})/(\d{2}|\d{4})\b", head)
+    if m:
+        y = int(m.group(3))
+        return datetime.date(y + 2000 if y < 100 else y, int(m.group(1)), int(m.group(2)))
+    return None
 
 
 HEADINGS = {
@@ -169,32 +178,60 @@ HEADINGS = {
     "Mainstem Columbia River",
     "Columbia River Tributaries",
 }
-HEADER = re.compile(
-    r"^((?:Sec(?:tion)?\s*\d+|[A-Z][A-Za-z' ]*(?:River|Lake|Salmon))[^—–]*?)\s+[—–-]\s*(.+)$"
+_RIVERS = (
+    "Cowlitz|Kalama|Lewis|Washougal|Wind|Drano|Little White|Klickitat|Bonneville Pool|The Dalles Pool|"
+    "John Day Pool|McNary Pool|Grays|Elochoman|Toutle|Green|Coweeman|Salmon Creek|Lacamas"
 )
+HEADER = re.compile(
+    r"^((?:Sec(?:tion)?\s*\d+|(?:%s)|[A-Z][A-Za-z' ]*(?:River|Lake|Salmon|Pool))[^\u2014\u2013]*?)(?:\s*[\u2014\u2013]|\s+-)\s*(.+)$"
+    % _RIVERS
+)
+# 2019-2020 reports write the Cowlitz reaches as "Cowlitz River - I-5 Br downstream - ..." and
+# "Above the I-5 Br - ...".
+COWLITZ = re.compile(r"^(?:Cowlitz River\s*[\u2014\u2013-]\s*)?(I-5 Br downstream|Above the I-5 Br)")
+
+
 # Some reports run the next river onto the end of the previous entry's line.
 MERGED = re.compile(
-    r"(?<=\.)\s+(?=(?:Sec(?:tion)?\s*\d+\s*\([^)]*\)|[A-Z][A-Za-z' ]*(?:River|Lake|Salmon)(?: \([^)]*\))?)\s*[—–-])"
+    r"(?<=\.)\s+(?=(?:Sec(?:tion)?\s*\d+\s*\([^)]*\)|(?:%s|[A-Z][A-Za-z' ]*(?:River|Lake|Salmon))(?: \([^)]*\))?)\s*[—–-])"
+    % _RIVERS
 )
 # Obvious typos in WDFW's own text, fixed before parsing; the original stays in entries.line.
 TYPOS = {"relased": "released", "Chiook": "Chinook", "ffort": "effort", " and and ": " and "}
 
 
+HEADINGS_LOWER = {h.lower() for h in HEADINGS}
+
+
 def entries(text):
     """(heading name, joined body) for each line-wrapped entry in a Salmon/Steelhead block."""
-    out, cur, in_block = [], None, False
+    out, cur, in_block = [], None, True
+    blank = page_break = False
     for raw in text.splitlines():
         line = raw.strip().lstrip("\u2022").strip()
-        heading = line.rstrip(":")
-        if line.startswith("Washington Department of Fish and Wildlife") or not line:
+        heading = line.rstrip(": ")
+        line = COWLITZ.sub(lambda m: "Cowlitz River " + m.group(1), line)
+        if line.startswith("Washington Department of Fish and Wildlife"):
+            page_break = True
             continue
-        if heading in HEADINGS:
-            in_block = heading == "Salmon/Steelhead"
+        if not line:
+            blank = True
+            continue
+        # A paragraph after a blank line is not part of the entry above it (trailing
+        # notes follow the last river), unless the blank was only a page break.
+        if blank and not page_break and not HEADER.match(line):
+            cur = None
+        blank = page_break = False
+        if heading.lower() in HEADINGS_LOWER:
+            in_block = heading.lower() in ("salmon/steelhead", "mainstem columbia river", "columbia river tributaries")
             cur = None
             continue
         if not in_block:
             continue
         m = HEADER.match(line)
+        if m and ":" in m.group(1):
+            cur = None  # a regulation note ("Wind River: Effective ..."), not a creel entry
+            continue
         if m:
             cur = [m.group(1).strip(), m.group(2).strip()]
             out.append(cur)
@@ -207,13 +244,18 @@ def entries(text):
                 split.append((name, piece))
             else:
                 m = HEADER.match(piece)
-                split.append((m.group(1).strip(), m.group(2).strip()))
+                if m:
+                    split.append((m.group(1).strip(), m.group(2).strip()))
+                else:
+                    split[-1] = (split[-1][0], split[-1][1] + " " + piece)
     return split
 
 
 def classify(name):
     """(river, reach) for a wanted entry, 'skip' for the flight count, None for out of scope."""
     n = name.lower()
+    if "weir" in n:
+        return None
     if n.startswith("lower columbia river,"):
         return "skip"
     m = re.match(r"sec(?:tion)?\s*(\d+)\s*\(([^)]*)\)", n)
@@ -226,7 +268,8 @@ def classify(name):
     if n.startswith("kalama"):
         return "Kalama", ""
     if n.startswith("washougal"):
-        return "Washougal", ""
+        reach = re.search(r"\(([^)]*)\)", n)
+        return "Washougal", reach.group(1).strip().title() if reach else ""
     if n.startswith("wind"):
         return "Wind", ""
     if n.startswith("drano") or n.startswith("little white"):
@@ -248,12 +291,13 @@ def species_list(chunk):
     for item in re.split(r",?\s*\band\b\s+|,\s*", chunk.strip(" ,.")):
         if not item:
             continue
-        m = re.fullmatch(r"([\d,]+|[a-z-]+)\s+(.+?)", item.strip(), re.I)
+        item = re.sub(r"\badults?\b\s*", "", item.strip(), flags=re.I).strip()
+        m = re.fullmatch(r"([\d,]+|[a-z-]+)\s+(.+?)", item, re.I)
         if not m:
             raise ValueError(f"bad catch item {item!r}")
         key = (
             m.group(2).lower().rstrip("s")
-            if m.group(2).lower().endswith("jacks")
+            if m.group(2).lower().endswith(("jacks", "adults"))
             else m.group(2).lower()
         )
         if key not in SPECIES:
@@ -271,27 +315,27 @@ def parse_body(body: str) -> dict[str, Any]:
         s = s.strip().rstrip(".").strip()
         if not s:
             continue
-        if re.fullmatch(r"No [\w ]*?ffort reported|No report", s, re.I):
+        if re.fullmatch(r"No [A-Za-z ]*(?:report|reported|sampled)", s, re.I):
             continue
         if s.lower() == "closed":
             closed = True
             continue
-        m = re.match(r"([\d,]+|[A-Za-z-]+) bank (?:anglers?|rods?)\s*(.*)", s)
+        m = re.match(r"([\d,]+|[A-Za-z-]+) banks? (?:anglers?|rods?)\s*(.*)", s)
         if m:
             bank, rest = num(m.group(1)), m.group(2)
         else:
             m = re.match(
-                r"([\d,]+|[A-Za-z-]+) boats?/([\d,]+|[A-Za-z-]+) rods?\s*(.*)", s
+                r"([\d,]+|[A-Za-z-]+)\s*boats?\s*/\s*([\d,]+|[A-Za-z-]+) rods?\s*(.*)", s
             )
             if not m:
                 raise ValueError(f"unrecognised sentence {s!r}")
             boat = (boat or 0) + num(m.group(2))
             rest = m.group(3)
-        if rest == "had no catch":
+        if rest in ("had no catch", "no catch"):
             seen_nocatch = True
             continue
-        mk = re.fullmatch(r"kept (.+?)(?:,?\s*(?:and\s+)?released (.+))?", rest)
-        mr = re.fullmatch(r"released (.+)", rest)
+        mk = re.fullmatch(r"kept (.+?)(?:,?\s*(?:and\s+)?released (.+))?", rest, re.I)
+        mr = re.fullmatch(r"released (.+)", rest, re.I)
         if mk:
             for k, v in species_list(mk.group(1)).items():
                 kept[k] = kept.get(k, 0) + v
@@ -317,7 +361,7 @@ def parse_body(body: str) -> dict[str, Any]:
 SCHEMA = """
 CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
 CREATE TABLE reports (pdf TEXT PRIMARY KEY, week_start TEXT, week_end TEXT, week_source TEXT,
-                      report_date TEXT, url TEXT, text_chars INTEGER, entries INTEGER);
+                      report_date TEXT, url TEXT, text_chars INTEGER, entries INTEGER, note TEXT);
 CREATE TABLE entries (id INTEGER PRIMARY KEY, pdf TEXT, river TEXT, reach TEXT, status TEXT,
                       bank_anglers INTEGER, boat_rods INTEGER, anglers INTEGER, line TEXT);
 CREATE TABLE catch (entry_id INTEGER, species TEXT, kept INTEGER, released INTEGER);
@@ -336,6 +380,9 @@ SELECT e.river || CASE WHEN e.reach = '' THEN '' ELSE ', ' || e.reach END AS Riv
 FROM entries e JOIN reports r USING (pdf) LEFT JOIN catch c ON c.entry_id = e.id
 WHERE e.status IN ('reported', 'no catch', 'not parsed')
 ORDER BY r.week_start DESC, e.river, e.reach, c.species;
+CREATE VIEW no_counts AS
+SELECT week_start || ' to ' || substr(week_end, 6) AS Week, report_date AS Reported, note AS Why, url AS Source
+FROM reports WHERE note IS NOT NULL ORDER BY week_start DESC;
 CREATE VIEW flight_counts AS
 SELECT r.week_start || ' to ' || substr(r.week_end, 6) AS Week, f.boats AS Boats,
        f.bank_rods AS "Bank rods", r.report_date AS Reported, r.url AS Source, f.line AS "Report text"
@@ -343,7 +390,11 @@ FROM flights f JOIN reports r USING (pdf)
 ORDER BY r.week_start DESC;
 """
 
-FLIGHT = re.compile(r"([\d,]+)\s+salmonid\s+boats\s+and\s+([\d,]+)\s+Washington\s+bank\s+rods", re.I)
+CREEL = re.compile(r"bank\s+(?:anglers?|rods?)|boats?/\s*\d+\s*rods?", re.I)
+FLIGHT = re.compile(
+    r"([\d,]+|[A-Za-z-]+)\s+salmonid\s+boats(?:\s+and\s+([\d,]+|[A-Za-z-]+)\s+Washington\s+bank\s+rods)?", re.I
+)
+NO_FLIGHT = re.compile(r"No (?:flight|effort) count available", re.I)
 
 
 def build():
@@ -372,7 +423,7 @@ def build():
                 (pdf.name, week, river, reason, line),
             )
 
-        if len(text.strip()) < 300:
+        if len(text.strip()) < 100:
             fail("", "no text layer (image-only PDF?)")
             continue
         if rd is None:
@@ -382,11 +433,14 @@ def build():
         week = f"{ws} to {we}"
         found = entries(text)
         con.execute(
-            "INSERT INTO reports VALUES (?,?,?,?,?,?,?,?)",
+            "INSERT INTO reports VALUES (?,?,?,?,?,?,?,?,NULL)",
             (pdf.name, str(ws), str(we), how, str(rd), url, len(text), len(found)),
         )
         if not found:
-            fail("", "no river entries found in a Salmon/Steelhead block", week=week)
+            if CREEL.search(text):
+                fail("", "creel counts in the text but no river entries found", week=week)
+            else:
+                con.execute("UPDATE reports SET note = 'no creel counts (regulation update)' WHERE pdf = ?", (pdf.name,))
             continue
         for name, body in found:
             cls = classify(name)
@@ -395,13 +449,17 @@ def build():
             line = f"{name} - {body}"
             if cls == "skip":
                 m = FLIGHT.search(body)
-                if m:
-                    con.execute(
-                        "INSERT INTO flights VALUES (?,?,?,?)",
-                        (pdf.name, num(m.group(1)), num(m.group(2)), line),
-                    )
-                else:
-                    fail("Flight count", "flight count sentence not recognised", line, week)
+                try:
+                    if m:
+                        boats = num(m.group(1))
+                        rods = num(m.group(2)) if m.group(2) else None
+                    elif NO_FLIGHT.search(body):
+                        boats = rods = None
+                    else:
+                        raise ValueError("flight count sentence not recognised")
+                    con.execute("INSERT INTO flights VALUES (?,?,?,?)", (pdf.name, boats, rods, line))
+                except ValueError as err:
+                    fail("Flight count", str(err), line, week)
                 continue
             river, reach = cls
             try:
@@ -432,10 +490,6 @@ def build():
             "INSERT INTO parse_failures VALUES (?,?,?,?,?)",
             (pdf, "", f"{river} {reach}".strip(), f"{n} entries for the same river and reach", ""),
         )
-    for pdf, d in con.execute(
-        "SELECT pdf, report_date FROM reports WHERE week_source = 'report date'"
-    ).fetchall():
-        pass
     con.commit()
     con.close()
     db_tmp.replace(DB)
