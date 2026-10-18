@@ -77,6 +77,10 @@ Out of reach on purpose: the app has no row for steelhead, sturgeon, shad or soc
 
 Sources the page already uses, so the likely places to look first: The Guide's Forecast (`https://www.theguidesforecast.com/sw-washington-fishing-reports/`), NW Sportsman (`nwsportsmanmag.com` weekly SW WA / Lower Columbia report), and WDFW's own pages where they give a dated statement. Quality bar: the source names the river, names the species, carries a date, and says how fishing was in words (excellent, good, fair). Counts alone are not a rating.
 
+### First sourcing pass, 2026-10-18 (thin, nothing added)
+
+Checked the six newest SW Washington headlines on The Guide's Forecast (through Oct 15, 2026) and one web search. The headlines name only Chinook and coho (plus steelhead, trout and kokanee, which this page does not cover). NW Sportsman reports give catch counts without a quality word, so they cannot support a rating. No source found for `Chum Salmon`, `Pink Salmon` or `Fall Chinook` on the six waters. Not read: full article text (partly members-only), NW Sportsman October reports, WDFW pages. WDFW's 2026 Joint Staff Report covers fall chinook, coho and chum run status, which is not a catch report. Chum is the likeliest to appear later in the fall.
+
 ## Out of scope
 
 - A seasonal-timing mode (option (c)). Follow-up if wanted: add `freshwater.byWaterbody` rows to the app for these rivers, keyed by exact river name from `rivers.json`, true end to end per "Notes are scoped" (the Spokane precedent shows that is not always possible), verified against WDFW. Only then plan a "Typical timing" mode here.
