@@ -544,7 +544,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     groups.forEach(function (g) {
       if (g.length !== 1) return;
       var p = g[0], pn = pinNodes[p.s.id];
-      var bx = [p.x + 13, p.y - 30, pn.w + 4, 14];
+      var bx = [p.x + 15, p.y - 30, pn.w + 4, 14];
       var hit = boxes.some(function (b) { return overlap(bx, b); });
       if (!hit) {
         pn.lab.style.display = '';
