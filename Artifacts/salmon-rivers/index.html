@@ -394,9 +394,13 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   /* ---- basemap ---- */
   var vp = $('#vp');
   // Typical mode only: WDFW marine areas (the saltwater) and Washington's straight borders, so statewide pins have a coast to sit on.
-  var tbase = el('g', { id: 'tbase' }, vp);
-  el('path', { 'class': 'w', d: TypicalData.basemap.water }, tbase);
-  el('path', { 'class': 'b', d: TypicalData.basemap.border }, tbase);
+  // If typical.js did not load, Recent reports still works and the mode switch is hidden.
+  var HAS_TYPICAL = typeof TypicalData !== 'undefined' && typeof Season !== 'undefined';
+  if (HAS_TYPICAL) {
+    var tbase = el('g', { id: 'tbase' }, vp);
+    el('path', { 'class': 'w', d: TypicalData.basemap.water }, tbase);
+    el('path', { 'class': 'b', d: TypicalData.basemap.border }, tbase);
+  } else { $('#modes').hidden = true; }
   Object.keys(D.base).forEach(function (o) {
     el('path', { 'class': 'r o' + o, d: D.base[o] }, vp);
   });
