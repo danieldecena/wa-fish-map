@@ -10,7 +10,7 @@
    "end": "2026-10-31",
    "flavor": 3,
    "where": "Skagit River, mouth to Marblemount",
-   "note": "WDFW’s 2026 proposal has 2 coho a day in October, and 4 (no more than 2 wild) from Rockport to Marblemount. It is set to end Oct 31 unless WDFW extends it. In 2025 it ran to Nov 30 and closed Nov 19 when the catch guideline was reached, so go early."
+   "note": "WDFW’s current order, effective Oct 18, allows 2 salmon a day from the mouth to the Marblemount Bridge, coho only, with no bait and single barbless hooks. It runs through Oct 31 unless WDFW extends it. In 2025 it ran to Nov 30 and closed Nov 19 when the catch guideline was reached, so go early. The Gilligan Creek to Baker River stretch is closed Oct 19 to 21 for a tribal fishery."
   },
   {
    "id": "chum",
@@ -149,7 +149,7 @@
   {
    "date": "2026-11-01",
    "label": "Check Skykomish and Snoqualmie",
-   "note": "WDFW closed both for summer and fall 2026 to protect wild Chinook. The Skykomish coho opener was moved to Nov 1 and is not confirmed. See whether either reopens."
+   "note": "WDFW closed both for summer and fall 2026 to protect wild Chinook. The Skykomish coho opener was moved to Nov 1 and is not confirmed. WDFW also closed the Snohomish River below them to all fishing from Oct 3 to Nov 1 over coho concerns. See whether any of them reopens."
   },
   {
    "date": "2027-03-25",
@@ -568,7 +568,7 @@
      "take": "WDFW closed it for summer and fall 2026 to protect wild Chinook and coho, along with the Tolt and Raging rivers. It reopens only if WDFW says so in season."
     }
    ],
-   "rulesNote": "Gamefish was moved to Dec 1 this year, from Nov 1 last year.",
+   "rulesNote": "Gamefish was moved to Dec 1 this year, from Nov 1 last year. The Snohomish River below the Snoqualmie is closed to all fishing from Oct 3 to Nov 1.",
    "line": [
     [
      -122.0462,
@@ -767,7 +767,7 @@
      "take": "Up to 2 coho, Chinook and chum released. WDFW’s June notice also lists the Wallace as closed, so confirm before you go."
     }
    ],
-   "rulesNote": "The planned Reiter Ponds hatchery steelhead fishery is also closed this year.",
+   "rulesNote": "The planned Reiter Ponds hatchery steelhead fishery is also closed this year. The Snohomish River below the Skykomish and Snoqualmie is closed to all fishing from Oct 3 to Nov 1.",
    "line": [
     [
      -122.0462,
@@ -1149,17 +1149,22 @@
    ],
    "rules": [
     {
-     "reach": "Mouth to Hwy 530 bridge (Rockport)",
-     "dates": "Oct 1 – Oct 31",
-     "take": "Daily limit 2 coho. Extensions into November depend on the in-season update."
+     "reach": "Mouth to Gilligan Creek",
+     "dates": "Oct 18 – Oct 31",
+     "take": "Daily limit 2 salmon, and you may keep coho only. Release all other salmon. No bait, and single-point barbless hooks only."
     },
     {
-     "reach": "Hwy 530 bridge (Rockport) to Cascade River Rd (Marblemount)",
-     "dates": "Oct 1 – Oct 31",
-     "take": "Daily limit 4 coho, no more than 2 wild."
+     "reach": "Gilligan Creek to Baker River",
+     "dates": "Oct 18, then Oct 22 – Oct 31",
+     "take": "Closed to all fishing Oct 19 to 21 to avoid gear conflicts with tribal fisheries. Otherwise the same rules: 2 salmon, coho only, no bait, barbless single-point hooks."
+    },
+    {
+     "reach": "Baker River to Marblemount Bridge",
+     "dates": "Oct 18 – Oct 31",
+     "take": "Daily limit 2 salmon, coho only. No bait, and single-point barbless hooks only."
     }
    ],
-   "rulesNote": "In 2025 WDFW extended the season to Nov 30, then closed all salmon on Nov 19 when the catch guideline was reached. It can close early again.",
+   "rulesNote": "These come from WDFW emergency rule WSR 26-21-045. The Cascade River allows 4 coho a day and is open seven days a week. In 2025 WDFW extended the Skagit season to Nov 30, then closed all salmon on Nov 19 when the catch guideline was reached, so it can close early again.",
    "line": [
     [
      -122.43,
@@ -1471,7 +1476,8 @@
      "pass": false,
      "site_id": null
     }
-   ]
+   ],
+   "status": "Ends Oct 31"
   }
  ]
 }
