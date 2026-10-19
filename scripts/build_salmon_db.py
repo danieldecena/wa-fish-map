@@ -197,7 +197,19 @@ MERGED = re.compile(
     % _RIVERS
 )
 # Obvious typos in WDFW's own text, fixed before parsing; the original stays in entries.line.
-TYPOS = {"relased": "released", "Chiook": "Chinook", "ffort": "effort", " and and ": " and "}
+# Whole-word patterns: a bare "ffort" also sits inside the correct word "effort", which a plain replace turned into "eeffort".
+TYPOS = {
+    r"\brelased\b": "released",
+    r"\bChiook\b": "Chinook",
+    r"\bffort\b": "effort",
+    r" and and ": " and ",
+}
+
+
+def fix_typos(text):
+    for bad, good in TYPOS.items():
+        text = re.sub(bad, good, text)
+    return text
 
 
 HEADINGS_LOWER = {h.lower() for h in HEADINGS}
@@ -315,7 +327,7 @@ def parse_body(body: str) -> dict[str, Any]:
         s = s.strip().rstrip(".").strip()
         if not s:
             continue
-        if re.fullmatch(r"No [A-Za-z ]*(?:report|reported|sampled)", s, re.I):
+        if re.fullmatch(r"No [A-Za-z ]*(?:report|reported|sampled|effort)", s, re.I):
             continue
         if s.lower() == "closed":
             closed = True
@@ -468,9 +480,7 @@ def build():
                 continue
             river, reach = cls
             try:
-                for bad, good in TYPOS.items():
-                    body = body.replace(bad, good)
-                p = parse_body(body)
+                p = parse_body(fix_typos(body))
             except ValueError as err:
                 con.execute(
                     "INSERT INTO entries (pdf, river, reach, status, line) VALUES (?,?,?,?,?)",
