@@ -322,7 +322,7 @@ def parse_body(body: str) -> dict[str, Any]:
             continue
         m = re.match(r"([\d,]+|[A-Za-z-]+) banks? (?:anglers?|rods?)\s*(.*)", s)
         if m:
-            bank, rest = num(m.group(1)), m.group(2)
+            bank, rest = (bank or 0) + num(m.group(1)), m.group(2)
         else:
             m = re.match(
                 r"([\d,]+|[A-Za-z-]+)\s*boats?\s*/\s*([\d,]+|[A-Za-z-]+) rods?\s*(.*)", s
