@@ -20,9 +20,9 @@
 - [x] Design critique 5: Rivers and Heat as real toggles
 - [x] Design critique 6: species pill and chrome type roles
 - [x] Design critique 7: verify all and record in STATUS
-- [ ] Fishing Year: grey bars with one highlight (kit rule)
-- [ ] Fishing Year: 44px touch targets on tabs, chips and rows
-- [ ] Fishing Year: save type, contrast and scroll checks in the repo
+- [x] Fishing Year: grey bars with one highlight (kit rule)
+- [x] Fishing Year: 44px touch targets on tabs, chips and rows
+- [x] Fishing Year: save type, contrast and scroll checks in the repo
 - [ ] Fishing Year: access list beside the map at 600px and up
 - [ ] Fishing Year: shorten or dock the sticky stop card on phones
 - [ ] Fishing Year: source link and as-of date on each season
