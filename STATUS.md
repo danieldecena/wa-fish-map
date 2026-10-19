@@ -48,7 +48,7 @@
   through the curated `waterbodySites` list; a river resolves by exact name to
   any inland launch or pier within 150 m of its line (`River.nearest`, curated
   list first, precomputed per site in `FishingMapModel.indexWaterbodies`). The
-  shipped rows are walleye on four Grant County lakes and Skagit River coho (added 2026-10-18).
+  shipped rows are walleye on four Grant County lakes, Skagit River coho and Puyallup River coho (both added 2026-10-18).
 - Marine sheets show the nearest NDBC buoy's latest wave height and water
   temperature, each with its own timestamp.
 - WeatherKit works on device. `testWindReadsARealValueOnDevice` **passed** on a

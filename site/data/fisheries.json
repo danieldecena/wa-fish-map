@@ -1915,6 +1915,18 @@
           ],
           "note": "Fall coho fishery from the mouth up to the Marblemount Bridge. WDFW has run it into November in recent years (extended through Nov. 30 in 2025) and closed it early on Nov. 19, 2025 when the catch guideline was reached, so dates are set in-season."
         }
+      ],
+      "Puyallup River": [
+        {
+          "species": "Coho Salmon",
+          "bestMonths": [
+            10
+          ],
+          "goodMonths": [
+            11
+          ],
+          "note": "Fall coho fishery on the Puyallup from the 11th Street Bridge up to the Carbon River. Past seasons ran from October into December (2013, 2016), but the 2026 season is set to end Oct. 31, and wild fish and daily limits change by year, so dates are set in-season."
+        }
       ]
     },
     "waterbodySites": {
