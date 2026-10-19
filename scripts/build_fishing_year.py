@@ -108,6 +108,11 @@ def main():
         a, b = day(s["start"], where, errors), day(s["end"], where, errors)
         if a and b and b < a:
             errors.append(f"{where}: ends {s['end']} before it starts {s['start']}")
+        if "pending" in s:
+            if "source" in s:
+                errors.append(f"{where}: a season is either sourced or pending, not both")
+            if not str(s["pending"]).strip():
+                errors.append(f"{where}: pending needs the reason the source is not out yet")
         if "source" in s:
             for n, x in enumerate(s["source"] if isinstance(s["source"], list) else [s["source"]]):
                 check_source(x, f"{where} source {n}", errors)
