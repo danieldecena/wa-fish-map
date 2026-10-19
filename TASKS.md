@@ -28,9 +28,9 @@
 - [x] Fishing Year: source link and as-of date on each season
 - [x] Fishing Year: Green and Skagit line warnings, real errors?
 - [x] Fishing Year: verify the 13 hand-sourced stops against WDFW
-- [ ] Fishing Map page: link back to Fishing Year (page in flux)
+- [x] Fishing Map page: link back to Fishing Year (page in flux)
 - [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
-- [ ] Fishing Year: confirm the 3 stops with unconfirmed locations
+- [ ] Fishing Year: confirm 2 stops: Green River ramp, Two Rivers Point
 
 ## Completed
 
