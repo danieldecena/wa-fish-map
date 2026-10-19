@@ -5,7 +5,7 @@
   "account": "danieldecena@icloud.com",
   "what": "Full-bleed Washington map with two modes. Recent reports: eight SW Washington salmon waters (Kalama rated Slow from the source's own word; Washougal counts-only), rated from sourced catch reports, plus WDFW weekly creel counts. Typical season: 540 piers, boat launches and shore access sites statewide colored by the WA Fish Map app's seasonal timing for the chosen species, with recent WDFW creel counts on nine matched sites. Counts and timing never mix with ratings.",
   "baselineVersion": "1792352926-fede",
-  "currentVersion": "1792378378-f42f",
-  "previousVersion": "1792361847-8bdb",
+  "currentVersion": "1792386806-d0a9",
+  "previousVersion": "1792378378-f42f",
   "note": "Source is index.html plus geo.js, reports.js, counts.js, creel.js, typical.js, season.js and cluster.js in this folder; baseline.html is the pre-split single-file page. Refresh by PASSING THIS URL and files={geo.js, reports.js, counts.js, creel.js, typical.js, season.js, cluster.js}. Rollback: republish a previous version id. Version 1792363512-a03d (Kalama and Washougal, published from another session) was merged here, not lost."
 }
