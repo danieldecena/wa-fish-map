@@ -148,13 +148,16 @@
     {
       "wdfw_ramp_name": "Everett Ramp (formerly Norton Street Ramp (2010))",
       "site_id": "everett-10th-street-marine-park-pier",
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         "A search summary (Port of Everett grant news, https://pacificports.org/port-of-everett-awarded-1m-state-recreation-conservation-office-grant/) says the Norton Avenue launch is now the Jetty Landing and Boat Launch at 10th Street; the article fetched separately (https://www.liveineverett.com/blog//out-to-launch-where-to-get-your-boat-in-the-water) names the 10th Street Boat Launch but not Norton.",
         "OSM slipway (https://www.openstreetmap.org/node/2942900429) is 89 m from the map site 'Everett - 10th Street Marine Park Pier'.",
-        "No name in common between the source ramp and the map site."
+        "No name in common between the source ramp and the map site.",
+        "https://www.portofeverett.com/news_detail_T31_R2303.php : the Port of Everett's own page names the Jetty Landing Boat Launch, 13 lanes, at 10th Street and West Marine View Drive.",
+        "https://wdfw.wa.gov/places-to-go/fishing-piers/everett-10th-street-marine-park-pier : WDFW describes the pier as 'Port of Everett: 10th Street Boat Launch and Marine Park' and links to that Port launch page, so WDFW puts the pier and the launch at one facility.",
+        "The Port of Everett's Facebook post (search excerpt, 2026-10-18) calls it 'The Norton Avenue Boat Launch (now Jetty Landing and Boat Launch)', which is the rename from WDFW's 'formerly Norton Street Ramp'."
       ],
-      "note": "Not applied: the link runs through a rename that was not confirmed on a primary page."
+      "note": "Approved 2026-10-18 on three independent signals. The Norton Avenue to Jetty Landing rename rests on the Port's Facebook post, not on a page on portofeverett.com; WDFW calls it Norton Street, the Port Norton Avenue. The sheet keeps showing the WDFW ramp name."
     },
     {
       "wdfw_ramp_name": "Hoodsport Shore",

@@ -141,6 +141,93 @@
         }
       ]
     },
+    "everett-10th-street-marine-park-pier": {
+      "filter": "Last 30 days",
+      "windowStart": "2026-09-19",
+      "windowEnd": "2026-10-18",
+      "rows": [
+        {
+          "ramp": "Everett Ramp (formerly Norton Street Ramp (2010))",
+          "catchArea": "Area 10, Seattle-Bremerton area",
+          "windowStart": "2026-09-19",
+          "windowEnd": "2026-10-18",
+          "surveyDays": 22,
+          "match": "crosswalk",
+          "interviews": 200,
+          "anglers": 471,
+          "species": {
+            "Chinook": 3,
+            "Coho": 428,
+            "Chum": 5,
+            "Pink": 0,
+            "Sockeye": 0,
+            "Lingcod": 0,
+            "Halibut": 0
+          },
+          "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Everett+Ramp+%28formerly+Norton+Street+Ramp+%282010%29%29&sample_date=2"
+        },
+        {
+          "ramp": "Everett Ramp (formerly Norton Street Ramp (2010))",
+          "catchArea": "Area 8-1, Deception Pass, Hope Island, and Skagit Bay",
+          "windowStart": "2026-09-22",
+          "windowEnd": "2026-09-30",
+          "surveyDays": 3,
+          "match": "crosswalk",
+          "interviews": 4,
+          "anglers": 10,
+          "species": {
+            "Chinook": 0,
+            "Coho": 5,
+            "Chum": 0,
+            "Pink": 0,
+            "Sockeye": 0,
+            "Lingcod": 0,
+            "Halibut": 0
+          },
+          "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Everett+Ramp+%28formerly+Norton+Street+Ramp+%282010%29%29&sample_date=2"
+        },
+        {
+          "ramp": "Everett Ramp (formerly Norton Street Ramp (2010))",
+          "catchArea": "Area 8-2, Ports Susan and Gardner",
+          "windowStart": "2026-09-19",
+          "windowEnd": "2026-09-30",
+          "surveyDays": 8,
+          "match": "crosswalk",
+          "interviews": 431,
+          "anglers": 1062,
+          "species": {
+            "Chinook": 9,
+            "Coho": 980,
+            "Chum": 0,
+            "Pink": 0,
+            "Sockeye": 0,
+            "Lingcod": 0,
+            "Halibut": 0
+          },
+          "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Everett+Ramp+%28formerly+Norton+Street+Ramp+%282010%29%29&sample_date=2"
+        },
+        {
+          "ramp": "Everett Ramp (formerly Norton Street Ramp (2010))",
+          "catchArea": "Area 9, Admiralty Inlet",
+          "windowStart": "2026-09-19",
+          "windowEnd": "2026-09-30",
+          "surveyDays": 8,
+          "match": "crosswalk",
+          "interviews": 840,
+          "anglers": 2326,
+          "species": {
+            "Chinook": 7,
+            "Coho": 2631,
+            "Chum": 1,
+            "Pink": 0,
+            "Sockeye": 0,
+            "Lingcod": 0,
+            "Halibut": 0
+          },
+          "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Everett+Ramp+%28formerly+Norton+Street+Ramp+%282010%29%29&sample_date=2"
+        }
+      ]
+    },
     "friday-harbor-marina-docks": {
       "filter": "Last 30 days",
       "windowStart": "2026-09-19",
@@ -191,17 +278,17 @@
     "john-wayne-marina": {
       "filter": "Last 30 days",
       "windowStart": "2026-09-19",
-      "windowEnd": "2026-10-15",
+      "windowEnd": "2026-10-18",
       "rows": [
         {
           "ramp": "John Wayne Marina",
           "catchArea": "Area 6, East Juan de Fuca Strait",
           "windowStart": "2026-09-19",
-          "windowEnd": "2026-10-15",
-          "surveyDays": 17,
+          "windowEnd": "2026-10-18",
+          "surveyDays": 18,
           "match": "exact-name",
-          "interviews": 108,
-          "anglers": 237,
+          "interviews": 110,
+          "anglers": 242,
           "species": {
             "Chinook": 0,
             "Coho": 107,
@@ -285,20 +372,20 @@
     "luhr-s-landing": {
       "filter": "Last 30 days",
       "windowStart": "2026-09-19",
-      "windowEnd": "2026-10-16",
+      "windowEnd": "2026-10-18",
       "rows": [
         {
           "ramp": "Luhr Beach Ramp",
           "catchArea": "Area 13, South Puget Sound",
           "windowStart": "2026-09-19",
-          "windowEnd": "2026-10-16",
-          "surveyDays": 6,
+          "windowEnd": "2026-10-18",
+          "surveyDays": 7,
           "match": "crosswalk",
-          "interviews": 11,
-          "anglers": 17,
+          "interviews": 13,
+          "anglers": 20,
           "species": {
             "Chinook": 1,
-            "Coho": 0,
+            "Coho": 1,
             "Chum": 0,
             "Pink": 0,
             "Sockeye": 0,
@@ -332,7 +419,7 @@
     "point-defiance-marina-boathouse": {
       "filter": "Last 30 days",
       "windowStart": "2026-09-20",
-      "windowEnd": "2026-10-16",
+      "windowEnd": "2026-10-18",
       "rows": [
         {
           "ramp": "Point Defiance Boathouse",
@@ -358,11 +445,11 @@
           "ramp": "Point Defiance Boathouse",
           "catchArea": "Area 11, Tacoma-Vashon Island",
           "windowStart": "2026-09-20",
-          "windowEnd": "2026-10-16",
-          "surveyDays": 12,
+          "windowEnd": "2026-10-18",
+          "surveyDays": 13,
           "match": "crosswalk",
-          "interviews": 189,
-          "anglers": 263,
+          "interviews": 192,
+          "anglers": 267,
           "species": {
             "Chinook": 1,
             "Coho": 109,
@@ -378,13 +465,13 @@
           "ramp": "Point Defiance Boathouse",
           "catchArea": "Area 13, South Puget Sound",
           "windowStart": "2026-09-26",
-          "windowEnd": "2026-10-16",
-          "surveyDays": 2,
+          "windowEnd": "2026-10-18",
+          "surveyDays": 3,
           "match": "crosswalk",
-          "interviews": 2,
-          "anglers": 3,
+          "interviews": 3,
+          "anglers": 4,
           "species": {
-            "Chinook": 1,
+            "Chinook": 2,
             "Coho": 0,
             "Chum": 0,
             "Pink": 0,
