@@ -44,6 +44,10 @@ RIVERS = ROOT / "WAFishMap" / "Resources" / "rivers.json"
 STAGES = {"lower", "mid", "upper"}
 CATS = {"salmon", "fish", "crab"}
 LINE_WARN_KM = 1.5
+SOURCE_HOSTS = (
+    "https://wdfw.wa.gov/",
+    "https://www.eregulations.com/washington/fishing/",
+)
 RIVER_FEATURE = {
     "green": "Green River",
     "snoqualmie": "Snoqualmie River",
@@ -76,8 +80,8 @@ def check_source(src, where, errors):
         return
     if not str(src.get("label", "")).strip():
         errors.append(f"{where}: source needs a label")
-    if not str(src.get("url", "")).startswith("https://wdfw.wa.gov/"):
-        errors.append(f"{where}: source url must be on https://wdfw.wa.gov/")
+    if not str(src.get("url", "")).startswith(SOURCE_HOSTS):
+        errors.append(f"{where}: source url must start with one of {SOURCE_HOSTS}")
     checked = day(src.get("checked"), f"{where} source checked", errors)
     if checked and checked > datetime.date.today():
         errors.append(f"{where}: source checked {src['checked']} is in the future")
@@ -105,7 +109,8 @@ def main():
         if a and b and b < a:
             errors.append(f"{where}: ends {s['end']} before it starts {s['start']}")
         if "source" in s:
-            check_source(s["source"], where, errors)
+            for n, x in enumerate(s["source"] if isinstance(s["source"], list) else [s["source"]]):
+                check_source(x, f"{where} source {n}", errors)
     for m in src["milestones"]:
         day(m["date"], f"milestone {m.get('label')}", errors)
     for p in src["migration"]:

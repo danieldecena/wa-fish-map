@@ -21,11 +21,23 @@
    "id": "chum",
    "name": "Chum",
    "cat": "salmon",
-   "start": "2026-11-16",
-   "end": "2026-12-15",
+   "start": "2026-10-16",
+   "end": "2026-11-30",
    "flavor": 5,
-   "where": "Hood Canal and south Sound rivers",
-   "note": "Mildest flavor, best smoked or cured. Quality drops as the fish darken."
+   "where": "Hood Canal south of Ayock Point; south Sound rivers not checked",
+   "note": "Mildest flavor, best smoked or cured. In the 2026 pamphlet chum can be kept in Hood Canal south of Ayock Point from Oct 16 to Nov 30, four salmon a day with Chinook released (coho too in November). Marine Area 13 requires chum to be released. Quality drops as the fish darken.",
+   "source": [
+    {
+     "label": "WDFW 2026-27 pamphlet, Marine Area 12",
+     "url": "https://www.eregulations.com/washington/fishing/marine-area-12",
+     "checked": "2026-10-18"
+    },
+    {
+     "label": "WDFW 2026-27 pamphlet, Marine Area 13",
+     "url": "https://www.eregulations.com/washington/fishing/marine-area-13",
+     "checked": "2026-10-18"
+    }
+   ]
   },
   {
    "id": "steelhead",
@@ -183,21 +195,38 @@
    "id": "fall-chinook",
    "name": "Fall Chinook",
    "cat": "salmon",
-   "start": "2027-09-01",
+   "start": "2027-08-01",
    "end": "2027-10-31",
    "flavor": 1,
-   "where": "Cowlitz and Lewis rivers, Olympic Peninsula rivers",
-   "note": "Most Seattle-area rivers restrict Chinook, so plan to drive south or west."
+   "where": "Lewis River; Cowlitz and Olympic Peninsula rivers see note",
+   "note": "In the 2026 pamphlet the Lewis River allowed hatchery Chinook from Aug 1, and from Oct 1 to Dec 31 one Chinook a day within an adult limit of three. The Cowlitz required release of all salmon except hatchery coho from Aug 1 to Dec 31. Olympic Peninsula rivers were not checked. Most Seattle-area rivers restrict Chinook, so plan to drive south or west.",
+   "source": [
+    {
+     "label": "WDFW 2026-27 pamphlet, Lewis River",
+     "url": "https://www.eregulations.com/washington/fishing/columbia-basin-rivers-special-rules-l-n",
+     "checked": "2026-10-18"
+    },
+    {
+     "label": "WDFW 2026-27 pamphlet, Cowlitz River",
+     "url": "https://www.eregulations.com/washington/fishing/columbia-basin-rivers-special-rules-a-c",
+     "checked": "2026-10-18"
+    }
+   ]
   },
   {
    "id": "fall-coho",
    "name": "Fall coho",
    "cat": "salmon",
-   "start": "2027-09-01",
-   "end": "2027-11-15",
+   "start": "2027-08-16",
+   "end": "2027-10-31",
    "flavor": 3,
-   "where": "Skagit and other Puget Sound rivers",
-   "note": "Closures can come on short notice. Check emergency rules before each trip."
+   "where": "Skagit River; other Puget Sound rivers not checked",
+   "note": "In the 2026 pamphlet the Skagit coho season ran Aug 16 below Gilligan Creek and Sep 16 above it, to Oct 31, with a limit of 4 and then 2 in October. WDFW extended it to Nov 30 in 2025, and can close it on short notice. Check emergency rules before each trip.",
+   "source": {
+    "label": "WDFW 2026-27 pamphlet, Skagit River",
+    "url": "https://www.eregulations.com/washington/fishing/puget-sound-coastal-rivers-special-rules-s-z",
+    "checked": "2026-10-18"
+   }
   }
  ],
  "milestones": [
