@@ -538,7 +538,7 @@
      "place_check": {
       "source": "OpenStreetMap",
       "confirmed": false,
-      "note": "Searched for a Green River boat ramp in Kent and found no page naming one.",
+      "note": "Searched for a Green River boat ramp in Kent and found no page naming one; the OpenStreetMap lookup failed on 2026-10-18 and was not retried.",
       "checked": "2026-10-18"
      }
     },
@@ -844,9 +844,11 @@
      "site_id": null,
      "place_check": {
       "source": "OpenStreetMap",
-      "confirmed": false,
-      "note": "A paddling guide and the Mountaineers list a launch at the Tolt confluence in Carnation, river mile 25, now free; their coordinates were not checked.",
-      "checked": "2026-10-18"
+      "confirmed": true,
+      "name": "unnamed slipway, with the Tolt River boat launch trail 107 m away",
+      "meters": 95,
+      "checked": "2026-10-18",
+      "note": "The Mountaineers and a paddling guide also place a free launch at the Tolt confluence in Carnation, river mile 25."
      }
     },
     {
