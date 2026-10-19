@@ -47,7 +47,13 @@ test('every water has a real ISO week, a six-day span, a matching label and a WD
 
 test('every row has exactly the agreed fields and only non-negative integers or null', () => {
   for (const [id, w] of WATERS) {
-    assert.ok(w.rows.length > 0, `${id} has no rows; it should have been left out`);
+    assert.ok(w.rows.length > 0 || w.noCatch, `${id} has no rows; it should have been left out`);
+    if (w.noCatch) {
+      // A week whose only entry is "no catch": an angler count and no species rows, never a made-up zero.
+      assert.deepEqual(Object.keys(w.noCatch), ['anglers'], id);
+      assert.ok(Number.isInteger(w.noCatch.anglers) && w.noCatch.anglers > 0, `${id} noCatch anglers`);
+      assert.equal(w.rows.length, 0, `${id}: noCatch and species rows together`);
+    }
     for (const r of w.rows) {
       assert.deepEqual(Object.keys(r).sort(), ['anglers', 'kept', 'released', 'section', 'species'], id);
       assert.ok(r.section === null || (typeof r.section === 'string' && r.section.length > 0), `${id} section`);
@@ -116,12 +122,27 @@ test('every water shows the newest week the table has for it (read live from the
       wind: "River = 'Wind'",
       drano: "River = 'Drano Lake'",
       klickitat: "River IN ('Klickitat, below Fisher Hill Br', 'Klickitat, above Fisher Hill Br')",
+      kalama: "River = 'Kalama'",
+      washougal: "River = 'Washougal'",
     };
-    const names = SALMON.map(s => `'${s}'`).join(',');
     for (const [id, w] of WATERS) {
+      // A water showing a no-catch week also counts that table entry as its newest.
+      const names = SALMON.concat(w.noCatch ? ['(no catch)'] : []).map(s => `'${s}'`).join(',');
       const newest = sql(`SELECT max(Week) AS w FROM board WHERE ${rivers[id]} AND Species IN (${names})`)[0].w;
       assert.equal(weekText(w), newest, `${id} is not showing its newest week`);
     }
+  });
+
+test('Kalama and Washougal match the table: Kalama\'s coho row, Washougal\'s lone no-catch entry (read live from the db)',
+  { skip: HAVE_DB ? false : 'sqlite3 or ~/database/salmon-rivers/salmon.db not available' },
+  () => {
+    const k = C.WATERS.kalama, w = C.WATERS.washougal;
+    const kq = sql(`SELECT Anglers, Kept, Released FROM board WHERE River = 'Kalama' AND Species = 'Coho Salmon' AND Week = '${weekText(k)}'`);
+    assert.equal(kq.length, 1);
+    assert.deepEqual([k.rows[0].anglers, k.rows[0].kept, k.rows[0].released], [kq[0].Anglers, kq[0].Kept ?? null, kq[0].Released ?? null]);
+    const wq = sql(`SELECT Species, Anglers FROM board WHERE River = 'Washougal' AND Week = '${weekText(w)}'`);
+    assert.deepEqual(wq.map(x => x.Species), ['(no catch)']);
+    assert.equal(w.noCatch.anglers, wq[0].Anglers);
   });
 
 // Pinned copy of the Coho Salmon rows of the Lower Columbia sections for the week of 2026-10-05,

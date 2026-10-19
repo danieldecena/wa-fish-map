@@ -5,7 +5,8 @@
 
 Reads the `board` view of ~/database/salmon-rivers/salmon.db (built by
 build_salmon_db.py) and keeps, for each page water, only its newest report week
-that has salmon rows. These are WDFW creel counts, not ratings: nothing here
+that has salmon rows (or a lone "no catch" entry, kept as an angler count with no
+species rows). These are WDFW creel counts, not ratings: nothing here
 feeds the rating logic in reports.js. A blank in the table means the report did
 not state the number; it stays null here, never 0.
 
@@ -42,7 +43,11 @@ WATERS = {
         ("Klickitat, below Fisher Hill Br", "Below Fisher Hill Br"),
         ("Klickitat, above Fisher Hill Br", "Above Fisher Hill Br"),
     ],
+    "kalama": [("Kalama", None)],
+    "washougal": [("Washougal", None)],
 }
+# The table's species for an entry that says anglers were surveyed and had no catch.
+NO_CATCH = "(no catch)"
 COMBINED_LABEL = "All sections combined"
 
 # Species names exactly as the table writes them, in display order. Steelhead,
@@ -125,7 +130,7 @@ def build():
             combined = False
         mine = [row for row in board if row[0] in sections]
         newest_any = max((r[2] for r in mine), default=None)
-        have = {r[2] for r in mine if r[1] in SPECIES}
+        have = {r[2] for r in mine if r[1] in SPECIES or r[1] == NO_CATCH}
         if not have:
             print(f"{wid}: no salmon rows, left out", file=sys.stderr)
             continue
@@ -152,6 +157,22 @@ def build():
             if r[0] in angl and angl[r[0]] != r[3]:
                 sys.exit(f"{wid} {week}: {r[0]} has two Anglers values")
             angl[r[0]] = r[3]
+
+        if not any(r[1] in SPECIES for r in wk):
+            # A week where the only entry is "no catch": keep the angler count and
+            # say so. It is not turned into species rows or a zero Kept/Released.
+            if len(angl) != 1:
+                sys.exit(f"{wid} {week}: no-catch week with {len(angl)} sections")
+            out[wid] = {
+                "week": f"{day(start)} to {day(end)}",
+                "weekStart": start.isoformat(),
+                "weekEnd": end.isoformat(),
+                "source": url,
+                "note": None,
+                "rows": [],
+                "noCatch": {"anglers": total(angl.values())},
+            }
+            continue
 
         rows = []
         if combined:

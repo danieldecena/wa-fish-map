@@ -343,6 +343,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
           <li style="--c:var(--prime)"><i></i>Excellent</li>
           <li style="--c:var(--good)"><i></i>Good</li>
           <li style="--c:var(--fair)"><i></i>Fair</li>
+          <li style="--c:var(--slow)"><i></i>Slow</li>
           <li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li>
           <li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>
         </ul>
@@ -928,7 +929,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function countCell(n) { return n === null ? '<span aria-hidden="true">\u2013</span><span class="sr">not reported</span>' : String(n); }
   function creelHtml(id) {
     var w = typeof Counts !== 'undefined' ? Counts.forWater(id) : null;
-    if (!w || !w.rows.length) return '';
+    if (!w || (!w.rows.length && !w.noCatch)) return '';
     var body = '', last = null;
     w.rows.forEach(function (r) {
       if (r.section !== null && r.section !== last) body += '<tr class="grp"><th scope="colgroup" colspan="4">' + esc(r.section) + '</th></tr>';
@@ -937,7 +938,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     });
     return '<section><h3>WDFW weekly creel</h3><div class="creel">' +
       '<div class="ctop"><span class="wk">Week of ' + esc(w.week) + '</span><span class="chip' + (Reports.freshness(w.weekEnd, TODAY) === 'fresh' ? '' : ' old') + '">' + esc(Reports.describeAge(w.weekEnd, TODAY)) + '</span></div>' +
-      '<table class="ctab"><caption class="sr">WDFW creel counts for ' + esc(w.week) + '</caption><thead><tr><th scope="col">Species</th><th scope="col">Anglers</th><th scope="col">Kept</th><th scope="col">Released</th></tr></thead><tbody>' + body + '</tbody></table>' +
+      (w.rows.length ? '<table class="ctab"><caption class="sr">WDFW creel counts for ' + esc(w.week) + '</caption><thead><tr><th scope="col">Species</th><th scope="col">Anglers</th><th scope="col">Kept</th><th scope="col">Released</th></tr></thead><tbody>' + body + '</tbody></table>' : '<p class="cnote">' + w.noCatch.anglers + (w.noCatch.anglers === 1 ? ' angler' : ' anglers') + ' had no catch in this week’s survey.</p>') +
       (w.note ? '<p class="cnote">' + esc(w.note) + '</p>' : '') +
       '<p class="cnote">Counts from WDFW angler surveys. They are not ratings.</p>' +
       '<a class="csrc" href="' + esc(w.source) + '" target="_blank" rel="noopener">WDFW creel report, ' + esc(w.week) + ' (PDF)</a>' +
@@ -1028,17 +1029,19 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       return '<div class="row"><div class="rt"><div class="nm">' + esc(k) + '</div><div class="dt">' + esc(sp.d) + '</div></div><div class="ch">' + badge(sp.r, sp.release) + (sp.release ? '<span class="chip">Release only</span>' : '') +
         '<span class="chip' + (Reports.freshness(sp.asOf, TODAY) === 'fresh' ? '' : ' old') + '">' + esc(Reports.describeAge(sp.asOf, TODAY)) + '</span></div></div>';
     }).join('');
-    var missing = Reports.missingNote(s, species);
+    var missing = Reports.missingNote(s, species) || (rows ? null : 'No catch report for this water. The WDFW creel figures below are counts, not a rating.');
     var extraSrc = [];
     Reports.reportRows(s).forEach(function (r) {
       var q = r.sp.src;
       if (q && extraSrc.every(function (e) { return e.url !== q.url; })) extraSrc.push(q);
     });
     var cw = typeof Counts !== 'undefined' ? Counts.forWater(id) : null;
-    if (cw && cw.rows.length && extraSrc.every(function (e) { return e.url !== cw.source; })) extraSrc.push({ label: 'WDFW creel report, ' + cw.week, url: cw.source });
+    if (cw && (cw.rows.length || cw.noCatch) && extraSrc.every(function (e) { return e.url !== cw.source; })) extraSrc.push({ label: 'WDFW creel report, ' + cw.week, url: cw.source });
     var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
     var dir = 'https://maps.apple.com/?ll=' + s.ll[0] + ',' + s.ll[1] + '&q=' + encodeURIComponent(s.name);
-    var src = '<a href="https://www.theguidesforecast.com/free/coho-run-heats-up/287017/" target="_blank" rel="noopener">The Guide’s Forecast, Oct 17</a>' +
+    var GF = 'https://www.theguidesforecast.com/free/coho-run-heats-up/287017/';
+    extraSrc = extraSrc.filter(function (e) { return e.url !== GF; });
+    var src = '<a href="' + GF + '" target="_blank" rel="noopener">The Guide’s Forecast, Oct 17</a>' +
       '<a href="https://www.theguidesforecast.com/sw-washington-fishing-reports/" target="_blank" rel="noopener">SW Washington reports, Oct 15</a>' +
       (s.extra === 'nws' ? '<a href="https://nwsportsmanmag.com/sw-wa-buoy-10-lower-columbia-hanford-reach-report-10-13-2026/" target="_blank" rel="noopener">NW Sportsman, Oct 13</a>' : '') +
       extraSrc.map(function (e) { return '<a href="' + esc(e.url) + '" target="_blank" rel="noopener">' + esc(e.label) + '</a>'; }).join('');
@@ -1119,7 +1122,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     $('#legt').textContent = typ ? 'Typical timing, ' + Season.MONTHS[MONTH - 1] : 'Recent catch reports';
     $('#legl').innerHTML = typ
       ? '<li style="--c:var(--prime)"><i></i>Prime</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li style="--c:var(--slow)"><i></i>Slow</li><li style="--c:var(--unrated)"><i></i>No seasonal guidance</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: season often varies</li><li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>'
-      : '<li style="--c:var(--prime)"><i></i>Excellent</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li><li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>';
+      : '<li style="--c:var(--prime)"><i></i>Excellent</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li style="--c:var(--slow)"><i></i>Slow</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li><li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>';
     $('#legf').textContent = typ ? TYPICAL_LINE + ' Confirm rules on WDFW.' : 'Catch reports, not season dates. Confirm rules on WDFW.';
     var n = typ ? TYPICAL_LINE : Reports.staleNotice(SITES, TODAY);
     $('#notice').textContent = n || ''; $('#notice').hidden = !n;

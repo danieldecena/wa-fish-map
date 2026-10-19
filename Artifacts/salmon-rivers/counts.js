@@ -220,6 +220,33 @@
           "released": 1
         }
       ]
+    },
+    "kalama": {
+      "week": "Oct 5 to Oct 11",
+      "weekStart": "2026-10-05",
+      "weekEnd": "2026-10-11",
+      "source": "https://wdfw.wa.gov/sites/default/files/2026-10/swwa-fishing-reports-oct-5-11-2026.pdf",
+      "note": null,
+      "rows": [
+        {
+          "section": null,
+          "species": "Coho Salmon",
+          "anglers": 4,
+          "kept": 1,
+          "released": null
+        }
+      ]
+    },
+    "washougal": {
+      "week": "Oct 5 to Oct 11",
+      "weekStart": "2026-10-05",
+      "weekEnd": "2026-10-11",
+      "source": "https://wdfw.wa.gov/sites/default/files/2026-10/swwa-fishing-reports-oct-5-11-2026.pdf",
+      "note": null,
+      "rows": [],
+      "noCatch": {
+        "anglers": 8
+      }
     }
   };
   return { WATERS: WATERS, forWater: function (id) { return WATERS[id] || null; } };

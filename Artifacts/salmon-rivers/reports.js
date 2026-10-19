@@ -5,7 +5,7 @@
   'use strict';
 
   var RANK = { prime: 3, good: 2, fair: 1, slow: 0, unrated: -1 };
-  var LABEL = { prime: 'Excellent', good: 'Good', fair: 'Fair', unrated: 'No report' };
+  var LABEL = { prime: 'Excellent', good: 'Good', fair: 'Fair', slow: 'Slow', unrated: 'No report' };
   var STALE_DAYS = 7;
   /* Display order of every species with at least one report. Each is an exact species name from the app's species list. */
   var SPECIES = ['Coho Salmon', 'Chinook Salmon', 'Fall Chinook'];
@@ -33,7 +33,13 @@
       'Chinook Salmon': { r: 'good', asOf: '2026-10-15', d: 'Chinook rated good.' } } },
     { id: 'drano', name: 'Drano Lake', sub: 'Mouth of the Little White Salmon River', hl: false,
       reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-15', d: 'Coho rated good.' },
-      'Chinook Salmon': { r: 'good', asOf: '2026-10-15', d: 'Chinook rated good.' } } }
+      'Chinook Salmon': { r: 'good', asOf: '2026-10-15', d: 'Chinook rated good.' } } },
+    /* Slow is only ever the source's own word (slow or poor), kept in phrase. Never worked out from a number. */
+    { id: 'kalama', name: 'Kalama River', sub: 'Lower river near Kalama', hl: true,
+      reports: { 'Coho Salmon': { r: 'slow', asOf: '2026-10-17', phrase: 'Fishing remains poor', d: 'Fishing is poor in low water. Four bank anglers kept one coho, and the weir is still in place. It is expected out this week.',
+        src: { label: 'The Guide\u2019s Forecast, Oct 17', url: 'https://www.theguidesforecast.com/free/coho-run-heats-up/287017/' } } } },
+    /* No rating: the creel says only that nobody caught anything, which is not a quality word. So a gray No report pin; its sheet shows the WDFW creel figures. */
+    { id: 'washougal', name: 'Washougal River', sub: 'Lower river near Camas', hl: true, reports: {} }
   ];
 
   function parseDay(iso) {
