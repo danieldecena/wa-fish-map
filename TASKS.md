@@ -25,7 +25,7 @@
 - [x] Fishing Year: save type, contrast and scroll checks in the repo
 - [ ] Fishing Year: access list beside the map at 600px and up
 - [ ] Fishing Year: shorten or dock the sticky stop card on phones
-- [ ] Fishing Year: source link and as-of date on each season
+- [x] Fishing Year: source link and as-of date on each season
 - [ ] Fishing Year: Green and Skagit line warnings, real errors?
 - [ ] Fishing Year: verify the 13 hand-sourced stops against WDFW
 - [ ] Fishing Year: link to the Washington Fishing Map artifact
