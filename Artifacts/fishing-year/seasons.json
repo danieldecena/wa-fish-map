@@ -34,26 +34,41 @@
    "start": "2026-12-01",
    "end": "2027-03-31",
    "where": "Olympic Peninsula rivers, some Puget Sound rivers",
-   "note": "Keep hatchery fish only and release wild fish."
+   "note": "Most major areas were open Dec 1 to Mar 31 in 2025-26, but the Humptulips closed Feb 2 and the Chehalis Feb 16. Release wild fish and keep up to two hatchery steelhead a day.",
+   "source": {
+    "label": "WDFW 2025-26 coastal steelhead rules (last season)",
+    "url": "https://wdfw.wa.gov/newsroom/news-release/wdfw-announces-2025-26-coastal-steelhead-regulations",
+    "checked": "2026-10-18"
+   }
   },
   {
    "id": "perch",
    "name": "Yellow perch",
    "cat": "fish",
-   "start": "2027-03-15",
-   "end": "2027-05-31",
+   "start": "2027-06-01",
+   "end": "2027-08-31",
    "where": "Lake Washington, from shore",
-   "note": "Open year-round, with spring as the peak. Very good fried."
+   "note": "Open year-round. WDFW says fishing is best in summer after the perch spawn in April and May, and the catch drops in the fall. Very good fried.",
+   "source": {
+    "label": "WDFW Lake Washington page",
+    "url": "https://wdfw.wa.gov/fishing/locations/lowland-lakes/lake-washington",
+    "checked": "2026-10-18"
+   }
   },
   {
    "id": "spring-chinook",
    "name": "Spring Chinook",
    "cat": "salmon",
-   "start": "2027-04-01",
-   "end": "2027-06-15",
+   "start": "2027-03-01",
+   "end": "2027-05-02",
    "flavor": 1,
    "where": "Columbia, Cowlitz and Lewis rivers, 2.5 to 3 hours south",
-   "note": "The best-tasting salmon. Dates vary each year, so check the Columbia River rules."
+   "note": "The best-tasting salmon. In 2026 the Columbia ran Mar 1 to Apr 8 below Beacon Rock and Apr 1 to 26 plus May 2 above it. WDFW expected spring Chinook fishing on the Cowlitz, Kalama and Lewis rivers but gave no dates. The 2027 dates are an estimate, so check the Columbia River rules.",
+   "source": {
+    "label": "WDFW 2026 Columbia spring Chinook seasons",
+    "url": "https://wdfw.wa.gov/newsroom/news-release/2026-columbia-river-spring-chinook-seasons-announced",
+    "checked": "2026-10-18"
+   }
   },
   {
    "id": "lingcod",
@@ -87,10 +102,15 @@
    "id": "walleye",
    "name": "Walleye",
    "cat": "fish",
-   "start": "2027-04-15",
-   "end": "2027-06-30",
+   "start": "2027-05-01",
+   "end": "2027-10-31",
    "where": "Columbia River and eastern Washington",
-   "note": "One of the best-tasting freshwater fish. Plan a weekend trip."
+   "note": "WDFW says walleye fishing peaks before and after the April spawn, is excellent in summer with a lull in the heat, and improves in fall. One of the best-tasting freshwater fish. Plan a weekend trip.",
+   "source": {
+    "label": "WDFW walleye page",
+    "url": "https://wdfw.wa.gov/species-habitats/species/sander-vitreus",
+    "checked": "2026-10-18"
+   }
   },
   {
    "id": "trout",
@@ -99,16 +119,26 @@
    "start": "2027-04-24",
    "end": "2027-06-30",
    "where": "Lowland lakes near Seattle",
-   "note": "Easy from shore. Check WDFW stocking reports for which lakes got fish."
+   "note": "Easy from shore. Lowland lakes opened April 25 in 2026, and the 2027 date is estimated as the fourth Saturday in April. Check WDFW stocking reports for which lakes got fish.",
+   "source": {
+    "label": "WDFW lowland lakes opener, April 14, 2026",
+    "url": "https://wdfw.wa.gov/newsroom/news-release/wdfw-opens-lowland-lakes-april-25-trout-derby-returns-900-prizes",
+    "checked": "2026-10-18"
+   }
   },
   {
    "id": "kokanee",
    "name": "Kokanee",
    "cat": "fish",
-   "start": "2027-06-01",
-   "end": "2027-08-31",
+   "start": "2027-04-01",
+   "end": "2027-10-31",
    "where": "Lake Whatcom, Lake Chelan, Lake Roosevelt",
-   "note": "Landlocked sockeye with a sweet flavor, mostly trolled. Lake Sammamish and Lake Washington have restrictions."
+   "note": "Landlocked sockeye with a sweet flavor, mostly trolled. WDFW says the kokanee fishery typically runs April to October, and Lake Chelan is usually best from mid-April through June. Not checked: restrictions on Lake Sammamish and Lake Washington.",
+   "source": {
+    "label": "WDFW kokanee page",
+    "url": "https://wdfw.wa.gov/species-habitats/species/oncorhynchus-nerka-kokanee",
+    "checked": "2026-10-18"
+   }
   },
   {
    "id": "crab",
