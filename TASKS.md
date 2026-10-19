@@ -23,12 +23,14 @@
 - [x] Fishing Year: grey bars with one highlight (kit rule)
 - [x] Fishing Year: 44px touch targets on tabs, chips and rows
 - [x] Fishing Year: save type, contrast and scroll checks in the repo
-- [ ] Fishing Year: access list beside the map at 600px and up
-- [ ] Fishing Year: shorten or dock the sticky stop card on phones
+- [x] Fishing Year: access list beside the map at 600px and up
+- [x] Fishing Year: shorten or dock the sticky stop card on phones
 - [x] Fishing Year: source link and as-of date on each season
-- [ ] Fishing Year: Green and Skagit line warnings, real errors?
-- [ ] Fishing Year: verify the 13 hand-sourced stops against WDFW
-- [ ] Fishing Year: link to the Washington Fishing Map artifact
+- [x] Fishing Year: Green and Skagit line warnings, real errors?
+- [x] Fishing Year: verify the 13 hand-sourced stops against WDFW
+- [ ] Fishing Map page: link back to Fishing Year (page in flux)
+- [ ] Fishing Year: source the 14 seasons with no WDFW notice yet
+- [ ] Fishing Year: confirm the 3 stops with unconfirmed locations
 
 ## Completed
 
