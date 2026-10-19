@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-16",
+  "updated": "2026-10-18",
   "disclaimer": "Seasonal guidance only — NOT official regulations. Runs, open seasons, areas, and limits change year to year and can close with little notice. Statewide first-pass data; inland areas without an entry show a neutral rating. Bait/gear are general suggestions. Always confirm current rules in the WDFW Fish Washington app before you fish.",
   "wdfwURL": "https://wdfw.wa.gov/fishing/regulations",
   "seasonRisk": [
@@ -1901,6 +1901,19 @@
           "bait": "Bottom-walker + worm harness, crankbaits",
           "note": "WDFW lists walleye in this warmwater-emphasis reservoir; it is drawn down each fall for irrigation.",
           "bestTime": "Dawn, dusk & after dark"
+        }
+      ],
+      "Skagit River": [
+        {
+          "species": "Coho Salmon",
+          "bestMonths": [
+            10,
+            11
+          ],
+          "goodMonths": [
+            9
+          ],
+          "note": "Fall coho fishery from the mouth up to the Marblemount Bridge. WDFW has run it into November in recent years (extended through Nov. 30 in 2025) and closed it early on Nov. 19, 2025 when the catch guideline was reached, so dates are set in-season."
         }
       ]
     },
