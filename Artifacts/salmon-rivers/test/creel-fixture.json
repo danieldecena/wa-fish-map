@@ -1,0 +1,413 @@
+{
+ "sites": [
+  {
+   "id": "alpha-ramp",
+   "name": "Alpha Ramp",
+   "kind": "launch",
+   "county": "Kitsap",
+   "lat": 47.8,
+   "lon": -122.5
+  },
+  {
+   "id": "kingston-pier",
+   "name": "Kingston Public Pier",
+   "kind": "pier",
+   "county": "Kitsap",
+   "lat": 47.8,
+   "lon": -122.5
+  },
+  {
+   "id": "silver-lake-a",
+   "name": "Silver Lake",
+   "kind": "launch",
+   "county": "Pierce",
+   "lat": 47.0,
+   "lon": -122.3
+  },
+  {
+   "id": "silver-lake-b",
+   "name": "Silver Lake",
+   "kind": "launch",
+   "county": "Whatcom",
+   "lat": 48.9,
+   "lon": -122.1
+  },
+  {
+   "id": "beta-dock",
+   "name": "Beta Dock",
+   "kind": "pier",
+   "county": "Mason",
+   "lat": 47.3,
+   "lon": -123.0
+  },
+  {
+   "id": "gamma-dock",
+   "name": "Gamma Dock",
+   "kind": "pier",
+   "county": "Mason",
+   "lat": 47.4,
+   "lon": -123.0
+  },
+  {
+   "id": "delta-ramp",
+   "name": "Delta Ramp",
+   "kind": "launch",
+   "county": "Mason",
+   "lat": 47.5,
+   "lon": -123.1
+  },
+  {
+   "id": "nulls-ramp",
+   "name": "Nulls Ramp",
+   "kind": "launch",
+   "county": "Mason",
+   "lat": 47.6,
+   "lon": -123.2
+  },
+  {
+   "id": "zeta-pier",
+   "name": "Zeta Pier",
+   "kind": "pier",
+   "county": "Kitsap",
+   "lat": 47.8,
+   "lon": -122.6
+  },
+  {
+   "id": "eta-pier",
+   "name": "Eta Pier",
+   "kind": "pier",
+   "county": "Kitsap",
+   "lat": 47.7,
+   "lon": -122.7
+  },
+  {
+   "id": "theta-pier",
+   "name": "Theta Pier",
+   "kind": "pier",
+   "county": "Mason",
+   "lat": 47.5,
+   "lon": -123.0
+  },
+  {
+   "id": "kappa-pier",
+   "name": "Kappa Pier",
+   "kind": "pier",
+   "county": "Pierce",
+   "lat": 47.2,
+   "lon": -122.5
+  },
+  {
+   "id": "lambda-pier",
+   "name": "Lambda Pier",
+   "kind": "pier",
+   "county": "Pierce",
+   "lat": 47.1,
+   "lon": -122.5
+  }
+ ],
+ "rows": [
+  {
+   "site": "ALPHA  ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 2,
+   "anglers": 5,
+   "species": {
+    "Coho": 3,
+    "Chinook": 0
+   }
+  },
+  {
+   "site": "ALPHA  ramp",
+   "date": "2026-10-02",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 2,
+   "species": {
+    "Coho": 1,
+    "Chinook": 0
+   }
+  },
+  {
+   "site": "alpha-ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 4,
+   "anglers": 9,
+   "species": {
+    "Coho": 6,
+    "Chinook": 1
+   }
+  },
+  {
+   "site": "alpha-ramp",
+   "date": "2026-10-02",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 3,
+   "anglers": 7,
+   "species": {
+    "Coho": 2,
+    "Chinook": 0
+   }
+  },
+  {
+   "site": "Kingston Public Ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 2,
+   "anglers": 4,
+   "species": {
+    "Coho": 1
+   }
+  },
+  {
+   "site": "Silver Lake",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 1,
+   "species": {
+    "Coho": 0
+   }
+  },
+  {
+   "site": "Beta Dock",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 1,
+   "species": {
+    "Coho": 0
+   },
+   "lat": 47.4,
+   "lon": -123.0
+  },
+  {
+   "site": "Gamma Dock",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 2,
+   "anglers": 3,
+   "species": {
+    "Coho": 1
+   },
+   "lat": 47.4025,
+   "lon": -123.0
+  },
+  {
+   "site": "Delta Ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 2,
+   "species": {
+    "Coho": 1
+   }
+  },
+  {
+   "site": "Delta Ramp",
+   "date": "2026-10-02",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 2,
+   "species": {
+    "Coho": 1
+   }
+  },
+  {
+   "site": "DELTA ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 5,
+   "anglers": 6,
+   "species": {
+    "Coho": 2
+   }
+  },
+  {
+   "site": "Nulls Ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 2,
+   "anglers": null,
+   "species": {
+    "Coho": 0,
+    "Chinook": null
+   }
+  },
+  {
+   "site": "Nulls Ramp",
+   "date": "2026-10-02",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 3,
+   "anglers": 4,
+   "species": {
+    "Coho": 0,
+    "Chinook": 2
+   }
+  },
+  {
+   "site": "Zeta Public Ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 2,
+   "anglers": 5,
+   "species": {
+    "Coho": 3
+   }
+  },
+  {
+   "site": "Zeta Ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 9,
+   "anglers": 9,
+   "species": {
+    "Coho": 9
+   }
+  },
+  {
+   "site": "Eta Public Ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 2,
+   "species": {
+    "Coho": 1
+   }
+  },
+  {
+   "site": "Theta Public Ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 1,
+   "species": {
+    "Coho": 0
+   },
+   "lat": 47.9,
+   "lon": -123.0
+  },
+  {
+   "site": "Kappa Pier",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 2,
+   "species": {
+    "Coho": 1
+   }
+  },
+  {
+   "site": "Kappa Pier",
+   "date": "2026-10-02",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 2,
+   "anglers": 3,
+   "species": {
+    "Coho": 2
+   }
+  },
+  {
+   "site": "Kappa Public Ramp",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 4,
+   "anglers": 5,
+   "species": {
+    "Coho": 3
+   }
+  },
+  {
+   "site": "Kappa Public Ramp",
+   "date": "2026-10-02",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 1,
+   "species": {
+    "Coho": 0
+   }
+  },
+  {
+   "site": "Lambda Pier",
+   "date": "2026-10-01",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 2,
+   "species": {
+    "Coho": 1
+   }
+  },
+  {
+   "site": "Lambda Pier",
+   "date": "2026-10-02",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 1,
+   "anglers": 2,
+   "species": {
+    "Coho": 1
+   }
+  },
+  {
+   "site": "Lambda Public Ramp",
+   "date": "2026-10-03",
+   "catch_area": "Area 10, Seattle-Bremerton area",
+   "interviews": 3,
+   "anglers": 4,
+   "species": {
+    "Coho": 2
+   }
+  }
+ ],
+ "crosswalk": [
+  {
+   "wdfw_ramp_name": "Zeta Public Ramp",
+   "site_id": "zeta-pier",
+   "confidence": "high",
+   "evidence": [
+    "https://example.invalid/a says the pier and ramp are one facility",
+    "https://example.invalid/b puts the ramp 40 m from the pier"
+   ],
+   "note": "fixture"
+  },
+  {
+   "wdfw_ramp_name": "Eta Public Ramp",
+   "site_id": "eta-pier",
+   "confidence": "medium",
+   "evidence": [
+    "https://example.invalid/a says the pier and ramp are one facility"
+   ],
+   "note": "fixture"
+  },
+  {
+   "wdfw_ramp_name": "Theta Public Ramp",
+   "site_id": "theta-pier",
+   "confidence": "high",
+   "evidence": [
+    "https://example.invalid/a says the pier and ramp are one facility",
+    "https://example.invalid/b puts the ramp 40 m from the pier"
+   ],
+   "note": "fixture: the source coordinates are 11 km from the site"
+  },
+  {
+   "wdfw_ramp_name": "Kappa Public Ramp",
+   "site_id": "kappa-pier",
+   "confidence": "high",
+   "evidence": [
+    "https://example.invalid/a says the pier and ramp are one facility",
+    "https://example.invalid/b puts the ramp 40 m from the pier"
+   ],
+   "note": "fixture"
+  },
+  {
+   "wdfw_ramp_name": "Lambda Public Ramp",
+   "site_id": "lambda-pier",
+   "confidence": "high",
+   "evidence": [
+    "https://example.invalid/a says the pier and ramp are one facility",
+    "https://example.invalid/b puts the ramp 40 m from the pier"
+   ],
+   "note": "fixture"
+  }
+ ]
+}

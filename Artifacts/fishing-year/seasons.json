@@ -1,0 +1,1694 @@
+{
+ "updated": "2026-10-18",
+ "about": "Single source for the Washington Fishing Year artifact. Dated seasons and rules are artifact-only and are never read by the app (the app shows month ratings, not authoritative dates). A stop with site_id takes its coordinates from site/data/sites.json; a stop with site_id null keeps its own lat/lon because WDFW's access layer does not list it. Build: scripts/build_fishing_year.py.",
+ "seasons": [
+  {
+   "id": "skagit-coho",
+   "name": "Skagit coho",
+   "cat": "salmon",
+   "start": "2026-10-01",
+   "end": "2026-10-31",
+   "flavor": 3,
+   "where": "Skagit River, mouth to Marblemount",
+   "note": "WDFW’s current order, effective Oct 18, allows 2 salmon a day from the mouth to the Marblemount Bridge, coho only, with no bait and single barbless hooks. It runs through Oct 31 unless WDFW extends it. In 2025 it ran to Nov 30 and closed Nov 19 when the catch guideline was reached, so go early. The Gilligan Creek to Baker River stretch is closed Oct 19 to 21 for a tribal fishery.",
+   "source": {
+    "label": "WDFW rule WSR 26-21-045",
+    "url": "https://wdfw.wa.gov/sites/default/files/about/regulations/filings/2026/wsr-26-21-045.pdf",
+    "checked": "2026-10-18"
+   }
+  },
+  {
+   "id": "chum",
+   "name": "Chum",
+   "cat": "salmon",
+   "start": "2026-10-16",
+   "end": "2026-11-30",
+   "flavor": 5,
+   "where": "Hood Canal south of Ayock Point; south Sound rivers not checked",
+   "note": "Mildest flavor, best smoked or cured. In the 2026 pamphlet chum can be kept in Hood Canal south of Ayock Point from Oct 16 to Nov 30, four salmon a day with Chinook released (coho too in November). Marine Area 13 requires chum to be released. Quality drops as the fish darken.",
+   "source": [
+    {
+     "label": "WDFW 2026-27 pamphlet, Marine Area 12",
+     "url": "https://www.eregulations.com/washington/fishing/marine-area-12",
+     "checked": "2026-10-18"
+    },
+    {
+     "label": "WDFW 2026-27 pamphlet, Marine Area 13",
+     "url": "https://www.eregulations.com/washington/fishing/marine-area-13",
+     "checked": "2026-10-18"
+    }
+   ]
+  },
+  {
+   "id": "steelhead",
+   "name": "Winter steelhead",
+   "cat": "fish",
+   "start": "2026-12-01",
+   "end": "2027-03-31",
+   "where": "Olympic Peninsula rivers, some Puget Sound rivers",
+   "note": "Most major areas were open Dec 1 to Mar 31 in 2025-26, but the Humptulips closed Feb 2 and the Chehalis Feb 16. Release wild fish and keep up to two hatchery steelhead a day.",
+   "source": {
+    "label": "WDFW 2025-26 coastal steelhead rules (last season)",
+    "url": "https://wdfw.wa.gov/newsroom/news-release/wdfw-announces-2025-26-coastal-steelhead-regulations",
+    "checked": "2026-10-18"
+   }
+  },
+  {
+   "id": "perch",
+   "name": "Yellow perch",
+   "cat": "fish",
+   "start": "2027-06-01",
+   "end": "2027-08-31",
+   "where": "Lake Washington, from shore",
+   "note": "Open year-round. WDFW says fishing is best in summer after the perch spawn in April and May, and the catch drops in the fall. Very good fried.",
+   "source": {
+    "label": "WDFW Lake Washington page",
+    "url": "https://wdfw.wa.gov/fishing/locations/lowland-lakes/lake-washington",
+    "checked": "2026-10-18"
+   }
+  },
+  {
+   "id": "spring-chinook",
+   "name": "Spring Chinook",
+   "cat": "salmon",
+   "start": "2027-03-01",
+   "end": "2027-05-02",
+   "flavor": 1,
+   "where": "Columbia, Cowlitz and Lewis rivers, 2.5 to 3 hours south",
+   "note": "The best-tasting salmon. In 2026 the Columbia ran Mar 1 to Apr 8 below Beacon Rock and Apr 1 to 26 plus May 2 above it. WDFW expected spring Chinook fishing on the Cowlitz, Kalama and Lewis rivers but gave no dates. The 2027 dates are an estimate, so check the Columbia River rules.",
+   "source": {
+    "label": "WDFW 2026 Columbia spring Chinook seasons",
+    "url": "https://wdfw.wa.gov/newsroom/news-release/2026-columbia-river-spring-chinook-seasons-announced",
+    "checked": "2026-10-18"
+   }
+  },
+  {
+   "id": "lingcod",
+   "name": "Lingcod",
+   "cat": "fish",
+   "start": "2027-03-13",
+   "end": "2027-10-16",
+   "where": "Westport charter",
+   "note": "Firm white flesh and the best non-salmon eating on this list. Off Westport (Marine Area 2) the 2026 season ran Mar 14 to Oct 17 with two a day, and WDFW sets it as the second Saturday in March to the third Saturday in October. Puget Sound has a shorter window.",
+   "source": {
+    "label": "WDFW South Coast bottomfish seasons",
+    "url": "https://wdfw.wa.gov/fishing/regulations/halibut/south-coast",
+    "checked": "2026-10-18"
+   }
+  },
+  {
+   "id": "rockfish",
+   "name": "Black rockfish",
+   "cat": "fish",
+   "start": "2027-03-13",
+   "end": "2027-10-16",
+   "where": "Westport charter",
+   "note": "Pair it with the lingcod trip. Off Westport the 2026 season ran Mar 14 to Oct 17 with a daily limit of seven, and no more than five canary and no yelloweye. Copper, quillback and vermilion rockfish cannot be kept in May, June and July.",
+   "source": {
+    "label": "WDFW South Coast bottomfish seasons",
+    "url": "https://wdfw.wa.gov/fishing/regulations/halibut/south-coast",
+    "checked": "2026-10-18"
+   }
+  },
+  {
+   "id": "walleye",
+   "name": "Walleye",
+   "cat": "fish",
+   "start": "2027-05-01",
+   "end": "2027-10-31",
+   "where": "Columbia River and eastern Washington",
+   "note": "WDFW says walleye fishing peaks before and after the April spawn, is excellent in summer with a lull in the heat, and improves in fall. One of the best-tasting freshwater fish. Plan a weekend trip.",
+   "source": {
+    "label": "WDFW walleye page",
+    "url": "https://wdfw.wa.gov/species-habitats/species/sander-vitreus",
+    "checked": "2026-10-18"
+   }
+  },
+  {
+   "id": "trout",
+   "name": "Stocked trout",
+   "cat": "fish",
+   "start": "2027-04-24",
+   "end": "2027-06-30",
+   "where": "Lowland lakes near Seattle",
+   "note": "Easy from shore. Lowland lakes opened April 25 in 2026, and the 2027 date is estimated as the fourth Saturday in April. Check WDFW stocking reports for which lakes got fish.",
+   "source": {
+    "label": "WDFW lowland lakes opener, April 14, 2026",
+    "url": "https://wdfw.wa.gov/newsroom/news-release/wdfw-opens-lowland-lakes-april-25-trout-derby-returns-900-prizes",
+    "checked": "2026-10-18"
+   }
+  },
+  {
+   "id": "kokanee",
+   "name": "Kokanee",
+   "cat": "fish",
+   "start": "2027-04-01",
+   "end": "2027-10-31",
+   "where": "Lake Whatcom, Lake Chelan, Lake Roosevelt",
+   "note": "Landlocked sockeye with a sweet flavor, mostly trolled. WDFW says the kokanee fishery typically runs April to October, and Lake Chelan is usually best from mid-April through June. Not checked: restrictions on Lake Sammamish and Lake Washington.",
+   "source": {
+    "label": "WDFW kokanee page",
+    "url": "https://wdfw.wa.gov/species-habitats/species/oncorhynchus-nerka-kokanee",
+    "checked": "2026-10-18"
+   }
+  },
+  {
+   "id": "crab",
+   "name": "Dungeness crab",
+   "cat": "crab",
+   "start": "2027-07-01",
+   "end": "2027-09-07",
+   "where": "Everett, Edmonds and the San Juans",
+   "note": "In 2026 the Deception Pass, Everett and Admiralty Inlet areas ran July 2 to Sept 7, Thursday to Monday. The south San Juans ran July 16 to Sept 28, Thursday to Monday. Seattle was Sunday and Monday only, July 5 to Sept 7, and Tacoma ended Aug 17. You need a license, a Puget Sound Crab Endorsement and a catch record card. Limit is five males, 6¼ inches.",
+   "source": {
+    "label": "WDFW crab news release, June 16, 2026",
+    "url": "https://wdfw.wa.gov/newsroom/news-release/recreational-crabbing-open-july-2-many-puget-sound-marine-areas",
+    "checked": "2026-10-18"
+   }
+  },
+  {
+   "id": "sockeye",
+   "name": "Baker Lake sockeye",
+   "cat": "salmon",
+   "start": "2027-07-10",
+   "end": "2027-08-31",
+   "flavor": 2,
+   "where": "Baker Lake",
+   "note": "In 2026 Baker Lake opened July 11 and ran to Aug 31, four sockeye a day, and opened whatever the fish count. The 2027 dates are an estimate, so verify them and the daily limit.",
+   "source": {
+    "label": "WDFW Baker River sockeye season",
+    "url": "https://wdfw.wa.gov/fishing/reports/counts/baker-river",
+    "checked": "2026-10-18"
+   }
+  },
+  {
+   "id": "pink",
+   "name": "Pink salmon",
+   "cat": "salmon",
+   "start": "2027-08-01",
+   "end": "2027-09-15",
+   "flavor": 4,
+   "where": "Edmonds and Mukilteo beaches, Green and Nisqually rivers",
+   "note": "Odd years only. Mild flavor, so eat it fresh.",
+   "pending": "WDFW sets the 2027 odd-year pink seasons in April 2027, so there is nothing to check yet. The dates here are an estimate from the 2025 season."
+  },
+  {
+   "id": "fall-chinook",
+   "name": "Fall Chinook",
+   "cat": "salmon",
+   "start": "2027-08-01",
+   "end": "2027-10-31",
+   "flavor": 1,
+   "where": "Lewis River; Cowlitz and Olympic Peninsula rivers see note",
+   "note": "In the 2026 pamphlet the Lewis River allowed hatchery Chinook from Aug 1, and from Oct 1 to Dec 31 one Chinook a day within an adult limit of three. The Cowlitz required release of all salmon except hatchery coho from Aug 1 to Dec 31. Olympic Peninsula rivers were not checked. Most Seattle-area rivers restrict Chinook, so plan to drive south or west.",
+   "source": [
+    {
+     "label": "WDFW 2026-27 pamphlet, Lewis River",
+     "url": "https://www.eregulations.com/washington/fishing/columbia-basin-rivers-special-rules-l-n",
+     "checked": "2026-10-18"
+    },
+    {
+     "label": "WDFW 2026-27 pamphlet, Cowlitz River",
+     "url": "https://www.eregulations.com/washington/fishing/columbia-basin-rivers-special-rules-a-c",
+     "checked": "2026-10-18"
+    }
+   ]
+  },
+  {
+   "id": "fall-coho",
+   "name": "Fall coho",
+   "cat": "salmon",
+   "start": "2027-08-16",
+   "end": "2027-10-31",
+   "flavor": 3,
+   "where": "Skagit River; other Puget Sound rivers not checked",
+   "note": "In the 2026 pamphlet the Skagit coho season ran Aug 16 below Gilligan Creek and Sep 16 above it, to Oct 31, with a limit of 4 and then 2 in October. WDFW extended it to Nov 30 in 2025, and can close it on short notice. Check emergency rules before each trip.",
+   "source": {
+    "label": "WDFW 2026-27 pamphlet, Skagit River",
+    "url": "https://www.eregulations.com/washington/fishing/puget-sound-coastal-rivers-special-rules-s-z",
+    "checked": "2026-10-18"
+   }
+  }
+ ],
+ "milestones": [
+  {
+   "date": "2026-11-01",
+   "label": "Check Skykomish and Snoqualmie",
+   "note": "WDFW closed both for summer and fall 2026 to protect wild Chinook. The Skykomish coho opener was moved to Nov 1 and is not confirmed. WDFW also closed the Snohomish River below them to all fishing from Oct 3 to Nov 1 over coho concerns. See whether any of them reopens."
+  },
+  {
+   "date": "2027-03-25",
+   "label": "Renew fishing license",
+   "note": "The new license year starts Apr 1. Add the Puget Sound Crab Endorsement if you plan to crab."
+  }
+ ],
+ "migration": [
+  {
+   "name": "Spring Chinook",
+   "flavor": 1,
+   "run": [
+    [
+     2,
+     6
+    ]
+   ],
+   "spawn": [
+    [
+     7,
+     9
+    ]
+   ]
+  },
+  {
+   "name": "Summer Chinook",
+   "flavor": 1,
+   "run": [
+    [
+     5,
+     8
+    ]
+   ],
+   "spawn": [
+    [
+     8,
+     10
+    ]
+   ]
+  },
+  {
+   "name": "Fall Chinook",
+   "flavor": 1,
+   "run": [
+    [
+     8,
+     11
+    ]
+   ],
+   "spawn": [
+    [
+     9,
+     12
+    ]
+   ]
+  },
+  {
+   "name": "Coho",
+   "flavor": 3,
+   "run": [
+    [
+     8,
+     11
+    ]
+   ],
+   "spawn": [
+    [
+     10,
+     12
+    ],
+    [
+     0,
+     1
+    ]
+   ]
+  },
+  {
+   "name": "Chum",
+   "flavor": 5,
+   "run": [
+    [
+     9,
+     12
+    ]
+   ],
+   "spawn": [
+    [
+     10,
+     12
+    ],
+    [
+     0,
+     1
+    ]
+   ]
+  },
+  {
+   "name": "Sockeye (Baker)",
+   "flavor": 2,
+   "run": [
+    [
+     5,
+     8
+    ]
+   ],
+   "spawn": [
+    [
+     8,
+     10
+    ]
+   ]
+  },
+  {
+   "name": "Pink (odd years)",
+   "flavor": 4,
+   "run": [
+    [
+     7,
+     9
+    ]
+   ],
+   "spawn": [
+    [
+     8,
+     10
+    ]
+   ]
+  }
+ ],
+ "rivers": [
+  {
+   "id": "green",
+   "name": "Green",
+   "drive": "20–35 min",
+   "mouth": "Elliott Bay",
+   "end": "Upper Green",
+   "blurb": "From Elliott Bay up through Kent and Auburn. The rules change by reach, so read the table below before you pick a spot.",
+   "tribs": [],
+   "rules": [
+    {
+     "reach": "Harbor Island line to Tukwila Int’l Blvd",
+     "dates": "Aug 20 – Dec 31",
+     "take": "Daily limit 6, up to 3 adult coho and chum combined. Chinook released."
+    },
+    {
+     "reach": "Tukwila Int’l Blvd to S 212th St bridge",
+     "dates": "Aug 20, until further notice",
+     "take": "Daily limit 6, up to 3 adult coho and chum combined. Chinook released.",
+     "source": {
+      "label": "WDFW rule WSR 26-17-082",
+      "url": "https://wdfw.wa.gov/sites/default/files/about/regulations/filings/2026/wsr-26-17-082.pdf",
+      "checked": "2026-10-18"
+     }
+    },
+    {
+     "reach": "S 212th St to Hwy 18 eastbound bridge",
+     "dates": "Sep 16 – Dec 31",
+     "take": "Up to 3 adult coho and chum combined. Chinook released."
+    },
+    {
+     "reach": "Hwy 18 bridge to Auburn–Black Diamond Rd",
+     "dates": "Closed",
+     "take": "Closed to salmon fishing."
+    },
+    {
+     "reach": "Auburn–Black Diamond Rd to Tacoma boundary marker",
+     "dates": "Nov 1 – Dec 31",
+     "take": "Game fish closed Sep 16 to Oct 31. Then coho and chum. Closed within 150 ft of the Keta Creek mouth.",
+     "source": {
+      "label": "WDFW rule WSR 26-17-082",
+      "url": "https://wdfw.wa.gov/sites/default/files/about/regulations/filings/2026/wsr-26-17-082.pdf",
+      "checked": "2026-10-18"
+     }
+    }
+   ],
+   "rulesNote": "Night closure and an anti-snagging rule applied on the Green last year.",
+   "line": [
+    [
+     -122.355,
+     47.585
+    ],
+    [
+     -122.34,
+     47.565
+    ],
+    [
+     -122.315,
+     47.54
+    ],
+    [
+     -122.295,
+     47.515
+    ],
+    [
+     -122.283,
+     47.49
+    ],
+    [
+     -122.2511,
+     47.4704
+    ],
+    [
+     -122.251,
+     47.4561
+    ],
+    [
+     -122.2554,
+     47.4394
+    ],
+    [
+     -122.2634,
+     47.4212
+    ],
+    [
+     -122.2683,
+     47.4041
+    ],
+    [
+     -122.2647,
+     47.3892
+    ],
+    [
+     -122.2531,
+     47.3772
+    ],
+    [
+     -122.237,
+     47.3679
+    ],
+    [
+     -122.2221,
+     47.3582
+    ],
+    [
+     -122.2123,
+     47.3456
+    ],
+    [
+     -122.2069,
+     47.3316
+    ],
+    [
+     -122.2007,
+     47.3187
+    ],
+    [
+     -122.1891,
+     47.3072
+    ],
+    [
+     -122.1729,
+     47.2968
+    ],
+    [
+     -122.1538,
+     47.2881
+    ],
+    [
+     -122.1294,
+     47.2824
+    ],
+    [
+     -122.0974,
+     47.2814
+    ],
+    [
+     -122.0603,
+     47.2846
+    ]
+   ],
+   "stops": [
+    {
+     "id": 1,
+     "name": "Three Friends Fishing Hole",
+     "short": "Three Friends",
+     "lat": 47.4222,
+     "lon": -122.2643,
+     "stage": "lower",
+     "town": "Kent",
+     "note": "Bank access in Kent, close to the S 212th St line where the rules change. Check the reach before you cast.",
+     "pass": false,
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Three Friends Fishing Hole Park",
+      "meters": 17,
+      "checked": "2026-10-18"
+     }
+    },
+    {
+     "id": 2,
+     "name": "Green River Boat Ramp",
+     "short": "Kent boat ramp",
+     "lat": 47.3986,
+     "lon": -122.2758,
+     "stage": "lower",
+     "town": "Kent",
+     "note": "A concrete hand-launch ramp, good for a small raft or kayak.",
+     "pass": false,
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": false,
+      "note": "Searched for a Green River boat ramp in Kent and found no page naming one; the OpenStreetMap lookup failed on 2026-10-18 and was not retried.",
+      "checked": "2026-10-18"
+     }
+    },
+    {
+     "id": 3,
+     "name": "Isaac Evans Park",
+     "short": "Isaac Evans Park",
+     "lat": 47.3328,
+     "lon": -122.2116,
+     "stage": "mid",
+     "town": "Auburn",
+     "note": "City park on the river. One reviewer saw pinks caught here. On the map it is downstream of Hwy 18, but confirm the reach in the WDFW table.",
+     "pass": false,
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Isaac Evans Park",
+      "meters": 153,
+      "checked": "2026-10-18"
+     }
+    }
+   ],
+   "line_mouth_points": 5,
+   "line_mouth_note": "the tidal Duwamish from Elliott Bay to Tukwila; rivers.json's Green River starts at Tukwila"
+  },
+  {
+   "id": "snoqualmie",
+   "name": "Snoqualmie",
+   "drive": "30–40 min",
+   "status": "Closed 2026",
+   "mouth": "Snohomish River",
+   "end": "To Snoqualmie Falls",
+   "blurb": "Runs north from the Falls through Fall City and Carnation to join the Skykomish. Closed to salmon fishing below the Falls this fall, so the stops below are for scouting or the other seasons.",
+   "tribs": [
+    {
+     "name": "Tolt R.",
+     "pts": [
+      [
+       -121.9269,
+       47.6404
+      ],
+      [
+       -121.919,
+       47.638
+      ],
+      [
+       -121.911,
+       47.6375
+      ],
+      [
+       -121.8996,
+       47.6417
+      ],
+      [
+       -121.8905,
+       47.6423
+      ],
+      [
+       -121.8814,
+       47.6443
+      ],
+      [
+       -121.8731,
+       47.6491
+      ],
+      [
+       -121.8752,
+       47.6568
+      ],
+      [
+       -121.8664,
+       47.6623
+      ],
+      [
+       -121.8654,
+       47.668
+      ],
+      [
+       -121.856,
+       47.671
+      ],
+      [
+       -121.8533,
+       47.6777
+      ],
+      [
+       -121.8454,
+       47.6809
+      ],
+      [
+       -121.8378,
+       47.6859
+      ],
+      [
+       -121.8315,
+       47.6942
+      ]
+     ],
+     "label": [
+      -4,
+      16
+     ]
+    },
+    {
+     "name": "Raging R.",
+     "pts": [
+      [
+       -121.8841,
+       47.5677
+      ],
+      [
+       -121.9,
+       47.5583
+      ],
+      [
+       -121.9017,
+       47.5474
+      ],
+      [
+       -121.9181,
+       47.5303
+      ],
+      [
+       -121.9273,
+       47.5209
+      ],
+      [
+       -121.9191,
+       47.5119
+      ]
+     ],
+     "label": [
+      8,
+      4
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "reach": "Mouth to Snoqualmie Falls",
+     "dates": "Closed in 2026",
+     "take": "WDFW closed it for summer and fall 2026 to protect wild Chinook and coho, along with the Tolt and Raging rivers. It reopens only if WDFW says so in season."
+    }
+   ],
+   "rulesNote": "Gamefish was moved to Dec 1 this year, from Nov 1 last year. The Snohomish River from its mouth to where the Skykomish and Snoqualmie meet is closed to all fishing from Oct 3 to Nov 1.",
+   "line": [
+    [
+     -122.0462,
+     47.83
+    ],
+    [
+     -122.0322,
+     47.8213
+    ],
+    [
+     -122.0161,
+     47.8118
+    ],
+    [
+     -121.9997,
+     47.8014
+    ],
+    [
+     -121.9852,
+     47.7903
+    ],
+    [
+     -121.977,
+     47.7767
+    ],
+    [
+     -121.9798,
+     47.7602
+    ],
+    [
+     -121.9901,
+     47.7429
+    ],
+    [
+     -121.9979,
+     47.7272
+    ],
+    [
+     -121.9972,
+     47.7135
+    ],
+    [
+     -121.9879,
+     47.7018
+    ],
+    [
+     -121.9714,
+     47.6924
+    ],
+    [
+     -121.9516,
+     47.6839
+    ],
+    [
+     -121.9357,
+     47.6732
+    ],
+    [
+     -121.9284,
+     47.6592
+    ],
+    [
+     -121.928,
+     47.6436
+    ],
+    [
+     -121.9287,
+     47.6293
+    ],
+    [
+     -121.9265,
+     47.6168
+    ],
+    [
+     -121.9228,
+     47.605
+    ],
+    [
+     -121.9168,
+     47.5933
+    ],
+    [
+     -121.9045,
+     47.5811
+    ],
+    [
+     -121.8872,
+     47.5686
+    ],
+    [
+     -121.8698,
+     47.558
+    ],
+    [
+     -121.8528,
+     47.5494
+    ],
+    [
+     -121.837,
+     47.5404
+    ],
+    [
+     -121.8238,
+     47.5307
+    ]
+   ],
+   "stops": [
+    {
+     "id": 1,
+     "name": "McCormick Park",
+     "short": "McCormick Park",
+     "lat": 47.7347013,
+     "lon": -121.99293,
+     "stage": "lower",
+     "town": "Duvall",
+     "note": "River park in Duvall, the lowest stop on this stretch.",
+     "pass": false,
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "McCormick Park",
+      "meters": 0,
+      "checked": "2026-10-18",
+      "note": "Coordinates moved 616 m to the park in Duvall; the old point was 147 m from the river, this one is 7 m"
+     }
+    },
+    {
+     "id": 2,
+     "name": "Chinook Bend Natural Area",
+     "short": "Chinook Bend",
+     "lat": 47.67,
+     "lon": -121.9232,
+     "stage": "mid",
+     "town": "North of Carnation",
+     "note": "Natural area on the river north of Carnation.",
+     "pass": false,
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Chinook Bend Natural Area",
+      "meters": 46,
+      "checked": "2026-10-18"
+     }
+    },
+    {
+     "id": 3,
+     "name": "Snoqualmie River Boat Launch",
+     "short": "Carnation launch",
+     "lat": 47.6386,
+     "lon": -121.9263,
+     "stage": "mid",
+     "town": "Carnation",
+     "note": "Boat launch with free parking, close to where the Tolt joins.",
+     "pass": false,
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "unnamed slipway, with the Tolt River boat launch trail 107 m away",
+      "meters": 95,
+      "checked": "2026-10-18",
+      "note": "The Mountaineers and a paddling guide also place a free launch at the Tolt confluence in Carnation, river mile 25."
+     }
+    },
+    {
+     "id": 4,
+     "name": "Richter, WDFW access",
+     "short": "Richter access",
+     "stage": "mid",
+     "town": "Carnation–Fall City",
+     "note": "WDFW site with a concrete ramp. Check the signs for parking pass rules.",
+     "pass": false,
+     "site_id": "richter"
+    },
+    {
+     "id": 5,
+     "name": "Zurfleuh Boat Launch (WDFW “Raging River”)",
+     "short": "Zurfleuh launch",
+     "stage": "upper",
+     "town": "Fall City",
+     "note": "WDFW lists this as “Raging River”. It sits at the Raging River mouth.",
+     "pass": false,
+     "site_id": "raging-river"
+    },
+    {
+     "id": 6,
+     "name": "Plum #1 River Access Point",
+     "short": "Plum access",
+     "lat": 47.5512,
+     "lon": -121.8451,
+     "stage": "upper",
+     "town": "Fall City area",
+     "note": "Needs a Discover Pass.",
+     "pass": true,
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Plum #1",
+      "meters": 22,
+      "checked": "2026-10-18"
+     }
+    }
+   ],
+   "sources": [
+    {
+     "label": "WDFW rule WSR 26-20-063",
+     "url": "https://wdfw.wa.gov/sites/default/files/about/regulations/filings/2026/wsr-26-20-063.pdf",
+     "checked": "2026-10-18"
+    }
+   ]
+  },
+  {
+   "id": "skykomish",
+   "name": "Skykomish",
+   "drive": "40–55 min",
+   "status": "Closed 2026",
+   "mouth": "Snohomish River",
+   "end": "Toward Index",
+   "blurb": "East from Monroe to Gold Bar. Closed this fall to protect wild Chinook. The coho opener was pushed back to Nov 1 and is not confirmed.",
+   "tribs": [],
+   "rules": [
+    {
+     "reach": "Mouth to Wallace River, and Wallace River to the N/S Fork confluence",
+     "dates": "Closed in 2026",
+     "take": "WDFW closed the mainstem for summer and fall 2026. The coho opener moved to Nov 1, and I could not confirm it will happen."
+    },
+    {
+     "reach": "Wallace River",
+     "dates": "Oct 17 – Nov 1 (proposed)",
+     "take": "Up to 2 coho, Chinook and chum released. WDFW’s June notice also lists the Wallace as closed, so confirm before you go."
+    }
+   ],
+   "rulesNote": "The planned Reiter Ponds hatchery steelhead fishery is also closed this year. The Snohomish River from its mouth to where the Skykomish and Snoqualmie meet is closed to all fishing from Oct 3 to Nov 1.",
+   "line": [
+    [
+     -122.0462,
+     47.83
+    ],
+    [
+     -122.0314,
+     47.8275
+    ],
+    [
+     -122.0142,
+     47.8286
+    ],
+    [
+     -121.9945,
+     47.8347
+    ],
+    [
+     -121.9742,
+     47.8437
+    ],
+    [
+     -121.9552,
+     47.8503
+    ],
+    [
+     -121.9367,
+     47.8515
+    ],
+    [
+     -121.916,
+     47.8501
+    ],
+    [
+     -121.8939,
+     47.8489
+    ],
+    [
+     -121.8718,
+     47.8476
+    ],
+    [
+     -121.8507,
+     47.8475
+    ],
+    [
+     -121.8323,
+     47.851
+    ],
+    [
+     -121.815,
+     47.856
+    ],
+    [
+     -121.7956,
+     47.859
+    ],
+    [
+     -121.7743,
+     47.8595
+    ],
+    [
+     -121.7527,
+     47.8584
+    ],
+    [
+     -121.7317,
+     47.8561
+    ],
+    [
+     -121.7111,
+     47.8514
+    ],
+    [
+     -121.6902,
+     47.8446
+    ],
+    [
+     -121.6691,
+     47.8391
+    ],
+    [
+     -121.6489,
+     47.8368
+    ],
+    [
+     -121.63,
+     47.8367
+    ],
+    [
+     -121.6121,
+     47.8369
+    ]
+   ],
+   "stops": [
+    {
+     "id": 1,
+     "name": "Lewis Street boat ramp",
+     "short": "Lewis St ramp",
+     "stage": "lower",
+     "town": "Monroe",
+     "note": "Public boat ramp. It is busy on Saturday mornings in fishing season.",
+     "pass": false,
+     "site_id": "lewis-street"
+    },
+    {
+     "id": 2,
+     "name": "Al Borlin Park",
+     "short": "Al Borlin Park",
+     "lat": 47.8523,
+     "lon": -121.9637,
+     "stage": "lower",
+     "town": "Monroe",
+     "note": "Park with river access just upstream of the Lewis Street ramp.",
+     "pass": false,
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Al Borlin Park",
+      "meters": 121,
+      "checked": "2026-10-18"
+     }
+    },
+    {
+     "id": 3,
+     "name": "Ben Howard Hole, WDFW",
+     "short": "Ben Howard",
+     "stage": "mid",
+     "town": "Monroe–Sultan",
+     "note": "WDFW site with a concrete ramp.",
+     "pass": false,
+     "site_id": "ben-howard-hole"
+    },
+    {
+     "id": 4,
+     "name": "Jonker, WDFW access",
+     "short": "Jonker access",
+     "stage": "mid",
+     "town": "Sultan",
+     "note": "WDFW bank access at Sultan.",
+     "pass": false,
+     "site_id": "jonker"
+    },
+    {
+     "id": 5,
+     "name": "Big Eddy",
+     "short": "Big Eddy",
+     "stage": "upper",
+     "town": "Gold Bar",
+     "note": "Discover Pass, or $10 for parking.",
+     "pass": true,
+     "site_id": "big-eddy"
+    }
+   ],
+   "sources": [
+    {
+     "label": "WDFW rule WSR 26-20-063",
+     "url": "https://wdfw.wa.gov/sites/default/files/about/regulations/filings/2026/wsr-26-20-063.pdf",
+     "checked": "2026-10-18"
+    }
+   ]
+  },
+  {
+   "id": "puyallup",
+   "name": "Puyallup",
+   "drive": "40–50 min",
+   "status": "Ends Oct 31",
+   "mouth": "Commencement Bay",
+   "end": "Toward Orting",
+   "blurb": "From Commencement Bay up the valley. The salmon season ends Oct 31, so this is the last two weeks.",
+   "tribs": [
+    {
+     "name": "White R.",
+     "pts": [
+      [
+       -122.2462,
+       47.2033
+      ],
+      [
+       -122.242,
+       47.2558
+      ]
+     ],
+     "label": [
+      8,
+      4
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "reach": "11th St Bridge to East Main St Bridge, and East Main St Bridge to Carbon River",
+     "dates": "Aug 19 – Oct 31",
+     "take": "Closed Tuesdays through Sep 30. Wild Chinook and chum released. WDFW cut the adult salmon limit to 2 this year because there are no pinks in an even year."
+    },
+    {
+     "reach": "Carbon River, mouth to Voight Creek",
+     "dates": "Sep 1 – Oct 31",
+     "take": "Closed Tuesdays through Sep 30. Same release rules."
+    }
+   ],
+   "rulesNote": "Night closure and an anti-snagging rule applied last year.",
+   "line": [
+    [
+     -122.4264,
+     47.2684
+    ],
+    [
+     -122.4095,
+     47.2526
+    ],
+    [
+     -122.3825,
+     47.2352
+    ],
+    [
+     -122.3474,
+     47.2187
+    ],
+    [
+     -122.3158,
+     47.2072
+    ],
+    [
+     -122.2928,
+     47.2007
+    ],
+    [
+     -122.2728,
+     47.1963
+    ],
+    [
+     -122.2518,
+     47.1912
+    ],
+    [
+     -122.2333,
+     47.1821
+    ],
+    [
+     -122.2232,
+     47.1679
+    ],
+    [
+     -122.2242,
+     47.1492
+    ],
+    [
+     -122.2303,
+     47.1295
+    ],
+    [
+     -122.231,
+     47.114
+    ],
+    [
+     -122.2237,
+     47.104
+    ]
+   ],
+   "stops": [
+    {
+     "id": 1,
+     "name": "Two Rivers Point",
+     "short": "Two Rivers Point",
+     "lat": 47.1998,
+     "lon": -122.258,
+     "stage": "lower",
+     "town": "Puyallup–Sumner",
+     "note": "Beach-style access on the river.",
+     "pass": false,
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": false,
+      "note": "Sumner's 2024 parks plan and TrailLink name Two-Rivers Point as the south end of the Sumner Link Trail; its coordinates were not checked.",
+      "checked": "2026-10-18"
+     }
+    },
+    {
+     "id": 2,
+     "name": "Sumner Sportsmen’s, WDFW",
+     "short": "Sumner Sportsmen’s",
+     "stage": "mid",
+     "town": "Sumner area",
+     "note": "WDFW access site.",
+     "pass": false,
+     "site_id": "sumner-sportsmen-s"
+    },
+    {
+     "id": 3,
+     "name": "Weiss, WDFW",
+     "short": "Weiss access",
+     "stage": "upper",
+     "town": "Orting area",
+     "note": "An unimproved WDFW access, so expect a rough bank.",
+     "pass": false,
+     "site_id": "weiss"
+    },
+    {
+     "id": 4,
+     "name": "Foothills Trail, McMillin Bridge trailhead",
+     "short": "McMillin Bridge",
+     "lat": 47.1288,
+     "lon": -122.2358,
+     "stage": "upper",
+     "town": "Orting area",
+     "note": "Not a WDFW site. A levee walk from the trailhead leads down to the river and its sand bars. A reviewer who fished the opening saw about one other person.",
+     "pass": false,
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Foothills Trail - McMillin Trailhead",
+      "meters": 16,
+      "checked": "2026-10-18"
+     }
+    }
+   ]
+  },
+  {
+   "id": "skagit",
+   "name": "Skagit",
+   "drive": "~1 hr",
+   "mouth": "Skagit Bay",
+   "end": "To the Cascades",
+   "blurb": "The Skagit from the bay up into the Cascades. Lower river catches fish first, and the upper river is closest to spawning water.",
+   "angle": 1.5707963267948966,
+   "sy": 10,
+   "sx": 7,
+   "tribs": [
+    {
+     "name": "Sauk R.",
+     "pts": [
+      [
+       -121.6051,
+       48.4816
+      ],
+      [
+       -121.6085,
+       48.471
+      ],
+      [
+       -121.5997,
+       48.457
+      ],
+      [
+       -121.5917,
+       48.4459
+      ],
+      [
+       -121.5759,
+       48.4357
+      ],
+      [
+       -121.5601,
+       48.4152
+      ],
+      [
+       -121.5588,
+       48.4058
+      ]
+     ],
+     "label": [
+      -8,
+      14
+     ]
+    },
+    {
+     "name": "Cascade R.",
+     "pts": [
+      [
+       -121.4305,
+       48.5241
+      ],
+      [
+       -121.4122,
+       48.5267
+      ],
+      [
+       -121.393,
+       48.5281
+      ],
+      [
+       -121.3729,
+       48.5198
+      ]
+     ],
+     "label": [
+      8,
+      4
+     ]
+    },
+    {
+     "name": "Baker R.",
+     "join": [
+      -121.7384,
+      48.5324
+     ],
+     "label": [
+      6,
+      -2
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "reach": "Mouth to Gilligan Creek",
+     "dates": "Oct 18 – Oct 31",
+     "take": "Daily limit 2 salmon, and you may keep coho only. Release all other salmon. No bait, and single-point barbless hooks only."
+    },
+    {
+     "reach": "Gilligan Creek to Baker River",
+     "dates": "Oct 18, then Oct 22 – Oct 31",
+     "take": "Closed to all fishing Oct 19 to 21 to avoid gear conflicts with tribal fisheries. Otherwise the same rules: 2 salmon, coho only, no bait, barbless single-point hooks."
+    },
+    {
+     "reach": "Baker River to Marblemount Bridge",
+     "dates": "Oct 18 – Oct 31",
+     "take": "Daily limit 2 salmon, coho only. No bait, and single-point barbless hooks only."
+    }
+   ],
+   "rulesNote": "These come from WDFW emergency rule WSR 26-21-045. The Cascade River allows 4 coho a day and is open seven days a week. In 2025 WDFW extended the Skagit season to Nov 30, then closed all salmon on Nov 19 when the catch guideline was reached, so it can close early again.",
+   "line": [
+    [
+     -122.43,
+     48.376
+    ],
+    [
+     -122.385,
+     48.396
+    ],
+    [
+     -122.362,
+     48.4115
+    ],
+    [
+     -122.3423,
+     48.4253
+    ],
+    [
+     -122.3191,
+     48.4483
+    ],
+    [
+     -122.2954,
+     48.4658
+    ],
+    [
+     -122.2783,
+     48.4757
+    ],
+    [
+     -122.2627,
+     48.4814
+    ],
+    [
+     -122.2231,
+     48.4862
+    ],
+    [
+     -122.2007,
+     48.4902
+    ],
+    [
+     -122.1809,
+     48.4927
+    ],
+    [
+     -122.1562,
+     48.4941
+    ],
+    [
+     -122.1369,
+     48.4976
+    ],
+    [
+     -122.1179,
+     48.5048
+    ],
+    [
+     -122.0985,
+     48.5121
+    ],
+    [
+     -122.0797,
+     48.5166
+    ],
+    [
+     -122.0576,
+     48.5179
+    ],
+    [
+     -122.047,
+     48.5169
+    ],
+    [
+     -122.0156,
+     48.5166
+    ],
+    [
+     -121.9992,
+     48.5177
+    ],
+    [
+     -121.9752,
+     48.518
+    ],
+    [
+     -121.9583,
+     48.5166
+    ],
+    [
+     -121.9175,
+     48.5144
+    ],
+    [
+     -121.8937,
+     48.5135
+    ],
+    [
+     -121.8841,
+     48.516
+    ],
+    [
+     -121.8548,
+     48.5212
+    ],
+    [
+     -121.8431,
+     48.5272
+    ],
+    [
+     -121.8182,
+     48.5328
+    ],
+    [
+     -121.7925,
+     48.5344
+    ],
+    [
+     -121.7794,
+     48.5312
+    ],
+    [
+     -121.7589,
+     48.5277
+    ],
+    [
+     -121.7384,
+     48.5242
+    ],
+    [
+     -121.7188,
+     48.5178
+    ],
+    [
+     -121.7023,
+     48.5111
+    ],
+    [
+     -121.6817,
+     48.5057
+    ],
+    [
+     -121.6582,
+     48.497
+    ],
+    [
+     -121.6459,
+     48.4869
+    ],
+    [
+     -121.6209,
+     48.482
+    ],
+    [
+     -121.6051,
+     48.4826
+    ],
+    [
+     -121.5783,
+     48.4854
+    ],
+    [
+     -121.5633,
+     48.4891
+    ],
+    [
+     -121.5419,
+     48.4933
+    ],
+    [
+     -121.527,
+     48.4972
+    ],
+    [
+     -121.4965,
+     48.5013
+    ],
+    [
+     -121.4797,
+     48.5077
+    ],
+    [
+     -121.4629,
+     48.5174
+    ],
+    [
+     -121.4366,
+     48.5314
+    ],
+    [
+     -121.4212,
+     48.5499
+    ]
+   ],
+   "stops": [
+    {
+     "id": 1,
+     "name": "Spud House launch, WDFW",
+     "short": "Spud House",
+     "stage": "lower",
+     "town": "Mount Vernon",
+     "note": "WDFW concrete launch on the lower river, below Young’s Bar.",
+     "pass": false,
+     "site_id": "spud-house"
+    },
+    {
+     "id": 2,
+     "name": "Young's Bar River Access",
+     "short": "Young's Bar",
+     "stage": "lower",
+     "town": "Mount Vernon",
+     "note": "Wade out and cast. One reviewer caught salmon here on gold and orange spoons.",
+     "pass": true,
+     "site_id": "young-s-bar"
+    },
+    {
+     "id": 3,
+     "name": "Skagit River Park, Burlington",
+     "short": "Burlington park",
+     "lat": 48.4558814,
+     "lon": -122.3219775,
+     "stage": "lower",
+     "town": "Burlington",
+     "note": "Near the tideline, just upstream of the I-5 bridge. Fresh fish arrive here first.",
+     "pass": false,
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Skagit River Park",
+      "meters": 180,
+      "checked": "2026-10-18"
+     }
+    },
+    {
+     "id": 4,
+     "name": "Sedro-Woolley access, WDFW",
+     "short": "Sedro-Woolley",
+     "stage": "mid",
+     "town": "Sedro-Woolley",
+     "note": "WDFW access with a concrete ramp.",
+     "pass": false,
+     "site_id": "sedro-woolley"
+    },
+    {
+     "id": 5,
+     "name": "Gilligan Creek access, WDFW",
+     "short": "Gilligan Creek",
+     "stage": "mid",
+     "town": "Sedro-Woolley",
+     "note": "WDFW access at a rules boundary. The season reaches change at Gilligan Creek, so check both sides.",
+     "pass": false,
+     "site_id": "gilligan-creek"
+    },
+    {
+     "id": 6,
+     "name": "Lyman Ferry, WDFW access",
+     "short": "Lyman Ferry",
+     "stage": "mid",
+     "town": "Lyman",
+     "note": "Slow water, and you can drive to the water’s edge for bank fishing.",
+     "pass": false,
+     "site_id": "lyman-ferry"
+    },
+    {
+     "id": 7,
+     "name": "Hamilton Boat Launch",
+     "short": "Hamilton launch",
+     "stage": "mid",
+     "town": "Hamilton",
+     "note": "Boat ramp and river access. Reviews of the area are mixed, so look it over in daylight first.",
+     "pass": true,
+     "site_id": "hamilton"
+    },
+    {
+     "id": 8,
+     "name": "Skagit–Baker confluence, Concrete",
+     "short": "Baker confluence",
+     "stage": "upper",
+     "town": "Concrete",
+     "note": "Easy low-bank access at the mouth of the Baker River.",
+     "pass": true,
+     "site_id": "baker-river"
+    },
+    {
+     "id": 9,
+     "name": "Public fishing access, Concrete (WA-20)",
+     "short": "Concrete access",
+     "stage": "upper",
+     "town": "Concrete",
+     "note": "Bank access that reviewers say produces steelhead and salmon. Go on a weekday to avoid crowds.",
+     "pass": false,
+     "site_id": "faber-ferry"
+    },
+    {
+     "id": 10,
+     "name": "Howard Miller Steelhead Park, Rockport",
+     "short": "Howard Miller Park",
+     "lat": 48.4844191,
+     "lon": -121.5983598,
+     "stage": "upper",
+     "town": "Rockport",
+     "note": "County park on the river with a boat ramp and campground.",
+     "pass": false,
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Howard Miller Steelhead Park",
+      "meters": 119,
+      "checked": "2026-10-18"
+     }
+    },
+    {
+     "id": 11,
+     "name": "Marblemount boat launch",
+     "short": "Marblemount launch",
+     "lat": 48.5261688,
+     "lon": -121.4271163,
+     "stage": "upper",
+     "town": "Marblemount",
+     "note": "The upper end, close to spawning water. Check for closed zones before you go.",
+     "pass": false,
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Marblemount Boat Launch",
+      "meters": 121,
+      "checked": "2026-10-18"
+     }
+    }
+   ],
+   "status": "Ends Oct 31",
+   "sources": [
+    {
+     "label": "WDFW rule WSR 26-21-045",
+     "url": "https://wdfw.wa.gov/sites/default/files/about/regulations/filings/2026/wsr-26-21-045.pdf",
+     "checked": "2026-10-18"
+    }
+   ],
+   "line_mouth_points": 2,
+   "line_mouth_note": "the delta to Skagit Bay; rivers.json's Skagit River ends where the forks split and the page draws one simplified path"
+  }
+ ]
+}

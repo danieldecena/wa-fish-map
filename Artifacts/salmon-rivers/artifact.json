@@ -1,10 +1,11 @@
 {
   "url": "https://claude.ai/artifact/9oA145toRsmFcDYurdJbey",
-  "title": "SW Washington Salmon Rivers",
+  "title": "Washington Fishing Map",
   "identified": "2026-10-18, named by Daniel when asking for improvements",
   "account": "danieldecena@icloud.com",
-  "what": "Full-bleed river map of six southwest Washington salmon fisheries (Cowlitz, Lower Columbia, Lewis, Wind, Klickitat, Drano Lake) with a coho/chinook filter and a detail sheet. Catch-report ratings, not season dates.",
+  "what": "Full-bleed Washington map with two modes. Recent reports: eight SW Washington salmon waters (Kalama rated Slow from the source's own word; Washougal counts-only), rated from sourced catch reports, plus WDFW weekly creel counts. Typical season: 540 piers, boat launches and shore access sites statewide colored by the WA Fish Map app's seasonal timing for the chosen species, with recent WDFW creel counts on nine matched sites. Counts and timing never mix with ratings.",
   "baselineVersion": "1792352926-fede",
-  "currentVersion": "1792356723-f3e9",
-  "note": "Source is index.html plus geo.js and reports.js in this folder; baseline.html is the pre-split single-file page and the rollback source. Refresh by PASSING THIS URL and files={geo.js, reports.js}."
+  "currentVersion": "1792387756-ea34",
+  "previousVersion": "1792387366-ab37",
+  "note": "Source is index.html plus geo.js, reports.js, counts.js, creel.js, typical.js, season.js and cluster.js in this folder; baseline.html is the pre-split single-file page. Refresh by PASSING THIS URL and files={geo.js, reports.js, counts.js, creel.js, typical.js, season.js, cluster.js}. Rollback: republish a previous version id. Version 1792363512-a03d (Kalama and Washougal, published from another session) was merged here, not lost."
 }

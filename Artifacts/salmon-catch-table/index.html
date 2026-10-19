@@ -1,0 +1,283 @@
+<title>SW Washington Creel Table</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: one plain grid like the terminal table, filters above, notes below. */
+:root {
+  --bg: #fbfbfa;
+  --fg: #161a1c;
+  --dim: #5d666b;
+  --rule: #c9ced1;
+  --cursor: #e6eaec;
+  --link: #0b5c8a;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --sans: "IBM Plex Sans", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121618; --fg: #e3e7e9; --dim: #9aa4a9; --rule: #3a4246; --cursor: #252d31; --link: #6fb7e0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121618; --fg: #e3e7e9; --dim: #9aa4a9; --rule: #3a4246; --cursor: #252d31; --link: #6fb7e0;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 14px; line-height: 1.5;
+  padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1 { font: 600 20px/1.2 var(--mono); margin: 0; text-wrap: balance; }
+.sub { color: var(--dim); max-width: 70ch; margin: 4px 0 0; }
+.filters { display: flex; flex-direction: column; gap: 8px; font-family: var(--mono); font-size: 13px; }
+.row { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.row > .label { color: var(--dim); text-transform: uppercase; letter-spacing: .06em; font-size: 11px; min-width: 70px; }
+button.b {
+  font: inherit; color: var(--fg); background: none; border: 0; padding: 0; cursor: pointer;
+  white-space: nowrap;
+}
+button.b::before { content: "[ "; color: var(--dim); }
+button.b::after { content: " ]"; color: var(--dim); }
+button.b[aria-pressed="true"] { font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+button.b:focus-visible, th button:focus-visible, a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.status { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+.grid { overflow-x: auto; border-top: 1px solid var(--fg); border-bottom: 1px solid var(--fg); }
+table { border-collapse: collapse; width: 100%; font-family: var(--mono); font-size: 13px; }
+th, td { padding: 4px 10px; text-align: left; border-left: 1px solid var(--rule); white-space: nowrap; font-variant-numeric: tabular-nums; }
+th:first-child, td:first-child { border-left: 0; }
+th { position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); border-bottom: 1px solid var(--fg); text-transform: uppercase; letter-spacing: .05em; font-size: 11px; padding: 0; }
+th button { font: 600 11px var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--fg); background: none; border: 0; padding: 6px 10px; width: 100%; text-align: inherit; cursor: pointer; }
+th.n, td.n { text-align: right; }
+th.n button { text-align: right; }
+td { border-bottom: 1px solid var(--rule); }
+tbody tr:hover td { background: var(--cursor); }
+td.note { color: var(--dim); }
+td a { color: var(--link); }
+tbody tr[tabindex] { cursor: pointer; }
+tbody tr:focus-visible { outline: 2px solid var(--link); outline-offset: -2px; }
+tr.detail td { white-space: normal; border-left: 0; background: var(--cursor); max-width: 100vw; }
+.dim { color: var(--dim); }
+table.mini { width: auto; }
+table.mini td { padding: 2px 14px 2px 0; border: 0; }
+tr.detail td div { padding: 1px 0; }
+details { font-size: 13px; }
+summary { cursor: pointer; font-family: var(--mono); font-size: 12px; }
+[hidden] { display: none !important; }
+.more { align-self: flex-start; font-family: var(--mono); font-size: 13px; }
+h2 { font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: .06em; margin: 8px 0 4px; }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px 32px; font-size: 13px; }
+.notes > div { min-width: 0; }
+.notes p, .notes ul { margin: 0 0 6px; }
+.notes ul { padding-left: 18px; }
+.notes code { font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; }
+</style>
+
+<main>
+  <header>
+    <h1>SW WASHINGTON CREEL TABLE</h1>
+    <p class="sub">A mirror of salmon.db: weekly angler interviews from WDFW's Southwest Washington Columbia River and tributary reports. Every sheet in the database is here, with the same columns and rows. These are counts people reported, not ratings of how good a river is.</p>
+  </header>
+
+  <section class="filters" aria-label="Filters">
+    <div class="row"><span class="label">Sheet</span><span id="views" class="row"></span></div>
+    <div class="row" id="riverRow"><span class="label">River</span><span id="rivers" class="row"></span></div>
+    <div class="row" id="speciesRow"><span class="label">Species</span><span id="species" class="row"></span></div>
+    <div class="row" id="yearRow"><span class="label">Year</span><span id="years" class="row"></span></div>
+    <div class="row" id="catchRow"><span class="label">Rows</span><span class="row"><button class="b" id="catchOnly" aria-pressed="false">Catch rows only</button></span></div>
+  </section>
+
+  <div class="status" id="status" role="status"></div>
+  <div class="grid"><table>
+    <thead><tr id="head"></tr></thead>
+    <tbody id="body"></tbody>
+  </table></div>
+  <button class="b more" id="more" hidden>Show 200 more rows</button>
+
+  <section class="notes">
+    <div>
+      <h2>The database</h2>
+      <table class="mini" id="mirror"></table>
+      <p class="dim" id="mirrorNote"></p>
+    </div>
+    <div>
+      <h2>How to read it</h2>
+      <ul>
+        <li><b>Anglers</b> is bank anglers plus boat rods for that river and week, so it repeats on each species row. <b>Bank</b> and <b>Boat rods</b> are its two parts.</li>
+        <li><b>Kept/100</b> is fish kept per 100 anglers for that species. Blank when Kept or Anglers is blank.</li>
+        <li>A blank <b>Kept</b> or <b>Released</b> means the report did not state it. It is not zero.</li>
+        <li>Jacks are young males and have their own rows. Where the report says "jacks" without a species, the row says so.</li>
+        <li>Rivers split by reach (Cowlitz, Klickitat, Washougal) or section (Lower Columbia) show it in the River cell.</li>
+        <li>Rows are interviews at select access sites, not every angler. Click a row for the sentence it came from.</li>
+        <li><b>Week from</b> says whether the week came from the report's file name or was worked out from its date.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Not in this table</h2>
+      <p id="gaps"></p>
+      <p>Rivers outside the creel section of these reports are not in the database.</p>
+    </div>
+  </section>
+  <p class="status" id="foot"></p>
+</main>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  var D = window.SALMON;
+  var PAGE = 200;
+  var state = { view: 0, river: "All", species: "All", year: "All", catchOnly: false, sort: null, dir: -1, shown: PAGE, open: null };
+
+  function el(tag, attrs, text) {
+    var e = document.createElement(tag);
+    for (var a in (attrs || {})) e.setAttribute(a, attrs[a]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function S() { return D.sheets[state.view]; }
+  function ci(name) {
+    var c = S().cols;
+    for (var i = 0; i < c.length; i++) if (c[i].name === name) return i;
+    return -1;
+  }
+  function family(r) { return r.split(",")[0]; }
+  function distinct(rows, fn) {
+    var seen = {}, out = [];
+    rows.forEach(function (r) { var v = fn(r); if (v && !seen[v]) { seen[v] = 1; out.push(v); } });
+    return out.sort();
+  }
+  function buttons(host, items, key, all, after) {
+    host.textContent = "";
+    (all === false ? items : ["All"].concat(items)).forEach(function (v, i) {
+      var b = el("button", { "class": "b", type: "button", "aria-pressed": String(all === false ? state[key] === i : state[key] === v) }, v);
+      b.onclick = function () { state[key] = all === false ? i : v; state.shown = PAGE; state.open = null; if (after) after(); draw(); };
+      host.appendChild(b);
+    });
+  }
+  function defaultSort() {
+    var w = ci("Week");
+    state.sort = w >= 0 ? w : 0;
+    state.dir = w >= 0 ? -1 : 1;
+  }
+  function visible() {
+    var s = S(), wk = ci("Week"), sp = ci("Species");
+    var rows = s.rows.filter(function (r) {
+      if (state.year !== "All" && wk >= 0 && String(r[wk]).slice(0, 4) !== state.year) return false;
+      if (s.view !== "board") return true;
+      if (state.river !== "All" && family(r[0]) !== state.river) return false;
+      if (state.species !== "All" && r[sp] !== state.species) return false;
+      if (state.catchOnly && r[sp].charAt(0) === "(") return false;
+      return true;
+    });
+    var k = state.sort, num = s.cols[k].n;
+    rows.sort(function (a, b) {
+      var x = a[k], y = b[k];
+      if (x == null || x === "") return (y == null || y === "") ? 0 : 1;
+      if (y == null || y === "") return -1;
+      var c = num ? x - y : (x < y ? -1 : x > y ? 1 : 0);
+      return c * state.dir;
+    });
+    return rows;
+  }
+  function cell(r, c, i) {
+    var td = el("td", c.n ? { "class": "n" } : {});
+    var v = r[i];
+    if (v == null) return td;
+    if (c.name === "Source") {
+      var a = el("a", { href: D.sources[v], target: "_blank", rel: "noopener" }, "PDF");
+      a.onclick = function (e) { e.stopPropagation(); };
+      td.appendChild(a);
+    } else if (c.name === "Report text") {
+      td.textContent = D.texts[v].length > 60 ? D.texts[v].slice(0, 59) + "\u2026" : D.texts[v];
+    } else {
+      td.textContent = c.name === "Kept/100" ? v.toFixed(1) : v;
+      if (c.name === "Species" && v.charAt(0) === "(") td.className = "note";
+    }
+    return td;
+  }
+  function draw() {
+    var s = S(), board = s.view === "board", wk = ci("Week");
+    buttons(document.getElementById("views"), D.sheets.map(function (x) { return x.label; }), "view", false, function () {
+      state.river = state.species = state.year = "All"; state.catchOnly = false; defaultSort();
+    });
+    s = S(); board = s.view === "board"; wk = ci("Week");
+    if (state.sort == null || state.sort >= s.cols.length) defaultSort();
+    document.getElementById("riverRow").hidden = !board;
+    document.getElementById("speciesRow").hidden = !board;
+    document.getElementById("catchRow").hidden = !board;
+    document.getElementById("yearRow").hidden = wk < 0;
+    if (board) {
+      buttons(document.getElementById("rivers"), distinct(s.rows, function (r) { return family(r[0]); }), "river");
+      buttons(document.getElementById("species"), distinct(s.rows, function (r) { return r[ci("Species")]; }), "species");
+      document.getElementById("catchOnly").setAttribute("aria-pressed", String(state.catchOnly));
+    }
+    if (wk >= 0) buttons(document.getElementById("years"), distinct(s.rows, function (r) { return String(r[wk]).slice(0, 4); }), "year");
+    var head = document.getElementById("head");
+    head.textContent = "";
+    s.cols.forEach(function (c, i) {
+      var th = el("th", c.n ? { "class": "n", scope: "col" } : { scope: "col" });
+      var arrow = state.sort === i ? (state.dir < 0 ? " \u25BC" : " \u25B2") : "";
+      var b = el("button", { type: "button" }, c.name + arrow);
+      b.onclick = function () {
+        if (state.sort === i) state.dir = -state.dir;
+        else { state.sort = i; state.dir = (c.n || c.name === "Week" || c.name === "Reported") ? -1 : 1; }
+        draw();
+      };
+      th.setAttribute("aria-sort", state.sort === i ? (state.dir < 0 ? "descending" : "ascending") : "none");
+      th.appendChild(b);
+      head.appendChild(th);
+    });
+    var textAt = ci("Report text");
+    var rows = visible(), body = document.getElementById("body");
+    body.textContent = "";
+    var frag = document.createDocumentFragment();
+    rows.slice(0, state.shown).forEach(function (r) {
+      var tr = el("tr", { tabindex: "0", "aria-expanded": String(state.open === r) });
+      s.cols.forEach(function (c, i) { tr.appendChild(cell(r, c, i)); });
+      var toggle = function () { state.open = state.open === r ? null : r; draw(); };
+      tr.onclick = toggle;
+      tr.onkeydown = function (e) { if (e.key === "Enter") toggle(); };
+      frag.appendChild(tr);
+      if (state.open === r) {
+        var d = el("tr", { "class": "detail" });
+        var td = el("td", { colspan: String(s.cols.length) });
+        s.cols.forEach(function (c, i) {
+          if (r[i] == null || c.name === "Source") return;
+          var line = el("div");
+          line.appendChild(el("span", { "class": "dim" }, c.name + ": "));
+          line.appendChild(document.createTextNode(c.name === "Report text" ? D.texts[r[i]] : String(r[i])));
+          td.appendChild(line);
+        });
+        d.appendChild(td);
+        frag.appendChild(d);
+      }
+    });
+    body.appendChild(frag);
+    var more = document.getElementById("more");
+    more.hidden = rows.length <= state.shown;
+    more.textContent = "Show " + Math.min(PAGE, rows.length - state.shown) + " more rows";
+    document.getElementById("status").textContent =
+      "Showing " + Math.min(state.shown, rows.length) + " of " + rows.length + " rows" + (rows.length === s.rows.length ? " (all of " + s.view + ")" : " after filters (" + s.rows.length + " in " + s.view + ")");
+  }
+  document.getElementById("catchOnly").onclick = function () { state.catchOnly = !state.catchOnly; state.shown = PAGE; draw(); };
+  document.getElementById("more").onclick = function () { state.shown += PAGE; draw(); };
+
+  var mirror = document.getElementById("mirror");
+  D.sheets.forEach(function (x) {
+    var tr = el("tr");
+    tr.appendChild(el("td", null, x.view));
+    tr.appendChild(el("td", { "class": "n" }, String(D.counts[x.view])));
+    mirror.appendChild(tr);
+  });
+  document.getElementById("mirrorNote").textContent =
+    "Database built " + D.built.replace("T", " ") + ". The board sheet joins the entries and catch tables; the rest are one-to-one.";
+  document.getElementById("gaps").textContent = D.gaps.length +
+    " stretches of a week or more have no report on WDFW's page: " + D.gaps.join("; ") + ".";
+  document.getElementById("foot").textContent =
+    D.counts.weeks + " weekly reports, " + D.first + " to " + D.last + ". Source: wdfw.wa.gov/fishing/reports/creel/southwest.";
+  defaultSort();
+  draw();
+})();
+</script>

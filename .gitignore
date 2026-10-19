@@ -30,3 +30,6 @@ __pycache__/
 *.pyc
 .venv/
 .cursor/
+
+# raw WDFW responses cached by scripts/build_typical_sites.py
+.cache/

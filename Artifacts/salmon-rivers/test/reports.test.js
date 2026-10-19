@@ -1,13 +1,19 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const R = require('../reports.js');
+const C = require('../counts.js');
 
 const TODAY = '2026-10-18';
 const site = id => R.SITES.find(s => s.id === id);
+const F = { all: null, coho: 'Coho Salmon', chinook: 'Chinook Salmon' };
+const back = k => (k === null ? null : Object.keys(F).find(n => F[n] === k));
 const pick = (id, filter, today = TODAY) => {
-  const v = R.viewOf(site(id), filter, today);
-  return { r: v.r, k: v.k, release: v.release };
+  const v = R.viewOf(site(id), F[filter], today);
+  return { r: v.r, k: back(v.k), release: v.release };
 };
+const two = (coho, chinook) => ({ id: 'x', name: 'X', reports: { 'Coho Salmon': coho, 'Chinook Salmon': chinook } });
 
 test('viewOf keeps the colours the published page showed on 2026-10-18', () => {
   // Expected values come from the unmodified page (test/baseline-pins.json).
@@ -40,27 +46,40 @@ test('an undated report is "undated", never fresh', () => {
 });
 
 test('a fresh lower rating beats a stale higher one', () => {
-  const s = { id: 'x', name: 'X', coho: { r: 'prime', asOf: '2026-10-01', d: '' }, chinook: { r: 'fair', asOf: '2026-10-17', d: '' } };
-  const v = R.viewOf(s, 'all', TODAY);
-  assert.equal(v.k, 'chinook');
+  const s = two({ r: 'prime', asOf: '2026-10-01', d: '' }, { r: 'fair', asOf: '2026-10-17', d: '' });
+  const v = R.viewOf(s, null, TODAY);
+  assert.equal(v.k, 'Chinook Salmon');
   assert.equal(v.fresh, true);
 });
 
 test('when everything is stale the best rating still shows', () => {
-  const v = R.viewOf(site('cowlitz'), 'all', '2026-11-30');
+  const v = R.viewOf(site('cowlitz'), null, '2026-11-30');
   assert.equal(v.r, 'prime');
-  assert.equal(v.k, 'coho');
+  assert.equal(v.k, 'Coho Salmon');
   assert.equal(v.fresh, false);
 });
 
 test('release-only still loses to a retainable species even if the release one is fresher', () => {
-  const s = { id: 'x', name: 'X', coho: { r: 'fair', asOf: '2026-10-01', d: '' }, chinook: { r: 'prime', release: true, asOf: '2026-10-17', d: '' } };
-  assert.equal(R.viewOf(s, 'all', TODAY).k, 'coho');
+  const s = two({ r: 'fair', asOf: '2026-10-01', d: '' }, { r: 'prime', release: true, asOf: '2026-10-17', d: '' });
+  assert.equal(R.viewOf(s, null, TODAY).k, 'Coho Salmon');
 });
 
-test('a missing species yields the unrated view', () => {
-  const v = R.viewOf({ id: 'x', name: 'X' }, 'all', TODAY);
+test('a site with no reports yields the unrated view', () => {
+  const v = R.viewOf({ id: 'x', name: 'X' }, null, TODAY);
   assert.deepEqual({ r: v.r, k: v.k, release: v.release, fresh: v.fresh }, { r: 'unrated', k: null, release: false, fresh: false });
+});
+
+test('a chosen species the river has no report for is unrated, not hidden and not borrowed from another species', () => {
+  const lone = { id: 'x', name: 'X', reports: { 'Coho Salmon': { r: 'prime', asOf: '2026-10-17', d: '' } } };
+  const v = R.viewOf(lone, 'Chinook Salmon', TODAY);
+  assert.deepEqual({ r: v.r, k: v.k }, { r: 'unrated', k: null });
+  assert.equal(R.viewOf(lone, 'Coho Salmon', TODAY).r, 'prime');
+});
+
+test('an unknown or near-miss species name throws instead of quietly matching nothing', () => {
+  assert.throws(() => R.viewOf(site('wind'), 'Coho', TODAY), /unknown species: Coho/);
+  assert.throws(() => R.viewOf(site('wind'), 'coho salmon', TODAY), /unknown species/);
+  assert.throws(() => R.rankSites(R.SITES, 'Chinook', TODAY), /unknown species/);
 });
 
 test('dates: format, age words, future dates, invalid input', () => {
@@ -75,7 +94,7 @@ test('dates: format, age words, future dates, invalid input', () => {
 
 test('latestReport is the newest dated report and ignores undated ones', () => {
   assert.equal(R.latestReport(R.SITES), '2026-10-17');
-  assert.equal(R.latestReport([{ id: 'x', name: 'X', coho: { r: 'fair', asOf: null, d: '' } }]), null);
+  assert.equal(R.latestReport([{ id: 'x', name: 'X', reports: { 'Coho Salmon': { r: 'fair', asOf: null, d: '' } } }]), null);
 });
 
 test('staleNotice appears only when the newest report is older than 7 days', () => {
@@ -85,9 +104,10 @@ test('staleNotice appears only when the newest report is older than 7 days', () 
 });
 
 test('rankSites: retainable first, fresh before stale, then rating, then name', () => {
-  const ids = (f) => R.rankSites(R.SITES, f, TODAY).map(e => e.site.id);
-  assert.deepEqual(ids('all'), ['cowlitz', 'columbia', 'drano', 'klickitat', 'lewis', 'wind']);
-  assert.deepEqual(ids('chinook'), ['drano', 'klickitat', 'lewis', 'wind', 'cowlitz', 'columbia']);
+  const ids = f => R.rankSites(R.SITES, F[f], TODAY).map(e => e.site.id);
+  // Kalama (slow, fresh) ranks below the good rivers; Washougal has no report and goes last of the retainable sites.
+  assert.deepEqual(ids('all'), ['cowlitz', 'columbia', 'drano', 'klickitat', 'lewis', 'wind', 'kalama', 'washougal']);
+  assert.deepEqual(ids('chinook'), ['drano', 'klickitat', 'lewis', 'wind', 'kalama', 'washougal', 'cowlitz', 'columbia']);
 });
 
 test('ratingWord carries the release-only caveat as text', () => {
@@ -96,16 +116,113 @@ test('ratingWord carries the release-only caveat as text', () => {
   assert.equal(R.ratingWord({ r: 'unrated', release: false }), 'No report');
 });
 
-test('report data: ids unique, ratings valid, dates real, no dates left in prose', () => {
+test('report data: ids unique, species exact, ratings valid, dates real, no dates in prose', () => {
   const ids = new Set();
+  const used = new Set();
   for (const s of R.SITES) {
     assert.ok(!ids.has(s.id), `duplicate ${s.id}`); ids.add(s.id);
-    for (const k of ['coho', 'chinook']) {
-      const sp = s[k];
-      assert.ok(['prime', 'good', 'fair'].includes(sp.r), `${s.id}/${k} rating`);
-      if (sp.asOf !== null) R.ageDays(sp.asOf, TODAY); // throws on a bad date
-      assert.doesNotMatch(sp.d, /\b(Oct|Nov|Dec)\s+\d{1,2}\b/, `${s.id}/${k} prose still names a date`);
+    // A site with no reports at all is allowed only when WDFW counts back its sheet (see the counts-only test).
+    if (Object.keys(s.reports || {}).length === 0) { assert.ok(C.forWater(s.id), `${s.id} has no reports and no counts`); continue; }
+    for (const [name, sp] of Object.entries(s.reports)) {
+      assert.ok(R.SPECIES.includes(name), `${s.id}: "${name}" is not in Reports.SPECIES`);
+      used.add(name);
+      if (sp.r === 'slow') {
+        // Slow is only the source's own word, recorded in phrase and linked, never worked out from a number.
+        assert.match(sp.phrase || '', /\b(slow|poor)\b/i, `${s.id}/${name} is slow without a recorded source phrase`);
+        assert.ok(sp.src && /^https:\/\//.test(sp.src.url), `${s.id}/${name} is slow without a source url`);
+      } else {
+        assert.ok(['prime', 'good', 'fair'].includes(sp.r), `${s.id}/${name} rating`);
+      }
+      if (sp.asOf !== null) R.ageDays(sp.asOf, TODAY);
+      assert.doesNotMatch(sp.d, /\b(Oct|Nov|Dec)\s+\d{1,2}\b/, `${s.id}/${name} prose still names a date`);
     }
   }
-  assert.equal(ids.size, 6);
+  assert.equal(ids.size, 8);
+  for (const n of R.SPECIES) assert.ok(used.has(n), `${n} is in SPECIES but no river has a report for it`);
+});
+
+test('pinLabel: rating and species, release caveat, and the no-report case in words', () => {
+  const v = (id, sp) => R.viewOf(site(id), sp, TODAY);
+  assert.equal(R.pinLabel(site('cowlitz'), v('cowlitz', null), null), 'Cowlitz River, excellent reports for coho salmon');
+  assert.equal(R.pinLabel(site('cowlitz'), v('cowlitz', 'Chinook Salmon'), 'Chinook Salmon'), 'Cowlitz River, fair reports for chinook salmon, release only');
+  const lone = { id: 'x', name: 'X River', reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-17', d: '' } } };
+  assert.equal(R.pinLabel(lone, R.viewOf(lone, 'Chinook Salmon', TODAY), 'Chinook Salmon'), 'X River, no report for Chinook Salmon');
+  assert.equal(R.pinLabel({ id: 'y', name: 'Y River' }, R.viewOf({ id: 'y', name: 'Y River' }, null, TODAY), null), 'Y River, no report');
+});
+
+test('reportRows lists only the species a site has, in SPECIES order', () => {
+  const lone = { id: 'x', name: 'X', reports: { 'Chinook Salmon': { r: 'fair', asOf: null, d: 'a' } } };
+  assert.deepEqual(R.reportRows(lone).map(r => r.name), ['Chinook Salmon']);
+  assert.deepEqual(R.reportRows(site('wind')).map(r => r.name), ['Coho Salmon', 'Chinook Salmon']);
+  assert.deepEqual(R.reportRows({ id: 'y', name: 'Y' }), []);
+});
+
+test('missingNote speaks only when a chosen species has no report on that water', () => {
+  const lone = { id: 'x', name: 'X', reports: { 'Coho Salmon': { r: 'good', asOf: null, d: '' } } };
+  assert.equal(R.missingNote(lone, null), null);
+  assert.equal(R.missingNote(lone, 'Coho Salmon'), null);
+  assert.match(R.missingNote(lone, 'Chinook Salmon'), /^No report for Chinook Salmon on this water\. Confirm what is open and what you may keep on WDFW before you fish\.$/);
+});
+
+// The twelve reports that predate per-report sources. They are covered by the page-level
+// source links and must not gain a guessed attribution. This list only ever shrinks.
+const LEGACY = new Set(['cowlitz', 'columbia', 'lewis', 'wind', 'klickitat', 'drano']
+  .flatMap(id => ['Coho Salmon', 'Chinook Salmon'].map(n => id + '/' + n)));
+
+test('every report added after the species change names its source', () => {
+  for (const s of R.SITES) {
+    for (const [name, sp] of Object.entries(s.reports)) {
+      if (LEGACY.has(s.id + '/' + name)) continue;
+      assert.ok(sp.src && sp.src.label && /^https:\/\//.test(sp.src.url), `${s.id}/${name} needs src {label, url}`);
+    }
+  }
+});
+
+test('control: the legacy list matches reality, so the source check is not vacuous', () => {
+  const actual = R.SITES.flatMap(s => Object.keys(s.reports).map(n => s.id + '/' + n));
+  for (const key of LEGACY) assert.ok(actual.includes(key), `${key} is listed as legacy but is not in SITES`);
+});
+
+test('Kalama\'s slow entry carries the source word and a link to the report that said it', () => {
+  const k = site('kalama').reports['Coho Salmon'];
+  assert.equal(k.r, 'slow');
+  assert.match(k.phrase, /\b(slow|poor)\b/i);
+  assert.match(k.src.url, /^https:\/\/www\.theguidesforecast\.com\/free\/coho-run-heats-up\/287017\/$/);
+  assert.equal(k.asOf, '2026-10-17');
+  assert.equal(R.viewOf(site('kalama'), null, TODAY).r, 'slow');
+  assert.equal(R.ratingWord({ r: 'slow', release: false }), 'Slow');
+});
+
+test('a counts-only site is a No report pin, still listed, and its counts are there to show', () => {
+  const w = site('washougal');
+  assert.deepEqual(w.reports, {});
+  for (const sp of [null, 'Coho Salmon', 'Chinook Salmon', 'Fall Chinook']) {
+    const v = R.viewOf(w, sp, TODAY);
+    assert.deepEqual({ r: v.r, k: v.k, release: v.release, fresh: v.fresh }, { r: 'unrated', k: null, release: false, fresh: false }, String(sp));
+  }
+  assert.equal(R.pinLabel(w, R.viewOf(w, null, TODAY), null), 'Washougal River, no report');
+  assert.deepEqual(R.reportRows(w), []);
+  assert.ok(R.rankSites(R.SITES, null, TODAY).some(e => e.site.id === 'washougal'), 'listed in Rivers');
+  const c = C.forWater('washougal');
+  assert.ok(c && c.noCatch && c.rows.length === 0, 'its WDFW counts are in counts.js');
+});
+
+test('no rating is ever derived from counts: reports.js has no code path to them, and a site with only counts is unrated', () => {
+  // Strip comments and quoted text (report prose may say the word creel); what is left is code.
+  const code = fs.readFileSync(path.join(__dirname, '..', 'reports.js'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/'(?:[^'\\\n]|\\.)*'/g, "''");
+  assert.doesNotMatch(code, /counts|creel|noCatch|weekStart|weekEnd|forWater|require\s*\(/i);
+  for (const s of R.SITES) {
+    if (C.forWater(s.id) && Object.keys(s.reports).length === 0) assert.equal(R.viewOf(s, null, TODAY).r, 'unrated', s.id);
+  }
+});
+
+test('the Recent reports legend lists Slow exactly when some site in Recent reports has a Slow rating', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const anySlow = R.SITES.some(s => Object.values(s.reports).some(sp => sp.r === 'slow'));
+  const slowItem = '<li style="--c:var(--slow)"><i></i>Slow</li>';
+  const staticLegend = html.slice(html.indexOf('<ul id="legl">'), html.indexOf('</ul>', html.indexOf('<ul id="legl">')));
+  const recentJs = html.split('\n').find(l => l.includes('Faded: release only') && l.includes('Excellent'));
+  assert.ok(recentJs, 'control: found the Recent reports legend string in the script');
+  assert.equal(staticLegend.includes(slowItem), anySlow, 'static legend');
+  assert.equal(recentJs.includes(slowItem), anySlow, 'legend set when switching back to Recent reports');
 });
