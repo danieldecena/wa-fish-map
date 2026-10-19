@@ -59,19 +59,29 @@
    "id": "lingcod",
    "name": "Lingcod",
    "cat": "fish",
-   "start": "2027-04-15",
-   "end": "2027-06-15",
+   "start": "2027-03-13",
+   "end": "2027-10-16",
    "where": "Westport charter",
-   "note": "Firm white flesh and the best non-salmon eating on this list. Opens mid-April on the coast. Puget Sound has a shorter window."
+   "note": "Firm white flesh and the best non-salmon eating on this list. Off Westport (Marine Area 2) the 2026 season ran Mar 14 to Oct 17 with two a day, and WDFW sets it as the second Saturday in March to the third Saturday in October. Puget Sound has a shorter window.",
+   "source": {
+    "label": "WDFW South Coast bottomfish seasons",
+    "url": "https://wdfw.wa.gov/fishing/regulations/halibut/south-coast",
+    "checked": "2026-10-18"
+   }
   },
   {
    "id": "rockfish",
    "name": "Black rockfish",
    "cat": "fish",
-   "start": "2027-04-15",
-   "end": "2027-06-15",
+   "start": "2027-03-13",
+   "end": "2027-10-16",
    "where": "Westport charter",
-   "note": "Pair it with the lingcod trip. Limits are counted per species."
+   "note": "Pair it with the lingcod trip. Off Westport the 2026 season ran Mar 14 to Oct 17 with a daily limit of seven, and no more than five canary and no yelloweye. Copper, quillback and vermilion rockfish cannot be kept in May, June and July.",
+   "source": {
+    "label": "WDFW South Coast bottomfish seasons",
+    "url": "https://wdfw.wa.gov/fishing/regulations/halibut/south-coast",
+    "checked": "2026-10-18"
+   }
   },
   {
    "id": "walleye",
@@ -107,7 +117,12 @@
    "start": "2027-07-01",
    "end": "2027-09-07",
    "where": "Everett, Edmonds and the San Juans",
-   "note": "2026 ran July 2 to Sept 7, Thursday to Monday in the north. Seattle and Tacoma areas were limited to two days a week. You need a license, a Puget Sound Crab Endorsement and a catch record card. Limit is five males, 6¼ inches."
+   "note": "In 2026 the Deception Pass, Everett and Admiralty Inlet areas ran July 2 to Sept 7, Thursday to Monday. The south San Juans ran July 16 to Sept 28, Thursday to Monday. Seattle was Sunday and Monday only, July 5 to Sept 7, and Tacoma ended Aug 17. You need a license, a Puget Sound Crab Endorsement and a catch record card. Limit is five males, 6¼ inches.",
+   "source": {
+    "label": "WDFW crab news release, June 16, 2026",
+    "url": "https://wdfw.wa.gov/newsroom/news-release/recreational-crabbing-open-july-2-many-puget-sound-marine-areas",
+    "checked": "2026-10-18"
+   }
   },
   {
    "id": "sockeye",
@@ -117,7 +132,12 @@
    "end": "2027-08-31",
    "flavor": 2,
    "where": "Baker Lake",
-   "note": "Opened July 12 in 2025, so expect something similar. Verify the 2027 dates and daily limit."
+   "note": "In 2026 Baker Lake opened July 11 and ran to Aug 31, four sockeye a day, and opened whatever the fish count. The 2027 dates are an estimate, so verify them and the daily limit.",
+   "source": {
+    "label": "WDFW Baker River sockeye season",
+    "url": "https://wdfw.wa.gov/fishing/reports/counts/baker-river",
+    "checked": "2026-10-18"
+   }
   },
   {
    "id": "pink",
@@ -459,7 +479,7 @@
      "place_check": {
       "source": "OpenStreetMap",
       "confirmed": false,
-      "note": "No feature with a matching name near these coordinates",
+      "note": "Searched for a Green River boat ramp in Kent and found no page naming one.",
       "checked": "2026-10-18"
      }
     },
@@ -766,7 +786,7 @@
      "place_check": {
       "source": "OpenStreetMap",
       "confirmed": false,
-      "note": "No feature with a matching name near these coordinates",
+      "note": "A paddling guide and the Mountaineers list a launch at the Tolt confluence in Carnation, river mile 25, now free; their coordinates were not checked.",
       "checked": "2026-10-18"
      }
     },
@@ -1116,7 +1136,7 @@
      "place_check": {
       "source": "OpenStreetMap",
       "confirmed": false,
-      "note": "No feature with a matching name near these coordinates",
+      "note": "Sumner's 2024 parks plan and TrailLink name Two-Rivers Point as the south end of the Sumner Link Trail; its coordinates were not checked.",
       "checked": "2026-10-18"
      }
     },
