@@ -38,7 +38,7 @@
     { id: 'kalama', name: 'Kalama River', sub: 'Lower river near Kalama', hl: true,
       reports: { 'Coho Salmon': { r: 'slow', asOf: '2026-10-17', phrase: 'Fishing remains poor', d: 'Fishing is poor in low water. Four bank anglers kept one coho, and the weir is still in place. It is expected out this week.',
         src: { label: 'The Guide\u2019s Forecast, Oct 17', url: 'https://www.theguidesforecast.com/free/coho-run-heats-up/287017/' } } } },
-    /* No rating: the creel says only that nobody caught anything, which is not a quality word. So a gray No report pin; its sheet shows the WDFW creel figures. */
+    /* No rating: the Oct 17 Guide's Forecast calls Washougal fishing slow but names no species, and this page rates by exact species, so the word cannot be carried onto one. A gray No report pin; its sheet shows the WDFW creel figures. */
     { id: 'washougal', name: 'Washougal River', sub: 'Lower river near Camas', hl: true, reports: {} }
   ];
 
