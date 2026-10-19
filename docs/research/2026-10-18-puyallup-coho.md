@@ -17,3 +17,11 @@ Format: field | value | verdict | source + quote
 - **Green River.** Its rules change by reach (one reach closed to salmon, another opening Nov. 1), so a whole-river row would be false somewhere. Refused for the same reason as the Spokane.
 - **Snoqualmie and Skykomish.** WDFW closed both for summer and fall 2026 (https://wdfw.medium.com/snohomish-basin-salmon-steelhead-fisheries-limited-to-protect-wild-chinook-2026-e0d1400a9f38). A coho row would send people to a closed river. Revisit if WDFW reopens them.
 - **2026 limits.** The final rule text was not available in the pages read, so no limit is shown. The row claims timing only.
+
+## Also in this PR: two Skagit launches added to `waterbodySites`
+
+`waterbodySites["Skagit River"]` = ["Gilligan Creek", "Lyman Ferry"] (both copies of `fisheries.json`).
+Why: a reach check against the bundled `rivers.json` put Gilligan Creek 230 m and Lyman Ferry 204 m from the Skagit line, past the 150 m match (`waterbodyMatchMeters`), so the Skagit coho row (PR #54) would not show at them. Spud House (88 m), Sedro-Woolley (135 m), Young's Bar (63 m), Hamilton (11 m) and Baker River (120 m) already match.
+Curated list resolves before the geometry, per `FreshwaterGuide.waterbody(forFacility:at:rivers:)`. The names are the WDFW `FacilityName` values from `site/data/sites.json` ("Gilligan Creek", "Lyman Ferry").
+Source for the sites being on the Skagit: WDFW's access layer lists them in Skagit County, and an angler thread on r/Bellingham names the WDFW lower-river sites (https://www.reddit.com/r/Bellingham/comments/cfvarf/skagit_river_trout_fishing/, search excerpt only; the thread itself was not readable). The distances were computed on Linux from the bundled files, not by running the Swift tests.
+Not added: a McMillin Bridge trailhead on the Puyallup (Google Places, not a WDFW site). The app draws only WDFW layer 0 and 1 launches, so a non-WDFW point has nowhere to live without a new curated-sites list. That is a design decision, not a data pass.
