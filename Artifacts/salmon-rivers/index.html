@@ -1111,7 +1111,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 
   /* ---- mode ---- */
   function setMode(m) {
-    if (m === view) return;
+    // The ?mode=typical link comes through here too: without typical.js or season.js there is nothing to switch to.
+    if (m === view || (m === 'typical' && !HAS_TYPICAL)) return;
     view = m; species = null; selected = null;
     if (mode) closeSheet();
     appEl.classList.toggle('typ', m === 'typical');

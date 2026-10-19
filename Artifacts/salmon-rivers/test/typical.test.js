@@ -213,3 +213,11 @@ test('Typical season says what it is on the legend, the notice, every sheet and 
   assert.match(html, /var view = 'reports';/);
   assert.match(html, /aria-checked="true" data-mode="reports"/);
 });
+
+test('the ?mode=typical link cannot start Typical season when typical.js or season.js did not load', () => {
+  const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
+  const setMode = html.slice(html.indexOf('function setMode'), html.indexOf('/* ---- boot ---- */'));
+  assert.match(html, /var HAS_TYPICAL = typeof TypicalData !== 'undefined' && typeof Season !== 'undefined';/, 'control: the guard flag exists');
+  assert.match(html, /mode=typical\(&\|\$\)\/\.test\(location\.search\)\) setMode\('typical'\)/, 'control: the link goes through setMode');
+  assert.match(setMode, /m === 'typical' && !HAS_TYPICAL\)\) return;/, 'setMode refuses typical without HAS_TYPICAL');
+});
