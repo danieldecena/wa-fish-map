@@ -5,12 +5,17 @@ import XCTest
 ///
 /// This is the half of the tap-target claim that geometry cannot show, and it
 /// proves less than it sounds. Measured on the iOS 27 simulator
-/// (2026-10-14), a lone pin is selected by a tap out to about 52pt from its
-/// centre and not at 60pt: MapKit's own touch slop reaches well past the 44pt
-/// `MarkerMetrics.hitRect`. So a control tap "just outside" the target cannot be
-/// built, and this test would pass with `hitRect` deleted. It guards that a pin
-/// stays selectable from its edge in all four directions, not that the rect is
-/// what makes it so. Whether hardware reaches as far is not observed.
+/// (2026-10-14, re-measured 2026-10-18), a lone pin is selected by a tap out
+/// to about 50pt to either side and 54pt above its centre, and only 25pt below
+/// it: MapKit's own touch slop, not the 44pt `MarkerMetrics.hitRect`.
+///
+/// The rect is not consulted at all. Each of these left the reach identical
+/// and this test green: `minimumTapTarget` at 1pt, at 140pt, and
+/// `point(inside:)` returning `false` for every touch. So a control tap "just
+/// outside" the target cannot be built, and no simulator UI test can go red on
+/// a wrong target size. This guards that a pin stays selectable from its edge
+/// in all four directions, not that the rect is what makes it so. Whether
+/// hardware honours `hitRect` is not observed.
 @MainActor
 final class MarkerEdgeTapUITests: XCTestCase {
     /// Same fixture as `PinSpokenTextUITests`: Boston Harbor, clear of the

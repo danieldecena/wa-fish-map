@@ -111,8 +111,8 @@
 
 - The 44pt marker tap target is asserted as geometry plus a simulator edge tap
   (`MarkerEdgeTapUITests`). That test cannot isolate `hitRect`: the simulator
-  selects a lone pin out to about 52pt, so it passes with the rect deleted.
-  Hardware reach is not observed.
+  never consults it (see 2026-10-18), so it passes with the rect deleted, too
+  small, too large, or refusing every touch. Hardware reach is not observed.
 - `PinVoiceOverProbe` fails every run (stale element index, see 2026-10-09), and
   it is in the default test plan.
 - App Store version 1.0 (10) is Waiting for Review under 5.2.5, resubmitted
@@ -131,6 +131,19 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-18
+
+- Found: no simulator UI test can go red on a wrong marker target size. Three
+  mutations of `MarkerMetrics`/`point(inside:)` on the iOS 27.0 simulator left
+  the measured reach and the edge-tap test unchanged: `minimumTapTarget` at 1pt,
+  at 140pt, and `point(inside:)` returning `false` for every touch. Reach of a
+  lone pin is MapKit's own: selected out to 50pt either side and 54pt above its
+  centre, and only 25pt below it (probe at 25..72pt). At 200pt the pin could
+  not be found at all, which is a setup failure, not a detection. So the
+  requested "outside tap must miss" test cannot be written against this rect,
+  and `MarkerEdgeTapUITests` stays a selectability guard. Only a device run can
+  say whether hardware honours the rect.
 
 ### 2026-10-14
 
