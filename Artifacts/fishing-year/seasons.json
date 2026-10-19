@@ -10,7 +10,12 @@
    "end": "2026-10-31",
    "flavor": 3,
    "where": "Skagit River, mouth to Marblemount",
-   "note": "WDFW’s current order, effective Oct 18, allows 2 salmon a day from the mouth to the Marblemount Bridge, coho only, with no bait and single barbless hooks. It runs through Oct 31 unless WDFW extends it. In 2025 it ran to Nov 30 and closed Nov 19 when the catch guideline was reached, so go early. The Gilligan Creek to Baker River stretch is closed Oct 19 to 21 for a tribal fishery."
+   "note": "WDFW’s current order, effective Oct 18, allows 2 salmon a day from the mouth to the Marblemount Bridge, coho only, with no bait and single barbless hooks. It runs through Oct 31 unless WDFW extends it. In 2025 it ran to Nov 30 and closed Nov 19 when the catch guideline was reached, so go early. The Gilligan Creek to Baker River stretch is closed Oct 19 to 21 for a tribal fishery.",
+   "source": {
+    "label": "WDFW rule WSR 26-21-045",
+    "url": "https://wdfw.wa.gov/sites/default/files/about/regulations/filings/2026/wsr-26-21-045.pdf",
+    "checked": "2026-10-18"
+   }
   },
   {
    "id": "chum",
@@ -296,8 +301,13 @@
     },
     {
      "reach": "Tukwila Int’l Blvd to S 212th St bridge",
-     "dates": "Aug 20 – Dec 31",
-     "take": "Up to 3 adult coho, chum or Chinook combined. No more than 2 adult Chinook, and you keep the first 2 you catch."
+     "dates": "Aug 20, until further notice",
+     "take": "Daily limit 6, up to 3 adult coho and chum combined. Chinook released.",
+     "source": {
+      "label": "WDFW rule WSR 26-17-082",
+      "url": "https://wdfw.wa.gov/sites/default/files/about/regulations/filings/2026/wsr-26-17-082.pdf",
+      "checked": "2026-10-18"
+     }
     },
     {
      "reach": "S 212th St to Hwy 18 eastbound bridge",
@@ -312,7 +322,12 @@
     {
      "reach": "Auburn–Black Diamond Rd to Tacoma boundary marker",
      "dates": "Nov 1 – Dec 31",
-     "take": "Coho and chum. Closed within 150 ft of the Keta Creek mouth."
+     "take": "Game fish closed Sep 16 to Oct 31. Then coho and chum. Closed within 150 ft of the Keta Creek mouth.",
+     "source": {
+      "label": "WDFW rule WSR 26-17-082",
+      "url": "https://wdfw.wa.gov/sites/default/files/about/regulations/filings/2026/wsr-26-17-082.pdf",
+      "checked": "2026-10-18"
+     }
     }
    ],
    "rulesNote": "Night closure and an anti-snagging rule applied on the Green last year.",
@@ -568,7 +583,7 @@
      "take": "WDFW closed it for summer and fall 2026 to protect wild Chinook and coho, along with the Tolt and Raging rivers. It reopens only if WDFW says so in season."
     }
    ],
-   "rulesNote": "Gamefish was moved to Dec 1 this year, from Nov 1 last year. The Snohomish River below the Snoqualmie is closed to all fishing from Oct 3 to Nov 1.",
+   "rulesNote": "Gamefish was moved to Dec 1 this year, from Nov 1 last year. The Snohomish River from its mouth to where the Skykomish and Snoqualmie meet is closed to all fishing from Oct 3 to Nov 1.",
    "line": [
     [
      -122.0462,
@@ -744,6 +759,13 @@
      "pass": true,
      "site_id": null
     }
+   ],
+   "sources": [
+    {
+     "label": "WDFW rule WSR 26-20-063",
+     "url": "https://wdfw.wa.gov/sites/default/files/about/regulations/filings/2026/wsr-26-20-063.pdf",
+     "checked": "2026-10-18"
+    }
    ]
   },
   {
@@ -767,7 +789,7 @@
      "take": "Up to 2 coho, Chinook and chum released. WDFW’s June notice also lists the Wallace as closed, so confirm before you go."
     }
    ],
-   "rulesNote": "The planned Reiter Ponds hatchery steelhead fishery is also closed this year. The Snohomish River below the Skykomish and Snoqualmie is closed to all fishing from Oct 3 to Nov 1.",
+   "rulesNote": "The planned Reiter Ponds hatchery steelhead fishery is also closed this year. The Snohomish River from its mouth to where the Skykomish and Snoqualmie meet is closed to all fishing from Oct 3 to Nov 1.",
    "line": [
     [
      -122.0462,
@@ -914,6 +936,13 @@
      "note": "Discover Pass, or $10 for parking.",
      "pass": true,
      "site_id": "big-eddy"
+    }
+   ],
+   "sources": [
+    {
+     "label": "WDFW rule WSR 26-20-063",
+     "url": "https://wdfw.wa.gov/sites/default/files/about/regulations/filings/2026/wsr-26-20-063.pdf",
+     "checked": "2026-10-18"
     }
    ]
   },
@@ -1477,7 +1506,14 @@
      "site_id": null
     }
    ],
-   "status": "Ends Oct 31"
+   "status": "Ends Oct 31",
+   "sources": [
+    {
+     "label": "WDFW rule WSR 26-21-045",
+     "url": "https://wdfw.wa.gov/sites/default/files/about/regulations/filings/2026/wsr-26-21-045.pdf",
+     "checked": "2026-10-18"
+    }
+   ]
   }
  ]
 }

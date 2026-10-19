@@ -66,6 +66,19 @@ def day(text, where, errors):
         return None
 
 
+def check_source(src, where, errors):
+    if not isinstance(src, dict):
+        errors.append(f"{where}: source must be an object with label, url and checked")
+        return
+    if not str(src.get("label", "")).strip():
+        errors.append(f"{where}: source needs a label")
+    if not str(src.get("url", "")).startswith("https://wdfw.wa.gov/"):
+        errors.append(f"{where}: source url must be on https://wdfw.wa.gov/")
+    checked = day(src.get("checked"), f"{where} source checked", errors)
+    if checked and checked > datetime.date.today():
+        errors.append(f"{where}: source checked {src['checked']} is in the future")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
@@ -87,6 +100,8 @@ def main():
         a, b = day(s["start"], where, errors), day(s["end"], where, errors)
         if a and b and b < a:
             errors.append(f"{where}: ends {s['end']} before it starts {s['start']}")
+        if "source" in s:
+            check_source(s["source"], where, errors)
     for m in src["milestones"]:
         day(m["date"], f"milestone {m.get('label')}", errors)
     for p in src["migration"]:
@@ -100,6 +115,11 @@ def main():
     rivers, manual = [], 0
     for r in src["rivers"]:
         where = f"river {r['id']}"
+        for n, rule in enumerate(r["rules"]):
+            if "source" in rule:
+                check_source(rule["source"], f"{where} rule {n}", errors)
+        for n, s in enumerate(r.get("sources", [])):
+            check_source(s, f"{where} sources[{n}]", errors)
         out_stops = []
         for i, st in enumerate(r["stops"], 1):
             sw = f"{where} stop {st.get('id')}"
@@ -155,6 +175,8 @@ def main():
         f"stops: {sum(len(r['stops']) for r in rivers)} "
         f"({manual} not in WDFW's access layer, own coordinates)"
     )
+    unsourced = [s["id"] for s in src["seasons"] if "source" not in s]
+    print(f"seasons with a WDFW source: {len(src['seasons']) - len(unsourced)} of {len(src['seasons'])}")
     for w in warnings:
         print("warning:", w)
     for e in errors:
