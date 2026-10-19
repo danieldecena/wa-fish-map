@@ -13,10 +13,14 @@ Shared sources, so a fact lives in one place:
  * A stop with a site_id takes its coordinates from site/data/sites.json (WDFW's
    access layer, written by build_web_data.py). It must not carry lat/lon too.
  * A stop with site_id null keeps its own lat/lon, because WDFW's layer does not
-   list it. The report counts these so they stay visible.
- * Each river's line is measured against WAFishMap/Resources/rivers.json. A line
-   far from the named river is reported as a warning with the distance. It is
-   never silently redrawn.
+   list it. It must carry a place_check against OpenStreetMap: confirmed with the
+   OSM name and its distance (0 to 250 m), or confirmed false. The page shows
+   "Location unconfirmed" on the unconfirmed ones.
+ * Each river's line is measured against WAFishMap/Resources/rivers.json. A point
+   more than 1.5 km from the named river is an error. The mouth end can be
+   excused with line_mouth_points and a line_mouth_note saying why (the tidal
+   Duwamish and the Skagit delta are not in rivers.json); the report prints
+   what was excused. A line is never silently redrawn.
 
 Errors stop the build: an unknown site_id, a manual stop without coordinates, a
 linked stop that also has coordinates, a bad stage, a stop id out of order, a
@@ -87,7 +91,7 @@ def main():
     src = json.loads(SRC.read_text())
     sites = {s["id"]: s for s in json.loads(SITES.read_text())["sites"]}
     features = json.loads(RIVERS.read_text())["features"]
-    errors, warnings = [], []
+    errors, warnings, notes, unconfirmed = [], [], [], []
 
     ids = set()
     for s in src["seasons"]:
@@ -139,6 +143,21 @@ def main():
                 stop["lat"], stop["lon"] = sites[sid]["lat"], sites[sid]["lon"]
             else:
                 manual += 1
+                pc = st.get("place_check")
+                if not isinstance(pc, dict) or pc.get("source") != "OpenStreetMap":
+                    errors.append(f"{sw}: a stop outside WDFW's layer needs a place_check against OpenStreetMap")
+                else:
+                    day(pc.get("checked"), f"{sw} place_check checked", errors)
+                    if not isinstance(pc.get("confirmed"), bool):
+                        errors.append(f"{sw}: place_check.confirmed must be true or false")
+                    elif pc["confirmed"] and not (
+                        str(pc.get("name", "")).strip()
+                        and isinstance(pc.get("meters"), int)
+                        and 0 <= pc["meters"] <= 250
+                    ):
+                        errors.append(f"{sw}: a confirmed place needs the OSM name and meters 0 to 250")
+                    elif not pc["confirmed"]:
+                        unconfirmed.append(f"{where} stop {st['id']} {st['name']}")
                 if not (
                     isinstance(st.get("lat"), float)
                     and isinstance(st.get("lon"), float)
@@ -158,10 +177,19 @@ def main():
         if not segs:
             warnings.append(f"{where}: no {name!r} in rivers.json, line not checked")
         else:
-            worst = max(min(seg_km(p, a, b) for a, b in segs) for p in r["line"])
-            if worst > LINE_WARN_KM:
-                warnings.append(
-                    f"{where}: line strays {worst:.1f} km from rivers.json {name!r}"
+            gaps = [min(seg_km(p, a, b) for a, b in segs) for p in r["line"]]
+            skip = r.get("line_mouth_points", 0)
+            if skip and not str(r.get("line_mouth_note", "")).strip():
+                errors.append(f"{where}: line_mouth_points needs a line_mouth_note saying why")
+            for n, g in enumerate(gaps[skip:], skip):
+                if g > LINE_WARN_KM:
+                    errors.append(
+                        f"{where}: line point {n} is {g:.1f} km from rivers.json {name!r}"
+                    )
+            if skip:
+                notes.append(
+                    f"{where}: first {skip} line points ({max(gaps[:skip]):.1f} km at most) "
+                    f"are outside rivers.json: {r['line_mouth_note']}"
                 )
         rivers.append(
             {**{k: v for k, v in r.items() if k != "stops"}, "stops": out_stops}
@@ -179,6 +207,10 @@ def main():
     print(f"seasons with a WDFW source: {len(src['seasons']) - len(unsourced)} of {len(src['seasons'])}")
     for w in warnings:
         print("warning:", w)
+    for n in notes:
+        print("note:", n)
+    for u in unconfirmed:
+        print("unconfirmed place:", u)
     for e in errors:
         print("error:", e)
     if errors:

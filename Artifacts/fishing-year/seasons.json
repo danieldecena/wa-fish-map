@@ -436,7 +436,14 @@
      "town": "Kent",
      "note": "Bank access in Kent, close to the S 212th St line where the rules change. Check the reach before you cast.",
      "pass": false,
-     "site_id": null
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Three Friends Fishing Hole Park",
+      "meters": 17,
+      "checked": "2026-10-18"
+     }
     },
     {
      "id": 2,
@@ -448,7 +455,13 @@
      "town": "Kent",
      "note": "A concrete hand-launch ramp, good for a small raft or kayak.",
      "pass": false,
-     "site_id": null
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": false,
+      "note": "No feature with a matching name near these coordinates",
+      "checked": "2026-10-18"
+     }
     },
     {
      "id": 3,
@@ -460,9 +473,18 @@
      "town": "Auburn",
      "note": "City park on the river. One reviewer saw pinks caught here. On the map it is downstream of Hwy 18, but confirm the reach in the WDFW table.",
      "pass": false,
-     "site_id": null
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Isaac Evans Park",
+      "meters": 153,
+      "checked": "2026-10-18"
+     }
     }
-   ]
+   ],
+   "line_mouth_points": 5,
+   "line_mouth_note": "the tidal Duwamish from Elliott Bay to Tukwila; rivers.json's Green River starts at Tukwila"
   },
   {
    "id": "snoqualmie",
@@ -695,13 +717,21 @@
      "id": 1,
      "name": "McCormick Park",
      "short": "McCormick Park",
-     "lat": 47.7399,
-     "lon": -121.9901,
+     "lat": 47.7347013,
+     "lon": -121.99293,
      "stage": "lower",
      "town": "Duvall",
      "note": "River park in Duvall, the lowest stop on this stretch.",
      "pass": false,
-     "site_id": null
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "McCormick Park",
+      "meters": 0,
+      "checked": "2026-10-18",
+      "note": "Coordinates moved 616 m to the park in Duvall; the old point was 147 m from the river, this one is 7 m"
+     }
     },
     {
      "id": 2,
@@ -713,7 +743,14 @@
      "town": "North of Carnation",
      "note": "Natural area on the river north of Carnation.",
      "pass": false,
-     "site_id": null
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Chinook Bend Natural Area",
+      "meters": 46,
+      "checked": "2026-10-18"
+     }
     },
     {
      "id": 3,
@@ -725,7 +762,13 @@
      "town": "Carnation",
      "note": "Boat launch with free parking, close to where the Tolt joins.",
      "pass": false,
-     "site_id": null
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": false,
+      "note": "No feature with a matching name near these coordinates",
+      "checked": "2026-10-18"
+     }
     },
     {
      "id": 4,
@@ -757,7 +800,14 @@
      "town": "Fall City area",
      "note": "Needs a Discover Pass.",
      "pass": true,
-     "site_id": null
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Plum #1",
+      "meters": 22,
+      "checked": "2026-10-18"
+     }
     }
    ],
    "sources": [
@@ -905,7 +955,14 @@
      "town": "Monroe",
      "note": "Park with river access just upstream of the Lewis Street ramp.",
      "pass": false,
-     "site_id": null
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Al Borlin Park",
+      "meters": 121,
+      "checked": "2026-10-18"
+     }
     },
     {
      "id": 3,
@@ -1055,7 +1112,13 @@
      "town": "Puyallup–Sumner",
      "note": "Beach-style access on the river.",
      "pass": false,
-     "site_id": null
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": false,
+      "note": "No feature with a matching name near these coordinates",
+      "checked": "2026-10-18"
+     }
     },
     {
      "id": 2,
@@ -1087,7 +1150,14 @@
      "town": "Orting area",
      "note": "Not a WDFW site. A levee walk from the trailhead leads down to the river and its sand bars. A reviewer who fished the opening saw about one other person.",
      "pass": false,
-     "site_id": null
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Foothills Trail - McMillin Trailhead",
+      "meters": 16,
+      "checked": "2026-10-18"
+     }
     }
    ]
   },
@@ -1419,7 +1489,14 @@
      "town": "Burlington",
      "note": "Near the tideline, just upstream of the I-5 bridge. Fresh fish arrive here first.",
      "pass": false,
-     "site_id": null
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Skagit River Park",
+      "meters": 180,
+      "checked": "2026-10-18"
+     }
     },
     {
      "id": 4,
@@ -1491,7 +1568,14 @@
      "town": "Rockport",
      "note": "County park on the river with a boat ramp and campground.",
      "pass": false,
-     "site_id": null
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Howard Miller Steelhead Park",
+      "meters": 119,
+      "checked": "2026-10-18"
+     }
     },
     {
      "id": 11,
@@ -1503,7 +1587,14 @@
      "town": "Marblemount",
      "note": "The upper end, close to spawning water. Check for closed zones before you go.",
      "pass": false,
-     "site_id": null
+     "site_id": null,
+     "place_check": {
+      "source": "OpenStreetMap",
+      "confirmed": true,
+      "name": "Marblemount Boat Launch",
+      "meters": 121,
+      "checked": "2026-10-18"
+     }
     }
    ],
    "status": "Ends Oct 31",
@@ -1513,7 +1604,9 @@
      "url": "https://wdfw.wa.gov/sites/default/files/about/regulations/filings/2026/wsr-26-21-045.pdf",
      "checked": "2026-10-18"
     }
-   ]
+   ],
+   "line_mouth_points": 2,
+   "line_mouth_note": "the delta to Skagit Bay; rivers.json's Skagit River ends where the forks split and the page draws one simplified path"
   }
  ]
 }
