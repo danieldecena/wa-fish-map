@@ -293,12 +293,43 @@ def parse_puget_tables(
     return rows, bad
 
 
+def row_key(r: SourceRow) -> tuple[object, ...]:
+    return (
+        r.site,
+        r.catch_area,
+        r.date,
+        r.interviews,
+        r.anglers,
+        tuple(r.species.items()),
+    )
+
+
+def drop_page_overlap(pages: list[list[SourceRow]]) -> tuple[list[SourceRow], int]:
+    """All rows in page order, minus any row identical to one on an EARLIER page.
+
+    The listing is paged and WDFW adds rows while it is read, so a row can show up
+    again at the top of the next page. That is the same observation twice, and summing
+    it would double that day's counts. Identical rows on one page are kept: the source
+    can legitimately list two interviews with the same figures."""
+    seen: set[tuple[object, ...]] = set()
+    out: list[SourceRow] = []
+    dropped = 0
+    for rows in pages:
+        for r in rows:
+            if row_key(r) in seen:
+                dropped += 1
+            else:
+                out.append(r)
+        seen |= {row_key(r) for r in rows}
+    return out, dropped
+
+
 def fetch_window(
     days: int, refresh: bool
 ) -> tuple[list[SourceRow], list[NotParsed], list[str]]:
     """Every row of the Puget page for the last `days` days, all pages. Also the cache names used."""
     code = WINDOWS[days]
-    rows: list[SourceRow] = []
+    pages: list[list[SourceRow]] = []
     bad: list[NotParsed] = []
     names: list[str] = []
     for n in range(MAX_PAGES):
@@ -311,10 +342,16 @@ def fetch_window(
             break
         names.append(name)
         got, nb = parse_puget_tables(tables, f"page {n}")
-        rows += got
+        pages.append(got)
         bad += nb
     else:
         raise SystemExit(f"more than {MAX_PAGES} pages; stopping rather than guessing")
+    rows, dropped = drop_page_overlap(pages)
+    if dropped:
+        print(
+            f"warning: dropped {dropped} rows that repeat a row from an earlier page",
+            file=sys.stderr,
+        )
     return rows, bad, names
 
 
@@ -1091,7 +1128,7 @@ def main() -> None:
     )
     if dup:
         print(
-            f"warning: {dup} rows are exact duplicates of another row; kept, not dropped",
+            f"warning: {dup} rows repeat another row on the same page; kept, since the source can list identical interviews",
             file=sys.stderr,
         )
 
@@ -1151,7 +1188,15 @@ def main() -> None:
                 f"{ramp}: the ramp-filtered page disagrees with the full listing ({len(mine)} vs {len(full)} ramp-days, {len(own_bad)} not parsed)"
             )
 
-    generated = today.isoformat()
+    # The counts are as of the day the pages were fetched, not the day this script ran: a cached page
+    # is reused until --refresh, and the file must not claim a newer date than its data has.
+    fetched = min(cache_date(n) for n in names)
+    generated = fetched.isoformat()
+    if fetched != today:
+        print(
+            f"warning: the pages were fetched {fetched}, {(today - fetched).days} day(s) ago, so creel.js is dated {fetched}. Run with --refresh for today's counts.",
+            file=sys.stderr,
+        )
     js = render_js(a.sites, generated)
     if len(js.encode()) > SIZE_CAP:
         raise SystemExit(
@@ -1205,7 +1250,6 @@ def main() -> None:
     OUT.write_text(js)
     REVIEW.write_text(review)
 
-    fetched = min(cache_date(n) for n in names)
     dates = sorted({r.date for r in rows})
     print(
         f"puget {label}: {len(rows)} rows, {len({r.site for r in rows})} ramps, sampled days {dates[0]} to {dates[-1]}, fetched {fetched}, {len(names)} pages"
