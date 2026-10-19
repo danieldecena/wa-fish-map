@@ -116,7 +116,8 @@ test('matching held: each row came from a source ramp whose name equals the site
 });
 
 test('no medium crosswalk entry is applied: its ramp is in no creel.js row', () => {
-  assert.ok(MEDIUM.length > 0, 'control: there are medium entries to check');
+  // The owner approved or rejected every candidate on 2026-10-18, so the real file may hold none. The fixture tests below
+  // prove a medium entry is held back; this loop covers any medium entry added later.
   const used = new Set(SITES.flatMap(([, c]) => c.rows.flatMap(r => r.ramp.split(' + ').map(normalize))));
   for (const e of MEDIUM) assert.ok(!used.has(normalize(e.wdfw_ramp_name)), `${e.wdfw_ramp_name} is medium and must not be applied`);
 });
@@ -248,6 +249,9 @@ test('fixture: a near name that is not in the crosswalk does NOT match, even bes
 });
 
 test('fixture: a medium crosswalk entry is not applied', { skip: skipFx }, () => {
+  const fxCrosswalk = JSON.parse(fs.readFileSync(path.join(__dirname, 'creel-fixture.json'), 'utf8')).crosswalk;
+  const eta = fxCrosswalk.find(e => e.wdfw_ramp_name === 'Eta Public Ramp');
+  assert.ok(eta && eta.confidence === 'medium', 'control: the fixture really holds Eta as a medium entry');
   assert.ok(!('Eta Public Ramp' in FX.matched));
   assert.ok('Eta Public Ramp' in FX.unmatched);
   assert.ok(!('eta-pier' in FX.sites), 'no counts for the medium candidate site');

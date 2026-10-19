@@ -103,47 +103,31 @@
       "note": "WDFW counts boat (launch) and shore (dock or pier) interviews at the park, so the counts describe Twanoh State Park as a whole; the sheet keeps the source name 'Twanoh State Park'."
     },
     {
-      "wdfw_ramp_name": "Allyn Public Ramp",
-      "site_id": "allyn-pier",
-      "confidence": "medium",
-      "evidence": [
-        "Name: 'Allyn' only; Public Ramp vs Pier.",
-        "https://www.openstreetmap.org/node/50017641 : OSM slipway 18 m from the map site, and OSM 'Port of Allyn Dock' (way 667910153) 77 m away, in 'Allyn Waterfront Park'.",
-        "https://www.portofallyn.com/ says 'Allyn Waterfront Pier and Marina CLOSED for repairs until further notice!' and lists no public boat launch on its front page."
-      ],
-      "note": "Same waterfront, but the pier is closed, so counts from the ramp would sit on a closed pier's sheet. Not applied; owner to decide."
-    },
-    {
       "wdfw_ramp_name": "Point Defiance Public Ramp",
       "site_id": "point-defiance-marina-boathouse",
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         "Name: 'Point Defiance' only.",
-        "OSM slipways (https://www.openstreetmap.org/node/4080920301) are 366 m to 399 m from the map site; Metro Parks Tacoma describes an 8-lane ramp next to the Vashon Ferry Terminal (https://www.parkstacoma.gov/boat-launch/, seen in a search summary; the page itself returned 403)."
+        "OSM slipways (https://www.openstreetmap.org/node/4080920301) are 366 m to 399 m from the map site; Metro Parks Tacoma describes an 8-lane ramp next to the Vashon Ferry Terminal (https://www.parkstacoma.gov/boat-launch/, seen in a search summary; the page itself returned 403).",
+        "https://www.parkstacoma.gov/boat-launch/ : Parks Tacoma runs the Point Defiance public boat launch, 8 lanes beside the Vashon ferry terminal at Point Defiance Park.",
+        "https://www.visitpiercecounty.com/listing/point-defiance-marina/485/ : lists Point Defiance Marina, 5912 N Waterfront Dr, with 'Public launch' among its services (search excerpt).",
+        "https://www.waboatlaunches.com/point-defiance-park-boat-launch/ : gives the launch the same address, 5912 N Waterfront Dr."
       ],
-      "note": "Different part of Point Defiance Park from the Boathouse and its dock. Not applied. The map has no site for this ramp; this is the nearest one."
-    },
-    {
-      "wdfw_ramp_name": "Mukilteo Lighthouse Park (State Park Public Ramp)",
-      "site_id": "mukilteo-fishing-piers",
-      "confidence": "medium",
-      "evidence": [
-        "Name: 'Mukilteo' only.",
-        "OSM: the map site is 223 m north of the 'Mukilteo Lighthouse Park' polygon (City of Mukilteo) and the OSM slipway is 161 m away (https://www.openstreetmap.org/way/290570862, tagged access=no).",
-        "https://en.wikipedia.org/wiki/Mukilteo_Lighthouse_Park : the park was formerly Mukilteo State Park and is now run by the City of Mukilteo; no source found that names a fishing pier at the park."
-      ],
-      "note": "Not applied: no page found that puts the fishing piers at the Lighthouse Park launch."
+      "note": "Approved 2026-10-18. The launch is a few hundred metres from the Boathouse dock (OSM slipways 366 to 399 m) at the same Point Defiance address. The sheet keeps showing the WDFW ramp name."
     },
     {
       "wdfw_ramp_name": "Shilshole Public Ramp",
       "site_id": "shilshole-marina-pier",
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         "Name: 'Shilshole' only.",
         "https://www.openstreetmap.org/node/679497545 : OSM slipway 'Eddie Vine Boat Ramp' (Seattle Parks), 37 m from the map site; Seattle describes Eddie Vine as the northernmost saltwater ramp, between Golden Gardens and Shilshole Marina (search summary of https://www.seattle.gov/parks/allparks/eddie-vine-boat-ramp). That Eddie Vine is WDFW's 'Shilshole Public Ramp' is an inference, not a page that says so.",
-        "The map also has 'Shilshole Marina (A-Dock)' 1.3 km south, so the name alone does not pick one."
+        "The map also has 'Shilshole Marina (A-Dock)' 1.3 km south, so the name alone does not pick one.",
+        "https://wdfw.wa.gov/places-to-go/fishing-piers/shilshole-marina-pier : WDFW's Shilshole Marina Pier (Golden Gardens) page says the public fishing pier adjoins the public boat ramp at the north end of the marina facility (search excerpt).",
+        "https://www.seattle.gov/parks/parks/eddie-vine-boat-ramp : Seattle Parks names Eddie Vine as the city's northernmost saltwater boat ramp, between Golden Gardens park and Shilshole Marina.",
+        "https://www.waboatlaunches.com/shilshole-boat-launch/ : calls the Eddie Vine ramp the Shilshole Boat Launch."
       ],
-      "note": "Plausible; approve only if you can confirm that WDFW's Shilshole Public Ramp is the Eddie Vine ramp. Not applied."
+      "note": "Approved 2026-10-18. WDFW's own pier page says the pier adjoins the public ramp, and Seattle Parks puts the only public ramp there as Eddie Vine. The separate Shilshole Marina (A-Dock) site stays unmatched. The sheet keeps showing the WDFW ramp name."
     },
     {
       "wdfw_ramp_name": "Everett Ramp (formerly Norton Street Ramp (2010))",
@@ -158,16 +142,6 @@
         "The Port of Everett's Facebook post (search excerpt, 2026-10-18) calls it 'The Norton Avenue Boat Launch (now Jetty Landing and Boat Launch)', which is the rename from WDFW's 'formerly Norton Street Ramp'."
       ],
       "note": "Approved 2026-10-18 on three independent signals. The Norton Avenue to Jetty Landing rename rests on the Port's Facebook post, not on a page on portofeverett.com; WDFW calls it Norton Street, the Port Norton Avenue. The sheet keeps showing the WDFW ramp name."
-    },
-    {
-      "wdfw_ramp_name": "Hoodsport Shore",
-      "site_id": "hoodsport-hatchery-handicap-platform",
-      "confidence": "medium",
-      "evidence": [
-        "The source's only catch area is 'Hoodsport Hatchery', WDFW's Hoodsport Hatchery Zone (https://wdfw.wa.gov/places-to-go/fishing-piers/hoodsport-hatchery-handicap-platform).",
-        "That WDFW page says the platform is for anglers who permanently use a wheelchair, while able-bodied anglers fish other designated areas at the hatchery, so 'Hoodsport Shore' is most likely those other areas, not the platform. The map also has 'Hoodsport Pier', about 390 m away."
-      ],
-      "note": "Probably should be rejected: shore counts for the hatchery zone are not counts for a wheelchair-only platform."
     }
   ],
   "reviewed_no_match": [
@@ -223,6 +197,9 @@
     {"wdfw_ramp_name": "Van Ripers Resort", "reason": "A resort in the Sekiu area, not in the map."},
     {"wdfw_ramp_name": "Wauna Ramp", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
     {"wdfw_ramp_name": "Wauna Shore", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
-    {"wdfw_ramp_name": "Wildcat Cove Ramp, Larrabee State Park", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."}
+    {"wdfw_ramp_name": "Wildcat Cove Ramp, Larrabee State Park", "reason": "No map site shares a name or place with it (the 63 piers and the access sites of the 12 Puget Sound counties were checked by name on 2026-10-18), and nothing found ties it to one."},
+    {"wdfw_ramp_name": "Allyn Public Ramp", "reason": "Same waterfront as the Allyn pier site, but the Port of Allyn lists the pier as closed for repairs, so ramp counts would sit on a closed pier's sheet. Rejected 2026-10-18; revisit when the pier reopens."},
+    {"wdfw_ramp_name": "Mukilteo Lighthouse Park (State Park Public Ramp)", "reason": "WDFW's pier page puts the Mukilteo piers beside the ferry terminal (910 Front St) and the City of Mukilteo puts the launch on the northwest side of Lighthouse Park. No page ties them to one facility. Rejected 2026-10-18."},
+    {"wdfw_ramp_name": "Hoodsport Shore", "reason": "WDFW counts shore anglers at the Hoodsport Hatchery Zone, and the map site is a platform for anglers who use a wheelchair, so zone counts are not counts for that platform. Rejected 2026-10-18."}
   ]
 }

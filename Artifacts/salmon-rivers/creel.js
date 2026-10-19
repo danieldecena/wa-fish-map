@@ -418,9 +418,29 @@
     },
     "point-defiance-marina-boathouse": {
       "filter": "Last 30 days",
-      "windowStart": "2026-09-20",
+      "windowStart": "2026-09-19",
       "windowEnd": "2026-10-18",
       "rows": [
+        {
+          "ramp": "Point Defiance Public Ramp",
+          "catchArea": "Area 10, Seattle-Bremerton area",
+          "windowStart": "2026-09-19",
+          "windowEnd": "2026-10-04",
+          "surveyDays": 8,
+          "match": "crosswalk",
+          "interviews": 19,
+          "anglers": 42,
+          "species": {
+            "Chinook": 0,
+            "Coho": 34,
+            "Chum": 0,
+            "Pink": 0,
+            "Sockeye": 0,
+            "Lingcod": 0,
+            "Halibut": 0
+          },
+          "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Point+Defiance+Public+Ramp&sample_date=2"
+        },
         {
           "ramp": "Point Defiance Boathouse",
           "catchArea": "Area 10, Seattle-Bremerton area",
@@ -442,6 +462,26 @@
           "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Point+Defiance+Boathouse&sample_date=2"
         },
         {
+          "ramp": "Point Defiance Public Ramp",
+          "catchArea": "Area 11, Tacoma-Vashon Island",
+          "windowStart": "2026-09-19",
+          "windowEnd": "2026-10-18",
+          "surveyDays": 22,
+          "match": "crosswalk",
+          "interviews": 711,
+          "anglers": 1329,
+          "species": {
+            "Chinook": 4,
+            "Coho": 346,
+            "Chum": 2,
+            "Pink": 0,
+            "Sockeye": 0,
+            "Lingcod": 0,
+            "Halibut": 0
+          },
+          "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Point+Defiance+Public+Ramp&sample_date=2"
+        },
+        {
           "ramp": "Point Defiance Boathouse",
           "catchArea": "Area 11, Tacoma-Vashon Island",
           "windowStart": "2026-09-20",
@@ -460,6 +500,26 @@
             "Halibut": 0
           },
           "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Point+Defiance+Boathouse&sample_date=2"
+        },
+        {
+          "ramp": "Point Defiance Public Ramp",
+          "catchArea": "Area 13, South Puget Sound",
+          "windowStart": "2026-09-19",
+          "windowEnd": "2026-10-18",
+          "surveyDays": 12,
+          "match": "crosswalk",
+          "interviews": 23,
+          "anglers": 42,
+          "species": {
+            "Chinook": 10,
+            "Coho": 1,
+            "Chum": 0,
+            "Pink": 0,
+            "Sockeye": 0,
+            "Lingcod": 0,
+            "Halibut": 0
+          },
+          "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Point+Defiance+Public+Ramp&sample_date=2"
         },
         {
           "ramp": "Point Defiance Boathouse",
@@ -500,6 +560,133 @@
             "Halibut": 0
           },
           "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Point+Defiance+Boathouse&sample_date=2"
+        },
+        {
+          "ramp": "Point Defiance Public Ramp",
+          "catchArea": "Area 9, Admiralty Inlet",
+          "windowStart": "2026-09-26",
+          "windowEnd": "2026-09-27",
+          "surveyDays": 2,
+          "match": "crosswalk",
+          "interviews": 2,
+          "anglers": 5,
+          "species": {
+            "Chinook": 0,
+            "Coho": 3,
+            "Chum": 0,
+            "Pink": 0,
+            "Sockeye": 0,
+            "Lingcod": 0,
+            "Halibut": 0
+          },
+          "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Point+Defiance+Public+Ramp&sample_date=2"
+        },
+        {
+          "ramp": "Point Defiance Public Ramp",
+          "catchArea": "Commencement Bay",
+          "windowStart": "2026-10-12",
+          "windowEnd": "2026-10-12",
+          "surveyDays": 1,
+          "match": "crosswalk",
+          "interviews": 1,
+          "anglers": 1,
+          "species": {
+            "Chinook": 0,
+            "Coho": 0,
+            "Chum": 0,
+            "Pink": 0,
+            "Sockeye": 0,
+            "Lingcod": 0,
+            "Halibut": 0
+          },
+          "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Point+Defiance+Public+Ramp&sample_date=2"
+        }
+      ]
+    },
+    "shilshole-marina-pier": {
+      "filter": "Last 30 days",
+      "windowStart": "2026-09-19",
+      "windowEnd": "2026-10-17",
+      "rows": [
+        {
+          "ramp": "Shilshole Public Ramp",
+          "catchArea": "Area 10, Seattle-Bremerton area",
+          "windowStart": "2026-09-19",
+          "windowEnd": "2026-10-17",
+          "surveyDays": 22,
+          "match": "crosswalk",
+          "interviews": 827,
+          "anglers": 1689,
+          "species": {
+            "Chinook": 0,
+            "Coho": 937,
+            "Chum": 6,
+            "Pink": 0,
+            "Sockeye": 0,
+            "Lingcod": 0,
+            "Halibut": 0
+          },
+          "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Shilshole+Public+Ramp&sample_date=2"
+        },
+        {
+          "ramp": "Shilshole Public Ramp",
+          "catchArea": "Area 8-2, Ports Susan and Gardner",
+          "windowStart": "2026-09-19",
+          "windowEnd": "2026-09-22",
+          "surveyDays": 2,
+          "match": "crosswalk",
+          "interviews": 5,
+          "anglers": 9,
+          "species": {
+            "Chinook": 0,
+            "Coho": 10,
+            "Chum": 0,
+            "Pink": 0,
+            "Sockeye": 0,
+            "Lingcod": 0,
+            "Halibut": 0
+          },
+          "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Shilshole+Public+Ramp&sample_date=2"
+        },
+        {
+          "ramp": "Shilshole Public Ramp",
+          "catchArea": "Area 9, Admiralty Inlet",
+          "windowStart": "2026-09-19",
+          "windowEnd": "2026-10-03",
+          "surveyDays": 11,
+          "match": "crosswalk",
+          "interviews": 81,
+          "anglers": 241,
+          "species": {
+            "Chinook": 0,
+            "Coho": 294,
+            "Chum": 0,
+            "Pink": 0,
+            "Sockeye": 0,
+            "Lingcod": 0,
+            "Halibut": 0
+          },
+          "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Shilshole+Public+Ramp&sample_date=2"
+        },
+        {
+          "ramp": "Shilshole Public Ramp",
+          "catchArea": "Sinclair Inlet",
+          "windowStart": "2026-09-27",
+          "windowEnd": "2026-09-27",
+          "surveyDays": 1,
+          "match": "crosswalk",
+          "interviews": 1,
+          "anglers": 3,
+          "species": {
+            "Chinook": 0,
+            "Coho": 0,
+            "Chum": 0,
+            "Pink": 0,
+            "Sockeye": 0,
+            "Lingcod": 0,
+            "Halibut": 0
+          },
+          "source": "https://wdfw.wa.gov/fishing/reports/creel/puget?ramp=Shilshole+Public+Ramp&sample_date=2"
         }
       ]
     },
