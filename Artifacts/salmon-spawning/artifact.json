@@ -1,0 +1,11 @@
+{
+  "url": "https://claude.ai/artifact/F5zGNo3kKd2333Ggr9iQmX",
+  "title": "Where Salmon Spawn",
+  "identified": "2026-10-20, published from a session the same day",
+  "account": "danieldecena@icloud.com",
+  "what": "Standalone Washington map of 75 salmon viewing sites from WDFW's Salmon Viewing list, coloured by typical spawning timing for a chosen month. Superseded the same day by the Spawning mode of the Washington Fishing Map app (Artifacts/salmon-rivers, ?mode=spawning).",
+  "currentVersion": "1792487132-62ab",
+  "superseded": "2026-10-20 by https://claude.ai/artifact/9oA145toRsmFcDYurdJbey (Spawning mode). Not to be developed further here; the open task is a banner pointing to the app.",
+  "note": "Five published paths: index.html (the page file) plus rivers.js, coast.js, sites.js and cluster.js. Refresh (for the banner) by PASSING THIS URL with files={rivers.js, coast.js, sites.js, cluster.js}.",
+  "source": "Captured 2026-10-20 from the live version above with the Artifact tool, file by file (sha256 matched the read). index.html is the page as published, including the publisher's wrapper, like the other captured pages. A later local edit of this page (ring groups, ribbon scrub, My location) was never republished here; that work went into the app's Spawning mode instead."
+}

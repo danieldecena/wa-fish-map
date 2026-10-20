@@ -1,0 +1,23 @@
+/* App tab bar: Map | Year | Spots | Counts. An App Kit SegmentedControl on a glass bar.
+   Self-contained; its tokens are App Kit values scoped to .apptabs and prefixed --tab-.
+   Glass is App Kit's web stand-in (rgba .55 + 16px blur); the labels sit on the opaque track,
+   so their contrast does not depend on the glass. Without backdrop-filter the glass goes to .92. */
+.apptabs{--tab-glass:rgba(255,255,255,.55);--tab-glass-solid:rgba(255,255,255,.92);--tab-hair:#D1D1D6;--tab-track:#E5E5EA;--tab-seg:#FFFFFF;--tab-seg-shadow:0 1px 2px rgba(0,0,0,.12);--tab-ink:#1D1D1F;--tab-ink-soft:#636366;--tab-accent:#007AFF;--tab-font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .apptabs{--tab-glass:rgba(44,44,46,.55);--tab-glass-solid:rgba(44,44,46,.92);--tab-hair:#38383A;--tab-track:#2C2C2E;--tab-seg:#636366;--tab-seg-shadow:0 1px 2px rgba(0,0,0,.5);--tab-ink:#F5F5F7;--tab-ink-soft:#98989D;--tab-accent:#0A84FF}}
+:root[data-theme=dark] .apptabs{--tab-glass:rgba(44,44,46,.55);--tab-glass-solid:rgba(44,44,46,.92);--tab-hair:#38383A;--tab-track:#2C2C2E;--tab-seg:#636366;--tab-seg-shadow:0 1px 2px rgba(0,0,0,.5);--tab-ink:#F5F5F7;--tab-ink-soft:#98989D;--tab-accent:#0A84FF}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
+.apptabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:1000;box-sizing:border-box;padding:6px max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
+.apptabs::before{content:"";position:absolute;z-index:-1;left:0;right:0;bottom:0;top:calc(-1 * env(safe-area-inset-top,0px));background:var(--tab-glass);-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);box-shadow:0 .5px 0 var(--tab-hair)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.apptabs::before{background:var(--tab-glass-solid)}}
+/* Track: surface-sunk, radius-md, 3px inset. It is 44px tall so every link is a full 44px target;
+   the visible segment is the link's ::before, 38px tall after the 3px inset top and bottom. */
+.apptabs-track{display:flex;box-sizing:border-box;max-width:420px;height:44px;margin:0 auto;padding:0 3px;border-radius:10px;background:var(--tab-track)}
+.apptabs a{position:relative;z-index:0;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;height:44px;padding:0 4px;color:var(--tab-ink-soft);font:600 15px/20px var(--tab-font);text-decoration:none;white-space:nowrap;outline:none;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;transition:color 150ms ease-out,opacity 150ms ease-out}
+.apptabs a::before{content:"";position:absolute;z-index:-1;inset:3px 0;border-radius:7px;transition:background-color 150ms ease-out}
+.apptabs a[aria-current=page]{color:var(--tab-ink)}
+.apptabs a[aria-current=page]::before{background:var(--tab-seg);box-shadow:var(--tab-seg-shadow)}
+@media (hover:hover){.apptabs a:not([aria-current=page]):hover{color:var(--tab-ink)}}
+.apptabs a:not([aria-current=page]):active{opacity:.55}
+.apptabs a:focus-visible{z-index:1}
+.apptabs a:focus-visible::before{outline:2px solid var(--tab-accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.apptabs a,.apptabs a::before{transition:none}}

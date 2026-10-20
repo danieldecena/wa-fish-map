@@ -142,6 +142,43 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-20 (Washington Fishing Map becomes one app)
+
+- Decided: the Fishing Map artifact is one app with tabs Map | Year | Spots |
+  Counts (live `1792491424-046f`). One artifact, four HTML pages linked by a
+  shared tab bar with relative links; each page keeps its tested code. Scoping
+  the Fishing Year's CSS and script into one document was rejected as high-risk.
+  `fishing-year`, `three-friends-fishing-hole` and `salmon-catch-table` stay the
+  sources; `scripts/build_app_tabs.py` builds the tabs from them. Plan:
+  `docs/superpowers/plans/2026-10-20-one-app.md`.
+- Spawning is a third Map mode: 75 WDFW salmon viewing sites by typical
+  spawning month (`sites.js`, `scripts/build_spawning_sites.py`). It supersedes
+  the standalone Where Salmon Spawn page (`Artifacts/salmon-spawning`, v1 kept).
+  Species names are exact app names; "Sockeye Salmon" is allow-listed because
+  the app has no sockeye guidance.
+- Every named river is tappable (`rivers-tap.js`, 295 names, 77 gauges): its
+  sheet shows the USGS gauge's typical flow for the month (historical range,
+  not today's reading, with a link to today's flow) and WDFW notices from
+  `rules.js` (Hoh/Quillayute closure, Skagit/Cascade, Stillaguamish,
+  Snohomish). Notices never colour a river or pin. Shared river names are
+  split into groups, and a gauge attaches only to the group it sits on.
+- No new rated rivers: none of 32 Puget Sound and coast rivers had a dated
+  catch report Oct 6–20 (`docs/research/2026-10-20-river-reports-and-rules.md`).
+  Catch reports stay in `reports.js`; no new database. The Cowlitz and Lewis
+  highlights were clipped to the reaches their reports cover.
+- My location: set by hand (map tap or 14 towns), kept in the viewer's
+  `localStorage` only. The artifact viewer refuses geolocation, and writing the
+  owner's city into the page would publish it.
+- Repo rules reverted two design-critique changes, found only after pulling a
+  checkout 472 commits behind: ring-coloured clusters on the river map (README:
+  clusters never carry a rating they do not share; cluster, design and controls
+  tests failed) and majority-only pin labels in Typical season (README: every
+  pin carries its rating word, because orange and yellow fail the colour-blind
+  gate). The Spawning map's v1 rings were dropped in the merge for the same rule.
+- Generators now in the repo: `build_app_tabs.py`, `build_spawning_sites.py`,
+  `build_rivers_tap.py` and `build_geo.py` (geo.js was "generated elsewhere").
+  Each reproduces the published file byte for byte, except comment headers.
+
 ### 2026-10-20 (project docs brought up to date)
 
 - Decided: CLAUDE.md, README and SETUP now cover the `Artifacts/` web pages,

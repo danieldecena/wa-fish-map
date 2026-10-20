@@ -180,15 +180,23 @@ is minted and the old link goes stale. Read the live version before publishing
 
 | Folder | Page | Source of truth |
 |--------|------|-----------------|
-| `salmon-rivers/` | Washington Fishing Map — Recent reports + Typical season | its README |
-| `fishing-year/` | Washington Fishing Year — seasons calendar, Oct 2026–Nov 2027 | `seasons.json` → its README |
-| `salmon-catch-table/` | SW Washington Creel Table — WDFW weekly counts | `~/database/salmon-rivers/salmon.db` → its README |
-| `three-friends-fishing-hole/` | Three Friends Fishing Hole — one Green River bank spot in Kent | `index.html` (hand-written; dated rules go stale) |
+| `salmon-rivers/` | Washington Fishing Map — one app: Map (Recent reports, Typical season, Spawning) / Year / Spots / Counts tabs | its README; `year/`, `spots/`, `counts/` are built by `scripts/build_app_tabs.py` |
+| `fishing-year/` | Washington Fishing Year — seasons calendar, Oct 2026–Nov 2027; source of the app's Year tab | `seasons.json` → its README |
+| `salmon-catch-table/` | SW Washington Creel Table — WDFW weekly counts; source of the app's Counts tab | `~/database/salmon-rivers/salmon.db` → its README |
+| `three-friends-fishing-hole/` | Three Friends Fishing Hole — one Green River bank spot in Kent; source of the app's Spots tab | `index.html` (hand-written; dated rules go stale) |
+| `salmon-spawning/` | Where Salmon Spawn — superseded by the app's Spawning mode | `index.html` and scripts as published (v1), captured 2026-10-20 |
 | `design-system/` | WA Fish Map design system (Design System type) | `project/` + `index.html`; the type's own files are not copied |
 | `app-store-listing/`, `interactive-preview/`, `inside-wafishmap/` | Older marketing and explainer pages | `index.html` as published, captured 2026-10-20 |
 
 Every fish artifact on the account is in this table. A new one gets a folder
 with its `artifact.json` and source the day it is published.
+
+Since 2026-10-20 the Fishing Map is one app. `fishing-year/`,
+`three-friends-fishing-hole/` and `salmon-catch-table/` remain the sources of
+the Year, Spots and Counts tabs: edit them there, run
+`scripts/build_app_tabs.py`, and republish both the standalone page and the
+app. Their old standalone links (and Where Salmon Spawn) stay live and will
+carry a banner pointing to the app.
 
 Rules that cross from the app into the pages:
 
@@ -202,8 +210,11 @@ Rules that cross from the app into the pages:
 - Counts (creel) are never ratings, and catch-report colours never share a
   view with seasonal colours. Each page README lists its own rules.
 
-Generated files (`typical.js`, `creel.js`, `counts.js`, `data.js`, `geo.js`)
-say so in their header. Regenerate them; never hand-edit.
+Generated files (`typical.js`, `creel.js`, `counts.js`, `data.js`, `sites.js`
+and the app's `year/`, `spots/`, `counts/` pages) say so in their header.
+`geo.js` and `rivers-tap.js` carry no header so they match the published bytes;
+their generators are `scripts/build_geo.py` and `scripts/build_rivers_tap.py`.
+Regenerate them; never hand-edit.
 
 ## Tests: four suites
 
