@@ -183,7 +183,12 @@ is minted and the old link goes stale. Read the live version before publishing
 | `salmon-rivers/` | Washington Fishing Map — Recent reports + Typical season | its README |
 | `fishing-year/` | Washington Fishing Year — seasons calendar, Oct 2026–Nov 2027 | `seasons.json` → its README |
 | `salmon-catch-table/` | SW Washington Creel Table — WDFW weekly counts | `~/database/salmon-rivers/salmon.db` → its README |
-| `design-system/`, `app-store-listing/`, `interactive-preview/`, `inside-wafishmap/` | Older pages, bindings only | no local source |
+| `three-friends-fishing-hole/` | Three Friends Fishing Hole — one Green River bank spot in Kent | `index.html` (hand-written; dated rules go stale) |
+| `design-system/` | WA Fish Map design system (Design System type) | `project/` + `index.html`; the type's own files are not copied |
+| `app-store-listing/`, `interactive-preview/`, `inside-wafishmap/` | Older marketing and explainer pages | `index.html` as published, captured 2026-10-20 |
+
+Every fish artifact on the account is in this table. A new one gets a folder
+with its `artifact.json` and source the day it is published.
 
 Rules that cross from the app into the pages:
 

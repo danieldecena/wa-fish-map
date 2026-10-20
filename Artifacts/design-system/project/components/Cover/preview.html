@@ -1,0 +1,107 @@
+<!-- @dsCard height=300 -->
+<!--
+  blocks: brand-icon-end 192x256, brand-icon-start 96x256, rating-prime 64x160,
+          rating-good 64x96, rating-fair 64x256 (x=480..960, sides are space-* multiples)
+  arrangement: a strip of unequal vertical bands bleeding off the right edge, deep
+          water at the left of the strip and the hot end of the rating ramp at the
+          right - the map read left to right, cold to hot
+  pattern: literal motif - the pin head. A disc grid at a 36px pitch (2x space-18),
+          r=5 (the legend dot), knocked out of the bands: this product is a field of
+          pins over water and nothing else says that as directly
+  scales: pitch 36 = 2 x space-18; r 5 = half the 10px marker dot; rx = radius-chrome 14
+-->
+<style>
+  .cover { position: relative; width: 960px; height: 300px; font-family: var(--font-sans, -apple-system, system-ui, sans-serif); overflow: hidden; }
+  .cover svg { position: absolute; inset: 0; }
+  .deep { fill: var(--brand-icon-end, #004a79); }
+  .shallow { fill: var(--brand-icon-start, #1797ae); }
+  .prime { fill: var(--rating-prime, #f01c0d); }
+  .good { fill: var(--rating-good, #ff7300); }
+  .fair { fill: var(--rating-fair, #ffc700); }
+  .dot { fill: var(--surface-background, #ffffff); fill-opacity: .72; }
+  .name { position: absolute; left: 40px; bottom: 56px; width: 440px; margin: 0; font-size: 92px; line-height: .92; font-weight: 700; letter-spacing: -.02em; color: var(--text-primary, #000); }
+  .tag { position: absolute; left: 40px; bottom: 28px; width: 440px; margin: 0; font-size: 13px; line-height: 18px; color: var(--text-secondary, rgba(60,60,67,0.6)); }
+</style>
+<div class="cover">
+  <svg viewBox="0 0 960 300" width="960" height="300" aria-hidden="true">
+    <rect class="deep" x="480" y="22" width="192" height="256" rx="14"/>
+    <rect class="shallow" x="680" y="22" width="96" height="256" rx="14"/>
+    <rect class="fair" x="784" y="22" width="64" height="256" rx="14"/>
+    <rect class="good" x="856" y="22" width="64" height="96" rx="14"/>
+    <rect class="prime" x="856" y="126" width="104" height="152" rx="14"/>
+    <circle class="dot" cx="504" cy="44" r="5"/>
+    <circle class="dot" cx="540" cy="44" r="5"/>
+    <circle class="dot" cx="576" cy="44" r="5"/>
+    <circle class="dot" cx="612" cy="44" r="5"/>
+    <circle class="dot" cx="648" cy="44" r="5"/>
+    <circle class="dot" cx="684" cy="44" r="5"/>
+    <circle class="dot" cx="720" cy="44" r="5"/>
+    <circle class="dot" cx="756" cy="44" r="5"/>
+    <circle class="dot" cx="792" cy="44" r="5"/>
+    <circle class="dot" cx="828" cy="44" r="5"/>
+    <circle class="dot" cx="864" cy="44" r="5"/>
+    <circle class="dot" cx="900" cy="44" r="5"/>
+    <circle class="dot" cx="504" cy="80" r="5"/>
+    <circle class="dot" cx="540" cy="80" r="5"/>
+    <circle class="dot" cx="576" cy="80" r="5"/>
+    <circle class="dot" cx="612" cy="80" r="5"/>
+    <circle class="dot" cx="648" cy="80" r="5"/>
+    <circle class="dot" cx="684" cy="80" r="5"/>
+    <circle class="dot" cx="720" cy="80" r="5"/>
+    <circle class="dot" cx="756" cy="80" r="5"/>
+    <circle class="dot" cx="792" cy="80" r="5"/>
+    <circle class="dot" cx="828" cy="80" r="5"/>
+    <circle class="dot" cx="864" cy="80" r="5"/>
+    <circle class="dot" cx="900" cy="80" r="5"/>
+    <circle class="dot" cx="504" cy="116" r="5"/>
+    <circle class="dot" cx="540" cy="116" r="5"/>
+    <circle class="dot" cx="576" cy="116" r="5"/>
+    <circle class="dot" cx="612" cy="116" r="5"/>
+    <circle class="dot" cx="648" cy="116" r="5"/>
+    <circle class="dot" cx="684" cy="116" r="5"/>
+    <circle class="dot" cx="720" cy="116" r="5"/>
+    <circle class="dot" cx="756" cy="116" r="5"/>
+    <circle class="dot" cx="792" cy="116" r="5"/>
+    <circle class="dot" cx="828" cy="116" r="5"/>
+    <circle class="dot" cx="864" cy="116" r="5"/>
+    <circle class="dot" cx="900" cy="116" r="5"/>
+    <circle class="dot" cx="504" cy="152" r="5"/>
+    <circle class="dot" cx="540" cy="152" r="5"/>
+    <circle class="dot" cx="576" cy="152" r="5"/>
+    <circle class="dot" cx="612" cy="152" r="5"/>
+    <circle class="dot" cx="648" cy="152" r="5"/>
+    <circle class="dot" cx="684" cy="152" r="5"/>
+    <circle class="dot" cx="720" cy="152" r="5"/>
+    <circle class="dot" cx="756" cy="152" r="5"/>
+    <circle class="dot" cx="792" cy="152" r="5"/>
+    <circle class="dot" cx="828" cy="152" r="5"/>
+    <circle class="dot" cx="864" cy="152" r="5"/>
+    <circle class="dot" cx="900" cy="152" r="5"/>
+    <circle class="dot" cx="504" cy="188" r="5"/>
+    <circle class="dot" cx="540" cy="188" r="5"/>
+    <circle class="dot" cx="576" cy="188" r="5"/>
+    <circle class="dot" cx="612" cy="188" r="5"/>
+    <circle class="dot" cx="648" cy="188" r="5"/>
+    <circle class="dot" cx="684" cy="188" r="5"/>
+    <circle class="dot" cx="720" cy="188" r="5"/>
+    <circle class="dot" cx="756" cy="188" r="5"/>
+    <circle class="dot" cx="792" cy="188" r="5"/>
+    <circle class="dot" cx="828" cy="188" r="5"/>
+    <circle class="dot" cx="864" cy="188" r="5"/>
+    <circle class="dot" cx="900" cy="188" r="5"/>
+    <circle class="dot" cx="504" cy="224" r="5"/>
+    <circle class="dot" cx="540" cy="224" r="5"/>
+    <circle class="dot" cx="576" cy="224" r="5"/>
+    <circle class="dot" cx="612" cy="224" r="5"/>
+    <circle class="dot" cx="648" cy="224" r="5"/>
+    <circle class="dot" cx="684" cy="224" r="5"/>
+    <circle class="dot" cx="720" cy="224" r="5"/>
+    <circle class="dot" cx="756" cy="224" r="5"/>
+    <circle class="dot" cx="792" cy="224" r="5"/>
+    <circle class="dot" cx="828" cy="224" r="5"/>
+    <circle class="dot" cx="864" cy="224" r="5"/>
+    <circle class="dot" cx="900" cy="224" r="5"/>
+  </svg>
+  <p class="name">WA Fish<br>Map</p>
+  <p class="tag">A colour tells you how good the spot is right now. Everything else gets out of its way.</p>
+</div>

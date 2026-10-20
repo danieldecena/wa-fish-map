@@ -4,5 +4,8 @@
   "identified": "2026-09-15, by /pointer-audit: live and owned by this account, claimed by no owner file",
   "account": "danieldecena@icloud.com",
   "what": "Architecture explainer for the WA fishing map iOS app.",
-  "note": "No local HTML source is recorded, so nothing regenerates this page. Recorded so the url is a BINDING: a refresh that omits it mints a second artifact and leaves this link stale."
+  "note": "No local HTML source is recorded, so nothing regenerates this page. Recorded so the url is a BINDING: a refresh that omits it mints a second artifact and leaves this link stale.",
+  "shortUrl": "https://claude.ai/artifact/121SK1gb2V5qVXn62KcjrT",
+  "currentVersion": "1788252770-32cf",
+  "source": "Source captured into this folder 2026-10-20 from the live version above; index.html is the page as published (2026-09-01). Its facts are dated (17 marine areas, ~1,440 lines, GitHub Actions CI); it describes the app as it was then."
 }

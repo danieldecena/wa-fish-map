@@ -1,0 +1,108 @@
+{
+  "v": 3,
+  "assetGroups": {
+    "Logos": {
+      "files": {
+        "app-icon.png": {
+          "blob": "ce8e20bbdf2326e0ba3c79d6d8136743",
+          "name": "app-icon.png",
+          "size": 206133,
+          "type": "image/png"
+        },
+        "icon-body.svg": {
+          "blob": "319a02952e8f5e42fdbd35fbae7aed49",
+          "name": "icon-body.svg",
+          "size": 434,
+          "type": "image/svg+xml"
+        },
+        "icon-tail.svg": {
+          "blob": "3d7ae8811d5605611dd1220c54fbb94f",
+          "name": "icon-tail.svg",
+          "size": 175,
+          "type": "image/svg+xml"
+        }
+      },
+      "name": "Logos",
+      "order": [
+        "app-icon.png",
+        "icon-body.svg",
+        "icon-tail.svg"
+      ],
+      "tile": "s"
+    },
+    "Screens": {
+      "files": {
+        "01-map-regional.png": {
+          "name": "01-map-regional.png",
+          "blob": "e7fd93a28650f860a16e28591bfa60e6",
+          "size": 2195377,
+          "type": "image/png"
+        },
+        "02-site-detail-guidance.png": {
+          "name": "02-site-detail-guidance.png",
+          "blob": "f2caa691c5999a0d1240a8c466525982",
+          "size": 2044333,
+          "type": "image/png"
+        },
+        "03-pier-detail.png": {
+          "name": "03-pier-detail.png",
+          "blob": "e5dc7609a032f20f25778f2ded04d057",
+          "size": 2042723,
+          "type": "image/png"
+        },
+        "04-river-detail.png": {
+          "name": "04-river-detail.png",
+          "blob": "863f4ef582109364c31bd9bb386f893e",
+          "size": 2229005,
+          "type": "image/png"
+        },
+        "05-map-regional-dark.png": {
+          "name": "05-map-regional-dark.png",
+          "blob": "461e6f0f8153f3dfb20db5c2fc0d1fdf",
+          "size": 2660323,
+          "type": "image/png"
+        },
+        "06-site-detail-dark.png": {
+          "name": "06-site-detail-dark.png",
+          "blob": "667a9c82a64e10222859a7203b98c928",
+          "size": 1704123,
+          "type": "image/png"
+        }
+      },
+      "name": "Screens",
+      "order": [
+        "01-map-regional.png",
+        "02-site-detail-guidance.png",
+        "03-pier-detail.png",
+        "04-river-detail.png",
+        "05-map-regional-dark.png",
+        "06-site-detail-dark.png"
+      ],
+      "tile": "m"
+    }
+  },
+  "blobs": {},
+  "createdOnFiles": {
+    "at": "2026-09-20T00:00:00Z",
+    "v": 1
+  },
+  "docs": {
+    "readme": "project/README.md",
+    "sections": []
+  },
+  "groups": [
+    "Logos",
+    "Screens"
+  ],
+  "lastChange": {
+    "by": "Daniel",
+    "at": "2026-09-20T02:30:00Z",
+    "via": "Cowork",
+    "note": "Sheets given an opaque presentation background; frames reshot. Header collision and the advisory token landed in the same pass."
+  },
+  "layout": "files",
+  "libraries": [],
+  "namespace": "WAFishMap",
+  "sections": {},
+  "title": "WA Fish Map"
+}

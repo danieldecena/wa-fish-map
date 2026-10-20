@@ -1,0 +1,19 @@
+<!-- @dsCard group="Ratings" height=132 -->
+<style>
+  .wrap { font-family: var(--font-sans, -apple-system, system-ui, sans-serif); padding: 24px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .badge { font-size: 12px; line-height: 16px; font-weight: 700; padding: 5px 10px; border-radius: 999px; border: 1px solid currentColor; }
+  .prime { color: var(--rating-prime, #f01c0d); background: color-mix(in srgb, var(--rating-prime, #f01c0d) 20%, transparent); }
+  .good { color: var(--rating-good, #ff7300); background: color-mix(in srgb, var(--rating-good, #ff7300) 20%, transparent); }
+  .fair { color: var(--rating-fair, #ffc700); background: color-mix(in srgb, var(--rating-fair, #ffc700) 20%, transparent); }
+  .slow { color: var(--rating-slow, #0073ff); background: color-mix(in srgb, var(--rating-slow, #0073ff) 20%, transparent); }
+  .none { color: var(--rating-unrated, #8e8e93); background: color-mix(in srgb, var(--rating-unrated, #8e8e93) 20%, transparent); }
+  .note { width: 100%; font-size: 11px; line-height: 13px; color: var(--text-secondary, rgba(60,60,67,0.6)); margin-top: 6px; }
+</style>
+<div class="wrap">
+  <span class="badge prime">Prime</span>
+  <span class="badge good">Good</span>
+  <span class="badge fair">Fair</span>
+  <span class="badge slow">Slow</span>
+  <span class="badge none">No data</span>
+  <p class="note">Static rendition of <code>RatingBadge</code>. The word is never dropped — colour alone never carries the rating.</p>
+</div>

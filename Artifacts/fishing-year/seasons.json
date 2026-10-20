@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-18",
+ "updated": "2026-10-19",
  "about": "Single source for the Washington Fishing Year artifact. Dated seasons and rules are artifact-only and are never read by the app (the app shows month ratings, not authoritative dates). A stop with site_id takes its coordinates from site/data/sites.json; a stop with site_id null keeps its own lat/lon because WDFW's access layer does not list it. Build: scripts/build_fishing_year.py.",
  "seasons": [
   {
@@ -410,7 +410,7 @@
      }
     }
    ],
-   "rulesNote": "Night closure and an anti-snagging rule applied on the Green last year.",
+   "rulesNote": "Night closure and an anti-snagging rule applied on the Green last year. Best timing: coho peak now through early November, chum peak mid to late November, and both fade in December. Fish dawn and dusk, on weekdays, and the day after a rain. That timing comes from angler reports, not a WDFW forecast.",
    "line": [
     [
      -122.355,
@@ -514,7 +514,7 @@
      "lon": -122.2643,
      "stage": "lower",
      "town": "Kent",
-     "note": "Bank access in Kent, close to the S 212th St line where the rules change. Check the reach before you cast.",
+     "note": "Kent bank access by the S 212th St rule line; check the reach. Fish weekday dawns and the day after rain.",
      "pass": false,
      "site_id": null,
      "place_check": {

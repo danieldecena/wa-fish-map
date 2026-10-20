@@ -87,6 +87,11 @@ not part of the app, and the app never reads them:
   calendar and river guide, October 2026 to November 2027.
 - **SW Washington Creel Table** (`Artifacts/salmon-catch-table/`): WDFW weekly
   creel counts.
+- **Three Friends Fishing Hole** (`Artifacts/three-friends-fishing-hole/`): a
+  one-spot guide to a Green River bank access in Kent.
+- Older pages, kept with their published source: the design system, the App
+  Store listing and its interactive preview, and the "Inside WAFishMap"
+  explainer.
 
 Each folder's README covers how to refresh, test and publish it. Node tests:
 

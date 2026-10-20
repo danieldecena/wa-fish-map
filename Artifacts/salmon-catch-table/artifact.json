@@ -4,5 +4,7 @@
   "identified": "2026-10-18, published when Daniel asked to save the salmon table to an artifact",
   "account": "danieldecena@icloud.com",
   "what": "Static snapshot of the board view in ~/database/salmon-rivers/salmon.db: WDFW weekly creel counts, one row per river, week and species. Counts only, never ratings; not fed into the salmon-rivers page.",
-  "note": "Refresh: run scripts/build_salmon_db.py --fetch, then scripts/export_salmon_page.py, then republish index.html with files={data.js} PASSING THIS URL."
+  "note": "Refresh: run scripts/build_salmon_db.py --fetch, then scripts/export_salmon_page.py, then republish index.html with files={data.js} PASSING THIS URL.",
+  "currentVersion": "1792360527-d187",
+  "synced": "2026-10-20: live index.html and data.js match this folder."
 }

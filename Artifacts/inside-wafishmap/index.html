@@ -1,0 +1,673 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>Inside WAFishMap</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --paper:   #E7EDEE;
+    --card:    #F9FCFC;
+    --card-2:  #EFF4F5;
+    --ink:     #0F2429;
+    --ink-2:   #4B666D;
+    --ink-3:   #7A9198;
+    --rule:    #C6D4D7;
+    --teal:    #0C6C7C;
+    --magenta: #A82170;
+    --land:    #E4DCC5;
+    --water:   #DCE9EC;
+
+    --r-prime: #1E9B4A;
+    --r-good:  #C79300;
+    --r-fair:  #DE7B12;
+    --r-slow:  #D6392C;
+    --r-none:  #8A9AA0;
+
+    --dot-prime:#34C759; --dot-good:#FFCC00; --dot-fair:#FF9500;
+    --dot-slow:#FF3B30;  --dot-none:#8E8E93;
+
+    --shadow: 0 1px 2px rgba(15,36,41,.06), 0 8px 24px -12px rgba(15,36,41,.22);
+    --measure: 68ch;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper:#081418; --card:#0F2027; --card-2:#132A31;
+      --ink:#DEEAEB; --ink-2:#93ACB2; --ink-3:#6A868D;
+      --rule:#1E393F; --teal:#4FBFD3; --magenta:#FF74B8;
+      --land:#2C2A21; --water:#0E2831;
+      --r-prime:#4CD97F; --r-good:#FFD84D; --r-fair:#FFA340;
+      --r-slow:#FF6E62;  --r-none:#8298A0;
+      --shadow: 0 1px 2px rgba(0,0,0,.5), 0 12px 30px -14px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper:#081418; --card:#0F2027; --card-2:#132A31;
+    --ink:#DEEAEB; --ink-2:#93ACB2; --ink-3:#6A868D;
+    --rule:#1E393F; --teal:#4FBFD3; --magenta:#FF74B8;
+    --land:#2C2A21; --water:#0E2831;
+    --r-prime:#4CD97F; --r-good:#FFD84D; --r-fair:#FFA340;
+    --r-slow:#FF6E62;  --r-none:#8298A0;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 12px 30px -14px rgba(0,0,0,.8);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Newsreader", Georgia, "Times New Roman", serif;
+    font-size: 17.5px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px 96px; }
+  .col { max-width: var(--measure); }
+
+  h1, h2, h3, .mono, .eyebrow, .chip, .pill, table { font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .mono, code, .coord { font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+
+  /* ---------- masthead ---------- */
+  header.masthead { padding: 72px 0 40px; }
+  .rule-top {
+    height: 10px; margin-bottom: 40px;
+    background:
+      repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px 14px) bottom/100% 6px no-repeat,
+      linear-gradient(var(--magenta), var(--magenta)) top/100% 2px no-repeat;
+  }
+  h1 {
+    font-size: clamp(44px, 8.5vw, 82px);
+    font-weight: 800; letter-spacing: -.035em; line-height: .95;
+    margin: 0 0 18px; text-wrap: balance;
+  }
+  h1 .of { color: var(--teal); }
+  .deck {
+    font-size: clamp(19px, 2.4vw, 23px); line-height: 1.5;
+    color: var(--ink-2); max-width: 34ch; margin: 0 0 28px;
+  }
+  .deck em { color: var(--ink); font-style: italic; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-size: 11.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+    padding: 5px 11px; border: 1px solid var(--rule); border-radius: 3px;
+    color: var(--ink-2); background: var(--card);
+  }
+  .chip b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- sections ---------- */
+  section { padding-top: 56px; }
+  .eyebrow {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--magenta); margin-bottom: 10px;
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 2px; background: var(--magenta); flex: none; }
+  h2 {
+    font-size: clamp(26px, 3.6vw, 34px); font-weight: 700; letter-spacing: -.02em;
+    margin: 0 0 16px; text-wrap: balance;
+  }
+  h3 {
+    font-size: 15px; font-weight: 600; letter-spacing: .02em;
+    margin: 0 0 6px;
+  }
+  p { margin: 0 0 16px; }
+  a { color: var(--teal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:focus-visible, summary:focus-visible { outline: 2px solid var(--magenta); outline-offset: 3px; border-radius: 2px; }
+  code {
+    font-size: .82em; background: var(--card-2); border: 1px solid var(--rule);
+    padding: 1px 5px; border-radius: 3px; color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+  .lede { font-size: 19px; }
+
+  /* ---------- two-up prose ---------- */
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  @media (max-width: 720px) { .duo { grid-template-columns: 1fr; } }
+  .box {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 4px;
+    padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .box p:last-child { margin-bottom: 0; }
+  .box.is-not { background: transparent; border-style: dashed; box-shadow: none; }
+  .box ul { margin: 0; padding-left: 1.1em; }
+  .box li { margin-bottom: 6px; }
+  .box li:last-child { margin-bottom: 0; }
+
+  /* ---------- figures ---------- */
+  figure { margin: 0; }
+  figcaption {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; line-height: 1.55;
+    color: var(--ink-3); margin-top: 14px; max-width: 60ch;
+  }
+
+  /* ---------- phone schematic ---------- */
+  .screens { display: flex; gap: 34px; flex-wrap: wrap; align-items: flex-start; margin-top: 26px; }
+  .phone {
+    width: 288px; flex: none; height: 592px; position: relative;
+    border-radius: 40px; padding: 9px;
+    background: linear-gradient(160deg, var(--rule), var(--ink-3));
+    box-shadow: var(--shadow);
+  }
+  .screen {
+    position: relative; height: 100%; width: 100%; overflow: hidden;
+    border-radius: 32px; background: var(--water);
+    display: flex; flex-direction: column;
+  }
+  .map { position: absolute; inset: 0; }
+  .map svg { width: 100%; height: 100%; display: block; }
+
+  .glass {
+    position: relative; margin: 10px; padding: 8px 10px; border-radius: 14px;
+    background: color-mix(in srgb, var(--card) 78%, transparent);
+    border: 1px solid color-mix(in srgb, var(--rule) 70%, transparent);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    font-family: "Archivo", sans-serif; font-size: 11px; color: var(--ink);
+    box-shadow: 0 2px 10px -4px rgba(0,0,0,.3);
+  }
+  .glass.top { margin-top: 44px; display: flex; align-items: center; gap: 8px; }
+  .glass.bottom { margin-top: auto; margin-bottom: 26px; }
+  .spacer { flex: 1; }
+  .btn {
+    font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 7px;
+    background: color-mix(in srgb, var(--teal) 15%, transparent); color: var(--teal);
+  }
+  .status { font-size: 9.5px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
+  .legend { display: flex; gap: 9px; margin-top: 7px; flex-wrap: wrap; }
+  .legend span { display: flex; align-items: center; gap: 4px; font-size: 9px; color: var(--ink-2); }
+  .sw { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+  .pin {
+    position: absolute; width: 19px; height: 19px; margin: -19px 0 0 -9.5px;
+    border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+    box-shadow: 0 2px 5px -1px rgba(0,0,0,.45);
+    border: 1.5px solid rgba(255,255,255,.9);
+  }
+  .pin::after {
+    content: ""; position: absolute; inset: 0; margin: auto;
+    width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.95);
+  }
+  .ma-label {
+    position: absolute; transform: translate(-50%, -50%);
+    font-family: "Archivo", sans-serif; font-size: 9px; font-weight: 600;
+    padding: 2px 5px; border-radius: 20px; color: var(--ink);
+    background: color-mix(in srgb, var(--card) 80%, transparent);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    border: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
+  }
+
+  /* sheet screen */
+  .sheet-scrim { position: absolute; inset: 0; background: rgba(0,0,0,.18); }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 66%;
+    background: var(--card); border-radius: 18px 18px 0 0; padding: 10px 14px 0;
+    display: flex; flex-direction: column; gap: 9px;
+    font-family: "Archivo", sans-serif;
+  }
+  .grabber { width: 34px; height: 4px; border-radius: 2px; background: var(--rule); margin: 0 auto 2px; }
+  .sheet-title { font-size: 12.5px; font-weight: 600; text-align: center; letter-spacing: -.01em; }
+  .badge {
+    display: inline-block; font-size: 9.5px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+  }
+  .sheet-sub { font-size: 10px; color: var(--ink-2); }
+  .sheet h4 { font-size: 11px; margin: 4px 0 0; font-weight: 600; }
+  .species {
+    background: var(--card-2); border-radius: 8px; padding: 7px 9px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .species .row { display: flex; align-items: center; gap: 6px; }
+  .species .nm { font-size: 10.5px; font-weight: 600; }
+  .species .meta { font-size: 9px; color: var(--ink-2); }
+  .warnbox {
+    background: color-mix(in srgb, var(--dot-good) 16%, transparent);
+    border-radius: 8px; padding: 7px 9px; font-size: 9px; color: var(--ink-2);
+  }
+  .warnbox b { display: block; font-size: 10.5px; color: var(--ink); margin-bottom: 2px; }
+
+  .annot { display: flex; flex-direction: column; gap: 14px; max-width: 250px; padding-top: 8px; }
+  .annot div { border-left: 2px solid var(--magenta); padding-left: 12px; }
+  .annot b { display: block; font-family: "Archivo", sans-serif; font-size: 12px; letter-spacing: .01em; }
+  .annot p { font-size: 13.5px; line-height: 1.5; color: var(--ink-2); margin: 2px 0 0; }
+
+  /* ---------- rating ramp ---------- */
+  .ramp { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 22px 0 8px; }
+  @media (max-width: 640px) { .ramp { grid-template-columns: repeat(2, 1fr); } }
+  .ramp .step {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 4px;
+    padding: 12px; border-top: 3px solid var(--c);
+  }
+  .ramp .lbl { font-family: "Archivo", sans-serif; font-weight: 700; font-size: 15px; color: var(--c); }
+  .ramp .cond { font-size: 13px; line-height: 1.45; color: var(--ink-2); margin-top: 4px; }
+  .ramp .enum { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--ink-3); margin-top: 8px; }
+
+  /* ---------- pipeline ---------- */
+  .pipe { margin-top: 26px; display: flex; flex-direction: column; gap: 0; }
+  .lane { display: grid; grid-template-columns: 92px 1fr; gap: 18px; align-items: start; }
+  .lane .tag {
+    font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--ink-3);
+    text-align: right; padding-top: 14px; line-height: 1.4;
+  }
+  .nodes { display: flex; gap: 10px; flex-wrap: wrap; }
+  .node {
+    flex: 1 1 160px; background: var(--card); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 11px 13px; box-shadow: var(--shadow);
+  }
+  .node .n-t { font-family: "Archivo", sans-serif; font-size: 13px; font-weight: 600; }
+  .node .n-d { font-size: 12.5px; line-height: 1.45; color: var(--ink-2); margin-top: 3px; }
+  .node .n-c { font-family: "IBM Plex Mono", monospace; font-size: 10px; color: var(--ink-3); margin-top: 6px; overflow-wrap: anywhere; }
+  .node.alt { background: transparent; border-style: dashed; box-shadow: none; }
+  .arrow { display: grid; grid-template-columns: 92px 1fr; gap: 18px; }
+  .arrow .a {
+    grid-column: 2; height: 26px; width: 100%;
+    background: repeating-linear-gradient(to bottom, var(--rule) 0 4px, transparent 4px 8px) left 22px top/1px 100% no-repeat;
+    position: relative;
+  }
+  .arrow .a::after {
+    content: ""; position: absolute; left: 18px; bottom: 0;
+    border-left: 4px solid transparent; border-right: 4px solid transparent;
+    border-top: 5px solid var(--rule);
+  }
+  .arrow .a span {
+    position: absolute; left: 34px; top: 4px;
+    font-family: "IBM Plex Mono", monospace; font-size: 10px; color: var(--ink-3);
+  }
+  @media (max-width: 620px) {
+    .lane, .arrow { grid-template-columns: 1fr; gap: 6px; }
+    .lane .tag { text-align: left; padding-top: 0; }
+    .arrow .a { grid-column: 1; }
+  }
+
+  /* ---------- table ---------- */
+  .tablewrap { overflow-x: auto; margin-top: 20px; border: 1px solid var(--rule); border-radius: 4px; background: var(--card); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 520px; }
+  th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th {
+    font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-3); background: var(--card-2);
+  }
+  td.path { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink); white-space: nowrap; }
+  td.desc { color: var(--ink-2); font-family: "Newsreader", serif; font-size: 15px; }
+  td.n { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; color: var(--ink-3); text-align: right; }
+
+  /* ---------- notes ---------- */
+  .notes { display: grid; gap: 12px; margin-top: 20px; }
+  .note {
+    display: grid; grid-template-columns: 16px 1fr; gap: 12px; align-items: start;
+    padding-bottom: 12px; border-bottom: 1px solid var(--rule);
+  }
+  .notes .note:last-child { border-bottom: 0; padding-bottom: 0; }
+  .note .mk {
+    width: 9px; height: 9px; margin-top: 9px; border-radius: 2px;
+    background: var(--magenta); transform: rotate(45deg);
+  }
+  .note .mk.open { background: transparent; border: 1.5px solid var(--ink-3); }
+  .note p { margin: 0; font-size: 15.5px; line-height: 1.55; color: var(--ink-2); }
+  .note b { color: var(--ink); font-family: "Archivo", sans-serif; font-size: 14.5px; font-weight: 600; }
+
+  footer {
+    margin-top: 72px; padding-top: 20px; border-top: 2px solid var(--magenta);
+    font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink-3);
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="rule-top"></div>
+  <h1>Inside<br><span class="of">WAFishMap</span></h1>
+  <p class="deck">A statewide fishing map for Washington that answers one question — <em>is it worth going here, this month?</em> — and then sends you to WDFW to check the rules.</p>
+  <div class="chips">
+    <span class="chip">SwiftUI + <b>MapKit</b></span>
+    <span class="chip">iPhone &amp; <b>iPad</b></span>
+    <span class="chip"><b>~1,440</b> lines of Swift</span>
+    <span class="chip"><b>17</b> marine areas</span>
+    <span class="chip">Live <b>WDFW ArcGIS</b></span>
+  </div>
+</header>
+
+<section class="col">
+  <div class="eyebrow">The premise</div>
+  <h2>Geography from WDFW, timing from a curated file</h2>
+  <p class="lede">The app fuses two things that are usually kept apart. The <b>geography</b> is live and official: marine-area polygons, water-access sites, and public piers pulled straight from WDFW's ArcGIS map server at launch. The <b>timing</b> is hand-curated and offline: a single bundled JSON file that says which species are worth chasing in which months.</p>
+  <p>Cross the two and every pin on the map gets a color for the month you're planning for. Green means something is peaking there; red means nothing much is. Tap a pin and you get the reasoning — species, best months, best light, bait, and a note.</p>
+  <div class="duo" style="margin-top:26px">
+    <div class="box">
+      <h3>What it does</h3>
+      <ul>
+        <li>Statewide map of every WDFW launch, shore access, and public pier</li>
+        <li>Marine-area polygons tinted by this month's rating</li>
+        <li>A date picker — set it to October and the whole map recolors</li>
+        <li>A heat overlay showing where well-rated spots cluster</li>
+        <li>Detail sheets with what's biting, and a link out to WDFW</li>
+      </ul>
+    </div>
+    <div class="box is-not">
+      <h3>What it deliberately isn't</h3>
+      <ul>
+        <li>Not the rulebook — Fish Washington stays authoritative</li>
+        <li>No live bag limits, no scraped season or closure dates</li>
+        <li>No public catch heatmap, no crowd-sourced reports</li>
+        <li>The rating is editorial <em>timing</em>, never a claim that a fishery is open</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="col">
+    <div class="eyebrow">The screen</div>
+    <h2>One map, two floating bars, one sheet</h2>
+    <p>There is exactly one screen. <code>ContentView</code> renders <code>FishingMapView</code> and nothing else — no tab bar, no navigation stack over the map. Everything else floats on top of it as glass cards, so the map is never boxed in.</p>
+  </div>
+
+  <figure>
+    <div class="screens">
+
+      <!-- SCREEN 1: MAP -->
+      <div class="phone" role="img" aria-label="Schematic of the map screen: a date bar at the top, colored marine-area polygons with pins, and a status bar with a rating legend at the bottom.">
+        <div class="screen">
+          <div class="map">
+            <svg viewBox="0 0 270 574" preserveAspectRatio="none" aria-hidden="true">
+              <rect width="270" height="574" fill="var(--water)"/>
+              <path d="M0 0 H105 L88 70 L112 130 L96 205 L120 268 L104 340 L128 410 L110 470 L132 574 H0 Z" fill="var(--land)"/>
+              <path d="M270 0 H186 L200 84 L178 150 L196 226 L172 300 L192 372 L170 448 L188 520 L176 574 H270 Z" fill="var(--land)"/>
+              <path d="M108 84 L182 96 L176 178 L112 168 Z" fill="var(--dot-prime)" fill-opacity=".18" stroke="var(--dot-prime)" stroke-width="1"/>
+              <path d="M112 176 L177 186 L184 292 L120 278 Z" fill="var(--dot-good)" fill-opacity=".18" stroke="var(--dot-good)" stroke-width="1"/>
+              <path d="M120 288 L186 300 L176 400 L112 388 Z" fill="var(--dot-fair)" fill-opacity=".18" stroke="var(--dot-fair)" stroke-width="1"/>
+              <path d="M114 398 L178 410 L184 502 L124 490 Z" fill="var(--dot-slow)" fill-opacity=".18" stroke="var(--dot-slow)" stroke-width="1"/>
+            </svg>
+          </div>
+
+          <div class="ma-label" style="left:48%; top:23%">MA 9</div>
+          <div class="ma-label" style="left:53%; top:41%">MA 11</div>
+          <div class="ma-label" style="left:50%; top:60%">MA 13</div>
+
+          <span class="pin" style="left:44%; top:20%; background:var(--dot-prime)"></span>
+          <span class="pin" style="left:60%; top:27%; background:var(--dot-prime)"></span>
+          <span class="pin" style="left:48%; top:35%; background:var(--dot-good)"></span>
+          <span class="pin" style="left:57%; top:47%; background:var(--dot-good)"></span>
+          <span class="pin" style="left:45%; top:55%; background:var(--dot-fair)"></span>
+          <span class="pin" style="left:62%; top:66%; background:var(--dot-slow)"></span>
+          <span class="pin" style="left:22%; top:50%; background:var(--dot-none)"></span>
+          <span class="pin" style="left:80%; top:74%; background:var(--dot-none)"></span>
+
+          <div class="glass top">
+            <span style="color:var(--dot-prime); font-size:13px" aria-hidden="true">◐</span>
+            <span style="font-weight:600">Sep 1, 6:04 AM</span>
+            <span class="spacer"></span>
+            <span style="font-size:9.5px; font-weight:600">Dawn</span>
+            <span class="btn">Now</span>
+          </div>
+
+          <div class="glass bottom">
+            <div class="status">
+              <span>Washington · 477 access sites · live WDFW data</span>
+              <span class="spacer"></span>
+              <span class="btn" style="background:color-mix(in srgb, var(--dot-fair) 18%, transparent); color:var(--r-fair)">Heat</span>
+            </div>
+            <div class="legend">
+              <span><i class="sw" style="background:var(--dot-prime)"></i>Prime</span>
+              <span><i class="sw" style="background:var(--dot-good)"></i>Good</span>
+              <span><i class="sw" style="background:var(--dot-fair)"></i>Fair</span>
+              <span><i class="sw" style="background:var(--dot-slow)"></i>Slow</span>
+              <span><i class="sw" style="background:var(--dot-none)"></i>No data</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: SHEET -->
+      <div class="phone" role="img" aria-label="Schematic of the launch detail sheet: rating badge, facility facts, a what's-biting list, and a before-you-go disclaimer block.">
+        <div class="screen">
+          <div class="map">
+            <svg viewBox="0 0 270 574" preserveAspectRatio="none" aria-hidden="true">
+              <rect width="270" height="574" fill="var(--water)"/>
+              <path d="M0 0 H105 L88 70 L112 130 L96 205 L120 268 L104 340 L128 410 L110 470 L132 574 H0 Z" fill="var(--land)"/>
+              <path d="M270 0 H186 L200 84 L178 150 L196 226 L172 300 L192 372 L170 448 L188 520 L176 574 H270 Z" fill="var(--land)"/>
+              <path d="M112 176 L177 186 L184 292 L120 278 Z" fill="var(--dot-prime)" fill-opacity=".18" stroke="var(--dot-prime)" stroke-width="1"/>
+            </svg>
+          </div>
+          <span class="pin" style="left:52%; top:26%; background:var(--dot-prime)"></span>
+          <div class="sheet-scrim"></div>
+
+          <div class="sheet">
+            <div class="grabber"></div>
+            <div class="sheet-title">Boston Harbor Marina</div>
+            <div style="display:flex; align-items:center; gap:7px">
+              <span class="badge" style="color:var(--r-prime); background:color-mix(in srgb, var(--dot-prime) 20%, transparent); box-shadow:inset 0 0 0 1px var(--r-prime)">Prime</span>
+              <span class="sheet-sub">Biting now: Crab Snaring, Coho Salmon</span>
+            </div>
+            <div class="sheet-sub" style="line-height:1.7">
+              Thurston County · Marine water<br>
+              Concrete boat launch · Restrooms on site
+            </div>
+            <h4>What's biting</h4>
+            <div class="species">
+              <div class="row">
+                <span class="badge" style="color:var(--r-prime); background:color-mix(in srgb, var(--dot-prime) 20%, transparent); box-shadow:inset 0 0 0 1px var(--r-prime)">Prime</span>
+                <span class="nm">Coho Salmon</span>
+              </div>
+              <div class="meta">Best months: Sep, Oct</div>
+              <div class="meta">Best time: Dawn &amp; dusk; first light is best</div>
+              <div class="meta">Trolled hoochies, herring, or spinners</div>
+            </div>
+            <div class="species">
+              <div class="row">
+                <span class="badge" style="color:var(--r-good); background:color-mix(in srgb, var(--dot-good) 22%, transparent); box-shadow:inset 0 0 0 1px var(--r-good)">Good</span>
+                <span class="nm">Chum Salmon</span>
+              </div>
+              <div class="meta">Best months: Oct, Nov</div>
+              <div class="meta">Green/chartreuse twitching jigs, cured eggs</div>
+            </div>
+            <div class="warnbox">
+              <b>Before you go</b>
+              Verify seasons &amp; limits at WDFW — seasonal guidance only, NOT official regulations.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="annot">
+        <div>
+          <b>The date bar</b>
+          <p>A plain <code>DatePicker</code>. Its month is the single input to every color on the map; its hour drives a dawn/dusk light hint that is informational only.</p>
+        </div>
+        <div>
+          <b>Glass, with a fallback</b>
+          <p>Both bars use iOS 26's <code>glassEffect</code> where available and <code>.ultraThinMaterial</code> below that — rounded on both size classes so they float rather than span.</p>
+        </div>
+        <div>
+          <b>Sheet on iPhone, inspector on iPad</b>
+          <p>One <code>AdaptiveDetail</code> modifier switches on horizontal size class, so the iPad gets a trailing inspector instead of a stretched phone sheet.</p>
+        </div>
+        <div>
+          <b>Labels appear on approach</b>
+          <p>The "MA 13" capsules only render below 600 km camera altitude, where they stop overlapping each other.</p>
+        </div>
+      </div>
+    </div>
+    <figcaption>Schematic, not a screenshot — geometry is abstracted, but the chrome, copy, colors, and September data are the app's own.</figcaption>
+  </figure>
+</section>
+
+<section class="col">
+  <div class="eyebrow">The rating engine</div>
+  <h2>Four steps from a month to a color</h2>
+  <p>Every species entry in the data carries <code>bestMonths</code> and <code>goodMonths</code>. A species' rating for a given month falls out of set membership, with one wrinkle: months sit on a circle, so December and January are neighbors.</p>
+  <div class="ramp">
+    <div class="step" style="--c:var(--r-prime)">
+      <div class="lbl">Prime</div>
+      <div class="cond">Month is in <code>bestMonths</code></div>
+      <div class="enum">.excellent · green</div>
+    </div>
+    <div class="step" style="--c:var(--r-good)">
+      <div class="lbl">Good</div>
+      <div class="cond">Month is in <code>goodMonths</code></div>
+      <div class="enum">.good · yellow</div>
+    </div>
+    <div class="step" style="--c:var(--r-fair)">
+      <div class="lbl">Fair</div>
+      <div class="cond">One month either side of any rated month</div>
+      <div class="enum">.fair · orange</div>
+    </div>
+    <div class="step" style="--c:var(--r-slow)">
+      <div class="lbl">Slow</div>
+      <div class="cond">Everything else</div>
+      <div class="enum">.poor · red</div>
+    </div>
+    <div class="step" style="--c:var(--r-none)">
+      <div class="lbl">No data</div>
+      <div class="cond">No area and no county entry applies</div>
+      <div class="enum">nil · gray</div>
+    </div>
+  </div>
+  <p style="margin-top:18px">An <em>area's</em> rating is the best any single species reaches there that month — one peaking run is enough to turn a whole polygon green. The sheet's "what's biting" list then shows every species at Fair or better, sorted best-first with declaration order breaking ties so the list doesn't shuffle between renders.</p>
+  <p>The logic is deliberately pure: it never reads the clock. The view injects the month from the selected date, which is what makes the whole thing unit-testable — and what makes the date picker work at all.</p>
+</section>
+
+<section>
+  <div class="col">
+    <div class="eyebrow">The data path</div>
+    <h2>Three live layers, one bundled file</h2>
+    <p>On launch, <code>FishingMapModel.load()</code> fetches three WDFW ArcGIS layers as GeoJSON, decodes them, and joins them against the bundled guidance. Launches don't carry a marine-area code, so the join is geometric.</p>
+  </div>
+
+  <figure class="pipe">
+    <div class="lane">
+      <div class="tag">source<br>live</div>
+      <div class="nodes">
+        <div class="node">
+          <div class="n-t">Layer 6 — Marine areas</div>
+          <div class="n-d">17 polygons statewide, simplified server-side</div>
+          <div class="n-c">where=1=1 · outSR=4326</div>
+        </div>
+        <div class="node">
+          <div class="n-t">Layer 0 — Access sites</div>
+          <div class="n-d">Launches and shore access with facility fields</div>
+          <div class="n-c">477 of 2000 max records</div>
+        </div>
+        <div class="node">
+          <div class="n-t">Layer 1 — Piers</div>
+          <div class="n-d">Joined view; needs <code>outFields=*</code>. Optional — absence is non-fatal</div>
+          <div class="n-c">GeoWeb.dbo.…PierName</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="a"><span>URLSession → GeoJSON</span></div></div>
+
+    <div class="lane">
+      <div class="tag">decode<br>guard</div>
+      <div class="nodes">
+        <div class="node">
+          <div class="n-t">WDFWLayerLoader</div>
+          <div class="n-d">Generic GeoJSON decode into typed models. Rejects any response flagged <code>exceededTransferLimit</code> rather than drawing a partial layer as if it were complete.</div>
+        </div>
+        <div class="node alt">
+          <div class="n-t">Bundled fallback</div>
+          <div class="n-d">On failure, the sample <code>.geojson</code> files load instead. If both fail the status bar says so — it never strands "Loading…".</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="a"><span>MapScope.filter — statewide, keeps everything</span></div></div>
+
+    <div class="lane">
+      <div class="tag">join<br>index</div>
+      <div class="nodes">
+        <div class="node">
+          <div class="n-t">Point in polygon</div>
+          <div class="n-d">Ray-casting each launch against every area's outer ring, once, into a site&nbsp;→&nbsp;area dictionary. Inland launches match nothing and fall through to the freshwater table for their county.</div>
+        </div>
+        <div class="node">
+          <div class="n-t">fisheries.json</div>
+          <div class="n-d">Bundled, offline, release-only. 16 seeded marine areas plus 12 county freshwater overrides and a statewide default.</div>
+          <div class="n-c">updated 2026-08-30</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="a"><span>@Observable model → SwiftUI</span></div></div>
+
+    <div class="lane">
+      <div class="tag">render</div>
+      <div class="nodes">
+        <div class="node">
+          <div class="n-t">FishingMapView</div>
+          <div class="n-d">Polygons, markers, area labels, user location, heat circles, and the two glass bars — all recolored from one <code>currentMonth</code>.</div>
+        </div>
+      </div>
+    </div>
+    <figcaption>The camera auto-fits to whatever loads; the hard-coded Washington center is only a pre-load fallback.</figcaption>
+  </figure>
+</section>
+
+<section class="col">
+  <div class="eyebrow">The heat overlay</div>
+  <h2>Density of good spots, on a different ramp</h2>
+  <p>Toggling <b>Heat</b> buckets every launch and pier into a 0.15° lon/lat grid, weighting each by its rating — a Prime spot counts 2.0, a Slow one 1.0 — then normalizes to the densest cell and draws one 9 km circle per cell. It answers "where should I even be looking" rather than "is this spot good".</p>
+  <p>Its ramp runs blue → purple → red, chosen specifically so it can't be confused with the green/yellow/orange/red rating palette underneath it. The legend at the bottom swaps to match whichever mode is on. Zones are cached in view state and recomputed only on toggle, month change, or data load — not on every render pass.</p>
+</section>
+
+<section>
+  <div class="col">
+    <div class="eyebrow">The code</div>
+    <h2>Where things live</h2>
+    <p>Seventeen Swift files, split so that everything with a rule in it is testable without a map on screen.</p>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>File</th><th>Does</th><th style="text-align:right">Lines</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="path">FishingMapView.swift</td><td class="desc">The whole screen: map, glass bars, legends, heat, adaptive detail presentation</td><td class="n">315</td></tr>
+        <tr><td class="path">SiteDetailSheet.swift</td><td class="desc">Rating badge, "what's biting", the guidance footer, and both detail sheets</td><td class="n">253</td></tr>
+        <tr><td class="path">Models/AccessSite.swift</td><td class="desc">Launch/shore model plus tolerant decoding of WDFW's mixed-type flag fields</td><td class="n">157</td></tr>
+        <tr><td class="path">Services/FishingMapModel.swift</td><td class="desc">Loading, fallback, the site→area index, and every rating lookup</td><td class="n">140</td></tr>
+        <tr><td class="path">Models/Fishery.swift</td><td class="desc">The rating rules — pure, clock-free, and the most-tested file here</td><td class="n">130</td></tr>
+        <tr><td class="path">Models/MarineArea.swift</td><td class="desc">Polygon model, centroid for labels, ray-casting containment test</td><td class="n">76</td></tr>
+        <tr><td class="path">Models/MapScope.swift</td><td class="desc">The only place ArcGIS query URLs are written</td><td class="n">61</td></tr>
+        <tr><td class="path">Models/GeoJSON.swift</td><td class="desc">Minimal generic GeoJSON feature decoding</td><td class="n">51</td></tr>
+        <tr><td class="path">Services/WDFWLayerLoader.swift</td><td class="desc">Layer → model, with the truncation guard</td><td class="n">49</td></tr>
+        <tr><td class="path">Models/FishingPier.swift</td><td class="desc">Pier model and its fully-qualified joined-view keys</td><td class="n">48</td></tr>
+        <tr><td class="path">Models/HeatZone.swift</td><td class="desc">Grid bucketing and normalization — pure, no map state</td><td class="n">45</td></tr>
+        <tr><td class="path">Models/TimeOfDay.swift</td><td class="desc">Dawn / midday / dusk / night bucket and its light hint</td><td class="n">45</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="col" style="margin-top:16px">Alongside them, seven Swift Testing suites and a Python contract verifier, <code>scripts/verify_wdfw_live.py</code>, that checks the live WDFW layers still match what the app assumes — area names, layer counts against the record cap, and the JSON schema. CI runs it on every push and again weekly, so upstream drift surfaces on its own rather than as a blank map.</p>
+</section>
+
+<section class="col">
+  <div class="eyebrow">Open threads</div>
+  <h2>What the project knows it's missing</h2>
+  <div class="notes">
+    <div class="note">
+      <span class="mk open"></span>
+      <p><b>Closures aren't modeled</b> A month can rate Prime while the fishery is legally shut. The data has been hand-corrected for the worst cases — blackmouth in Areas 10 and 11, lingcod in July — but open-window modeling is a real feature that hasn't started.</p>
+    </div>
+    <div class="note">
+      <span class="mk open"></span>
+      <p><b>Guidance updates only on release</b> Geography self-updates every launch; <code>fisheries.json</code> ships with the binary. That's a deliberate choice, but it means a correction needs an App Store trip.</p>
+    </div>
+    <div class="note">
+      <span class="mk open"></span>
+      <p><b>One polygon is unseeded</b> Fifteen of the sixteen seeded areas plus twelve counties are WDFW-checked; the "Oregon" boundary polygon has no entry and renders neutral.</p>
+    </div>
+    <div class="note">
+      <span class="mk"></span>
+      <p><b>Fetches are unpaginated</b> By design — the verifier warns at 80% of the record cap, and layer 0 sits at 477 of 2000. Pagination only if that ever fires.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>danieldecena/wa-fish-map</span>
+  <span>Guidance only — verify seasons at WDFW</span>
+</footer>
+
+</div>
+
+</body></html>

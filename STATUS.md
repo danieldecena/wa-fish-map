@@ -149,7 +149,15 @@ current counts rather than trusting a number written here.
   six new data scripts, none of which they mentioned. CI is recorded as Xcode
   Cloud only. Decision-log entries from 2026-09-20 and earlier moved to
   `STATUS-ARCHIVE.md` (this file was 45 KB). `Artifacts/fishing-year` got a
-  README. `.playwright-mcp/` is gitignored. No code or data changed.
+  README. `.playwright-mcp/` is gitignored. No app code or `fisheries.json`
+  change; the only data change is the Fishing Year sync below.
+- Every fish artifact on the account now has its source in `Artifacts/`:
+  Three Friends Fishing Hole added; published source captured for the design
+  system, App Store listing, interactive preview and Inside WAFishMap. Fishing
+  Year had been republished outside the repo (Green River timing note, Three
+  Friends stop note); those edits were copied into `seasons.json` and the
+  rebuilt `data.js` is byte-identical to the live one. The Washington Fishing
+  Map and Creel Table matched the repo already.
 - Not verified: the 1.0 (10) review state. Whoever next has App Store Connect
   access reads it and replaces the line under Known broken.
 
