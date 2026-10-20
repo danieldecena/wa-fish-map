@@ -31,6 +31,10 @@
 - [x] Fishing Map page: link back to Fishing Year (page in flux)
 - [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
 - [ ] Fishing Year: confirm 2 stops: Green River ramp, Two Rivers Point
+- [ ] [you] Fishing Map app: check tab navigation inside the claude.ai viewer (Map, Year, Spots, Counts and back; phone and desktop)
+- [ ] Fishing Map app: banner pointing to the app on the 4 old pages (Fishing Year, Three Friends, Creel Table, Where Salmon Spawn)
+- [ ] Sockeye Salmon in fisheries.json only with a WDFW-sourced row (then drop the Spawning allow-list)
+- [ ] Fishing Map app: Snoqualmie flow is the South Fork gauge (12144000); say so on the sheet or find a mainstem gauge
 
 ## Completed
 

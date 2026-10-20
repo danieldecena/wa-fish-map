@@ -1,0 +1,742 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Where Salmon Spawn</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout concept: the WA Fish Map app's muted river map, full bleed. Glass chrome floats over it with a twelve-month ribbon as the one bold element: pick a month and every viewing site recolors on the app's timing ramp. Detail opens as a bottom sheet on phones and a trailing inspector on wide screens. */
+:root {
+  --ground: #f2f2f7;
+  --surface: #ffffff;
+  --sheet: rgba(255,255,255,0.97);
+  --ink: #000000;
+  --ink2: rgba(60,60,67,0.78);
+  --fill-advisory: rgba(120,120,128,0.16);
+  --fill-row: rgba(116,116,128,0.08);
+  --fill-toggle: rgba(118,118,128,0.14);
+  --glass: rgba(255,255,255,0.78);
+  --glass-line: rgba(60,60,67,0.16);
+  --river: rgba(0,124,158,0.42);
+  --sea: rgba(0,124,158,0.12);
+  --halo: #f2f2f7;
+  --pin-edge: rgba(0,0,0,0.55);
+  --on: #007c9e;
+  --on-text: #00708f;
+  --prime: #ff3b30;
+  --good: #ff9500;
+  --fair: #ffcc00;
+  --slow: #007aff;
+  --unrated: #8e8e93;
+  --lift: 0 6px 22px rgba(0,0,0,0.14);
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #1c1c1e; --surface: #000000; --sheet: rgba(28,28,30,0.97); --ink: #ffffff; --ink2: rgba(235,235,245,0.74);
+    --fill-advisory: rgba(120,120,128,0.32); --fill-row: rgba(118,118,128,0.24); --fill-toggle: rgba(118,118,128,0.26);
+    --glass: rgba(44,44,46,0.76); --glass-line: rgba(235,235,245,0.18); --river: rgba(64,196,222,0.4); --sea: rgba(64,196,222,0.12);
+    --halo: #1c1c1e; --pin-edge: rgba(255,255,255,0.95); --on-text: #4fc3dc;
+    --prime: #ff453a; --good: #ff9f0a; --fair: #ffd60a; --slow: #0a84ff; --unrated: #98989d;
+    --lift: 0 6px 22px rgba(0,0,0,0.5); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #1c1c1e; --surface: #000000; --sheet: rgba(28,28,30,0.97); --ink: #ffffff; --ink2: rgba(235,235,245,0.74);
+  --fill-advisory: rgba(120,120,128,0.32); --fill-row: rgba(118,118,128,0.24); --fill-toggle: rgba(118,118,128,0.26);
+  --glass: rgba(44,44,46,0.76); --glass-line: rgba(235,235,245,0.18); --river: rgba(64,196,222,0.4); --sea: rgba(64,196,222,0.12);
+  --halo: #1c1c1e; --pin-edge: rgba(255,255,255,0.95); --on-text: #4fc3dc;
+  --prime: #ff453a; --good: #ff9f0a; --fair: #ffd60a; --slow: #0a84ff; --unrated: #98989d;
+  --lift: 0 6px 22px rgba(0,0,0,0.5); color-scheme: dark;
+}
+
+html { box-sizing: border-box; height: 100%; }
+*, *::before, *::after { box-sizing: inherit; }
+body { height: 100%; margin: 0; overflow: hidden; background: var(--ground); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 20px; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+a { color: var(--on-text); }
+:focus-visible { outline: 2px solid var(--on); outline-offset: 2px; }
+#app { position: relative; height: 100%; overflow: hidden; }
+
+/* ---- map ---- */
+#map { position: absolute; inset: 0; overflow: hidden; background: var(--ground); touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+#map.drag { cursor: grabbing; }
+#map svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#over { pointer-events: none; }
+.sea { fill: var(--sea); fill-rule: evenodd; stroke: none; }
+.border { fill: none; stroke: var(--ink2); stroke-width: 1px; stroke-dasharray: 5 4; opacity: 0.55; vector-effect: non-scaling-stroke; }
+.r { fill: none; stroke: var(--river); stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.r.o3 { stroke-width: 0.6px; opacity: 0.8; }
+.r.o4 { stroke-width: 0.9px; }
+.r.o5 { stroke-width: 1.3px; }
+.r.o6 { stroke-width: 1.8px; }
+.r.o7 { stroke-width: 2.4px; }
+
+.pin { pointer-events: auto; cursor: pointer; outline: none; }
+.pin .balloon { fill: var(--rc); stroke: var(--pin-edge); stroke-width: 1.5; }
+.pin .glyph path { fill: var(--gl, #fff); }
+.pin .tipshadow { fill: rgba(0,0,0,0.28); }
+.pin.quiet .pin-s { opacity: 0.62; }
+.pin.ladder .balloon { stroke-dasharray: 3 2; }
+.pin:focus-visible .balloon { stroke: var(--on); stroke-width: 3; }
+.cluster { pointer-events: auto; cursor: pointer; outline: none; }
+.cluster circle { fill: var(--rc); stroke: var(--pin-edge); stroke-width: 2; }
+.cluster text { fill: var(--gl, #fff); font: 700 11px/13px var(--sans); text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; }
+.cluster:focus-visible circle { stroke: var(--on); stroke-width: 3; }
+.lab { font: 600 11px/13px var(--sans); fill: var(--ink); paint-order: stroke; stroke: var(--halo); stroke-width: 3.2px; stroke-linejoin: round; }
+.lab.city { font-weight: 500; fill: var(--ink2); }
+.lab.peak { font-weight: 500; fill: var(--ink2); }
+.lab.water { font-style: italic; font-weight: 500; fill: var(--on-text); letter-spacing: 0.04em; text-anchor: middle; }
+.lm-dot { fill: var(--ink2); stroke: var(--halo); stroke-width: 1.5; }
+.lm-peak { fill: var(--ink2); stroke: var(--halo); stroke-width: 1.2; }
+
+/* ---- chrome ---- */
+#chrome {
+  position: absolute; inset: 0; pointer-events: none;
+  padding-block: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
+}
+#chrome > * { pointer-events: auto; }
+.glass { background: var(--glass); -webkit-backdrop-filter: saturate(1.8) blur(20px); backdrop-filter: saturate(1.8) blur(20px); border: 1px solid var(--glass-line); border-radius: 14px; box-shadow: var(--lift); }
+.bar { align-self: flex-start; width: 100%; max-width: 480px; padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand svg { width: 32px; height: 32px; flex: none; }
+.brand .t { min-width: 0; flex: 1 1 auto; }
+.brand .title { font-size: 17px; line-height: 22px; font-weight: 600; text-wrap: balance; }
+.brand .sub { font-size: 12px; line-height: 16px; color: var(--ink2); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { flex: none; border: 0; cursor: pointer; padding: 0 12px; min-height: 40px; border-radius: 999px; background: var(--fill-toggle); font-size: 12px; line-height: 16px; font-weight: 600; }
+.seg button[aria-checked="true"] { background: var(--on); color: #fff; }
+
+/* the year ribbon */
+.year { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; }
+.year button { border: 0; background: transparent; cursor: pointer; padding: 4px 0 3px; border-radius: 8px; display: flex; flex-direction: column; align-items: stretch; gap: 3px; min-height: 52px; }
+.year .stack { height: 30px; display: flex; flex-direction: column-reverse; justify-content: flex-start; margin: 0 3px; border-radius: 4px; overflow: hidden; background: var(--fill-row); }
+.year .stack i { display: block; flex: none; }
+.year .stack .p { background: var(--prime); }
+.year .stack .a { background: var(--good); }
+.year .m { font-size: 11px; line-height: 13px; font-weight: 600; text-align: center; color: var(--ink2); }
+.year button[aria-checked="true"] { background: var(--fill-toggle); }
+.year button[aria-checked="true"] .m { color: var(--ink); }
+.year button.now .m { text-decoration: underline; text-underline-offset: 2px; }
+.ctl { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; }
+.summary { font-size: 13px; line-height: 18px; min-width: 0; flex: 1 1 200px; }
+.summary b { font-variant-numeric: tabular-nums; }
+.listbtn { border: 1px solid var(--glass-line); background: transparent; cursor: pointer; padding: 6px 14px; min-height: 40px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 600; }
+.listbtn[aria-expanded="true"] { background: var(--on); border-color: var(--on); color: #fff; }
+
+.bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.legend { padding: 10px 12px; max-width: 380px; flex: 1 1 auto; min-width: 0; }
+.legend ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.legend li { display: flex; align-items: center; gap: 5px; font-size: 11px; line-height: 13px; }
+.legend i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); display: block; }
+.legend li.dash i { background: transparent; border: 1.5px dashed var(--ink2); }
+.legend .fine { margin-top: 6px; font-size: 11px; line-height: 14px; color: var(--ink2); }
+.zoom { flex: none; display: flex; flex-direction: column; overflow: hidden; }
+.zoom button { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: transparent; cursor: pointer; }
+.zoom button + button { border-top: 1px solid var(--glass-line); }
+.zoom svg { width: 18px; height: 18px; stroke: var(--ink); fill: none; stroke-width: 2; stroke-linecap: round; }
+
+/* ---- sheet ---- */
+#sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; max-height: min(68vh, 600px);
+  display: flex; flex-direction: column; background: var(--sheet);
+  -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px);
+  border-top: 1px solid var(--glass-line); border-radius: 18px 18px 0 0; box-shadow: 0 -8px 30px rgba(0,0,0,0.18);
+  transform: translateY(104%); visibility: hidden;
+  transition: transform 0.28s cubic-bezier(.2,.8,.2,1), visibility 0s 0.28s;
+  padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 5;
+}
+#sheet.open { transform: none; visibility: visible; transition: transform 0.28s cubic-bezier(.2,.8,.2,1); }
+#sheet:focus { outline: none; }
+.sbar { position: relative; flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--glass-line); }
+.sbar .grab { position: absolute; top: 6px; left: 50%; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--fill-advisory); }
+.sbar .st { margin: 6px 0 0; font-size: 15px; line-height: 20px; font-weight: 600; min-width: 0; }
+.sbar button { margin-top: 6px; border: 0; background: transparent; color: var(--on-text); font-weight: 600; cursor: pointer; padding: 0 4px; min-height: 44px; flex: none; }
+.sbody { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 18px max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 18px; }
+.head { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.head p { margin: 0; color: var(--ink2); }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 700; background: color-mix(in srgb, var(--c) 20%, transparent); border: 1px solid var(--c); white-space: nowrap; }
+.chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; line-height: 16px; font-weight: 600; background: var(--fill-toggle); color: var(--ink2); white-space: nowrap; }
+h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
+.rows { display: flex; flex-direction: column; gap: 8px; }
+.row { background: var(--fill-row); border-radius: 10px; padding: 10px; display: flex; gap: 10px; justify-content: space-between; align-items: center; }
+.row .rt { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.row .nm { font-size: 15px; line-height: 20px; font-weight: 600; }
+.row .dt { font-size: 12px; line-height: 16px; color: var(--ink2); }
+.row .badge { padding: 3px 8px; flex: none; }
+.miss { margin: 0; font-size: 13px; line-height: 18px; color: var(--ink2); }
+.note { margin: 0; font-size: 14px; line-height: 19px; }
+.prov { margin: 0; font-size: 12px; line-height: 16px; color: var(--ink2); }
+
+/* year grid in the sheet */
+.cal { width: 100%; border-collapse: separate; border-spacing: 2px; table-layout: fixed; font-size: 11px; line-height: 13px; }
+.cal th { font-weight: 600; color: var(--ink2); text-align: center; padding: 0 0 2px; }
+.cal th.sp { text-align: left; width: 34%; color: var(--ink); font-size: 12px; line-height: 15px; padding-right: 4px; overflow-wrap: anywhere; }
+.cal td { height: 18px; border-radius: 3px; background: var(--fill-row); }
+.cal td.b { background: var(--prime); }
+.cal td.g { background: var(--good); }
+.cal td.f { background: var(--fair); }
+.cal .cur { box-shadow: inset 0 0 0 2px var(--ink); }
+.cal thead th.cur { box-shadow: none; color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+.calkey { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; font-size: 11px; line-height: 13px; color: var(--ink2); }
+.calkey span { display: inline-flex; align-items: center; gap: 4px; }
+.calkey i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); display: block; }
+
+.ladder { background: var(--fill-advisory); border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 18px; }
+.advisory { background: var(--fill-advisory); border-radius: 12px; padding: 12px; display: flex; gap: 10px; }
+.advisory svg { flex: none; width: 20px; height: 20px; fill: none; stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; margin-top: 1px; }
+.advisory h3 { margin-bottom: 2px; }
+.advisory p { margin: 0; font-size: 14px; line-height: 19px; }
+.acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.dir { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; background: var(--on); color: #fff; font-weight: 600; text-decoration: none; min-height: 44px; }
+.dir svg { width: 16px; height: 16px; fill: #fff; }
+.more { display: inline-flex; align-items: center; padding: 10px 16px; border-radius: 999px; background: var(--fill-toggle); color: var(--ink); font-weight: 600; text-decoration: none; min-height: 44px; }
+.foot { display: flex; flex-direction: column; gap: 6px; font-size: 11px; line-height: 14px; color: var(--ink2); }
+.foot a { color: var(--ink2); }
+
+/* list */
+.lgroup h3 { display: flex; align-items: baseline; gap: 8px; }
+.lgroup h3 .n { font-size: 13px; font-weight: 600; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.lrow { border: 0; width: 100%; text-align: left; cursor: pointer; min-height: 44px; font: inherit; color: inherit; }
+.lrow .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--c); flex: none; border: 1px solid var(--pin-edge); }
+.lrow .rt { flex: 1 1 auto; }
+.lede { margin: 0; font-size: 13px; line-height: 18px; color: var(--ink2); }
+
+@media (min-width: 760px) {
+  #sheet { left: auto; right: 12px; top: 12px; bottom: 12px; width: 390px; max-height: none; border: 1px solid var(--glass-line); border-radius: 14px; transform: translateX(112%); padding-bottom: 0; }
+  #sheet.open { transform: none; }
+  .sbar { border-radius: 14px 14px 0 0; padding-right: 16px; padding-left: 16px; }
+  .sbar .grab { display: none; }
+  .sbar .st, .sbar button { margin-top: 0; }
+  .sbody { padding-right: 16px; padding-left: 16px; }
+  .zoom { transition: transform 0.28s cubic-bezier(.2,.8,.2,1); }
+  #app.sheet-open .zoom { transform: translateX(-402px); }
+}
+@media (max-width: 759px) {
+  #app.sheet-open .bottom { visibility: hidden; }
+  .legend .fine { display: none; }
+  .bar { gap: 8px; }
+  #spseg { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -12px; padding: 0 12px; }
+  #spseg::-webkit-scrollbar { display: none; }
+  .year button { min-height: 44px; }
+  .year .stack { height: 22px; }
+}
+@media (max-height: 640px) and (max-width: 759px) { .brand .sub { display: none; } }
+@media (prefers-reduced-motion: reduce) { #sheet, #sheet.open, .zoom { transition: none; } }
+.sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+
+<div id="app">
+  <div id="map" role="application" aria-label="Map of salmon viewing sites in Washington. Drag to pan, pinch or use the buttons to zoom, select a marker for details.">
+    <svg id="base" aria-hidden="true"><g id="vp"></g></svg>
+    <svg id="over"></svg>
+  </div>
+
+  <div id="chrome">
+    <div class="glass bar" id="bar">
+      <div class="brand">
+        <svg viewBox="0 0 1024 1024" aria-hidden="true">
+          <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1797ae"/><stop offset="1" stop-color="#004a79"/></linearGradient></defs>
+          <rect width="1024" height="1024" rx="230" fill="url(#bg)"/>
+          <path fill="#fff" d="M456.70 512.00L194.56 389.12L194.56 634.88Z"/>
+          <path fill="#fff" fill-rule="evenodd" d="M337.92 512.00C501.76 386.39 665.60 386.39 829.44 512.00C665.60 637.61 501.76 637.61 337.92 512.00ZM767.18 503.81C767.18 488.43 754.71 475.96 739.33 475.96C723.95 475.96 711.48 488.43 711.48 503.81C711.48 519.19 723.95 531.66 739.33 531.66C754.71 531.66 767.18 519.19 767.18 503.81Z"/>
+        </svg>
+        <div class="t">
+          <div class="title">Where salmon spawn</div>
+          <div class="sub" id="sub">WDFW salmon viewing sites, by month</div>
+        </div>
+      </div>
+      <div class="seg" id="spseg" role="radiogroup" aria-label="Species"></div>
+      <div class="year" id="year" role="radiogroup" aria-label="Month"></div>
+      <div class="ctl">
+        <div class="summary" id="summary" aria-live="polite"></div>
+        <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Sites</button>
+      </div>
+    </div>
+
+    <div class="bottom" id="bottom">
+      <div class="glass legend" id="legend">
+        <ul>
+          <li style="--c:var(--prime)"><i></i>Peak</li>
+          <li style="--c:var(--good)"><i></i>Active</li>
+          <li style="--c:var(--fair)"><i></i>Starting or ending</li>
+          <li style="--c:var(--slow)"><i></i>Quiet</li>
+          <li style="--c:var(--unrated)"><i></i>Species not listed</li>
+          <li class="dash"><i></i>Fish ladder: passing, not spawning</li>
+        </ul>
+        <div class="fine">Typical timing, not a guarantee. Runs shift with rain and water temperature.</div>
+      </div>
+      <div class="glass zoom">
+        <button type="button" id="zin" aria-label="Zoom in"><svg viewBox="0 0 18 18"><path d="M9 3v12M3 9h12"/></svg></button>
+        <button type="button" id="zout" aria-label="Zoom out"><svg viewBox="0 0 18 18"><path d="M3 9h12"/></svg></button>
+        <button type="button" id="zfit" aria-label="Show all of Washington"><svg viewBox="0 0 18 18"><path d="M3 6.5V3h3.5M11.5 3H15v3.5M15 11.5V15h-3.5M6.5 15H3v-3.5"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <aside id="sheet" aria-labelledby="stitle" tabindex="-1" aria-hidden="true">
+    <div class="sbar"><span class="grab"></span><h2 class="st" id="stitle"></h2><button type="button" id="sdone">Done</button></div>
+    <div class="sbody" id="sbody"></div>
+  </aside>
+</div>
+
+<script src="rivers.js"></script>
+<script src="coast.js"></script>
+<script src="sites.js"></script>
+<script src="cluster.js"></script>
+<script>
+(function () {
+  'use strict';
+  var D = window.RIVERS, C = window.COAST, SITES = window.SITES;
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (s) { return document.querySelector(s); };
+  function el(n, a, p) { var e = document.createElementNS(NS, n); if (a) for (var k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
+  function xy(lon, lat) { return [(lon - D.proj.lon0) * D.proj.kx, (D.proj.lat0 - lat) * D.proj.k]; }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var BODY = 'M337.92 512.00C501.76 386.39 665.60 386.39 829.44 512.00C665.60 637.61 501.76 637.61 337.92 512.00ZM767.18 503.81C767.18 488.43 754.71 475.96 739.33 475.96C723.95 475.96 711.48 488.43 711.48 503.81C711.48 519.19 723.95 531.66 739.33 531.66C754.71 531.66 767.18 519.19 767.18 503.81Z';
+  var TAIL = 'M456.70 512.00L194.56 389.12L194.56 634.88Z';
+  var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var FAMS = ['Chinook', 'Coho', 'Chum', 'Sockeye', 'Pink'];
+  var KIND = { creek: 'Spawning creek', river: 'River', hatchery: 'Hatchery', ladder: 'Fish ladder', falls: 'Falls' };
+
+  /* ---- timing: the app's FishingRating logic, by month ---- */
+  // 3 peak, 2 active, 1 starting or ending (a month next to the window), 0 quiet, -1 no species listed
+  var TOKEN = { '3': 'prime', '2': 'good', '1': 'fair', '0': 'slow', '-1': 'unrated' };
+  var WORD = { '3': 'Peak', '2': 'Active', '1': 'Starting or ending', '0': 'Quiet', '-1': 'Species not listed' };
+  var now = new Date();
+  var YEAR = now.getFullYear(), MONTH = now.getMonth() + 1, CUR = MONTH;
+  var family = null;
+  function near(a, b) { var d = Math.abs(a - b) % 12; return Math.min(d, 12 - d) === 1; }
+  function offYear(r) { return r.odd && YEAR % 2 === 0; }
+  function rowScore(r, m) {
+    if (offYear(r)) return 0;
+    if (r.best.indexOf(m) >= 0) return 3;
+    if (r.good.indexOf(m) >= 0) return 2;
+    return r.best.concat(r.good).some(function (x) { return near(x, m); }) ? 1 : 0;
+  }
+  function rowsFor(s) { return s.sp.filter(function (r) { return family === null || r.fam === family; }); }
+  function siteScore(s, m) {
+    if (!s.sp.length) return { v: -1, row: null };
+    var rows = rowsFor(s);
+    if (!rows.length) return { v: -2, row: null }; // does not carry this species
+    var best = { v: 0, row: null };
+    rows.forEach(function (r) { var v = rowScore(r, m); if (v > best.v) best = { v: v, row: r }; });
+    return best;
+  }
+
+  /* ---- basemap ---- */
+  var vp = $('#vp');
+  el('path', { 'class': 'sea', d: C.water }, vp);
+  el('path', { 'class': 'border', d: C.border }, vp);
+  Object.keys(D.base).forEach(function (o) { el('path', { 'class': 'r o' + o, d: D.base[o] }, vp); });
+
+  /* ---- overlay ---- */
+  var over = $('#over');
+  var LM = [
+    ['Seattle', 47.61, -122.33, 'city', 1], ['Spokane', 47.66, -117.43, 'city', 1], ['Tacoma', 47.25, -122.44, 'city', 3],
+    ['Olympia', 47.04, -122.90, 'city', 3], ['Bellingham', 48.75, -122.48, 'city', 3], ['Vancouver', 45.64, -122.66, 'city', 3],
+    ['Yakima', 46.60, -120.51, 'city', 2], ['Wenatchee', 47.42, -120.31, 'city', 3], ['Kennewick', 46.21, -119.14, 'city', 3],
+    ['Walla Walla', 46.06, -118.34, 'city', 4], ['Aberdeen', 46.98, -123.81, 'city', 4], ['Port Angeles', 48.12, -123.43, 'city', 4],
+    ['Everett', 47.98, -122.20, 'city', 4], ['Longview', 46.14, -122.94, 'city', 4], ['Omak', 48.41, -119.53, 'city', 5],
+    ['Ellensburg', 46.99, -120.55, 'city', 5], ['Moses Lake', 47.13, -119.28, 'city', 5], ['Pullman', 46.73, -117.18, 'city', 5],
+    ['Mt. Rainier', 46.85, -121.76, 'peak', 2], ['Mt. Baker', 48.78, -121.81, 'peak', 3], ['Mt. Adams', 46.20, -121.49, 'peak', 3],
+    ['Mt. St. Helens', 46.20, -122.19, 'peak', 3], ['Glacier Peak', 48.11, -121.11, 'peak', 4],
+    ['Pacific Ocean', 47.2, -124.55, 'water', 4], ['Puget Sound', 47.75, -122.42, 'water', 6]
+  ];
+  var lms = LM.map(function (r) {
+    var g = el('g', { 'class': 'lm' }, over), kind = r[3];
+    if (kind === 'city') el('circle', { r: 2.8, 'class': 'lm-dot' }, g);
+    if (kind === 'peak') el('path', { d: 'M0 -4.5L4.5 3.5H-4.5Z', 'class': 'lm-peak' }, g);
+    var t = el('text', { 'class': 'lab ' + kind }, g);
+    t.textContent = r[0];
+    return { xy: xy(r[2], r[1]), kind: kind, pr: r[4], g: g, t: t, w: 0 };
+  });
+  lms.sort(function (a, b) { return a.pr - b.pr; });
+
+  SITES.forEach(function (s) { s.xy = xy(s.lon, s.lat); });
+  var BYID = {}; SITES.forEach(function (s) { BYID[s.id] = s; });
+  var selected = null;
+
+  function buildPin(s) {
+    var g = el('g', { 'class': 'pin' + (s.kind === 'ladder' ? ' ladder' : ''), 'data-id': s.id, tabindex: '0', role: 'button' }, over);
+    var sc = el('g', { 'class': 'pin-s' }, g);
+    el('ellipse', { 'class': 'tipshadow', cx: 0, cy: 0, rx: 6, ry: 2.2 }, sc);
+    el('circle', { r: 26, cy: -16, fill: 'transparent' }, sc);
+    el('path', { 'class': 'balloon', d: 'M0 0L-6.5 -10.5A13 13 0 1 1 6.5 -10.5Z' }, sc);
+    var gl = el('g', { 'class': 'glyph', transform: 'translate(0 -21.8) scale(.0225) translate(-512 -512)' }, sc);
+    el('path', { d: BODY, 'fill-rule': 'evenodd' }, gl);
+    el('path', { d: TAIL }, gl);
+    var lab = el('text', { 'class': 'lab' }, over);
+    lab.textContent = s.name;
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSite(s.id); } });
+    return { g: g, lab: lab, w: 0 };
+  }
+  var pins = {};
+  SITES.forEach(function (s) { pins[s.id] = buildPin(s); });
+  var clusterPool = [];
+  function getCluster(i) {
+    if (clusterPool[i]) return clusterPool[i];
+    var g = el('g', { 'class': 'cluster', tabindex: '0', role: 'button' }, over);
+    el('circle', { r: 15, cy: -15 }, g);
+    var t = el('text', { y: -15 }, g);
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); zoomToCluster(g); } });
+    return (clusterPool[i] = { g: g, t: t });
+  }
+  lms.forEach(function (l) { l.w = l.t.getBBox().width; });
+
+  /* ---- view state ---- */
+  var map = $('#map');
+  var W = 0, H = 0, v = { s: 1, tx: 0, ty: 0 }, minS = 1, maxS = 100, anim = null;
+  var SB = D.bounds.state;
+  function size() { var r = map.getBoundingClientRect(); W = r.width; H = r.height; }
+  function pads() {
+    var barB = $('#bar').getBoundingClientRect().bottom + 10;
+    var legT = $('#legend').getBoundingClientRect().top;
+    var wide = window.innerWidth >= 760, open = $('#sheet').classList.contains('open');
+    var leftPad = wide ? Math.min(16, 16) : 16;
+    // On wide screens the bar sits top-left; let the map use the space beside it.
+    var t = wide && W > 1100 ? 24 : barB;
+    return { t: t, b: Math.max(24, H - legT + 10), l: leftPad + (wide && W > 1100 ? 500 : 0), r: (wide && open) ? 410 : 16 };
+  }
+  function fitFor(b, p) {
+    var x0 = b[0][0], y0 = b[0][1], x1 = b[1][0], y1 = b[1][1];
+    var aw = Math.max(40, W - p.l - p.r), ah = Math.max(40, H - p.t - p.b);
+    var s = Math.min(aw / (x1 - x0), ah / (y1 - y0));
+    return { s: s, tx: p.l + aw / 2 - (x0 + x1) / 2 * s, ty: p.t + ah / 2 - (y0 + y1) / 2 * s };
+  }
+  function clampView(t) {
+    var cx = (W / 2 - t.tx) / t.s, cy = (H / 2 - t.ty) / t.s, m = 40;
+    cx = Math.min(Math.max(cx, SB[0][0] - m), SB[1][0] + m);
+    cy = Math.min(Math.max(cy, SB[0][1] - m), SB[1][1] + m);
+    t.tx = W / 2 - cx * t.s; t.ty = H / 2 - cy * t.s;
+    return t;
+  }
+  function limits() { var f = fitFor(SB, { t: 0, b: 0, l: 0, r: 0 }); minS = Math.min(f.s, fitFor(SB, pads()).s) * 0.85; maxS = f.s * 90; }
+  function setView(t) { t.s = Math.min(Math.max(t.s, minS), maxS); clampView(t); v.s = t.s; v.tx = t.tx; v.ty = t.ty; render(); }
+  function animateTo(t, ms) {
+    t.s = Math.min(Math.max(t.s, minS), maxS); clampView(t);
+    if (reduce) { setView(t); return; }
+    var a = { s: v.s, tx: v.tx, ty: v.ty }, t0 = performance.now(), token = {}; anim = token;
+    (function step(n) {
+      if (anim !== token) return;
+      var k = Math.min(1, (n - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+      var s = a.s * Math.pow(t.s / a.s, e);
+      var acx = (W / 2 - a.tx) / a.s, acy = (H / 2 - a.ty) / a.s, bcx = (W / 2 - t.tx) / t.s, bcy = (H / 2 - t.ty) / t.s;
+      var cx = acx + (bcx - acx) * e, cy = acy + (bcy - acy) * e;
+      v.s = s; v.tx = W / 2 - cx * s; v.ty = H / 2 - cy * s; render();
+      if (k < 1) requestAnimationFrame(step); else anim = null;
+    })(t0);
+  }
+  function zoomAt(px, py, k) { var ns = Math.min(Math.max(v.s * k, minS), maxS); k = ns / v.s; setView({ s: ns, tx: px - (px - v.tx) * k, ty: py - (py - v.ty) * k }); }
+  function resetView() { animateTo(fitFor(SB, pads()), 350); }
+
+  /* ---- render ---- */
+  var scores = {};
+  function glyph(tok) { return tok === 'fair' || tok === 'good' ? 'rgba(0,0,0,0.72)' : '#fff'; }
+  function applyStyles() {
+    SITES.forEach(function (s) {
+      var sc = siteScore(s, MONTH); scores[s.id] = sc;
+      var p = pins[s.id];
+      var tok = TOKEN[String(Math.max(sc.v, -1))];
+      p.g.style.setProperty('--rc', 'var(--' + tok + ')');
+      p.g.style.setProperty('--gl', glyph(tok));
+      p.g.classList.toggle('quiet', sc.v <= 0);
+      var what = sc.row ? sc.row.label : '';
+      var word = sc.v === -2 ? 'no ' + family : sc.v === -1 ? 'species not listed' : WORD[sc.v].toLowerCase() + (what ? ' for ' + what : '');
+      p.g.setAttribute('aria-label', s.name + ', ' + KIND[s.kind].toLowerCase() + ', ' + word + ' in ' + MONTHS[MONTH - 1]);
+      p.lab.textContent = s.name;
+      p.w = 0;
+    });
+  }
+  function overlap(a, b) { return a[0] < b[0] + b[2] && a[0] + a[2] > b[0] && a[1] < b[1] + b[3] && a[1] + a[3] > b[1]; }
+  function rank(id) { var v = scores[id].v; return v === -2 ? -3 : v; }
+  function render() {
+    vp.setAttribute('transform', 'translate(' + v.tx + ' ' + v.ty + ') scale(' + v.s + ')');
+    var pts = [];
+    SITES.forEach(function (s) {
+      var p = pins[s.id];
+      p.g.style.display = 'none'; p.lab.style.display = 'none';
+      if (scores[s.id].v === -2 && s.id !== selected) return; // filtered out: this site has no runs of the chosen species
+      var x = s.xy[0] * v.s + v.tx, y = s.xy[1] * v.s + v.ty;
+      if (s.id !== selected && (x < -60 || x > W + 60 || y < -60 || y > H + 60)) return;
+      pts.push({ s: s, id: s.id, x: x, y: y });
+    });
+    pts.sort(function (a, b) { return rank(b.id) - rank(a.id); });
+    var groups = Cluster.group(pts, 30, selected), boxes = [], ci = 0;
+    clusterPool.forEach(function (c) { c.g.style.display = 'none'; });
+    groups.forEach(function (g) {
+      if (g.length === 1) {
+        var p = g[0], pn = pins[p.id], k = p.id === selected ? 0.98 : 0.8;
+        pn.g.style.display = '';
+        pn.g.setAttribute('transform', 'translate(' + p.x.toFixed(1) + ' ' + p.y.toFixed(1) + ') scale(' + k + ')');
+        boxes.push([p.x - 15, p.y - 36, 30, 38]);
+      } else {
+        var cx = 0, cy = 0; g.forEach(function (m) { cx += m.x; cy += m.y; }); cx /= g.length; cy /= g.length;
+        var c = getCluster(ci++), tok = TOKEN[String(Math.max(scores[g[0].id].v, -1))];
+        c.g.style.display = '';
+        c.g.setAttribute('transform', 'translate(' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ') scale(0.95)');
+        c.g.style.setProperty('--rc', 'var(--' + tok + ')');
+        c.g.style.setProperty('--gl', glyph(tok));
+        c.t.textContent = g.length;
+        c.g.__members = g.map(function (m) { return m.s; });
+        c.g.setAttribute('data-cluster', '1');
+        c.g.setAttribute('aria-label', g.length + ' sites close together, best is ' + WORD[String(Math.max(scores[g[0].id].v, -1))].toLowerCase() + '. Zoom in.');
+        boxes.push([cx - 16, cy - 34, 32, 36]);
+      }
+    });
+    var singles = groups.filter(function (g) { return g.length === 1; }).map(function (g) { return g[0]; });
+    singles.sort(function (a, b) { return (b.id === selected) - (a.id === selected) || rank(b.id) - rank(a.id); });
+    singles.forEach(function (p) {
+      var pn = pins[p.id];
+      if (!pn.w) { pn.lab.style.display = ''; pn.w = pn.lab.getBBox().width; pn.lab.style.display = 'none'; }
+      var left = p.x + 15 + pn.w + 4 > W - 8;
+      var bx = [left ? p.x - 15 - (pn.w + 4) : p.x + 15, p.y - 30, pn.w + 4, 14];
+      if (p.id === selected || !boxes.some(function (b) { return overlap(bx, b); })) {
+        pn.lab.style.display = '';
+        pn.lab.setAttribute('text-anchor', left ? 'end' : 'start');
+        pn.lab.setAttribute('x', (left ? p.x - 15 : p.x + 15).toFixed(1)); pn.lab.setAttribute('y', (p.y - 19).toFixed(1));
+        boxes.push(bx);
+      }
+    });
+    lms.forEach(function (l) {
+      var x = l.xy[0] * v.s + v.tx, y = l.xy[1] * v.s + v.ty;
+      var show = x > -80 && x < W + 80 && y > -20 && y < H + 20;
+      if (show) {
+        var bx = l.kind === 'water' ? [x - l.w / 2, y - 8, l.w, 14] : [x - 4, y - 8, l.w + 14, 15];
+        show = !boxes.some(function (b) { return overlap(bx, b); });
+        if (show) boxes.push(bx);
+      }
+      l.g.style.display = show ? '' : 'none';
+      if (show) {
+        l.g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
+        if (l.kind === 'water') { l.t.setAttribute('x', 0); l.t.setAttribute('y', 4); } else { l.t.setAttribute('x', 7); l.t.setAttribute('y', 3.5); }
+      }
+    });
+  }
+
+  /* ---- chrome: species, year ribbon, summary ---- */
+  var spseg = $('#spseg');
+  [null].concat(FAMS).forEach(function (f) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.setAttribute('role', 'radio'); b.textContent = f || 'All salmon';
+    b.addEventListener('click', function () { family = f; refresh(); });
+    b.__f = f; spseg.appendChild(b);
+  });
+  var yearEl = $('#year'), yearBtns = [];
+  MONTHS.forEach(function (name, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.setAttribute('role', 'radio');
+    b.innerHTML = '<span class="stack"><i class="a"></i><i class="p"></i></span><span class="m">' + name.slice(0, 3) + '</span>';
+    if (i + 1 === CUR) b.classList.add('now');
+    b.addEventListener('click', function () { MONTH = i + 1; refresh(); });
+    b.addEventListener('keydown', function (e) {
+      var d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+      if (!d) return; e.preventDefault(); MONTH = (MONTH - 1 + d + 12) % 12 + 1; refresh(); yearBtns[MONTH - 1].focus();
+    });
+    yearEl.appendChild(b); yearBtns.push(b);
+  });
+  function counts(m) {
+    var c = { 3: 0, 2: 0, 1: 0, 0: 0, sites: 0 };
+    SITES.forEach(function (s) { var v = siteScore(s, m).v; if (v >= 0) { c[v]++; c.sites++; } });
+    return c;
+  }
+  function paintChrome() {
+    Array.prototype.forEach.call(spseg.children, function (b) { var on = b.__f === family; b.setAttribute('aria-checked', on); b.tabIndex = on ? 0 : -1; });
+    var all = MONTHS.map(function (_, i) { return counts(i + 1); });
+    var max = Math.max.apply(null, all.map(function (c) { return c[3] + c[2]; }).concat([1]));
+    yearBtns.forEach(function (b, i) {
+      var c = all[i], on = i + 1 === MONTH;
+      b.setAttribute('aria-checked', on); b.tabIndex = on ? 0 : -1;
+      var hgt = b.querySelector('.stack').clientHeight || 30;
+      b.querySelector('.p').style.height = (c[3] / max * hgt).toFixed(1) + 'px';
+      b.querySelector('.a').style.height = (c[2] / max * hgt).toFixed(1) + 'px';
+      b.setAttribute('aria-label', MONTHS[i] + ': ' + c[3] + ' sites at peak, ' + c[2] + ' active');
+    });
+    var c = all[MONTH - 1], what = family ? family.toLowerCase() : 'salmon';
+    var line = c[3] + c[2] === 0
+      ? 'No ' + what + ' sites are active in ' + MONTHS[MONTH - 1] + '.'
+      : '<b>' + c[3] + '</b> at peak and <b>' + c[2] + '</b> active in ' + MONTHS[MONTH - 1] + (family ? ', ' + c.sites + ' ' + what + ' sites' : '') + '.';
+    if (family === 'Pink' && YEAR % 2 === 0) line = 'Pink salmon return in odd years. None are expected in ' + YEAR + '; the next run is ' + (YEAR + 1) + '.';
+    $('#summary').innerHTML = line;
+    $('#sub').textContent = SITES.length + ' WDFW viewing sites · ' + MONTHS[MONTH - 1];
+  }
+  function refresh() {
+    applyStyles(); paintChrome(); render();
+    if ($('#sheet').classList.contains('open')) { if (selected) openSite(selected, true); else openList(true); }
+  }
+
+  /* ---- gestures ---- */
+  var ptrs = new Map(), down = null, pinch = null;
+  map.addEventListener('pointerdown', function (e) {
+    if (e.button !== undefined && e.button > 0) return;
+    anim = null; ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.size === 1) { down = { tgt: e.target, moved: 0 }; map.classList.add('drag'); }
+    else if (ptrs.size === 2) {
+      var a = Array.from(ptrs.values());
+      pinch = { d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y), mx: (a[0].x + a[1].x) / 2, my: (a[0].y + a[1].y) / 2 };
+      if (down) down.moved = 99;
+    }
+  });
+  window.addEventListener('pointermove', function (e) {
+    var pt = ptrs.get(e.pointerId); if (!pt) return;
+    var r = map.getBoundingClientRect();
+    if (ptrs.size >= 2 && pinch) {
+      pt.x = e.clientX; pt.y = e.clientY;
+      var a = Array.from(ptrs.values());
+      var d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y), mx = (a[0].x + a[1].x) / 2, my = (a[0].y + a[1].y) / 2;
+      var k = d / pinch.d, ns = Math.min(Math.max(v.s * k, minS), maxS); k = ns / v.s;
+      var px = mx - r.left, py = my - r.top;
+      setView({ s: ns, tx: px - (px - v.tx) * k + (mx - pinch.mx), ty: py - (py - v.ty) * k + (my - pinch.my) });
+      pinch.d = d; pinch.mx = mx; pinch.my = my; return;
+    }
+    var dx = e.clientX - pt.x, dy = e.clientY - pt.y; pt.x = e.clientX; pt.y = e.clientY;
+    if (down) { down.moved += Math.abs(dx) + Math.abs(dy); if (down.moved > 6) setView({ s: v.s, tx: v.tx + dx, ty: v.ty + dy }); }
+  });
+  function endPtr(e) {
+    if (!ptrs.has(e.pointerId)) return;
+    ptrs.delete(e.pointerId);
+    if (ptrs.size < 2) pinch = null;
+    if (ptrs.size === 0) { map.classList.remove('drag'); if (down && down.moved <= 6 && e.type === 'pointerup') tap(down.tgt); down = null; }
+  }
+  window.addEventListener('pointerup', endPtr);
+  window.addEventListener('pointercancel', endPtr);
+  map.addEventListener('wheel', function (e) { e.preventDefault(); var r = map.getBoundingClientRect(); zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0018))); }, { passive: false });
+  map.setAttribute('tabindex', '0');
+  map.addEventListener('keydown', function (e) {
+    if (e.target !== map) return;
+    var st = 60;
+    if (e.key === 'ArrowLeft') setView({ s: v.s, tx: v.tx + st, ty: v.ty });
+    else if (e.key === 'ArrowRight') setView({ s: v.s, tx: v.tx - st, ty: v.ty });
+    else if (e.key === 'ArrowUp') setView({ s: v.s, tx: v.tx, ty: v.ty + st });
+    else if (e.key === 'ArrowDown') setView({ s: v.s, tx: v.tx, ty: v.ty - st });
+    else if (e.key === '+' || e.key === '=') zoomAt(W / 2, H / 2, 1.5);
+    else if (e.key === '-') zoomAt(W / 2, H / 2, 1 / 1.5);
+  });
+  function tap(tgt) {
+    var n = tgt && tgt.closest ? tgt.closest('[data-id],[data-cluster]') : null;
+    if (n && n.getAttribute('data-cluster')) { zoomToCluster(n); return; }
+    if (n) { openSite(n.getAttribute('data-id')); return; }
+    if ($('#sheet').classList.contains('open')) closeSheet();
+  }
+  function zoomToCluster(node) {
+    var xs = [], ys = [];
+    node.__members.forEach(function (s) { xs.push(s.xy[0]); ys.push(s.xy[1]); });
+    var b = [[Math.min.apply(null, xs), Math.min.apply(null, ys)], [Math.max.apply(null, xs), Math.max.apply(null, ys)]];
+    var cx = (b[0][0] + b[1][0]) / 2, cy = (b[0][1] + b[1][1]) / 2, p = pads();
+    var fit = fitFor(b, { t: p.t + 30, b: p.b + 30, l: p.l + 30, r: p.r + 30 }).s;
+    var ns = Math.min(maxS, Math.max(v.s * 2, Math.min(fit, v.s * 8)));
+    animateTo({ s: ns, tx: (p.l + (W - p.l - p.r) / 2) - cx * ns, ty: (p.t + (H - p.t - p.b) / 2) - cy * ns }, 320);
+  }
+  $('#zin').addEventListener('click', function () { zoomAt(W / 2, H / 2, 1.6); });
+  $('#zout').addEventListener('click', function () { zoomAt(W / 2, H / 2, 1 / 1.6); });
+  $('#zfit').addEventListener('click', resetView);
+
+  /* ---- sheet ---- */
+  var sheet = $('#sheet'), app = $('#app');
+  function badge(v, text) { var tok = TOKEN[String(Math.max(v, -1))]; return '<span class="badge" style="--c:var(--' + tok + ')">' + esc(text) + '</span>'; }
+  function showSheet(title, html, keep) {
+    var sb = $('#sbody'), top = keep ? sb.scrollTop : 0;
+    $('#stitle').textContent = title; sb.innerHTML = html; sb.scrollTop = top;
+    if (!sheet.classList.contains('open')) {
+      sheet.classList.add('open'); sheet.setAttribute('aria-hidden', 'false'); app.classList.add('sheet-open');
+      if (!keep) sheet.focus({ preventScroll: true });
+    }
+  }
+  function closeSheet() {
+    sheet.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true'); app.classList.remove('sheet-open');
+    var was = selected; selected = null; $('#listbtn').setAttribute('aria-expanded', 'false'); render();
+    if (was && pins[was]) pins[was].g.focus({ preventScroll: true });
+  }
+  $('#sdone').addEventListener('click', closeSheet);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && sheet.classList.contains('open')) closeSheet(); });
+
+  function calendar(s) {
+    var head = '<tr><th class="sp" scope="col"><span class="sr">Species</span></th>' + MONTHS.map(function (m, i) { return '<th scope="col"' + (i + 1 === MONTH ? ' class="cur"' : '') + '><abbr title="' + m + '">' + m[0] + '</abbr></th>'; }).join('') + '</tr>';
+    var body = s.sp.map(function (r) {
+      var cells = MONTHS.map(function (m, i) {
+        var v = rowScore(r, i + 1), cls = v === 3 ? 'b' : v === 2 ? 'g' : v === 1 ? 'f' : '';
+        if (i + 1 === MONTH) cls += ' cur';
+        return '<td class="' + cls.trim() + '"><span class="sr">' + m + ': ' + WORD[v] + '</span></td>';
+      }).join('');
+      return '<tr><th class="sp" scope="row">' + esc(r.label) + (r.odd ? ' <span class="sr">(odd years)</span>' : '') + '</th>' + cells + '</tr>';
+    }).join('');
+    return '<table class="cal"><thead>' + head + '</thead><tbody>' + body + '</tbody></table>' +
+      '<div class="calkey"><span style="--c:var(--prime)"><i></i>Peak</span><span style="--c:var(--good)"><i></i>Active</span><span style="--c:var(--fair)"><i></i>Starting or ending</span></div>';
+  }
+  var SHIELD = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
+  var PROV = {
+    site: 'Species and months come from the site’s own visitor information.',
+    typical: 'WDFW lists this site without species or dates. These are the usual months for this water, so check locally before a long drive.',
+    none: 'WDFW lists this site without saying which fish run here, so no months are shown.'
+  };
+  function openSite(id, keep) {
+    var s = BYID[id]; if (!s) return;
+    selected = id; $('#listbtn').setAttribute('aria-expanded', 'false');
+    var sc = scores[id], mname = MONTHS[MONTH - 1];
+    var ladder = s.kind === 'ladder';
+    var head = '<div class="head"><p>' + esc(KIND[s.kind]) + ' · ' + esc(s.water) + ' · ' + esc(s.county) + ' County</p>' +
+      (sc.v >= 0 ? badge(sc.v, WORD[sc.v] + ' in ' + mname + (sc.row ? ' · ' + sc.row.label : '')) : sc.v === -2 ? '<span class="chip">No ' + esc(family) + ' here</span>' : badge(-1, 'Species not listed')) + '</div>';
+    var rows = s.sp.map(function (r) {
+      var v = rowScore(r, MONTH);
+      var months = 'Peak ' + r.best.map(function (m) { return MONTHS[m - 1].slice(0, 3); }).join(', ') + (r.good.length ? '; also ' + r.good.map(function (m) { return MONTHS[m - 1].slice(0, 3); }).join(', ') : '');
+      var dt = offYear(r) ? 'Odd years only. Next run in ' + (YEAR + 1) + '.' : months + (r.odd ? '. Odd years only.' : '');
+      return '<div class="row"><div class="rt"><div class="nm">' + esc(r.label) + '</div><div class="dt">' + esc(dt) + '</div></div>' + badge(v, WORD[v]) + '</div>';
+    }).join('');
+    var dir = 'https://maps.apple.com/?q=' + encodeURIComponent(s.name) + '&sll=' + s.lat + ',' + s.lon;
+    var html = head +
+      '<div class="acts"><a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
+      '<a class="more" href="' + esc(s.url) + '" target="_blank" rel="noopener">Site info</a></div>' +
+      (ladder ? '<div class="ladder">Fish pass this ladder on their way upstream. You see them through a window, but they don’t spawn here.</div>' : '') +
+      (s.sp.length ? '<section><h3>In ' + mname + '</h3><div class="rows">' + rows + '</div></section>' +
+        '<section><h3>Through the year</h3>' + calendar(s) + '</section>' : '') +
+      (s.note ? '<p class="note">' + esc(s.note) + '</p>' : '') +
+      '<p class="prov">' + esc(PROV[s.src]) + '</p>' +
+      '<div class="advisory">' + SHIELD + '<div><h3>Before you go</h3><p>Stay out of the water and off the gravel where eggs are buried. Many spawning streams are closed to fishing, so check WDFW’s rules before you bring a rod.</p></div></div>' +
+      '<div class="foot"><span>Typical timing, not a guarantee and not regulation. Runs shift with rain and water temperature.</span>' +
+      '<a href="https://wdfw.wa.gov/places-to-go/salmon-viewing" target="_blank" rel="noopener">WDFW Salmon Viewing list</a></div>';
+    showSheet(s.name, html, keep);
+    render();
+    if (!keep) {
+      var x = s.xy[0] * v.s + v.tx, y = s.xy[1] * v.s + v.ty, p = pads();
+      if (x < p.l + 20 || x > W - p.r - 20 || y < p.t + 40 || y > H - (window.innerWidth >= 760 ? p.b : H * 0.68) - 10) {
+        var ns = Math.max(v.s, fitFor(SB, pads()).s * 2.2);
+        var bottom = window.innerWidth >= 760 ? p.b : Math.min(H * 0.68, 600);
+        animateTo({ s: ns, tx: (p.l + (W - p.l - p.r) / 2) - s.xy[0] * ns, ty: (p.t + (H - p.t - bottom) / 2) - s.xy[1] * ns }, 320);
+      }
+    }
+  }
+  function openList(keep) {
+    selected = null; $('#listbtn').setAttribute('aria-expanded', 'true');
+    var mname = MONTHS[MONTH - 1], groups = { 3: [], 2: [], 1: [], 0: [], '-1': [] };
+    SITES.forEach(function (s) { var sc = scores[s.id]; if (sc.v === -2) return; groups[String(Math.max(sc.v, -1))].push(s); });
+    var html = '<p class="lede">' + (family ? esc(family) + ' sites' : 'All ' + SITES.length + ' sites') + ' in ' + mname + ', best first. Pick a month at the top to see another time of year.</p>';
+    ['3', '2', '1', '0', '-1'].forEach(function (k) {
+      var list = groups[k]; if (!list.length) return;
+      list.sort(function (a, b) { return a.name < b.name ? -1 : 1; });
+      html += '<section class="lgroup"><h3>' + WORD[k] + ' <span class="n">' + list.length + '</span></h3><div class="rows">' + list.map(function (s) {
+        var sc = scores[s.id], what = sc.row ? sc.row.label : (s.sp.length ? s.sp.map(function (r) { return r.label; }).filter(function (x, i, a) { return a.indexOf(x) === i; }).slice(0, 2).join(', ') : 'Species not listed');
+        return '<button type="button" class="row lrow" data-open="' + s.id + '" style="--c:var(--' + TOKEN[k] + ')"><span class="dot"></span><span class="rt"><span class="nm">' + esc(s.name) + '</span><span class="dt">' + esc(what) + ' · ' + esc(s.county) + ' County' + (s.kind === 'ladder' ? ' · fish ladder' : '') + '</span></span></button>';
+      }).join('') + '</div></section>';
+    });
+    html += '<div class="foot"><span>From WDFW’s Salmon Viewing list. Species and months are typical for each water unless a site’s own information says otherwise.</span><a href="https://wdfw.wa.gov/places-to-go/salmon-viewing" target="_blank" rel="noopener">WDFW Salmon Viewing list</a></div>';
+    showSheet('Sites in ' + mname, html, keep);
+    render();
+  }
+  $('#sbody').addEventListener('click', function (e) { var b = e.target.closest('[data-open]'); if (b) openSite(b.getAttribute('data-open')); });
+  $('#listbtn').addEventListener('click', function () {
+    if (sheet.classList.contains('open') && selected === null) closeSheet(); else openList();
+  });
+
+  /* ---- boot ---- */
+  function boot() {
+    size(); limits(); applyStyles(); paintChrome();
+    var f = fitFor(SB, pads()); v.s = f.s; v.tx = f.tx; v.ty = f.ty; clampView(v); render();
+  }
+  window.addEventListener('resize', function () { var c = { x: (W / 2 - v.tx) / v.s, y: (H / 2 - v.ty) / v.s }; size(); limits(); paintChrome(); setView({ s: v.s, tx: W / 2 - c.x * v.s, ty: H / 2 - c.y * v.s }); });
+  boot();
+})();
+</script>
+
+</body></html>
