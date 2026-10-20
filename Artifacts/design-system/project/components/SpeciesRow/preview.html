@@ -1,0 +1,41 @@
+<!-- @dsCard group="Sheets" height=252 -->
+<style>
+  .wrap { font-family: var(--font-sans, -apple-system, system-ui, sans-serif); padding: 24px; max-width: 420px; }
+  h3 { font-size: 17px; line-height: 22px; font-weight: 600; margin: 0 0 10px; color: var(--text-primary, #000); }
+  .card { background: var(--surface-species-row, rgba(116,116,128,0.08)); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+  .top { display: flex; align-items: center; gap: 8px; }
+  .badge { font-size: 12px; line-height: 16px; font-weight: 700; padding: 5px 10px; border-radius: 999px; border: 1px solid currentColor; color: var(--rating-good, #ff7300); background: color-mix(in srgb, var(--rating-good, #ff7300) 20%, transparent); }
+  .badge.fair { color: var(--rating-fair, #ffc700); background: color-mix(in srgb, var(--rating-fair, #ffc700) 20%, transparent); }
+  .name { font-size: 15px; line-height: 20px; font-weight: 600; color: var(--text-primary, #000); }
+  .size { margin-left: auto; width: 56px; text-align: center; color: var(--text-secondary, rgba(60,60,67,0.6)); }
+  .size span { font-size: 11px; line-height: 13px; display: block; }
+  .row { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; color: var(--text-secondary, rgba(60,60,67,0.6)); }
+  .row.fine { font-size: 11px; line-height: 13px; }
+  .ic { flex: none; color: currentColor; }
+</style>
+<div class="wrap">
+  <h3>What&rsquo;s biting</h3>
+  <div class="card">
+    <div class="top">
+      <span class="badge">Good</span>
+      <span class="name">Coho Salmon</span>
+      <span class="size">
+        <svg viewBox="0 0 60 24" width="50" height="20" aria-hidden="true"><path d="M58 12C54 5 47 3 38 5 30 7 22 10 14 9L4 3 7 12 4 21 14 15C22 14 30 17 38 19 47 21 54 19 58 12Z" fill="currentColor"/></svg>
+        <span>6&ndash;12 lb</span>
+      </span>
+    </div>
+    <span class="row"><svg class="ic" viewBox="0 0 16 16" width="14" height="14" role="img" aria-label="calendar"><path d="M4 1.2v1.4M12 1.2v1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><rect x="1.6" y="2.6" width="12.8" height="12" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M1.6 6.4h12.8" stroke="currentColor" stroke-width="1.3"/><circle cx="5" cy="9.4" r=".95" fill="currentColor"/><circle cx="8" cy="9.4" r=".95" fill="currentColor"/><circle cx="11" cy="9.4" r=".95" fill="currentColor"/><circle cx="5" cy="12.2" r=".95" fill="currentColor"/><circle cx="8" cy="12.2" r=".95" fill="currentColor"/></svg> Best months: Sep, Oct</span>
+    <span class="row"><svg class="ic" viewBox="0 0 16 16" width="14" height="14" role="img" aria-label="clock"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.2V8l2.7 1.9" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg> Best time: Dawn &amp; dusk; first light is best</span>
+    <span class="row"><svg class="ic" viewBox="0 0 16 16" width="14" height="14" role="img" aria-label="fish"><path d="M14.6 8c-1.6-2.3-3.9-3.5-6.5-3.5C5.6 4.5 3.6 5.6 2.2 7L.9 5.4v5.2L2.2 9c1.4 1.4 3.4 2.5 5.9 2.5 2.6 0 4.9-1.2 6.5-3.5Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="11.8" cy="7.2" r=".85" fill="currentColor"/></svg> Trolled hoochies, herring, or spinners</span>
+    <span class="row fine">Silver runs typically peak early fall in South Sound.</span>
+  </div>
+  <div class="card">
+    <div class="top">
+      <span class="badge fair">Fair</span>
+      <span class="name">Chinook Salmon</span>
+    </div>
+    <span class="row fine"><svg class="ic" viewBox="0 0 16 16" width="13" height="13" role="img" aria-label="exclamationmark.triangle"><path d="M8 1.9 15 14H1Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 6.2v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.9" r=".9" fill="currentColor"/></svg> Season varies &mdash; verify</span>
+    <span class="row"><svg class="ic" viewBox="0 0 16 16" width="14" height="14" role="img" aria-label="calendar"><path d="M4 1.2v1.4M12 1.2v1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><rect x="1.6" y="2.6" width="12.8" height="12" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M1.6 6.4h12.8" stroke="currentColor" stroke-width="1.3"/><circle cx="5" cy="9.4" r=".95" fill="currentColor"/><circle cx="8" cy="9.4" r=".95" fill="currentColor"/><circle cx="11" cy="9.4" r=".95" fill="currentColor"/><circle cx="5" cy="12.2" r=".95" fill="currentColor"/><circle cx="8" cy="12.2" r=".95" fill="currentColor"/></svg> Best months: Jul, Aug</span>
+    <span class="row fine">Quota-managed; the area can close mid-month once the guideline is hit.</span>
+  </div>
+</div>

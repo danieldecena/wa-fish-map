@@ -128,3 +128,17 @@ Never hand-edit a generated file.
 | `scripts/testflight_internal.py` | Diagnose, and with `--apply` create, the internal TestFlight tester chain. Read-only without `--apply`. |
 | `scripts/cvd_check.py` | Simulate colour-vision deficiency over the pinned rating-ramp frames. |
 | `scripts/make_icon.swift` | Draw the app mark and emit both the flat PNG and the layered `.icon` bundle. |
+
+These feed the web pages in `Artifacts/`, not the app. Run them with
+`/opt/homebrew/bin/python3`; each page's README has the full refresh order.
+
+| Script | What it does |
+|--------|--------------|
+| `scripts/build_typical_sites.py` | Write `Artifacts/salmon-rivers/typical.js` (Typical season snapshot) from `site/data/sites.json` and `fisheries.json`; `--refresh` refetches WDFW marine areas. |
+| `scripts/build_creel_sites.py` | Write `Artifacts/salmon-rivers/creel.js` from WDFW's Puget Sound creel page, matched through `scripts/creel_crosswalk.json`; also rewrites the creel review note in `docs/research/`. |
+| `scripts/creel_crosswalk.json` | Reviewed WDFW ramp → map site matches. Only `high` entries apply; `medium` ones wait for Daniel's approval. |
+| `scripts/build_salmon_db.py` | Build `~/database/salmon-rivers/salmon.db` from WDFW's weekly SW Washington reports; `--fetch` downloads new PDFs first. |
+| `scripts/build_salmon_counts.py` | Write `Artifacts/salmon-rivers/counts.js` from `salmon.db`. |
+| `scripts/export_salmon_page.py` | Write `Artifacts/salmon-catch-table/data.js` from `salmon.db`; refuses if a row count disagrees. |
+| `scripts/build_fishing_year.py` | Write `Artifacts/fishing-year/data.js` from `seasons.json`; `--check` validates only. |
+| `scripts/test_*.py` | Unit tests for the scripts above: `/opt/homebrew/bin/python3 -m unittest discover -s scripts -p "test_*.py"`. |

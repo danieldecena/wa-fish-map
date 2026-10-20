@@ -1,0 +1,144 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Three Friends Fishing Hole</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one grouped-panel column in Artifact Kit tokens; rating colours come from WA Fish Map. */
+:root {
+  --bg: #F2F2F7; --surface: #FFFFFF; --ink: #1D1D1F; --soft: #636366; --hair: #D1D1D6;
+  --fill: rgba(118,118,128,0.12); --accent: #0068DA; --warn: #C73300; --warn-wash: #FCECD3;
+  --bad: #CC0014; --bad-wash: #FCDDDB;
+  --r-prime: #f01c0d; --r-good: #ff7300; --r-fair: #ffc700; --r-slow: #0073ff; --r-none: #8e8e93;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Helvetica Neue", system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro", "Helvetica Neue", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000; --surface: #1C1C1E; --ink: #F5F5F7; --soft: #98989D; --hair: #38383A;
+    --fill: rgba(118,118,128,0.24); --accent: #409CFF; --warn: #FFB340; --warn-wash: #513914;
+    --bad: #FF6A63; --bad-wash: #51241F; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000000; --surface: #1C1C1E; --ink: #F5F5F7; --soft: #98989D; --hair: #38383A;
+  --fill: rgba(118,118,128,0.24); --accent: #409CFF; --warn: #FFB340; --warn-wash: #513914;
+  --bad: #FF6A63; --bad-wash: #51241F; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); }
+.wrap {
+  max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;
+  padding-block: 20px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+header { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; }
+.kicker { font: 600 12px/16px var(--font); letter-spacing: 0.04em; text-transform: uppercase; color: var(--soft); }
+h1 { margin: 0; font: 700 34px/41px var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
+.lede { margin: 0; font: 400 15px/22px var(--font); color: var(--soft); max-width: 60ch; }
+.asof { font: 400 13px/18px var(--font); color: var(--soft); }
+
+.group { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.cap { margin: 0; padding-left: 4px; font: 600 12px/16px var(--font); letter-spacing: 0.04em; text-transform: uppercase; color: var(--soft); }
+.panel { background: var(--surface); border-radius: 10px; min-width: 0; }
+.panel.pad { padding: 14px 16px; }
+
+.notice { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: 10px; background: var(--warn-wash); color: var(--warn); }
+.notice strong { font: 600 15px/20px var(--font); }
+.notice span { font: 400 14px/20px var(--font); }
+
+/* run timing grid */
+.grid { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+.row { display: grid; grid-template-columns: 52px repeat(4, minmax(0, 1fr)); gap: 6px; align-items: stretch; }
+.row.head > div { font: 600 11px/14px var(--font); color: var(--soft); text-align: center; align-self: end; }
+.sp { font: 600 15px/20px var(--font); align-self: center; }
+.cell { background: var(--fill); border-radius: 6px; padding: 8px 2px 0; display: flex; flex-direction: column; align-items: center; gap: 6px; overflow: hidden; }
+.cell b { font: 600 12px/16px var(--font); }
+.cell i { display: block; width: 100%; height: 4px; }
+.prime i { background: var(--r-prime); } .good i { background: var(--r-good); }
+.fair i { background: var(--r-fair); } .slow i { background: var(--r-slow); }
+.prime b { font-weight: 700; }
+.note { margin: 0; font: 400 13px/18px var(--font); color: var(--soft); }
+
+/* list rows */
+.list { margin: 0; padding: 0; list-style: none; }
+.list li { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; padding: 12px 16px; }
+.list li + li { border-top: 0.5px solid var(--hair); }
+.k { font: 600 15px/20px var(--font); }
+.v { font: 400 15px/20px var(--font); color: var(--soft); }
+.v strong { color: var(--ink); font-weight: 600; }
+.num { font-family: var(--mono); font-size: 13px; }
+
+.badge { display: inline-block; font: 600 11px/14px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 6px; border-radius: 6px; background: var(--bad-wash); color: var(--bad); }
+.src { margin: 0; padding: 0 4px; font: 400 13px/20px var(--font); color: var(--soft); }
+.src a { color: var(--accent); }
+@media (max-width: 420px) { .list li { grid-template-columns: 1fr; gap: 2px; } h1 { font-size: 30px; line-height: 36px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">Green River · Kent, WA · Bank access</div>
+    <h1>Three Friends Fishing Hole</h1>
+    <p class="lede">Lower river bank access close to the S 212th St line where the rules change. Check the reach before you cast.</p>
+    <div class="asof">Updated Oct 19, 2026 · 2026–27 fishing year</div>
+  </header>
+
+  <div class="notice" role="note">
+    <strong>Chinook are closed this year</strong>
+    <span>An August emergency rule closed Chinook retention on the Green. The upper Green is also closed to all fishing Sept 16 to Oct 31.</span>
+  </div>
+
+  <section class="group" aria-labelledby="t1">
+    <h2 class="cap" id="t1">When the fish are in</h2>
+    <div class="panel grid">
+      <div class="row head">
+        <div></div><div>Now–Oct 31</div><div>Nov 1–14</div><div>Nov 15–30</div><div>Dec</div>
+      </div>
+      <div class="row">
+        <div class="sp">Coho</div>
+        <div class="cell prime"><b>Prime</b><i></i></div>
+        <div class="cell good"><b>Good</b><i></i></div>
+        <div class="cell fair"><b>Fair</b><i></i></div>
+        <div class="cell slow"><b>Slow</b><i></i></div>
+      </div>
+      <div class="row">
+        <div class="sp">Chum</div>
+        <div class="cell fair"><b>Fair</b><i></i></div>
+        <div class="cell good"><b>Good</b><i></i></div>
+        <div class="cell prime"><b>Prime</b><i></i></div>
+        <div class="cell slow"><b>Slow</b><i></i></div>
+      </div>
+      <p class="note">Typical run timing from angler reports, not a WDFW forecast. A good rain brings a fresh push of fish, so the ratings can jump a step.</p>
+    </div>
+  </section>
+
+  <section class="group" aria-labelledby="t2">
+    <h2 class="cap" id="t2">Best times to go</h2>
+    <div class="panel">
+      <ul class="list">
+        <li><span class="k">Time of day</span><span class="v"><strong>Dawn</strong> and the last hour of light. One local coho report was a hookup at about 7 a.m.</span></li>
+        <li><span class="k">Day of week</span><span class="v"><strong>Weekdays.</strong> Weekend crowds on the Kent bank spots spook fish. The best single day is the one after a rain.</span></li>
+        <li><span class="k">Water</span><span class="v"><strong>Rising or freshly raised water</strong> fishes best. Low, clear, shallow water with no rain is the slowest.</span></li>
+        <li><span class="k">Coho tactics</span><span class="v">Local anglers call Green coho lockjawed. Go smaller on baits and lighter on leaders.</span></li>
+        <li><span class="k">Chum tactics</span><span class="v">November is the month. Anglers have called the Green chum bite fantastic, with the best days right after rain.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="group" aria-labelledby="t3">
+    <h2 class="cap" id="t3">Rules for the lower Green</h2>
+    <div class="panel">
+      <ul class="list">
+        <li><span class="k">Salmon limit</span><span class="v"><strong class="num">6</strong> a day, <strong>no more than 3</strong> adult coho and chum combined</span></li>
+        <li><span class="k">Minimum size</span><span class="v"><strong class="num">12 in</strong></span></li>
+        <li><span class="k">Chinook</span><span class="v"><span class="badge">Release</span> &nbsp;Retention is closed</span></li>
+        <li><span class="k">S 212th St</span><span class="v">Below the S 212th St bridge the season opened <strong>Aug 20</strong>. Above it, up to the Hwy 18 bridge, it opened <strong>Sept 16</strong>. Both are open now through <strong>Dec 31</strong>.</span></li>
+        <li><span class="k">November</span><span class="v">The Green has had a night closure and anti-snagging rule in November before. Confirm for this year.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <p class="src">Rules change by emergency rule while the pamphlet stays the same, so read the <a href="https://wdfw.wa.gov/fishing/regulations/emergency-rules" target="_blank" rel="noopener">WDFW emergency rules</a> the morning you go. Sources: <a href="https://www.eregulations.com/washington/fishing/puget-sound-coastal-rivers-special-rules-d-k" target="_blank" rel="noopener">eRegulations, Green (Duwamish) special rules</a> · <a href="https://wdfw.wa.gov/about/regulations/rule-changes/green-duwamish-recreational-fishing-2026-08" target="_blank" rel="noopener">WDFW rule #26-155</a> · <a href="https://northwestfishingreports.com/Forum/viewtopic.php?p=244027" target="_blank" rel="noopener">Northwest Fishing Reports</a>.</p>
+</div>
+
+</body></html>

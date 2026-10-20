@@ -1,0 +1,24 @@
+<!-- @dsCard group="Map chrome" height=112 -->
+<style>
+  .wrap { font-family: var(--font-sans, -apple-system, system-ui, sans-serif); padding: 24px; }
+  .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .strip { display: flex; gap: 2px; border-radius: 2px; overflow: hidden; }
+  .sw { width: 20px; height: 8px; background: var(--overlay-density, #7a29b8); }
+  .t { font-size: 11px; line-height: 13px; color: var(--text-secondary, rgba(60,60,67,0.6)); }
+  .q { font-size: 11px; line-height: 13px; color: var(--text-tertiary, rgba(60,60,67,0.3)); }
+  .note { font-size: 11px; line-height: 13px; color: var(--text-tertiary, rgba(60,60,67,0.3)); margin-top: 10px; }
+</style>
+<div class="wrap">
+  <div class="row">
+    <span class="t">Fewer</span>
+    <span class="strip">
+      <span class="sw" style="opacity: 0"></span>
+      <span class="sw" style="opacity: .14"></span>
+      <span class="sw" style="opacity: .26"></span>
+      <span class="sw" style="opacity: .40"></span>
+    </span>
+    <span class="t">More</span>
+    <span class="q">· density of well-rated spots</span>
+  </div>
+  <p class="note">The first swatch is empty on purpose. Static rendition of <code>HeatLegend</code>.</p>
+</div>

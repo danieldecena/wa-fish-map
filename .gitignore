@@ -33,3 +33,6 @@ __pycache__/
 
 # raw WDFW responses cached by scripts/build_typical_sites.py
 .cache/
+
+# Playwright MCP page snapshots, console logs and screenshots
+.playwright-mcp/

@@ -7,5 +7,6 @@
   "baselineVersion": "1792352926-fede",
   "currentVersion": "1792389117-5bb5",
   "previousVersion": "1792387756-ea34",
-  "note": "Source is index.html plus geo.js, reports.js, counts.js, creel.js, typical.js, season.js and cluster.js in this folder; baseline.html is the pre-split single-file page. Refresh by PASSING THIS URL and files={geo.js, reports.js, counts.js, creel.js, typical.js, season.js, cluster.js}. Rollback: republish a previous version id. Version 1792363512-a03d (Kalama and Washougal, published from another session) was merged here, not lost."
+  "note": "Source is index.html plus geo.js, reports.js, counts.js, creel.js, typical.js, season.js and cluster.js in this folder; baseline.html is the pre-split single-file page. Refresh by PASSING THIS URL and files={geo.js, reports.js, counts.js, creel.js, typical.js, season.js, cluster.js}. Rollback: republish a previous version id. Version 1792363512-a03d (Kalama and Washougal, published from another session) was merged here, not lost.",
+  "synced": "2026-10-20: live version 1792389117-5bb5 matches this folder file for file."
 }

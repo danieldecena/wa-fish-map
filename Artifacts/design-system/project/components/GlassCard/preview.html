@@ -1,0 +1,26 @@
+<!-- @dsCard group="Map chrome" height=196 -->
+<style>
+  .wrap { font-family: var(--font-sans, -apple-system, system-ui, sans-serif); padding: 24px; }
+  .map { position: relative; border-radius: 12px; overflow: hidden; padding: 12px; background:
+    linear-gradient(135deg, color-mix(in srgb, var(--brand-icon-start, #1797ae) 22%, transparent), color-mix(in srgb, var(--brand-icon-end, #004a79) 30%, transparent)); }
+  .card { border-radius: 14px; padding: 10px 14px; background: color-mix(in srgb, var(--surface-background, #fff) 72%, transparent); backdrop-filter: blur(18px); max-width: 460px; display: flex; flex-direction: column; gap: 10px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .ctl { font-size: 11px; line-height: 13px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: var(--surface-advisory, rgba(120,120,128,0.16)); color: var(--text-primary, #000); }
+  .entry { display: flex; gap: 3px; align-items: center; }
+  .dot { width: 8px; height: 8px; border-radius: 999px; }
+  .label { font-size: 11px; line-height: 13px; color: var(--text-secondary, rgba(60,60,67,0.6)); }
+</style>
+<div class="wrap">
+  <div class="map">
+    <div class="card">
+      <div class="row"><span class="ctl">September</span><span class="ctl">All species</span><span class="ctl">Heat off</span></div>
+      <div class="row">
+        <span class="entry"><span class="dot" style="background: var(--rating-prime, #f01c0d)"></span><span class="label">Prime</span></span>
+        <span class="entry"><span class="dot" style="background: var(--rating-good, #ff7300)"></span><span class="label">Good</span></span>
+        <span class="entry"><span class="dot" style="background: var(--rating-fair, #ffc700)"></span><span class="label">Fair</span></span>
+        <span class="entry"><span class="dot" style="background: var(--rating-slow, #0073ff)"></span><span class="label">Slow</span></span>
+        <span class="entry"><span class="dot" style="background: var(--rating-unrated, #8e8e93)"></span><span class="label">No data</span></span>
+      </div>
+    </div>
+  </div>
+</div>

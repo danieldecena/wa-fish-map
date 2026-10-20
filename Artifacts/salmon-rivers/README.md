@@ -1,9 +1,9 @@
-# Salmon rivers page
+# Washington Fishing Map (salmon-rivers page)
 
-The published page "SW Washington Salmon Rivers" has two modes behind one switch at the top of the page. It is not part of the iOS app.
+The published page "Washington Fishing Map" (first published as "SW Washington Salmon Rivers"; the folder keeps the old name) has two modes behind one switch at the top of the page. It is not part of the iOS app.
 
 - **Recent reports** (the default): a full-bleed river map of eight southwest Washington salmon fisheries (Cowlitz, Lower Columbia, Lewis, Wind, Klickitat, Drano Lake, Kalama, Washougal) with a species dropdown, a ranked Rivers list and a detail sheet. It shows recent catch reports, not season dates, and routes people to WDFW to confirm rules.
-- **Typical season** (new, not yet published): about 540 WDFW piers, boat launches and shore access sites across Washington, each coloured by the WA Fish Map app's own seasonal rating for the chosen species in the current month. It is typical timing from the app's curated guidance. It is not a catch report and not a claim that a fishery is open. `?mode=typical` opens the page in this mode.
+- **Typical season** (published 2026-10-18): about 540 WDFW piers, boat launches and shore access sites across Washington, each coloured by the WA Fish Map app's own seasonal rating for the chosen species in the current month. It is typical timing from the app's curated guidance. It is not a catch report and not a claim that a fishery is open. `?mode=typical` opens the page in this mode.
 
 The two modes never share a map view: switching swaps the pin set, the legend, the species list and the sheets. Catch-report colours and seasonal colours are never drawn together.
 
@@ -32,6 +32,7 @@ Live: https://claude.ai/artifact/9oA145toRsmFcDYurdJbey (binding and versions in
 | `test/basemap.test.js` | The land tint and outline in `typical.js`: one closed polygon in the state box, the north and east edges are the straight borders, the south edge lies on `geo.js` river geometry, the closure through the water never touches Canadian ground, and both modes draw the same basemap from tokens. |
 | `test/hint.test.js` | The "Most sites rate the same this month" hint: more than 80 percent of rated sites in view, unrated ignored, at least 10 rated sites, computed from the bundled data and shown only in All species. |
 | `test/controls.test.js` | The control card: one species dropdown for both modes, Rivers on the title row, the title names the mode, 44 px targets, keyboard and focus handling. |
+| `test/species-vocab.test.js` | Every name in `reports.js` `SPECIES` is an exact species name from the app's `fisheries.json` (near-misses rejected, no duplicates), and the catch-report files never carry seasonal timing. |
 | `test/baseline-pins.json` | Pin colours per species filter from the page as first published; a Task 2 check that nothing changed visibly. |
 | `baseline.html` | The page as first published, single file. The rollback source. |
 | `serve.js` | Local static server that wraps `index.html` the way the publisher does. |

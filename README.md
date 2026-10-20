@@ -72,4 +72,29 @@ the ones already in `WAFishMap/`.
 - Fully statewide map covering 16 marine areas, plus rivers, lakes, and coastal areas.
 - Live WDFW ArcGIS fetch with offline GeoJSON fallback for access sites and marine areas.
 - Contextual streamflow (USGS), marine tides (NOAA), buoy data (NDBC), and plan-time weather (Apple WeatherKit).
-- Swift Testing unit tests for parsers, scope filters, and model loading.
+- Swift Testing unit tests for parsers, scope filters, and model loading, plus
+  XCUITest probes for the sheets and map chrome.
+
+## Also in this repo: web pages
+
+`Artifacts/` holds published companion pages built from the same data. They are
+not part of the app, and the app never reads them:
+
+- **Washington Fishing Map** (`Artifacts/salmon-rivers/`): recent SW Washington
+  salmon reports, plus a Typical season mode that rates ~540 statewide sites
+  with a JS port of the app's own rating.
+- **Washington Fishing Year** (`Artifacts/fishing-year/`): a dated seasons
+  calendar and river guide, October 2026 to November 2027.
+- **SW Washington Creel Table** (`Artifacts/salmon-catch-table/`): WDFW weekly
+  creel counts.
+- **Three Friends Fishing Hole** (`Artifacts/three-friends-fishing-hole/`): a
+  one-spot guide to a Green River bank access in Kent.
+- Older pages, kept with their published source: the design system, the App
+  Store listing and its interactive preview, and the "Inside WAFishMap"
+  explainer.
+
+Each folder's README covers how to refresh, test and publish it. Node tests:
+
+```zsh
+node --test "Artifacts/salmon-rivers/test/*.test.js"
+```
