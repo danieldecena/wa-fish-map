@@ -42,8 +42,15 @@ Editing rules:
 - It is **guidance, not regulation.** Every screen that shows it carries the
   disclaimer and a WDFW deep link (`wdfwURL`). Keep both.
 - Bump `updated` when you change the data.
-- v1 seed is a first pass from general South-Sound knowledge — **treat species/month
-  facts as unverified until checked against WDFW.**
+- Every area and county was checked against WDFW in the 2026-09-16 data pass
+  (`docs/research/2026-09-16-datapass-*.md`). A new row needs the same: a WDFW
+  source recorded in `docs/research/` (see the 2026-10-18 Skagit and Puyallup
+  coho notes for the shape) before it lands.
+- New fishing facts found in conversation go **into this file** in its existing
+  format — never into a new, separate database.
+- Changing `fisheries.json` also changes the web page's Typical season mode:
+  rerun `scripts/build_typical_sites.py` and the Node tests (see "Web pages"
+  below), or `test/typical.test.js` fails on the stale snapshot.
 
 ## Not this app
 
@@ -67,7 +74,7 @@ site in its tier:
   curated `waterbodySites` list; rivers resolve by name to any site within 150 m
   of the river line. A river is one feature end to end, so a river row must be
   true along the whole river — the Spokane River was refused on 2026-09-16
-  because its rule changes reach by reach (see the STATUS decision log).
+  because its rule changes reach by reach (see `STATUS-ARCHIVE.md`, 2026-09-16).
 
 `WAFishMapTests/NoteScopeTests.swift` fails the build when a county or
 statewide note names a waterbody. It shipped catching a real defect: Lake
@@ -156,3 +163,63 @@ Although the deployment target is iOS 18.0, the build host MUST use **Xcode 26 o
 - **Marine Protected Areas (MPAs)**: Polygon logic punches holes in marine areas and resolves status via a 3-tier system (`inside / clear / unavailable`).
 - **Season Risk**: The `seasonRisk` table in `fisheries.json` intentionally caps annual rule-variable species to `.fair`.
 
+
+## CI is Xcode Cloud only
+
+GitHub Actions was removed (`b7f8f23`, billing). There is no `.github/`. Xcode
+Cloud runs `ci_scripts/ci_post_clone.sh`; which test plan its Test action uses
+is set in App Store Connect, not in the repo. Verify locally before merging.
+
+## Web pages (not the app)
+
+`Artifacts/` holds published claude.ai pages. The app never reads them, and
+none of them changes what the app shows. Each folder's `artifact.json` is the
+**binding**: its `url` must be passed on every republish, or a second artifact
+is minted and the old link goes stale. Read the live version before publishing
+(edits have been made outside the repo), and record the new version id after.
+
+| Folder | Page | Source of truth |
+|--------|------|-----------------|
+| `salmon-rivers/` | Washington Fishing Map — Recent reports + Typical season | its README |
+| `fishing-year/` | Washington Fishing Year — seasons calendar, Oct 2026–Nov 2027 | `seasons.json` → its README |
+| `salmon-catch-table/` | SW Washington Creel Table — WDFW weekly counts | `~/database/salmon-rivers/salmon.db` → its README |
+| `design-system/`, `app-store-listing/`, `interactive-preview/`, `inside-wafishmap/` | Older pages, bindings only | no local source |
+
+Rules that cross from the app into the pages:
+
+- `season.js` ports `FishingRating` from `Fishery.swift`, and
+  `test/season.test.js` takes its expected values from named tests in
+  `FisheryTests.swift` and `SeasonRiskTests.swift`. **Renaming or removing one
+  of those Swift tests fails the Node suite.** Change the rating in Swift and
+  JS together.
+- Species names on the pages must equal the app's exactly
+  (`test/species-vocab.test.js` reads `fisheries.json`).
+- Counts (creel) are never ratings, and catch-report colours never share a
+  view with seasonal colours. Each page README lists its own rules.
+
+Generated files (`typical.js`, `creel.js`, `counts.js`, `data.js`, `geo.js`)
+say so in their header. Regenerate them; never hand-edit.
+
+## Tests: four suites
+
+| Suite | Run |
+|-------|-----|
+| Swift unit + UI (`WAFishMapTests`, `WAFishMapUITests`) | `./scripts/run_sim.sh test` (default plan); unit only: `-testPlan WAFishMapUnit` |
+| WeatherKit on hardware | `./scripts/verify_weatherkit_device.sh` |
+| Web pages (Node, no deps) | `node --test "Artifacts/salmon-rivers/test/*.test.js"`; Fishing Year: `scripts/build_fishing_year.py --check`, then `node check.mjs` from inside `Artifacts/fishing-year/` (needs the Playwright MCP's `playwright-core`, or set `PLAYWRIGHT_CORE`) |
+| Data scripts (Python) | `/opt/homebrew/bin/python3 -m unittest discover -s scripts -p "test_*.py"` |
+
+Use `/opt/homebrew/bin/python3` for the scripts, as their READMEs do; bare
+`python3` on this Mac resolves to the system 3.9. `PinVoiceOverProbe` is a known failure in the default plan (see
+STATUS "Known broken") — do not read it as a regression.
+
+## Where things are written down
+
+- `STATUS.md` — what works, what is broken, Next Up, and the recent decision
+  log. Older log entries rotate to `STATUS-ARCHIVE.md` (newest first).
+- `TASKS.md` — the open checklist. `[you]` marks steps only Daniel can do.
+- `docs/research/` — dated source notes behind every data change.
+- `docs/superpowers/plans|specs/` — plans and specs for larger changes.
+- `docs/NOTES.md` — retro notes from pipeline runs; read before planning a page change.
+- `docs/app-store/` — listing copy and the hosted privacy policy source.
+- Work lands through a branch and a PR into `main`; Daniel merges.
