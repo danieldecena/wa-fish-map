@@ -181,9 +181,9 @@ is minted and the old link goes stale. Read the live version before publishing
 | Folder | Page | Source of truth |
 |--------|------|-----------------|
 | `salmon-rivers/` | Washington Fishing Map — Map (Recent reports, Typical season, Spawning), Week, Year, Spots, Counts | its README |
-| `fishing-year/` | Washington Fishing Year — seasons calendar, Oct 2026–Nov 2027; published as the Year tab of the main page (`salmon-rivers/year/`) since 2026-10-26 | `seasons.json` → its README |
+| `fishing-year/` | Washington Fishing Year — seasons calendar, Oct 2026–Nov 2027; published as the Year tab of the main page (`salmon-rivers/year/`) since 2026-10-26 | `seasons.json` → its README; the published copy lives in `salmon-rivers/year/` |
 | `salmon-catch-table/` | SW Washington Creel Table — WDFW weekly counts | `~/database/salmon-rivers/salmon.db` → its README |
-| `three-friends-fishing-hole/` | Three Friends Fishing Hole — one Green River bank spot in Kent; published as the Spots tab (`salmon-rivers/spots/`) since 2026-10-26 | `index.html` (hand-written; dated rules go stale) |
+| `three-friends-fishing-hole/` | Three Friends Fishing Hole — one Green River bank spot in Kent; published as the Spots tab (`salmon-rivers/spots/`) since 2026-10-26 | `index.html` (hand-written; dated rules go stale); the published copy lives in `salmon-rivers/spots/` |
 | `design-system/` | WA Fish Map design system (Design System type) | `project/` + `index.html`; the type's own files are not copied |
 | `app-store-listing/`, `interactive-preview/`, `inside-wafishmap/` | Older marketing and explainer pages | `index.html` as published, captured 2026-10-20 |
 
