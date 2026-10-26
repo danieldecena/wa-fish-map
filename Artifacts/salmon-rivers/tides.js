@@ -113,7 +113,8 @@
     return byId(DEFAULT, list) || list[0];
   }
   /* mount builds <section id="tides"> after afterSection and fills it from the bundle. opts: { bundle, storage, now } — the page passes
-     nothing and gets window.TIDES, localStorage and the clock. Synchronous; makes no network request. */
+     nothing and gets window.TIDES, localStorage and the clock. opts.caption names the window the range covers ("Tides" when absent).
+     Synchronous; makes no network request. */
   function mount(root, afterSection, range, today, doc, opts) {
     opts = opts || {};
     var bundle = 'bundle' in opts ? opts.bundle : getBundle();
@@ -142,7 +143,7 @@
       p.appendChild(a); return p;
     }
     function go(st) {
-      h.textContent = 'Tides';
+      h.textContent = opts.caption || 'Tides';
       var ds = days(st, range, bundle);
       if (!ds) { fine.textContent = ''; show(unavailable(st)); return; }
       fine.textContent = footnote(bundle);

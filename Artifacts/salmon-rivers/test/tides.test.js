@@ -309,6 +309,15 @@ test('mount: the heading is just "Tides"; the station is named by the picker', (
   assert.ok(!/Seattle/.test(sec.querySelector('.cap').textContent));
 });
 
+test('mount: opts.caption names the window the range covers, and survives a station change', () => {
+  const doc = fakeDoc(), m = mkRoot(doc);
+  const sec = Tides.mount(m.root, m.a, Week.next7('2026-10-27'), '2026-10-27', doc, { bundle, storage: noStore, now: NOW, caption: 'Tides, next 7 days' });
+  assert.equal(sec.querySelector('.cap').textContent, 'Tides, next 7 days');
+  const sel = sec.querySelector('select');
+  sel.value = '9446484'; sel.fire('change');
+  assert.equal(sec.querySelector('.cap').textContent, 'Tides, next 7 days');
+});
+
 test('render: notes and dashes are marked .none so the desktop grid does not squeeze them into one column', () => {
   const cells = Tides.render([{ date: '2026-10-26', extremes: [], note: 'Beyond the bundled predictions (through Nov 30)' }, { date: '2026-10-27', extremes: [] }, { date: '2026-10-28', extremes: [{ t: '06:00', type: 'H', v: 1 }] }], '2026-10-26 00:00', fakeDoc()).querySelectorAll('td');
   assert.deepEqual(cells.map(c => c.className), ['none', 'none', '']);
