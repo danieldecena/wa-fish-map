@@ -131,11 +131,24 @@
     return 'No report for ' + species + ' on this water. Confirm what is open and what you may keep on WDFW before you fish.';
   }
   function ratingWord(vw) { return LABEL[vw.r] + (vw.release ? ', release only' : ''); }
+  /* The Recent reports opening box: base (the southwest, down to the Columbia) grown to hold every report pin with room for
+     the pin and its label above it (pad: [x, above]). Pure; the page passes its own projected points. */
+  function homeBox(points, base, pad) {
+    var px = pad ? pad[0] : 12, py = pad ? pad[1] : 24;
+    var x0 = base[0][0], y0 = base[0][1], x1 = base[1][0], y1 = base[1][1];
+    points.forEach(function (p) { x0 = Math.min(x0, p[0] - px); x1 = Math.max(x1, p[0] + px); y0 = Math.min(y0, p[1] - py); y1 = Math.max(y1, p[1]); });
+    return [[x0, y0], [x1, y1]];
+  }
+  /* The region the map's title and label name: the southwest while every report pin is inside its box, else the state. */
+  function regionName(points, sw) {
+    var inside = points.every(function (p) { return p[0] >= sw[0][0] && p[0] <= sw[1][0] && p[1] >= sw[0][1] && p[1] <= sw[1][1]; });
+    return inside ? 'Southwest Washington' : 'Washington';
+  }
 
   return {
     SITES: SITES, RANK: RANK, LABEL: LABEL, STALE_DAYS: STALE_DAYS, SPECIES: SPECIES,
     viewOf: viewOf, freshness: freshness, ageDays: ageDays, formatDay: formatDay, describeAge: describeAge,
     latestReport: latestReport, staleNotice: staleNotice, rankSites: rankSites, ratingWord: ratingWord, pinLabel: pinLabel,
-    reportRows: reportRows, missingNote: missingNote
+    reportRows: reportRows, missingNote: missingNote, homeBox: homeBox, regionName: regionName
   };
 });

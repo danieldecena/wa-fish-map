@@ -278,3 +278,25 @@ test('every new report site follows the rules (entries without `added` are the o
   assert.deepEqual(R.SITES.filter(s => s.added).flatMap(newSiteProblems), []);
   assert.equal(R.SITES.filter(s => !s.added).length, 8, 'control: the original eight carry no added date');
 });
+
+// ---- opening view and region wording ----
+const SW = [GEO.bounds.sw[0], [GEO.bounds.sw[1][0], 356]];
+const EIGHT = Object.values(GEO.pins).map(p => p.xy);
+const SKAGIT = [(-122.33 - GEO.proj.lon0) * GEO.proj.kx, (GEO.proj.lat0 - 48.42) * GEO.proj.k];
+
+test('homeBox: the eight southwest pins leave the opening box exactly as it was', () => {
+  assert.equal(EIGHT.length, 8, 'control: geo.js has the eight pins');
+  assert.deepEqual(R.homeBox(EIGHT, SW), SW);
+});
+
+test('homeBox: a Skagit pin grows the box north and keeps every pin inside with its label room', () => {
+  const b = R.homeBox(EIGHT.concat([SKAGIT]), SW);
+  assert.ok(b[0][1] < SW[0][1], 'the top edge moved north');
+  assert.equal(b[0][1], SKAGIT[1] - 24);
+  for (const p of EIGHT.concat([SKAGIT])) assert.ok(p[0] - 12 >= b[0][0] && p[0] + 12 <= b[1][0] && p[1] - 24 >= b[0][1] && p[1] <= b[1][1], `pin ${p} inside`);
+});
+
+test('regionName: southwest while every pin is in the box, Washington once one is not', () => {
+  assert.equal(R.regionName(EIGHT, SW), 'Southwest Washington');
+  assert.equal(R.regionName(EIGHT.concat([SKAGIT]), SW), 'Washington');
+});
