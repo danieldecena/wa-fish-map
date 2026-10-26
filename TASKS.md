@@ -5,6 +5,10 @@
 - [ ] [you] Re-run `scripts/build_tides.py` monthly (next by 2026-11-25) and republish `week/tides-data.js`; the Week tab says through which date it has (first bundle runs through 2026-12-09).
 - [ ] Fishing Year build: `scripts/build_fishing_year.py` writes `Artifacts/fishing-year/`, but the published page is now `salmon-rivers/year/` (with the tab bar). Make the build write `year/data.js` there, or copy it, before the next season refresh.
 - [x] Harden `links.js` parsing: month `^\d{1,2}$`, `today` a real calendar date, `Links.toQuery(null)` returns ''.
+- [ ] Recover or recreate docs/research/2026-10-20-river-reports-and-rules.md (rules.js's WDFW sources, each opened 2026-10-20), scripts/build_sites.py (sites.js) and the rivers-tap.js generator; until then treat the three files as hand-maintained.
+- [ ] Counts tab refresh path: scripts/export_salmon_page.py writes Artifacts/salmon-catch-table/, but the published copy is salmon-rivers/counts/ (with the tab bar); make the export write counts/data.js there or copy it before republishing.
+- [ ] Week tide table shows the Mon–Sun calendar week, so on Sunday most rows are past; consider "next 7 days".
+- [ ] Tide "next" marker (Week and map sheets) and the map's TODAY use device time, not America/Los_Angeles.
 - [ ] Week page tides: `now` is computed once at mount and goes stale on a long-open tab (skipped this batch). Done: a stored "You" point with null/non-number lat/lon is ignored.
 - [x] Week build robustness and tests: `FY.seasons || []` guard, future-dated reports are not fresh, unknown rating reads "No report", empty Spots row; boundary, tie-break, release-only and escaping tests.
 - [ ] Map deep links: `?mode=spawning` without `month` gets `&month=<current>` appended on boot (per the spec's write rule); `setMode` fires a transient link sync before the final one. Both self-correct; revisit only if they show up in history or tests.
@@ -14,7 +18,7 @@
 
 - [x] Counts on a phone: closed Filters details ("Filters · N active"), sticky River column, right-edge fade (<=480 px).
 - [x] Counts page shell: centred column, large h1, plain subtitle, "(not parsed)" shown as "Unclear species" (display only; `counts/index.html` is hand-maintained, the data keeps the raw value).
-- [x] Tide rows: at >=600 px each `td` is a 4-column grid so extremes line up (long extremes still wrap inside their column).
+- [x] Tide rows: at >=600 px each `td` is a 2-column grid of fixed 158px columns so extremes line up and never wrap.
 - [x] Map overlays on phones: legend collapses to a 44 px "Key" button at <=390 px; the "Tap any river" hint hides after the first tap, drag or zoom (session).
 - [x] Amber/orange outside the rating ramp: Year progress meter and selected calendar bar use `--accent` (plain CSS in `year/index.html`); Week chip reads "Ends soon · ends Oct 31 · 5 days". Follow-up: the Year source that builds `year/index.html` is not in this repo, so the same two CSS values must be changed there before the next rebuild.
 - [x] "Taste #3 of 5" with a title explaining the taste order.

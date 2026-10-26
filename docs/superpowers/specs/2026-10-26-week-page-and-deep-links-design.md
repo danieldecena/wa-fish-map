@@ -132,6 +132,8 @@ does, rather than rendering a wrong day.
 
 ### Tides (`tides.js`)
 
+> Superseded 2026-10-26: the published frame's CSP blocks external fetches, so tides are bundled by scripts/build_tides.py into week/tides-data.js and tides.js reads the bundle; the url/load/timeout contract below is historical.
+
 UMD, loaded by `week/index.html` after `week.js`. The only network call on the
 site.
 

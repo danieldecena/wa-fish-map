@@ -2,14 +2,15 @@
 
 ## Confirmed working
 
-- Washington Fishing Map, published as versions 16-18 on 2026-10-26: a Week tab
+- Washington Fishing Map, published as versions 16-19 on 2026-10-26: a Week tab
   (open seasons, this week's reports, new WDFW rules, coming up, a 7-day bundled NOAA
   tide table, spots), deep links (`?mode=&month=&species=&site=&river=`), one
   five-tab bar (Week, Map, Year, Spots, Counts) on every page, and the map's
-  control card as one 56 px row (phones: a mode menu and a species icon). 175
-  Node tests (41 new); `check-week.mjs` all checks passed locally. The live
-  tide fetch is blocked by the frame's CSP, so tides are now bundled in
-  `week/tides-data.js` (see the 2026-10-26 entry); republish to ship that.
+  control card as one 56 px row (phones: a mode menu and a species icon). 196
+  Node tests (193 pass, 3 skipped because the local salmon.db is absent; 62 in the
+  new week, tides, links and tabs files); `check-week.mjs` all checks pass. The
+  live tide fetch is blocked by the frame's CSP, so tides are bundled in
+  `week/tides-data.js` (see the 2026-10-26 entry); version 19 shipped the bundle.
 - `fisheries.json` now seeds all 16 statewide marine areas (1-8-2 + 9-13; the
   "Oregon" polygon is filtered out of the map, not seeded) plus freshwater rows:
   statewide, 8 county overrides and 6 waterbody rows (counted 2026-10-20;
@@ -187,7 +188,7 @@ current counts rather than trusting a number written here.
 - Built in a local copy because the repo was unreachable, then applied here on top of a capture of live 1792491424-046f (the service's injected document skeleton stripped from index.html; geo.js kept as generated, the live copy differed only in number formatting). Four existing tests (controls x2, design spacing, typical deep-link guard) were rewritten for the thin bar and the links.js boot; each was watched failing on broken code.
 - The page's "No network requests from the page" rule has no exception (README).
 - The map's control card became one 56 px row on Daniel's request; on phones the mode switch is a menu and species a filter icon. Unselected mode labels measure 4.85:1 dark / 4.77:1 light.
-- Tests: 41 Node tests in 4 new files (`week`, `tides`, `links`, `tabs`); `check-week.mjs`: all checks passed, lowest tab-label contrast 4.77 (light) / 4.85 (dark).
+- Tests: 62 Node tests in 4 new files (`week`, `tides`, `links`, `tabs`); 196 Node tests in all (193 pass, 3 skipped without the local db); `check-week.mjs`: all checks passed, lowest tab-label contrast 4.77 (light) / 4.85 (dark).
 - The three standalone artifacts (Where Salmon Spawn, Washington Fishing Year, Three Friends Fishing Hole) were deleted 2026-10-26 after being merged into the main URL.
 
 ### 2026-10-20 (project docs brought up to date)
