@@ -148,12 +148,13 @@ test('render: ends-soon chip, rating badge token, rule link', () => {
   const RL = { CHECKED: '2026-10-20', RULES: [{ rivers: ['Hoh River'], published: '2026-10-16', d: 'closing', url: 'https://wdfw.wa.gov/x' }] };
   const el = Week.render(Week.build(FY, R, RL, '2026-10-26'), fakeDoc());
   assert.ok(el.querySelector('.soon'), 'ends-soon chip rendered');
-  assert.equal(el.querySelector('.soon').textContent, 'ends Oct 31 · 5 days');
+  assert.equal(el.querySelector('.soon').textContent, 'Ends soon · ends Oct 31 · 5 days');
   const badge = el.querySelector('.badge');
   assert.equal(badge.attrs.style, '--c:var(--good)');
   assert.equal(badge.textContent, 'Good');
   const rule = el.querySelectorAll('a').find(a => a.attrs.href === 'https://wdfw.wa.gov/x');
   assert.equal(rule.textContent, 'Read the rule');
+  assert.equal(rule.attrs['aria-label'], 'Read the WDFW rule for Hoh River');
   assert.ok(el.querySelectorAll('a').some(a => a.attrs.href === '../index.html?mode=reports&river=g'));
 });
 
@@ -164,9 +165,90 @@ test('render: season ending today says "ends today"; flavor label; rules Checked
   assert.equal(res.rulesChecked, '2026-10-20');
   const el = Week.render(res, fakeDoc());
   const chips = el.querySelectorAll('.chip').map(c => c.textContent);
-  assert.ok(chips.includes('ends today'), 'ends today chip: ' + chips);
-  assert.ok(chips.includes('Taste #2'), 'flavor label: ' + chips);
+  assert.ok(chips.includes('Ends soon · ends today'), 'ends today chip: ' + chips);
+  assert.ok(chips.includes('Taste #2 of 5'), 'flavor label: ' + chips);
+  assert.equal(el.querySelectorAll('.chip').find(c => c.textContent === 'Taste #2 of 5').attrs.title, 'Taste order, richest first (Washington Fishing Year)');
   assert.ok(el.querySelectorAll('section')[2].textContent.includes('Checked Oct 20.'));
   const noCk = Week.render(Week.build(FY, R0, { RULES: [] }, '2026-10-26'), fakeDoc());
   assert.ok(!noCk.querySelectorAll('section')[2].textContent.includes('Checked'));
+});
+
+// ---- boundaries and hardening ----
+
+test('boundaries: season starting today is open and not upcoming; ending today is open; milestone dated today is not upcoming; rule published today counts', () => {
+  const FY = { updated: '', seasons: [ season('starts', '2026-10-26', '2026-11-30'), season('ends', '2026-10-01', '2026-10-26'), season('tomorrow', '2026-10-27', '2026-11-30') ],
+    milestones: [ { date: '2026-10-26', label: 'today-m', note: '' }, { date: '2026-10-27', label: 'next-m', note: '' } ] };
+  const RL = { RULES: [ { rivers: ['T'], published: '2026-10-26', d: 'today', url: 'u' }, { rivers: ['F'], published: '2026-10-27', d: 'future', url: 'u' }, { rivers: ['E'], published: '2026-10-12', d: 'edge', url: 'u' } ] };
+  const r = Week.build(FY, R0, RL, '2026-10-26');
+  assert.deepEqual(r.open.map(s => s.id), ['ends', 'starts']);
+  assert.deepEqual(r.upcoming.map(u => u.label), ['next-m', 'tomorrow']);
+  assert.deepEqual(r.rules.map(x => x.d), ['today', 'edge'], 'a rule dated after today is not shown yet');
+});
+
+test('tie-breaks: same end date sorts by name; same upcoming date sorts by label', () => {
+  const FY = { updated: '', milestones: [ { date: '2026-11-02', label: 'b-ms', note: '' } ], seasons: [
+    season('x', '2026-10-01', '2026-11-10', { name: 'Zeta' }), season('y', '2026-10-01', '2026-11-10', { name: 'Alpha' }),
+    season('f', '2026-11-02', '2026-12-01', { name: 'a-season' }) ] };
+  const r = Week.build(FY, R0, RL0, '2026-10-26');
+  assert.deepEqual(r.open.map(s => s.name), ['Alpha', 'Zeta']);
+  assert.deepEqual(r.upcoming.map(u => u.label), ['a-season', 'b-ms']);
+});
+
+test('upcoming: a year file without seasons does not throw', () => {
+  assert.deepEqual(Week.build({ updated: '', milestones: [{ date: '2026-11-02', label: 'm' }] }, R0, RL0, '2026-10-26').upcoming.map(u => u.label), ['m']);
+  assert.deepEqual(Week.build({ updated: '' }, R0, RL0, '2026-10-26').upcoming, []);
+});
+
+test('reported: published == today is fresh; a report dated after today is not; the 7th day back is fresh and the 8th is not', () => {
+  const site = (id, asOf) => ({ id, name: id, sub: '', reports: { 'Coho Salmon': { r: 'good', asOf, d: 'x' } } });
+  const R = Object.assign({}, R0, { SITES: [ site('today', '2026-10-26'), site('future', '2026-10-27'), site('d7', '2026-10-19'), site('d8', '2026-10-18') ] });
+  assert.deepEqual(Week.build(FY0, R, RL0, '2026-10-26').reported.map(s => s.id).sort(), ['d7', 'today']);
+});
+
+test('reported: an unknown rating reads "No report" and never "undefined"; release-only suffix is added', () => {
+  const R = Object.assign({}, R0, { SITES: [ { id: 'q', name: 'Q', sub: '', reports: { 'Coho Salmon': { r: 'mystery', asOf: '2026-10-26', d: 'x' }, 'Chinook Salmon': { r: 'unrated', release: true, asOf: '2026-10-26', d: 'y' } } } ] });
+  const res = Week.build(FY0, R, RL0, '2026-10-26');
+  const labels = res.reported[0].species.map(s => s.label);
+  assert.ok(labels.includes('No report'), labels.join());
+  assert.ok(labels.includes('No report, release only'), labels.join());
+  assert.ok(!labels.some(l => /undefined/.test(l)));
+  const badges = Week.render(res, fakeDoc()).querySelectorAll('.badge');
+  assert.ok(badges.every(b => /^--c:var\(--(prime|good|fair|slow|unrated)\)$/.test(b.attrs.style)), badges.map(b => b.attrs.style).join());
+});
+
+test('render: release-only label shows in the badge text', () => {
+  const R = Object.assign({}, R0, { SITES: [ { id: 'r', name: 'R', sub: '', reports: { 'Coho Salmon': { r: 'prime', release: true, asOf: '2026-10-26', d: 'z' } } } ] });
+  const el = Week.render(Week.build(FY0, R, RL0, '2026-10-26'), fakeDoc());
+  assert.equal(el.querySelector('.badge').textContent, 'Excellent, release only');
+});
+
+test('render: Spots with an empty list says Nothing this week', () => {
+  const res = Week.build(FY0, R0, RL0, '2026-10-26'); res.spots = [];
+  const spots = Week.render(res, fakeDoc()).querySelectorAll('section')[4];
+  assert.equal(spots.id, 'spots');
+  assert.ok(spots.textContent.includes('Nothing this week'));
+});
+
+test('render: ends-soon chip says "Ends soon" in words; a season not ending soon has a plain date line', () => {
+  const FY = { updated: '', milestones: [], seasons: [ season('a', '2026-10-01', '2026-10-31'), season('b', '2026-10-01', '2026-12-31') ] };
+  const el = Week.render(Week.build(FY, R0, RL0, '2026-10-26'), fakeDoc());
+  assert.deepEqual(el.querySelectorAll('.soon').map(c => c.textContent), ['Ends soon · ends Oct 31 · 5 days']);
+  assert.ok(el.querySelectorAll('.dt').some(c => c.textContent === 'ends Dec 31 · 66 days'));
+});
+
+test('render: rule link names the rivers for screen readers (one aria-label per link)', () => {
+  const RL = { RULES: [ { rivers: ['Hoh River', 'Quillayute River'], published: '2026-10-25', d: 'closed', url: 'https://wdfw.wa.gov/a' }, { rivers: ['Skagit River'], published: '2026-10-24', d: 'open', url: 'https://wdfw.wa.gov/b' } ] };
+  const links = Week.render(Week.build(FY0, R0, RL, '2026-10-26'), fakeDoc()).querySelectorAll('a').filter(a => a.textContent === 'Read the rule');
+  assert.deepEqual(links.map(a => a.attrs['aria-label']), ['Read the WDFW rule for Hoh River, Quillayute River', 'Read the WDFW rule for Skagit River']);
+});
+
+test('render: markup in data is text, never elements (textContent only)', () => {
+  const evil = '<img src=x onerror=alert(1)>';
+  const FY = { updated: '', milestones: [], seasons: [ season('e', '2026-10-01', '2026-11-30', { name: evil, where: evil, note: evil }) ] };
+  const RL = { RULES: [ { rivers: [evil], published: '2026-10-25', d: evil, url: 'https://wdfw.wa.gov/a' } ] };
+  const R = Object.assign({}, R0, { SITES: [ { id: 'e', name: evil, sub: evil, reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-26', d: evil } } } ] });
+  const el = Week.render(Week.build(FY, R, RL, '2026-10-26'), fakeDoc());
+  assert.equal(el.querySelectorAll('img').length, 0);
+  assert.ok(el.textContent.includes(evil));
+  assert.ok(!/innerHTML|insertAdjacentHTML|document\.write/.test(require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'week.js'), 'utf8')));
 });

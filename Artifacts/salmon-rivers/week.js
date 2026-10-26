@@ -8,6 +8,7 @@
   /* "This week": composes what the site already publishes — dated seasons and milestones (year/data.js), dated catch reports
      (reports.js) and dated WDFW notices (rules.js) — into one result. Nothing here is a rating of its own: report badges reuse
      reports.js' word and token; seasons, rules, milestones and tides are dates and text. Guidance, not regulation. */
+  var R_KNOWN = /^(prime|good|fair|slow|unrated)$/;
   var DAY = 86400000, RULE_DAYS = 14, UPCOMING = 3;
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -48,12 +49,13 @@
       R.SPECIES.forEach(function (k) {
         var sp = have[k];
         if (!sp || !sp.asOf) return;
-        if (t - dayNum(sp.asOf) > R.STALE_DAYS) return;
-        rows.push({ name: k, r: sp.r, label: R.LABEL[sp.r] + (sp.release ? ', release only' : ''), release: !!sp.release, asOf: sp.asOf, age: R.describeAge(sp.asOf, today), d: sp.d, src: sp.src || null });
+        var age = t - dayNum(sp.asOf);
+        if (age > R.STALE_DAYS || age < 0) return; /* stale, or dated after today: not a fresh report */
+        rows.push({ name: k, r: sp.r, label: (R.LABEL[sp.r] || 'No report') + (sp.release ? ', release only' : ''), release: !!sp.release, asOf: sp.asOf, age: R.describeAge(sp.asOf, today), d: sp.d, src: sp.src || null });
       });
       if (!rows.length) return;
       var keep = rows.filter(function (x) { return !x.release; });
-      var best = Math.max.apply(null, (keep.length ? keep : rows).map(function (x) { return R.RANK[x.r]; }));
+      var best = Math.max.apply(null, (keep.length ? keep : rows).map(function (x) { return (R.RANK[x.r] === undefined ? -2 : R.RANK[x.r]); }));
       out.push({ id: site.id, name: site.name, sub: site.sub || '', href: '../index.html?mode=reports&river=' + encodeURIComponent(site.id), species: rows, _keep: keep.length > 0, _best: best });
     });
     out.sort(function (a, b) {
@@ -71,7 +73,7 @@
   }
   function upcoming(FY, t) {
     var items = [];
-    FY.seasons.forEach(function (s) { if (dayNum(s.start) > t) items.push({ kind: 'season', date: s.start, label: s.name, detail: s.where || '' }); });
+    (FY.seasons || []).forEach(function (s) { if (dayNum(s.start) > t) items.push({ kind: 'season', date: s.start, label: s.name, detail: s.where || '' }); });
     (FY.milestones || []).forEach(function (m) { if (dayNum(m.date) > t) items.push({ kind: 'milestone', date: m.date, label: m.label, detail: m.note || '' }); });
     items.sort(byDateThenLabel);
     return items.slice(0, UPCOMING).map(function (i) { i.daysUntil = dayNum(i.date) - t; return i; });
@@ -113,9 +115,10 @@
       var li = el('li', 'row'), k = el('div', 'k'), v = el('div', 'v');
       k.appendChild(el('span', 'nm', s.name));
       if (s.where) k.appendChild(el('span', 'sub', s.where));
-      var when = el('span', s.soon ? 'chip soon' : 'dt', s.daysLeft === 0 ? 'ends today' : 'ends ' + fmt(s.end) + ' · ' + days(s.daysLeft));
+      var ends = s.daysLeft === 0 ? 'ends today' : 'ends ' + fmt(s.end) + ' · ' + days(s.daysLeft);
+      var when = el('span', s.soon ? 'chip soon' : 'dt', s.soon ? 'Ends soon · ' + ends : ends);
       k.appendChild(when);
-      if (s.flavor) k.appendChild(el('span', 'chip', 'Taste #' + s.flavor));
+      if (s.flavor) { var taste = el('span', 'chip', 'Taste #' + s.flavor + ' of 5'); taste.setAttribute('title', 'Taste order, richest first (Washington Fishing Year)'); k.appendChild(taste); }
       if (s.note) v.appendChild(el('p', 'note', s.note));
       if (s.sources.length) {
         var src = el('p', 'src');
@@ -141,7 +144,7 @@
       if (site.sub) k.appendChild(el('span', 'sub', site.sub));
       site.species.forEach(function (sp) {
         var line = el('p', 'rep');
-        var b = el('span', 'badge', sp.label); b.setAttribute('style', '--c:var(--' + sp.r + ')');
+        var b = el('span', 'badge', sp.label); b.setAttribute('style', '--c:var(--' + (R_KNOWN.test(sp.r) ? sp.r : 'unrated') + ')');
         line.appendChild(b); line.appendChild(doc.createTextNode(' ' + sp.name + ' · ' + sp.age + ' — ' + sp.d));
         if (sp.src && sp.src.url) { line.appendChild(doc.createTextNode(' ')); line.appendChild(link(sp.src.url, sp.src.label, true)); }
         v.appendChild(line);
@@ -157,7 +160,7 @@
       k.appendChild(el('span', 'nm', x.rivers.join(', ')));
       k.appendChild(el('span', 'sub', 'WDFW · published ' + fmt(x.published)));
       v.appendChild(el('p', 'note', x.d));
-      v.appendChild(link(x.url, 'Read the rule', true));
+      var rl = link(x.url, 'Read the rule', true); rl.setAttribute('aria-label', 'Read the WDFW rule for ' + x.rivers.join(', ')); v.appendChild(rl);
       li.appendChild(k); li.appendChild(v); u.ul.appendChild(li);
     });
     root.appendChild(u.s);
@@ -174,6 +177,7 @@
     root.appendChild(c.s);
 
     var p = section('spots', 'Spots');
+    if (!res.spots.length) empty(p.ul);
     res.spots.forEach(function (x) {
       var li = el('li', 'row'), k = el('div', 'k');
       k.appendChild(link(x.href, x.name)); k.appendChild(el('span', 'sub', x.sub));
