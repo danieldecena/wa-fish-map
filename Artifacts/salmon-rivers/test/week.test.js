@@ -142,6 +142,18 @@ test('render: five sections, empty ones say Nothing this week', () => {
   assert.ok(el.querySelectorAll('section')[4].textContent.includes('Three Friends Fishing Hole'));
 });
 
+test('render: open-now and coming-up seasons link to their Year row; milestones and unrelated rows stay plain text', () => {
+  const FY = { updated: '', seasons: [ season('skagit-coho', '2026-10-01', '2026-10-31', { name: 'Skagit coho' }), season('chum', '2026-11-01', '2026-11-30', { name: 'Chum' }) ],
+    milestones: [ { date: '2026-10-28', label: 'Rule change', note: 'n' } ] };
+  const el = Week.render(Week.build(FY, R0, RL0, '2026-10-26'), fakeDoc());
+  const [open, , , upcoming] = el.querySelectorAll('section');
+  const hrefs = sec => sec.querySelectorAll('a').map(a => a.attrs.href + '|' + a.textContent);
+  assert.ok(hrefs(open).includes('../year/index.html#skagit-coho|Skagit coho'));
+  assert.ok(hrefs(upcoming).includes('../year/index.html#chum|Chum'));
+  assert.ok(!hrefs(upcoming).some(h => h.endsWith('|Rule change')), 'a milestone has no Year row to open');
+  assert.ok(upcoming.querySelectorAll('.nm').some(n => n.textContent === 'Rule change'));
+});
+
 test('render: ends-soon chip, rating badge token, rule link', () => {
   const FY = { updated: '', milestones: [], seasons: [ season('skagit-coho', '2026-10-01', '2026-10-31', { name: 'Skagit coho' }) ] };
   const R = Object.assign({}, R0, { SITES: [{ id: 'g', name: 'G River', sub: 's', reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-26', d: 'y' } } }] });

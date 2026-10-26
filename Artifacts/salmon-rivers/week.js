@@ -31,6 +31,8 @@
     for (var i = 0; i < 7; i++) days.push(isoOf(mon + i));
     return { start: days[0], end: days[6], days: days };
   }
+  /* A Year row opens from its season id: year/anchor.js selects the row named by the hash. */
+  function yearHref(id) { return '../year/index.html#' + encodeURIComponent(id); }
   function sources(src) { return !src ? [] : Array.isArray(src) ? src : [src]; }
   function byDateThenLabel(a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : a.label < b.label ? -1 : a.label > b.label ? 1 : 0; }
 
@@ -73,7 +75,7 @@
   }
   function upcoming(FY, t) {
     var items = [];
-    (FY.seasons || []).forEach(function (s) { if (dayNum(s.start) > t) items.push({ kind: 'season', date: s.start, label: s.name, detail: s.where || '' }); });
+    (FY.seasons || []).forEach(function (s) { if (dayNum(s.start) > t) items.push({ kind: 'season', id: s.id, date: s.start, label: s.name, detail: s.where || '' }); });
     (FY.milestones || []).forEach(function (m) { if (dayNum(m.date) > t) items.push({ kind: 'milestone', date: m.date, label: m.label, detail: m.note || '' }); });
     items.sort(byDateThenLabel);
     return items.slice(0, UPCOMING).map(function (i) { i.daysUntil = dayNum(i.date) - t; return i; });
@@ -113,7 +115,7 @@
     if (!res.open.length) empty(o.ul);
     res.open.forEach(function (s) {
       var li = el('li', 'row'), k = el('div', 'k'), v = el('div', 'v');
-      k.appendChild(el('span', 'nm', s.name));
+      k.appendChild(link(yearHref(s.id), s.name));
       if (s.where) k.appendChild(el('span', 'sub', s.where));
       var ends = s.daysLeft === 0 ? 'ends today' : 'ends ' + fmt(s.end) + ' · ' + days(s.daysLeft);
       var when = el('span', s.soon ? 'chip soon' : 'dt', s.soon ? 'Ends soon · ' + ends : ends);
@@ -169,7 +171,7 @@
     if (!res.upcoming.length) empty(c.ul);
     res.upcoming.forEach(function (x) {
       var li = el('li', 'row'), k = el('div', 'k'), v = el('div', 'v');
-      k.appendChild(el('span', 'nm', x.label));
+      k.appendChild(x.kind === 'season' ? link(yearHref(x.id), x.label) : el('span', 'nm', x.label));
       k.appendChild(el('span', 'dt', (x.kind === 'season' ? 'opens ' : '') + fmt(x.date) + ' · in ' + days(x.daysUntil)));
       if (x.detail) v.appendChild(el('p', 'note', x.detail));
       li.appendChild(k); li.appendChild(v); c.ul.appendChild(li);
@@ -187,5 +189,5 @@
     return root;
   }
 
-  return { SPOTS: SPOTS, RULE_DAYS: RULE_DAYS, UPCOMING: UPCOMING, MONTHS: MONTHS, dayNum: dayNum, isoOf: isoOf, fmt: fmt, fmtDow: fmtDow, range: range, build: build, render: render };
+  return { SPOTS: SPOTS, yearHref: yearHref, RULE_DAYS: RULE_DAYS, UPCOMING: UPCOMING, MONTHS: MONTHS, dayNum: dayNum, isoOf: isoOf, fmt: fmt, fmtDow: fmtDow, range: range, build: build, render: render };
 });

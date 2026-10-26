@@ -1,5 +1,6 @@
 ## Tasks
-- [ ] Year page: give each season row an `id` (its `seasons.json` id) in the Fishing Year source and rebuild, then switch the Week page's Year links to `../year/index.html#<id>` (`Week.render`, the Open now and Coming up rows).
+- [x] Year page row links: the built Year page already gives every season row `id="row-<season id>"`; `year/anchor.js` (new, loaded after `data.js`) presses the row named by the URL hash, and Week's Open now and Coming up season rows link to `../year/index.html#<id>`. Not yet viewed in a browser (local server and browsers are blocked in this session): open `year/index.html#chum` and a Week link once to confirm the row selects and scrolls.
+- [ ] Fishing Year rebuild must keep `<script src="anchor.js"></script>` after `data.js` in `year/index.html` and the `row-<id>` button ids; `test/year-anchor.test.js` fails if either is lost. Milestones on Week have no Year row, so they stay plain text.
 - [ ] Spot guides as data (`spots.js` + template) — sub-project 4; `Week.SPOTS` is the stopgap list.
 - [ ] Live conditions sub-project: USGS flow inside the map's site sheets (NOAA tides are done for marine Typical-season sheets, from the bundle).
 - [ ] [you] Re-run `scripts/build_tides.py` monthly (next by 2026-11-25) and republish `week/tides-data.js`; the Week tab says through which date it has (first bundle runs through 2026-12-09).
@@ -24,7 +25,7 @@
 - [x] "Taste #3 of 5" with a title explaining the taste order.
 - [x] Repeated "Read the rule" links carry `aria-label="Read the WDFW rule for <rivers>"`.
 - [x] Week copy: tides caption is "Tides" (picker names the station); footer already read "Seasons from Washington Fishing Year, updated <date>."
-- [ ] Open-now rows on Week have no way onward (Year detail or map state); file with the Year-anchor follow-up above.
+- [x] Open-now rows on Week have no way onward: they now link to their Year row (see the Year row links entry).
 - [x] Harden WeatherKit attribution: larger mark + legal link
 - [x] Device UI test asserts attribution mark and legal link
 - [x] Review notes: WeatherKit attribution paragraph + STATUS log
