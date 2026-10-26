@@ -132,12 +132,13 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
 .apptabs a:not([aria-current=page]):active{opacity:.55}
 .apptabs a:focus-visible{z-index:1}
 .apptabs a:focus-visible::before{outline:2px solid var(--tab-accent);outline-offset:2px}
+@media (max-width:389px){.apptabs a{font-size:14px}}
 @media (prefers-reduced-motion:reduce){.apptabs a,.apptabs a::before{transition:none}}
 </style>
 <style>/* tab bar offset for this page only: cancel body padding so the bar is full-bleed and flush to the top */
 .apptabs{margin:-20px calc(-1 * max(16px,env(safe-area-inset-right,0px))) 20px calc(-1 * max(16px,env(safe-area-inset-left,0px)))}</style>
 </head><body>
-<nav class="apptabs" aria-label="Washington Fishing Map"><div class="apptabs-track"><a href="../index.html">Map</a><a href="../year/index.html">Year</a><a href="../spots/index.html">Spots</a><a href="index.html" aria-current="page">Counts</a></div></nav>
+<nav class="apptabs" aria-label="Washington Fishing Map"><div class="apptabs-track"><a href="../week/index.html">Week</a><a href="../index.html">Map</a><a href="../year/index.html">Year</a><a href="../spots/index.html">Spots</a><a href="index.html" aria-current="page">Counts</a></div></nav>
 <main>
   <header>
     <h1>SW WASHINGTON CREEL TABLE</h1>

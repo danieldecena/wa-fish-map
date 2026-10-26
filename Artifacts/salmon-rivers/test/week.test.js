@@ -1,0 +1,172 @@
+// Artifacts/salmon-rivers/test/week.test.js
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const Week = require('../week.js');
+const Reports = require('../reports.js');
+const Rules = require('../rules.js');
+
+const season = (id, start, end, extra) => Object.assign({ id, name: id, cat: 'salmon', start, end, flavor: 2, where: 'somewhere', note: 'n', source: { label: 'src', url: 'u', checked: '2026-10-18' } }, extra || {});
+const FY0 = { updated: '2026-10-19', seasons: [], milestones: [] };
+const R0 = { SITES: [], SPECIES: Reports.SPECIES, LABEL: Reports.LABEL, RANK: Reports.RANK, STALE_DAYS: 7, describeAge: Reports.describeAge };
+const RL0 = { RULES: [], CHECKED: '2026-10-20' };
+
+test('range: Monday to Sunday containing today, across month and year boundaries', () => {
+  assert.deepEqual(Week.range('2026-10-26').days.slice(0, 1), ['2026-10-26']);          // a Monday
+  assert.equal(Week.range('2026-10-26').end, '2026-11-01');
+  assert.equal(Week.range('2026-11-01').start, '2026-10-26');                            // Sunday belongs to the week before
+  assert.equal(Week.range('2027-01-01').start, '2026-12-28');
+  assert.equal(Week.range('2026-10-28').days.length, 7);
+});
+
+test('build: every section is present and empty with no data', () => {
+  const r = Week.build(FY0, R0, RL0, '2026-10-26');
+  assert.deepEqual(r.open, []); assert.deepEqual(r.reported, []); assert.deepEqual(r.rules, []); assert.deepEqual(r.upcoming, []);
+  assert.deepEqual(r.spots, Week.SPOTS);
+});
+
+test('open now: inclusive at both ends, sorted by end then name, soon within 7 days', () => {
+  const FY = { updated: '', milestones: [], seasons: [
+    season('b', '2026-10-01', '2026-10-31'), season('a', '2026-10-01', '2026-10-31'),
+    season('later', '2026-10-01', '2026-11-30'), season('ended', '2026-09-01', '2026-10-25'), season('future', '2026-10-27', '2026-12-01') ] };
+  const r = Week.build(FY, R0, RL0, '2026-10-26');
+  assert.deepEqual(r.open.map(s => s.id), ['a', 'b', 'later']);
+  assert.equal(r.open[0].daysLeft, 5); assert.equal(r.open[0].soon, true);
+  assert.equal(r.open[2].daysLeft, 35); assert.equal(r.open[2].soon, false);
+  assert.equal(Week.build(FY, R0, RL0, '2026-10-31').open[0].daysLeft, 0);
+  assert.equal(Week.build(FY, R0, RL0, '2026-11-01').open.map(s => s.id).join(), 'later,future');
+  assert.equal(Week.build(FY, R0, RL0, '2026-10-24').open.find(s => s.id === 'a').soon, true);   // 7 days exactly
+  assert.equal(Week.build(FY, R0, RL0, '2026-10-23').open.find(s => s.id === 'a').soon, false);  // 8 days
+});
+
+test('open now: sources normalise to an array', () => {
+  const FY = { updated: '', milestones: [], seasons: [ season('x', '2026-10-01', '2026-10-31', { source: [{ label: 'p', url: 'u1', checked: '2026-10-18' }, { label: 'q', url: 'u2', checked: '2026-10-18' }] }) ] };
+  assert.deepEqual(Week.build(FY, R0, RL0, '2026-10-26').open[0].sources.map(s => s.label), ['p', 'q']);
+});
+
+test('reported: 7 days inclusive, null never, species in Reports.SPECIES order, sites by best keepable rating then name', () => {
+  const R = Object.assign({}, R0, { SITES: [
+    { id: 'z', name: 'Z River', sub: 's', reports: { 'Chinook Salmon': { r: 'good', asOf: '2026-10-19', d: 'c' }, 'Coho Salmon': { r: 'fair', asOf: '2026-10-25', d: 'a' } } },
+    { id: 'old', name: 'Old', sub: 's', reports: { 'Coho Salmon': { r: 'prime', asOf: '2026-10-18', d: 'x' } } },
+    { id: 'undated', name: 'U', sub: 's', reports: { 'Coho Salmon': { r: 'prime', asOf: null, d: 'x' } } },
+    { id: 'rel', name: 'A Release', sub: 's', reports: { 'Chinook Salmon': { r: 'prime', release: true, asOf: '2026-10-26', d: 'r' } } },
+    { id: 'g', name: 'G', sub: 's', reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-26', d: 'y', src: { label: 'L', url: 'U' } } } } ] });
+  const r = Week.build(FY0, R, RL0, '2026-10-26');
+  assert.deepEqual(r.reported.map(s => s.id), ['g', 'z', 'rel']);
+  assert.deepEqual(r.reported[1].species.map(s => s.name), ['Coho Salmon', 'Chinook Salmon']);
+  assert.equal(r.reported[1].species[0].label, 'Fair');
+  assert.equal(r.reported[2].species[0].label, 'Excellent, release only');
+  assert.equal(r.reported[0].species[0].age, 'Oct 26 · today');
+  assert.equal(r.reported[0].href, '../index.html?mode=reports&river=g');
+  assert.equal(r.reported[0].species[0].src.label, 'L');
+});
+
+test('rules: 14 days inclusive, newest first', () => {
+  const RL = { CHECKED: '2026-10-20', RULES: [
+    { rivers: ['A'], published: '2026-10-12', d: 'old', url: 'u' },
+    { rivers: ['B'], published: '2026-10-16', d: 'mid', url: 'u' },
+    { rivers: ['C'], published: '2026-10-26', d: 'new', url: 'u' },
+    { rivers: ['D'], published: '2026-10-11', d: 'too old', url: 'u' } ] };
+  const r = Week.build(FY0, R0, RL, '2026-10-26');
+  assert.deepEqual(r.rules.map(x => x.d), ['new', 'mid', 'old']);
+});
+
+test('upcoming: seasons after today and milestones merged by date, capped at 3', () => {
+  const FY = { updated: '', seasons: [ season('s1', '2026-11-01', '2026-11-30'), season('s2', '2026-12-10', '2026-12-31'), season('now', '2026-10-01', '2026-10-31') ],
+    milestones: [ { date: '2026-11-05', label: 'm1', note: 'note1' }, { date: '2026-10-28', label: 'm0', note: 'note0' } ] };
+  const r = Week.build(FY, R0, RL0, '2026-10-26');
+  assert.deepEqual(r.upcoming.map(u => u.label), ['m0', 's1', 'm1']);
+  assert.deepEqual(r.upcoming.map(u => u.daysUntil), [2, 6, 10]);
+  assert.equal(r.upcoming[1].kind, 'season'); assert.equal(r.upcoming[1].detail, 'somewhere');
+  assert.equal(r.upcoming[0].kind, 'milestone'); assert.equal(r.upcoming[0].detail, 'note0');
+});
+
+test('malformed dates throw', () => {
+  assert.throws(() => Week.build(FY0, R0, RL0, '2026-13-01'), /bad date/);
+  assert.throws(() => Week.build({ updated: '', milestones: [], seasons: [season('x', '2026-02-30', '2026-03-01')] }, R0, RL0, '2026-10-26'), /bad date/);
+});
+
+test('fmt', () => { assert.equal(Week.fmt('2026-11-01'), 'Nov 1'); assert.equal(Week.fmtDow('2026-11-01'), 'Sun Nov 1'); });
+
+test('the real published data builds without throwing', () => {
+  // year/data.js sets window.FY; evaluate it the way the page does.
+  const fs = require('node:fs'), path = require('node:path');
+  const w = {}; new Function('window', fs.readFileSync(path.join(__dirname, '..', 'year', 'data.js'), 'utf8'))(w);
+  const r = Week.build(w.FY, Reports, Rules, '2026-10-26');
+  assert.ok(r.range.days.length === 7);
+});
+
+// jsdom is not a dependency of this repo. render() only uses document.createElement/createTextNode/appendChild/setAttribute,
+// so a 40-line fake document is enough and keeps the suite dependency-free.
+function fakeDoc() {
+  function El(tag) { this.tagName = tag; this.children = []; this.attrs = {}; this.text = ''; }
+  El.prototype.appendChild = function (c) { this.children.push(c); return c; };
+  El.prototype.setAttribute = function (k, v) { this.attrs[k] = String(v); };
+  Object.defineProperty(El.prototype, 'textContent', { get() { return this.text + this.children.map(c => c.textContent).join(''); }, set(v) { this.text = String(v); this.children = []; } });
+  Object.defineProperty(El.prototype, 'className', { get() { return this.attrs['class'] || ''; }, set(v) { this.attrs['class'] = v; } });
+  Object.defineProperty(El.prototype, 'id', { get() { return this.attrs.id || ''; }, set(v) { this.attrs.id = v; } });
+  Object.defineProperty(El.prototype, 'href', { set(v) { this.attrs.href = v; }, get() { return this.attrs.href; } });
+  El.prototype.querySelectorAll = function (sel) {
+    const out = [], m = /^([a-z]+)?(?:\.([\w-]+))?$/.exec(sel);
+    (function walk(n) { n.children.forEach(c => { if ((!m[1] || c.tagName === m[1]) && (!m[2] || (c.className || '').split(' ').includes(m[2]))) out.push(c); walk(c); }); })(this);
+    return out;
+  };
+  El.prototype.querySelector = function (sel) { return this.querySelectorAll(sel)[0] || null; };
+  return { createElement: t => new El(t), createTextNode: t => ({ tagName: '#text', children: [], textContent: String(t) }) };
+}
+
+test('build: latestReport is the newest asOf across sites, null when there are none', () => {
+  assert.equal(Week.build(FY0, R0, RL0, '2026-10-26').latestReport, null);
+  const R1 = Object.assign({}, R0, { SITES: [{ id: 'a', name: 'A', reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-10' } } }, { id: 'b', name: 'B', reports: { 'Coho Salmon': { r: 'fair', asOf: '2026-10-17' } } }], latestReport: Reports.latestReport });
+  assert.equal(Week.build(FY0, R1, RL0, '2026-10-26').latestReport, '2026-10-17');
+});
+
+test('render: empty Reported row names the newest report and links to the map; with no reports at all it says Nothing this week', () => {
+  const R1 = Object.assign({}, R0, { SITES: [{ id: 'b', name: 'B', reports: { 'Coho Salmon': { r: 'fair', asOf: '2026-10-17' } } }], latestReport: Reports.latestReport });
+  const res = Week.build(FY0, R1, RL0, '2026-10-26');
+  assert.deepEqual(res.reported, []);
+  const rep = Week.render(res, fakeDoc()).querySelectorAll('section')[1];
+  assert.ok(rep.textContent.includes('No reports from the last 7 days. Newest: ' + Week.fmt('2026-10-17') + '.'));
+  const a = rep.querySelector('a');
+  assert.equal(a.attrs.href, '../index.html?mode=reports');
+  assert.equal(a.textContent, 'See all reports on the map');
+  const none = Week.render(Week.build(FY0, R0, RL0, '2026-10-26'), fakeDoc()).querySelectorAll('section')[1];
+  assert.ok(none.textContent.includes('Nothing this week')); assert.equal(none.querySelector('a'), null);
+});
+
+test('render: five sections, empty ones say Nothing this week', () => {
+  const el = Week.render(Week.build(FY0, R0, RL0, '2026-10-26'), fakeDoc());
+  const ids = el.querySelectorAll('section').map(s => s.id);
+  assert.deepEqual(ids, ['open', 'reported', 'rules', 'upcoming', 'spots']);
+  assert.ok(el.querySelector('section').textContent.includes('Nothing this week'));
+  assert.ok(el.querySelectorAll('section')[4].textContent.includes('Three Friends Fishing Hole'));
+});
+
+test('render: ends-soon chip, rating badge token, rule link', () => {
+  const FY = { updated: '', milestones: [], seasons: [ season('skagit-coho', '2026-10-01', '2026-10-31', { name: 'Skagit coho' }) ] };
+  const R = Object.assign({}, R0, { SITES: [{ id: 'g', name: 'G River', sub: 's', reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-26', d: 'y' } } }] });
+  const RL = { CHECKED: '2026-10-20', RULES: [{ rivers: ['Hoh River'], published: '2026-10-16', d: 'closing', url: 'https://wdfw.wa.gov/x' }] };
+  const el = Week.render(Week.build(FY, R, RL, '2026-10-26'), fakeDoc());
+  assert.ok(el.querySelector('.soon'), 'ends-soon chip rendered');
+  assert.equal(el.querySelector('.soon').textContent, 'ends Oct 31 · 5 days');
+  const badge = el.querySelector('.badge');
+  assert.equal(badge.attrs.style, '--c:var(--good)');
+  assert.equal(badge.textContent, 'Good');
+  const rule = el.querySelectorAll('a').find(a => a.attrs.href === 'https://wdfw.wa.gov/x');
+  assert.equal(rule.textContent, 'Read the rule');
+  assert.ok(el.querySelectorAll('a').some(a => a.attrs.href === '../index.html?mode=reports&river=g'));
+});
+
+test('render: season ending today says "ends today"; flavor label; rules Checked date', () => {
+  const FY = { updated: '', milestones: [], seasons: [ season('e', '2026-10-01', '2026-10-26', { name: 'Ends' }) ] };
+  const RL = { CHECKED: '2026-10-20', RULES: [] };
+  const res = Week.build(FY, R0, RL, '2026-10-26');
+  assert.equal(res.rulesChecked, '2026-10-20');
+  const el = Week.render(res, fakeDoc());
+  const chips = el.querySelectorAll('.chip').map(c => c.textContent);
+  assert.ok(chips.includes('ends today'), 'ends today chip: ' + chips);
+  assert.ok(chips.includes('Taste #2'), 'flavor label: ' + chips);
+  assert.ok(el.querySelectorAll('section')[2].textContent.includes('Checked Oct 20.'));
+  const noCk = Week.render(Week.build(FY, R0, { RULES: [] }, '2026-10-26'), fakeDoc());
+  assert.ok(!noCk.querySelectorAll('section')[2].textContent.includes('Checked'));
+});

@@ -100,10 +100,11 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
 .apptabs a:not([aria-current=page]):active{opacity:.55}
 .apptabs a:focus-visible{z-index:1}
 .apptabs a:focus-visible::before{outline:2px solid var(--tab-accent);outline-offset:2px}
+@media (max-width:389px){.apptabs a{font-size:14px}}
 @media (prefers-reduced-motion:reduce){.apptabs a,.apptabs a::before{transition:none}}
 </style>
 </head><body>
-<nav class="apptabs" aria-label="Washington Fishing Map"><div class="apptabs-track"><a href="../index.html">Map</a><a href="../year/index.html">Year</a><a href="index.html" aria-current="page">Spots</a><a href="../counts/index.html">Counts</a></div></nav>
+<nav class="apptabs" aria-label="Washington Fishing Map"><div class="apptabs-track"><a href="../week/index.html">Week</a><a href="../index.html">Map</a><a href="../year/index.html">Year</a><a href="index.html" aria-current="page">Spots</a><a href="../counts/index.html">Counts</a></div></nav>
 <div class="wrap">
   <header>
     <div class="kicker">Green River · Kent, WA · Bank access</div>

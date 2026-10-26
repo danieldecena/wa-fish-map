@@ -205,36 +205,59 @@ a { color: var(--on-text); }
   border-radius: 14px;
   box-shadow: var(--lift);
 }
-.bar { align-self: flex-start; width: 100%; max-width: 460px; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
-.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.brand svg { width: 32px; height: 32px; flex: none; }
-.brand .t { min-width: 0; flex: 1 1 auto; }
-.brand .listbtn { flex: none; margin-left: auto; align-self: flex-start; }
-.brand .title { font-size: 17px; line-height: 22px; font-weight: 600; text-wrap: balance; }
-.brand .sub { font-size: 12px; line-height: 16px; color: var(--ink2); }
-.hint { margin: -4px 2px 0; font-size: 12px; line-height: 16px; color: var(--ink2); }
-.notice { font-size: 12px; line-height: 16px; background: var(--fill-advisory); border-radius: 10px; padding: 8px 10px; }
-@media (max-width: 759px) { #app.sheet-open .notice { display: none; } }
+.barstack { position: relative; align-self: flex-start; width: 100%; max-width: 760px; display: flex; flex-direction: column; gap: 8px; }
+.bar { width: 100%; height: 56px; padding: 6px 8px; display: flex; flex-direction: row; align-items: center; gap: 6px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.bar::-webkit-scrollbar { display: none; }
+.bar > * { flex: none; }
+.bar .logo { width: 32px; height: 32px; margin: 0 2px; }
+.hint { margin: 4px 0 0; font-size: 12px; line-height: 16px; color: var(--ink2); }
+.pop { position: absolute; top: 62px; left: 0; z-index: 5; width: min(420px, 100%); padding: 10px 12px; }
+.notice { margin: 0; font-size: 12px; line-height: 16px; }
+.nbtn { border: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 0 10px; min-height: 44px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; color: var(--ink); background: color-mix(in srgb, var(--good) 24%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--good) 55%, transparent); }
+.nbtn svg { width: 14px; height: 14px; flex: none; }
+.nbtn[aria-expanded="true"] { background: color-mix(in srgb, var(--good) 45%, transparent); }
 .seg { display: flex; flex-wrap: wrap; gap: 6px; }
 .seg button { border: 0; cursor: pointer; padding: 0 14px; min-height: 44px; border-radius: 999px; background: var(--fill-toggle); font-size: 12px; line-height: 16px; font-weight: 600; }
 .seg button[aria-checked="true"] { background: var(--on); color: #fff; }
-.ctl { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
-.listbtn { border: 1px solid var(--glass-line); background: transparent; cursor: pointer; padding: 6px 14px; min-height: 44px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 600; }
+.listbtn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--glass-line); background: transparent; cursor: pointer; padding: 0 12px; min-height: 44px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; }
+.listbtn svg { flex: none; }
+#spbtn { flex: 0 1 auto; min-width: 72px; max-width: 160px; }
+.mpop .seg.modes, .modes { background: var(--seg-track); }
+#spbtn .lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#mebtn { max-width: 170px; }
+#mebtn .lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .listbtn[aria-expanded="true"] { background: var(--on); border-color: var(--on); color: #fff; }
 .lrow { border: 0; width: 100%; text-align: left; cursor: pointer; min-height: 44px; font: inherit; color: inherit; }
 .lede { margin: 0 0 10px; font-size: 12px; line-height: 16px; color: var(--ink2); }
 .modes button { flex: 1 1 auto; }
 /* App Kit SegmentedControl: a sunk track; the chosen segment is lifted on surface with a shadow. Each segment stays a 44 px target;
    what you see is its ::before, inset 3 px top and bottom (the same build as the app tab bar). */
-.seg.modes { flex-wrap: nowrap; gap: 0; padding: 0 3px; border-radius: 10px; background: var(--seg-track); }
-.modes button { position: relative; z-index: 0; min-width: 0; padding: 0 6px; border-radius: 0; background: transparent; color: var(--seg-ink-soft); font-size: 15px; line-height: 20px; font-weight: 600; white-space: nowrap; }
+.seg.modes { flex: 0 0 auto; flex-wrap: nowrap; gap: 0; padding: 0 3px; border-radius: 10px; background: var(--seg-track); }
+.modes button { position: relative; z-index: 0; min-width: 0; padding: 0 6px; border-radius: 0; background: transparent; color: var(--seg-ink-soft); font-size: 14px; line-height: 20px; font-weight: 600; white-space: nowrap; }
 .modes button::before { content: ""; position: absolute; z-index: -1; inset: 3px 0; border-radius: 7px; }
 .modes button[aria-checked="true"] { background: transparent; color: var(--seg-ink); }
 .modes button[aria-checked="true"]::before { background: var(--seg-on); box-shadow: var(--seg-shadow); }
 @media (hover: hover) { .modes button:not([aria-checked="true"]):hover { color: var(--seg-ink); } }
-@media (max-width: 389px) { .modes button { font-size: 13px; padding: 0 3px; } }
+.modebtn, .fi, .sdot { display: none; }
+.mpop { width: min(240px, 100%); }
+.mpop .seg.modes { flex-direction: column; flex-wrap: nowrap; gap: 4px; padding: 4px; }
+.mpop .modes button { text-align: left; padding: 0 14px; font-size: 15px; }
+.mpop .modes button::before { inset: 0; border-radius: 8px; }
+.sdot { position: absolute; top: 9px; left: 24px; width: 8px; height: 8px; border-radius: 50%; background: var(--on); box-shadow: 0 0 0 2px var(--glass-solid, var(--surface)); }
+@media (max-width: 520px) {
+  .bar { gap: 6px; padding: 6px 8px; }
+  .bar .logo { display: none; }
+  .modebtn { display: inline-flex; }
+  .listbtn { padding: 0 12px; }
+  #spbtn { position: relative; min-width: 0; width: auto; padding: 0 10px; gap: 4px; }
+  #spbtn .fi { display: block; }
+  #spbtn .sdot.on { display: block; }
+  #spbtn .lbl, #mebtn .lbl, .nbtn .nd { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  #mebtn { padding: 0; width: 44px; }
+  .nbtn { padding: 0; width: 44px; justify-content: center; }
+}
 /* Spawning: the twelve-month ribbon. Tap a month, drag across to sweep, or use the arrow keys. */
-.spawn { display: flex; flex-direction: column; gap: 6px; }
+.spawn { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; }
 .year { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 2px; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .year.scrub button { cursor: ew-resize; }
 .year button { border: 0; background: transparent; cursor: pointer; padding: 4px 0 2px; border-radius: 8px; display: flex; flex-direction: column; align-items: stretch; gap: 2px; min-height: 52px; min-width: 0; }
@@ -249,14 +272,12 @@ a { color: var(--on-text); }
 .summary { font-size: 13px; line-height: 18px; }
 .summary b { font-variant-numeric: tabular-nums; }
 @media (max-width: 759px) { .year button { min-height: 44px; } .year .stack { height: 22px; } }
-#spbtn { text-align: left; max-width: 100%; }
-.sppanel { max-height: min(40vh, 300px); overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 10px; padding: 2px; }
+.sppanel { max-height: min(50vh, 340px); overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 10px; }
 .sppanel .gl { margin: 0 0 6px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); }
 .row.sel { outline: 2px solid var(--on); outline-offset: -2px; }
 .row .sub2 { font-size: 12px; line-height: 16px; color: var(--ink2); }
-#mebtn { max-width: 100%; }
 .mepanel .now { margin: 0; font-size: 12px; line-height: 16px; color: var(--ink2); }
-.metip { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 16px; background: var(--fill-advisory); border-radius: 10px; padding: 0 0 0 10px; }
+.metip { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 16px; width: auto; padding: 0 0 0 12px; }
 .sorts { margin: -4px 0 10px; }
 .dist { font-weight: 600; color: var(--ink); }
 .notes { display: flex; flex-direction: column; gap: 8px; }
@@ -378,7 +399,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 .lgroup h3 .n { font-size: 13px; font-weight: 600; color: var(--ink2); font-variant-numeric: tabular-nums; }
 
 @media (min-width: 760px) {
-  .bar { max-width: 460px; }
+  #app.sheet-open .barstack { max-width: min(760px, calc(100% - 392px)); }
   #sheet {
     left: auto; right: 12px; top: 12px; bottom: 12px; width: 380px; max-height: none;
     border: 1px solid var(--glass-line); border-radius: 14px;
@@ -396,9 +417,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 }
 @media (max-width: 759px) {
   #app.sheet-open .bottom { visibility: hidden; }
-  /* With a sheet open on a phone the card shrinks to its title row, so the selected river stays visible between card and sheet. */
-  #app.sheet-open #modes, #app.sheet-open .ctl, #app.sheet-open #sppanel, #app.sheet-open .hint { display: none; }
-  #app.sheet-open #mepanel, #app.sheet-open #metip { display: none; }
+  /* With a sheet open on a phone the bar stays as it is (already one thin row); only its popovers and the ribbon step aside. */
+  #app.sheet-open #sppanel, #app.sheet-open #mpop, #app.sheet-open #npop, #app.sheet-open #mepanel, #app.sheet-open #metip { display: none; }
   #app.sheet-open #spawn { display: none; }
 }
 .spawn[hidden] { display: none; }
@@ -437,9 +457,10 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
 .apptabs a:not([aria-current=page]):active{opacity:.55}
 .apptabs a:focus-visible{z-index:1}
 .apptabs a:focus-visible::before{outline:2px solid var(--tab-accent);outline-offset:2px}
+@media (max-width:389px){.apptabs a{font-size:14px}}
 @media (prefers-reduced-motion:reduce){.apptabs a,.apptabs a::before{transition:none}}
 </style>
-<nav class="apptabs" aria-label="Washington Fishing Map"><div class="apptabs-track"><a href="index.html" aria-current="page">Map</a><a href="year/index.html">Year</a><a href="spots/index.html">Spots</a><a href="counts/index.html">Counts</a></div></nav>
+<nav class="apptabs" aria-label="Washington Fishing Map"><div class="apptabs-track"><a href="week/index.html">Week</a><a href="index.html" aria-current="page">Map</a><a href="year/index.html">Year</a><a href="spots/index.html">Spots</a><a href="counts/index.html">Counts</a></div></nav>
 
 <div id="app">
   <div id="map" role="application" aria-label="Map of salmon rivers in southwest Washington. Drag to pan, pinch or use the buttons to zoom, select a river marker for details.">
@@ -448,39 +469,30 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   </div>
 
   <div id="chrome">
-    <div class="glass bar" id="bar">
-      <div class="brand">
-        <svg viewBox="0 0 1024 1024" aria-hidden="true">
-          <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1797ae"/><stop offset="1" stop-color="#004a79"/></linearGradient></defs>
-          <rect width="1024" height="1024" rx="230" fill="url(#bg)"/>
-          <path fill="#fff" d="M456.70 512.00L194.56 389.12L194.56 634.88Z"/>
-          <path fill="#fff" fill-rule="evenodd" d="M337.92 512.00C501.76 386.39 665.60 386.39 829.44 512.00C665.60 637.61 501.76 637.61 337.92 512.00ZM767.18 503.81C767.18 488.43 754.71 475.96 739.33 475.96C723.95 475.96 711.48 488.43 711.48 503.81C711.48 519.19 723.95 531.66 739.33 531.66C754.71 531.66 767.18 519.19 767.18 503.81Z"/>
-        </svg>
-        <div class="t">
-          <div class="title" id="ttl">Salmon this month</div>
-          <div class="sub" id="sub"></div>
-        </div>
-        <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
-      </div>
+    <div class="barstack" id="barstack">
+    <div class="glass bar" id="bar" role="group" aria-label="Map controls">
+      <svg class="logo" viewBox="0 0 1024 1024" aria-hidden="true"><defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1797ae"/><stop offset="1" stop-color="#004a79"/></linearGradient></defs><rect width="1024" height="1024" rx="230" fill="url(#bg)"/><path fill="#fff" d="M456.70 512.00L194.56 389.12L194.56 634.88Z"/><path fill="#fff" fill-rule="evenodd" d="M337.92 512.00C501.76 386.39 665.60 386.39 829.44 512.00C665.60 637.61 501.76 637.61 337.92 512.00ZM767.18 503.81C767.18 488.43 754.71 475.96 739.33 475.96C723.95 475.96 711.48 488.43 711.48 503.81C711.48 519.19 723.95 531.66 739.33 531.66C754.71 531.66 767.18 519.19 767.18 503.81Z"/></svg>
+      <div class="sr"><div class="title" id="ttl">Salmon this month</div><div class="sub" id="sub"></div></div>
+      <button type="button" class="listbtn modebtn" id="modebtn" aria-expanded="false" aria-controls="mpop" aria-label="Map mode"><span id="modelbl">Reports</span><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div class="seg modes" id="modes" role="radiogroup" aria-label="Map mode">
-        <button type="button" role="radio" aria-checked="true" data-mode="reports">Recent reports</button>
-        <button type="button" role="radio" aria-checked="false" data-mode="typical">Typical season</button>
-        <button type="button" role="radio" aria-checked="false" data-mode="spawning">Spawning</button>
+        <button type="button" role="radio" aria-checked="true" data-mode="reports" aria-label="Recent reports">Reports</button>
+        <button type="button" role="radio" aria-checked="false" data-mode="typical" aria-label="Typical season">Typical</button>
+        <button type="button" role="radio" aria-checked="false" data-mode="spawning" aria-label="Spawning">Spawning</button>
       </div>
-      <div class="ctl">
-        <button type="button" class="listbtn" id="spbtn" aria-expanded="false" aria-controls="sppanel"></button>
-        <button type="button" class="listbtn" id="mebtn" aria-expanded="false" aria-controls="mepanel">My location</button>
-      </div>
-      <div class="sppanel" id="sppanel" role="radiogroup" aria-label="Species" hidden></div>
-      <div class="sppanel mepanel" id="mepanel" role="group" aria-label="My location" hidden></div>
-      <div class="metip" id="metip" role="status" hidden><span>Tap the map where you are. Esc cancels.</span><button type="button" class="listbtn" id="mecancel">Cancel</button></div>
-      <div class="spawn" id="spawn" hidden>
-        <div class="year" id="year" role="radiogroup" aria-label="Month"></div>
-        <div class="summary" id="summary" aria-live="polite"></div>
-      </div>
-      <div class="notice" id="notice" role="status" hidden></div>
-      <div class="hint" id="hint" hidden></div>
-      <div class="hint" id="rhint" hidden>Tap any river for its typical flow and WDFW notices.</div>
+      <button type="button" class="listbtn" id="spbtn" aria-expanded="false" aria-controls="sppanel"></button>
+      <button type="button" class="listbtn" id="mebtn" aria-label="My location" aria-expanded="false" aria-controls="mepanel"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 14.5s4.5-4.2 4.5-8A4.5 4.5 0 0 0 3.5 6.5c0 3.8 4.5 8 4.5 8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="8" cy="6.5" r="1.6" fill="currentColor"/></svg><span class="lbl">Near me</span></button>
+      <button type="button" class="nbtn" id="nbtn" aria-expanded="false" aria-controls="npop" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="12" r=".9" fill="currentColor"/></svg><span class="nd" id="nd"></span></button>
+      <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
+    </div>
+    <div class="glass pop mpop" id="mpop" hidden></div>
+    <div class="glass pop sppanel" id="sppanel" role="radiogroup" aria-label="Species" hidden></div>
+    <div class="glass pop sppanel mepanel" id="mepanel" role="group" aria-label="My location" hidden></div>
+    <div class="glass pop metip" id="metip" role="status" hidden><span>Tap the map where you are. Esc cancels.</span><button type="button" class="listbtn" id="mecancel">Cancel</button></div>
+    <div class="glass pop" id="npop" hidden><div class="notice" id="notice" role="status" hidden></div></div>
+    <div class="glass spawn" id="spawn" hidden>
+      <div class="year" id="year" role="radiogroup" aria-label="Month"></div>
+      <div class="summary" id="summary" aria-live="polite"></div>
+    </div>
     </div>
 
     <div class="bottom" id="bottom">
@@ -496,6 +508,8 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
           <li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>
         </ul>
         <div class="fine" id="legf">Catch reports, not season dates. Confirm rules on WDFW.</div>
+        <div class="hint" id="hint" hidden></div>
+        <div class="hint" id="rhint" hidden>Tap any river for its typical flow and WDFW notices.</div>
       </div>
       <div class="glass zoom">
         <button type="button" id="zin" aria-label="Zoom in"><svg viewBox="0 0 18 18"><path d="M9 3v12M3 9h12"/></svg></button>
@@ -521,6 +535,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
 <script src="season.js"></script>
 <script src="cluster.js"></script>
 <script src="sites.js"></script>
+<script src="links.js"></script>
 <script>
 (function () {
   'use strict';
@@ -753,7 +768,9 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   var tabsEl = document.querySelector('nav.apptabs');
   function tabsBottom() { return tabsEl ? Math.max(0, tabsEl.getBoundingClientRect().bottom - map.getBoundingClientRect().top) : 0; }
   function pads() {
-    var barB = $('#bar').getBoundingClientRect().bottom + 10;
+    var barB = $('#bar').getBoundingClientRect().bottom;
+    var spw = $('#spawn'); if (!spw.hidden) barB = Math.max(barB, spw.getBoundingClientRect().bottom);
+    barB += 10;
     var legT = $('#legend').getBoundingClientRect().top;
     var wide = window.innerWidth >= 760;
     var sheetOpen = $('#sheet').classList.contains('open');
@@ -1107,7 +1124,49 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   $('#zout').addEventListener('click', function () { zoomAt(W / 2, H / 2, 1 / 1.6); });
   $('#zfit').addEventListener('click', resetView);
   var spbtn = $('#spbtn'), sppanel = $('#sppanel');
-  var CHEV = '<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" style="margin-left:6px;vertical-align:-1px"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  // The stale or typical-season notice lives in a popover opened from a chip in the bar; #notice stays the text element the page writes to.
+  var nbtn = $('#nbtn'), npop = $('#npop');
+  function toggleNotice(open) {
+    if (open && nbtn.hidden) open = false;
+    if (!open && npop.contains(document.activeElement)) nbtn.focus({ preventScroll: true });
+    if (open) { toggleSpecies(false); toggleModes(false); if (!$('#mepanel').hidden) toggleMe(false); }
+    npop.hidden = !open;
+    nbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  function syncNotice() {
+    var t = $('#notice').textContent || '', m = t.match(/\(([^)]+)\)/);
+    var has = !!t;
+    $('#notice').hidden = !has;
+    nbtn.hidden = !has;
+    $('#nd').textContent = has ? (m ? m[1] : 'Note') : '';
+    nbtn.setAttribute('aria-label', has ? (m ? 'Report notice, newest report ' + m[1] : 'About this map') : 'Notice');
+    if (!has) toggleNotice(false);
+  }
+  nbtn.addEventListener('click', function () { toggleNotice(npop.hidden); });
+  // Phones: the three mode buttons move into a popover opened from one menu button; the same buttons and handlers keep working.
+  var modesEl = $('#modes'), modebtn = $('#modebtn'), mpop = $('#mpop'), phoneMq = window.matchMedia('(max-width: 520px)');
+  function toggleModes(open) {
+    if (open && !phoneMq.matches) open = false;
+    if (!open && mpop.contains(document.activeElement)) modebtn.focus({ preventScroll: true });
+    if (open) { toggleSpecies(false); toggleNotice(false); if (!$('#mepanel').hidden) toggleMe(false); }
+    mpop.hidden = !open;
+    modebtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) { var on = modesEl.querySelector('[aria-checked="true"]'); if (on) on.focus({ preventScroll: true }); }
+  }
+  function placeModes() {
+    if (phoneMq.matches) mpop.appendChild(modesEl); else { $('#bar').insertBefore(modesEl, modebtn.nextSibling); toggleModes(false); }
+  }
+  modebtn.addEventListener('click', function () { toggleModes(mpop.hidden); });
+  if (phoneMq.addEventListener) phoneMq.addEventListener('change', placeModes); else phoneMq.addListener(placeModes);
+  placeModes();
+  function syncModeLbl() { var on = modesEl.querySelector('[aria-checked="true"]'); if (on) $('#modelbl').textContent = on.textContent; }
+  var CHEV = '<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" style="flex:none"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var FUNNEL = '<svg class="fi" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2 3h12l-4.5 5.5V13l-3-1.5V8.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+  function setSpLabel() {
+    var t = species || 'All species';
+    spbtn.innerHTML = FUNNEL + '<span class="sdot' + (species ? ' on' : '') + '"></span><span class="lbl">' + esc(t) + '</span>' + CHEV;
+    spbtn.setAttribute('aria-label', 'Species: ' + t);
+  }
   function mkChip(name, parent) {
     var b = document.createElement('button');
     b.type = 'button';
@@ -1123,15 +1182,17 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     document.querySelectorAll('#sppanel button').forEach(function (o) {
       o.setAttribute('aria-checked', (o.getAttribute('data-species') || null) === species ? 'true' : 'false');
     });
-    spbtn.innerHTML = 'Species: ' + esc(species || 'All species') + CHEV;
+    setSpLabel();
     toggleSpecies(false);
     applyStyles(); render();
     if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList();
+    syncLink();
   }
   // One species dropdown for both modes. Closing hands focus back to the button, and opening puts it on the chosen species, so the keyboard never loses its place.
   function toggleSpecies(open) {
     if (!open && sppanel.contains(document.activeElement)) spbtn.focus({ preventScroll: true });
     if (open && !$('#mepanel').hidden) toggleMe(false);
+    if (open) { toggleNotice(false); toggleModes(false); }
     sppanel.hidden = !open;
     spbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) { var on = sppanel.querySelector('[aria-checked="true"]'); if (on) on.focus({ preventScroll: true }); }
@@ -1148,7 +1209,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     // Spawning has its own list, Sites; Typical season has none.
     if (view === 'spawning') $('#listbtn').hidden = false;
     $('#listbtn').textContent = view === 'spawning' ? 'Sites' : 'Rivers';
-    spbtn.innerHTML = 'Species: ' + esc(species || 'All species') + CHEV;
+    setSpLabel();
     toggleSpecies(false);
     var top = document.createElement('div'); top.className = 'seg'; sppanel.appendChild(top);
     mkChip(null, top);
@@ -1521,6 +1582,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     SMONTH = m;
     applyStyles(); render();
     if (mode === 'detail') fillSpawn(selected, true); else if (mode === 'list') fillSpawnList(true);
+    syncLink();
   }
   if (HAS_SPAWN) {
     MONTH_NAMES.forEach(function (name, i) {
@@ -1574,8 +1636,8 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
 
   function clearRiver() { riverSel = null; rsel.style.display = 'none'; }
   function openRiver(id, px, py) {
+    if (!Object.prototype.hasOwnProperty.call(TAPBY, id)) return;
     var r = TAPBY[id];
-    if (!r) return;
     // A river that is itself one of the reported waters opens its catch-report sheet, never a "no report" sheet.
     var same = SITES.filter(function (s) { return s.name === r.name; })[0];
     if (same) { openSheet(same.id); return; }
@@ -1585,6 +1647,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     $('#listbtn').setAttribute('aria-expanded', 'false');
     rselCase.setAttribute('d', r.d); rselLine.setAttribute('d', r.d); rsel.style.display = '';
     applyStyles(); render();
+    syncLink();
     // Keep the tapped spot in view: beside the inspector on wide screens, between the card and the sheet on phones.
     if (px == null) return;
     var wide = window.innerWidth >= 760, dx = 0, dy = 0;
@@ -1620,6 +1683,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     if (wide) { tx = (W - 392) / 2 - s.xy[0] * ns; ty = (tabsBottom() + H) / 2 + 20 - s.xy[1] * ns; }
     else { tx = W / 2 - s.xy[0] * ns; ty = (barB + (H - Math.min(sh, H * 0.66))) / 2 + 24 - s.xy[1] * ns; }
     animateTo({ s: ns, tx: tx, ty: ty }, 320);
+    syncLink();
   }
   function openList() {
     clearRiver();
@@ -1630,6 +1694,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     applyStyles(); render();
     // Wide screens: the list covers the right side, so refit the rivers into the space beside it and every pin in the list stays on the map.
     if (window.innerWidth >= 760 && view === 'reports') animateTo(homeFit(), 320);
+    syncLink();
   }
   function closeSheet() {
     clearRiver();
@@ -1640,6 +1705,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     appEl.classList.remove('sheet-open');
     $('#listbtn').setAttribute('aria-expanded', 'false');
     applyStyles(); render();
+    syncLink();
     var back = returnFocus; returnFocus = null;
     if (back && back !== document.body && document.contains(back) && back.focus) back.focus({ preventScroll: true });
   }
@@ -1660,6 +1726,8 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   // Registered before the sheet's Escape handler: the species panel closes first (that handler), then the location panel or "Tap the map", then the sheet.
   window.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape' || !sppanel.hidden) return;
+    if (!mpop.hidden) { toggleModes(false); modebtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
+    if (!npop.hidden) { toggleNotice(false); nbtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
     if (!mepanel.hidden) { toggleMe(false); mebtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
     if (meArmed) { armMe(false); e.stopImmediatePropagation(); }
   });
@@ -1701,7 +1769,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   function miLong(n) { return n < 1 ? 'Less than 1 mi from you' : 'About ' + Math.round(n).toLocaleString('en-US') + ' mi from you'; }
   function distHtml(ll) { return me ? '<p class="dist">' + esc(miLong(milesTo(ll))) + '</p>' : ''; }
   function syncMeUi() {
-    mebtn.textContent = me ? 'My location: ' + me.label : 'My location';
+    mebtn.querySelector('.lbl').textContent = me ? me.label : 'Near me';
     if (!mepanel.hidden) buildMe();
   }
   function buildMe() {
@@ -1713,7 +1781,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   }
   function toggleMe(open) {
     if (!open && mepanel.contains(document.activeElement)) mebtn.focus({ preventScroll: true });
-    if (open) { toggleSpecies(false); if (meArmed) armMe(false); buildMe(); }
+    if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); if (meArmed) armMe(false); buildMe(); }
     mepanel.hidden = !open;
     mebtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) { var first = mepanel.querySelector('button'); if (first) first.focus({ preventScroll: true }); }
@@ -1763,6 +1831,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     appEl.classList.toggle('typ', m === 'typical');
     appEl.classList.toggle('spw', m === 'spawning');
     document.querySelectorAll('#modes button').forEach(function (b) { b.setAttribute('aria-checked', b.getAttribute('data-mode') === m ? 'true' : 'false'); });
+    syncModeLbl(); toggleModes(false);
     var typ = m === 'typical', spw = m === 'spawning';
     if (typ) initTypical();
     if (spw) initSpawn();
@@ -1776,7 +1845,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
       : '<li style="--c:var(--prime)"><i></i>Excellent</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li style="--c:var(--slow)"><i></i>Slow</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li><li class="old"><i></i>Dashed: report over a week old</li><li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>';
     $('#legf').textContent = typ ? TYPICAL_LINE + ' Confirm rules on WDFW.' : spw ? SPAWN_FINE : 'Catch reports, not season dates. Confirm rules on WDFW.';
     var n = typ ? TYPICAL_LINE : spw ? null : Reports.staleNotice(SITES, TODAY);
-    $('#notice').textContent = n || ''; $('#notice').hidden = !n;
+    $('#notice').textContent = n || ''; syncNotice();
     map.setAttribute('aria-label', typ
       ? 'Map of Washington piers, boat launches and shore access sites colored by typical seasonal timing. Drag to pan, pinch or use the buttons to zoom, select a marker for details.'
       : 'Map of salmon rivers in southwest Washington. Drag to pan, pinch or use the buttons to zoom, select a river marker for details.');
@@ -1794,6 +1863,27 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     var f = homeFit(); s0 = f.s;
     if (reduce) setView(f); else animateTo(f, 350);
     render();
+    syncLink();
+  }
+
+  /* ---- URL state (links.js): what the page shows is what the address bar says ---- */
+  var LINK0 = (window.Links && window.Links.read) ? Links.read(location.search) : { mode: null, month: null, species: null, site: null, river: null, today: null };
+  function syncLink() {
+    if (!window.Links || !LINK0) return;
+    var rep = view === 'reports';
+    Links.write({
+      mode: view,
+      month: view === 'spawning' ? SMONTH : null,
+      species: species,
+      site: !rep && mode === 'detail' ? selected : null,
+      river: rep ? (mode === 'detail' ? selected : riverSel) : null,
+      today: LINK0.today
+    }, window.history, window.location);
+  }
+  function speciesKnown(name) {
+    var found = false;
+    document.querySelectorAll('#sppanel button').forEach(function (b) { if (b.getAttribute('data-species') === name) found = true; });
+    return found;
   }
 
   /* ---- boot ---- */
@@ -1814,11 +1904,20 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   buildSpecies();
   $('#rhint').hidden = !TAP;
   var notice = Reports.staleNotice(SITES, TODAY);
-  if (notice) { $('#notice').textContent = notice; $('#notice').hidden = false; }
+  if (notice) { $('#notice').textContent = notice; }
+  syncNotice();
   $('#sub').textContent = 'Southwest Washington · reports through ' + Reports.formatDay(Reports.latestReport(SITES));
   init();
-  // ?mode=typical opens the page in Typical season and ?mode=spawning in Spawning (shareable links); anything else keeps Recent reports.
-  if (/[?&]mode=typical(&|$)/.test(location.search)) setMode('typical');
-  else if (/[?&]mode=spawning(&|$)/.test(location.search)) setMode('spawning');
+  // Deep links (links.js): mode first, then month and species, then the sheet, so each step sees the state the one before it set.
+  if (LINK0.mode && LINK0.mode !== 'reports') setMode(LINK0.mode);
+  if (LINK0.month && view === 'spawning') setMonth(LINK0.month);
+  if (LINK0.species && speciesKnown(LINK0.species)) pickSpecies(LINK0.species);
+  if (view === 'reports' && LINK0.river) {
+    if (SITES.some(function (s) { return s.id === LINK0.river; })) openSheet(LINK0.river);
+    else if (Object.prototype.hasOwnProperty.call(TAPBY, LINK0.river)) openRiver(LINK0.river);
+  } else if (view !== 'reports' && LINK0.site && siteOf(LINK0.site)) {
+    openSheet(LINK0.site);
+  }
+  syncLink();
 })();
 </script>
