@@ -36,7 +36,8 @@ if (!base) {
       if (!existsSync(p) || statSync(p).isDirectory()) { res.writeHead(404); res.end(); return; }
       res.writeHead(200, { 'content-type': types[path.extname(p)] || 'application/octet-stream' }); res.end(await readFile(p));
     } catch { res.writeHead(400); res.end(); }
-  }).listen(0);
+  }).listen(0, '127.0.0.1');
+  if (!server.listening) await new Promise(r => server.once('listening', r));
   base = 'http://127.0.0.1:' + server.address().port;
 }
 const PAGES = [['Map', '/index.html'], ['Week', '/week/index.html'], ['Year', '/year/index.html'], ['Spots', '/spots/index.html'], ['Counts', '/counts/index.html']];
@@ -215,6 +216,21 @@ for (const scheme of ['light', 'dark']) {
       await pn.goto(base + '/index.html?mode=typical&site=port-angeles-city-pier&today=' + today, { waitUntil: 'networkidle' });
       check(outside.length === 0, `no network: no request leaves the page (${outside.slice(0, 3).join(', ')})`);
       await pn.close();
+      // boot failure: year/data.js blocked -> one fallback panel, footer and WDFW links stay, tides still mount
+      const pf = await ctx.newPage();
+      await pf.route('**/year/data.js', r => r.abort());
+      await pf.goto(base + '/week/index.html?today=' + today, { waitUntil: 'networkidle' });
+      const fb = await pf.evaluate(() => ({ text: document.getElementById('week').textContent, foot: !!document.querySelector('#foot a[href*="emergency-rules"]') && !!document.querySelector('#foot a[href$="/fishing/regulations"]'), rows: document.querySelectorAll('#tides table.tides tbody tr').length }));
+      check(fb.text.includes("This week's summary couldn't be built from the page data.") && fb.foot && fb.rows === 7, `Week: with year/data.js blocked the fallback panel shows, the footer links stay and #tides renders 7 rows (rows ${fb.rows})`);
+      await pf.close();
+      // ?today=2026-13-01 (not a real date) falls back to the device date with no page error, on the Week page and the map
+      for (const u of ['/week/index.html?today=2026-13-01', '/index.html?today=2026-13-01']) {
+        const pb = await ctx.newPage(); const errs = []; pb.on('pageerror', e => errs.push(e.message));
+        await pb.goto(base + u, { waitUntil: 'networkidle' });
+        const shown = await pb.evaluate(() => (document.getElementById('range') || document.body).innerText);
+        check(errs.length === 0 && !/2026-13|NaN|Invalid/.test(shown), `${u}: an impossible ?today falls back without errors (${errs[0] || 'none'})`);
+        await pb.close();
+      }
       // today past the bundle end -> beyond-bundle rows
       const p2 = await ctx.newPage();
       await p2.goto(base + '/week/index.html?today=2027-03-10', { waitUntil: 'networkidle' });

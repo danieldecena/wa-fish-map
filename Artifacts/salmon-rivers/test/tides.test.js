@@ -230,13 +230,20 @@ test('mount: a week past the bundle end shows beyond rows (no extremes) and the 
   assert.ok(sec.querySelectorAll('.fine')[0].textContent.includes('through Nov 30'));
 });
 
-/* The no-network rule: the page makes no requests at all. */
-test('no network: tides.js, week.js, index.html and week/index.html contain no fetch( or XMLHttpRequest', () => {
-  for (const f of ['tides.js', 'week.js', 'index.html', 'week/index.html']) {
+/* The no-network rule: the page makes no requests at all. Every page code file is scanned. Checked 2026-10-26: none of the strings
+   below appears in any of these files (including the bundled year/ and counts/ pages), so the allowlist is empty. If a bundled
+   third-party library ever carries one as dead code, list the file and the string here with the reason, per file. */
+test('no network: no page code file contains fetch(, XMLHttpRequest, sendBeacon, WebSocket, EventSource or import(', () => {
+  const files = ['index.html', 'links.js', 'week.js', 'tides.js', 'reports.js', 'rules.js', 'season.js', 'cluster.js',
+    'week/index.html', 'spots/index.html', 'counts/index.html', 'year/index.html'];
+  const allow = {}; // file -> [pattern names allowed there, with a reason]
+  const bad = { 'fetch(': /\bfetch\s*\(/, XMLHttpRequest: /XMLHttpRequest/, sendBeacon: /sendBeacon/, WebSocket: /WebSocket/, EventSource: /EventSource/, 'import(': /\bimport\s*\(/ };
+  for (const f of files) {
     const src = fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
-    assert.ok(!/\bfetch\s*\(/.test(src), f + ' calls fetch(');
-    assert.ok(!/XMLHttpRequest/.test(src), f + ' uses XMLHttpRequest');
-    assert.ok(!/AbortController|sendBeacon|new WebSocket|new EventSource/.test(src), f + ' uses a network API');
+    for (const [name, re] of Object.entries(bad)) {
+      if ((allow[f] || []).includes(name)) continue;
+      assert.ok(!re.test(src), f + ' contains ' + name);
+    }
   }
 });
 

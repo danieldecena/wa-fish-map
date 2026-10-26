@@ -578,8 +578,9 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
   }
   // ?today=YYYY-MM-DD lets a reviewer see how the page ages; it changes nothing on the live page for normal visitors.
-  var override = /[?&]today=(\d{4}-\d{2}-\d{2})/.exec(location.search);
-  var TODAY = override ? override[1] : todayISO();
+  // Same strict real-date check as links.js (an impossible date such as 2026-13-01 is ignored), so the map and Links agree.
+  var override = (window.Links && Links.read) ? Links.read(location.search).today : null;
+  var TODAY = override || todayISO();
 
   var SITES = Reports.SITES;
   SITES.forEach(function (s) { var p = D.pins[s.id]; s.ll = p.ll; s.xy = p.xy; });
