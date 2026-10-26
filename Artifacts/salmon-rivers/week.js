@@ -31,6 +31,12 @@
     for (var i = 0; i < 7; i++) days.push(isoOf(mon + i));
     return { start: days[0], end: days[6], days: days };
   }
+  /* Today and the six days after it: the window the tide table shows, so it never opens on a week that is mostly past. */
+  function next7(today) {
+    var t = dayNum(today), days = [];
+    for (var i = 0; i < 7; i++) days.push(isoOf(t + i));
+    return { start: days[0], end: days[6], days: days };
+  }
   /* A Year row opens from its season id: year/anchor.js selects the row named by the hash. */
   function yearHref(id) { return '../year/index.html#' + encodeURIComponent(id); }
   function sources(src) { return !src ? [] : Array.isArray(src) ? src : [src]; }
@@ -189,5 +195,5 @@
     return root;
   }
 
-  return { SPOTS: SPOTS, yearHref: yearHref, RULE_DAYS: RULE_DAYS, UPCOMING: UPCOMING, MONTHS: MONTHS, dayNum: dayNum, isoOf: isoOf, fmt: fmt, fmtDow: fmtDow, range: range, build: build, render: render };
+  return { SPOTS: SPOTS, yearHref: yearHref, RULE_DAYS: RULE_DAYS, UPCOMING: UPCOMING, MONTHS: MONTHS, dayNum: dayNum, isoOf: isoOf, fmt: fmt, fmtDow: fmtDow, range: range, next7: next7, build: build, render: render };
 });
