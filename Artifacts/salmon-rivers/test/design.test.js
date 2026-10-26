@@ -63,10 +63,11 @@ test('the two dark blocks agree token for token', () => {
 });
 
 test('glass card and legend follow the design system spacing', () => {
-  // GlassCard: inset 8 px compact, 12 px regular; padding 10 px vertical; capped at 460 px.
+  // GlassCard: inset 8 px compact, 12 px regular. The controls are one thin row (56 px, capped at 760 px).
   assert.match(html, /#chrome \{[^}]*padding-block: 8px;[^}]*padding-left: max\(8px/s);
   assert.match(html, /@media \(min-width: 760px\) \{\s*#chrome \{ padding-block: 12px; padding-left: max\(12px/);
-  assert.match(html, /\.bar \{[^}]*max-width: 460px; padding: 10px 12px;/);
+  assert.match(html, /\.barstack \{[^}]*max-width: 760px;/);
+  assert.match(html, /\.bar \{[^}]*height: 56px; padding: 6px 8px; display: flex; flex-direction: row;/);
   // RatingLegend: 8 px dot, 3 px to the label, entries 10 px apart.
   assert.match(html, /\.legend i \{ width: 8px; height: 8px;/);
   assert.match(html, /\.legend li \{[^}]*gap: 3px;/);

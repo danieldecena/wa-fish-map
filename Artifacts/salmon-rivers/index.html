@@ -28,6 +28,14 @@
   --state-line: rgba(60,60,67,0.6);
   --brand-a: #1797ae;
   --brand-b: #004a79;
+  /* Mode switch: App Kit SegmentedControl values (track surface-sunk, chosen segment on surface, ink and ink-soft). */
+  --seg-track: #e5e5ea;
+  --seg-on: #ffffff;
+  --seg-ink: #1d1d1f;
+  --seg-ink-soft: #636366;
+  --seg-shadow: 0 1px 2px rgba(0,0,0,0.12);
+  /* The app tab bar floats over the top of the map: 6 + 44 + 6 px, under the safe area. */
+  --tabs-h: calc(56px + env(safe-area-inset-top, 0px));
   --lift: 0 6px 22px rgba(0,0,0,0.14);
   --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
   --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
@@ -55,6 +63,11 @@
     --cluster: #2c2c2e;
     --land: #262629;
     --state-line: rgba(235,235,245,0.5);
+    --seg-track: #2c2c2e;
+    --seg-on: #636366;
+    --seg-ink: #f5f5f7;
+    --seg-ink-soft: #98989d;
+    --seg-shadow: 0 1px 2px rgba(0,0,0,0.5);
     --lift: 0 6px 22px rgba(0,0,0,0.5);
     color-scheme: dark;
   }
@@ -81,6 +94,11 @@
   --cluster: #2c2c2e;
   --land: #262629;
   --state-line: rgba(235,235,245,0.5);
+  --seg-track: #2c2c2e;
+  --seg-on: #636366;
+  --seg-ink: #f5f5f7;
+  --seg-ink-soft: #98989d;
+  --seg-shadow: 0 1px 2px rgba(0,0,0,0.5);
   --lift: 0 6px 22px rgba(0,0,0,0.5);
   color-scheme: dark;
 }
@@ -122,12 +140,30 @@ a { color: var(--on-text); }
 .hl .hit { stroke: transparent; stroke-width: 24px; pointer-events: stroke; cursor: pointer; }
 .hl.closed .line { opacity: 0.55; }
 .hl.sel .line { stroke-width: 5px; }
+/* Recent reports: every named river takes a tap (rivers-tap.js). Invisible and static in #vp; the eight report rivers' own hit paths sit above. */
+#rtap path { fill: none; stroke: transparent; stroke-width: 22px; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; pointer-events: stroke; cursor: pointer; }
+/* The river whose sheet is open: accent line on a halo casing. Not a rating colour; rivers without a report are never rated. */
+#rsel path { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; pointer-events: none; }
+#rsel .casing { stroke: var(--halo); stroke-width: 7px; opacity: 0.92; }
+/* --on-text is the accent re-themed for dark (--on is not), so the selected river stays brighter than the other rivers in both themes. */
+#rsel .line { stroke: var(--on-text); stroke-width: 3.6px; }
+#app.typ #rtap, #app.typ #rsel, #app.spw #rtap, #app.spw #rsel { display: none; }
+/* "You": the point the viewer set by hand. Accent, never a rating colour; drawn under the pins. */
+.you .ring { fill: var(--halo); stroke: var(--on); stroke-width: 1.5; stroke-opacity: 0.55; }
+.you .dot { fill: var(--on); }
 
 .pin { pointer-events: auto; cursor: pointer; outline: none; }
 .pin .balloon { fill: var(--rc); stroke: var(--pin-edge); stroke-width: 1.5; }
 .pin .glyph path { fill: var(--gl, #fff); }
 .pin .tipshadow { fill: rgba(0,0,0,0.28); }
-.pin.closed .pin-s { opacity: 0.55; }
+/* Faded pins keep a full-strength edge and glyph so they stay findable on the light map; only the fill fades. */
+.pin.closed .balloon { fill-opacity: 0.45; }
+.pin.closed .glyph { opacity: 0.75; }
+/* A report over a week old: dashed edge on the pin and the river, the same cue as the dashed date chips in the sheet. */
+.pin.stale .balloon { stroke-dasharray: 3 2; stroke-width: 1.8; }
+.hl.stale .line { stroke-dasharray: 7 5; }
+/* Spawning: a fish ladder, where fish pass on their way upstream and do not spawn. */
+.pin.ladder .balloon { stroke-dasharray: 3 2; stroke-width: 1.8; }
 .pin:focus-visible .balloon { stroke: var(--on); stroke-width: 3; }
 .cluster { pointer-events: auto; cursor: pointer; outline: none; }
 .cluster circle { fill: var(--rc); stroke: var(--pin-edge); stroke-width: 2; }
@@ -169,31 +205,91 @@ a { color: var(--on-text); }
   border-radius: 14px;
   box-shadow: var(--lift);
 }
-.bar { align-self: flex-start; width: 100%; max-width: 460px; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
-.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.brand svg { width: 32px; height: 32px; flex: none; }
-.brand .t { min-width: 0; flex: 1 1 auto; }
-.brand .listbtn { flex: none; margin-left: auto; align-self: flex-start; }
-.brand .title { font-size: 17px; line-height: 22px; font-weight: 600; text-wrap: balance; }
-.brand .sub { font-size: 12px; line-height: 16px; color: var(--ink2); }
-.hint { margin: -4px 2px 0; font-size: 12px; line-height: 16px; color: var(--ink2); }
-.notice { font-size: 12px; line-height: 16px; background: var(--fill-advisory); border-radius: 10px; padding: 8px 10px; }
-@media (max-width: 759px) { #app.sheet-open .notice { display: none; } }
+.barstack { position: relative; align-self: flex-start; width: 100%; max-width: 760px; display: flex; flex-direction: column; gap: 8px; }
+.bar { width: 100%; height: 56px; padding: 6px 8px; display: flex; flex-direction: row; align-items: center; gap: 6px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.bar::-webkit-scrollbar { display: none; }
+.bar > * { flex: none; }
+.bar .logo { width: 32px; height: 32px; margin: 0 2px; }
+.hint { margin: 4px 0 0; font-size: 12px; line-height: 16px; color: var(--ink2); }
+.pop { position: absolute; top: 62px; left: 0; z-index: 5; width: min(420px, 100%); padding: 10px 12px; }
+.notice { margin: 0; font-size: 12px; line-height: 16px; }
+.nbtn { border: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 0 10px; min-height: 44px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; color: var(--ink); background: color-mix(in srgb, var(--good) 24%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--good) 55%, transparent); }
+.nbtn svg { width: 14px; height: 14px; flex: none; }
+.nbtn[aria-expanded="true"] { background: color-mix(in srgb, var(--good) 45%, transparent); }
 .seg { display: flex; flex-wrap: wrap; gap: 6px; }
 .seg button { border: 0; cursor: pointer; padding: 0 14px; min-height: 44px; border-radius: 999px; background: var(--fill-toggle); font-size: 12px; line-height: 16px; font-weight: 600; }
 .seg button[aria-checked="true"] { background: var(--on); color: #fff; }
-.ctl { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
-.listbtn { border: 1px solid var(--glass-line); background: transparent; cursor: pointer; padding: 6px 14px; min-height: 44px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 600; }
+.listbtn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--glass-line); background: transparent; cursor: pointer; padding: 0 12px; min-height: 44px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; }
+.listbtn svg { flex: none; }
+#spbtn { flex: 0 1 auto; min-width: 72px; max-width: 160px; }
+.mpop .seg.modes, .modes { background: var(--seg-track); }
+#spbtn .lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#mebtn { max-width: 170px; }
+#mebtn .lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .listbtn[aria-expanded="true"] { background: var(--on); border-color: var(--on); color: #fff; }
 .lrow { border: 0; width: 100%; text-align: left; cursor: pointer; min-height: 44px; font: inherit; color: inherit; }
 .lede { margin: 0 0 10px; font-size: 12px; line-height: 16px; color: var(--ink2); }
 .modes button { flex: 1 1 auto; }
-#spbtn { text-align: left; max-width: 100%; }
-.sppanel { max-height: min(40vh, 300px); overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 10px; padding: 2px; }
+/* App Kit SegmentedControl: a sunk track; the chosen segment is lifted on surface with a shadow. Each segment stays a 44 px target;
+   what you see is its ::before, inset 3 px top and bottom (the same build as the app tab bar). */
+.seg.modes { flex: 0 0 auto; flex-wrap: nowrap; gap: 0; padding: 0 3px; border-radius: 10px; background: var(--seg-track); }
+.modes button { position: relative; z-index: 0; min-width: 0; padding: 0 6px; border-radius: 0; background: transparent; color: var(--seg-ink-soft); font-size: 14px; line-height: 20px; font-weight: 600; white-space: nowrap; }
+.modes button::before { content: ""; position: absolute; z-index: -1; inset: 3px 0; border-radius: 7px; }
+.modes button[aria-checked="true"] { background: transparent; color: var(--seg-ink); }
+.modes button[aria-checked="true"]::before { background: var(--seg-on); box-shadow: var(--seg-shadow); }
+@media (hover: hover) { .modes button:not([aria-checked="true"]):hover { color: var(--seg-ink); } }
+.modebtn, .fi, .sdot { display: none; }
+.mpop { width: min(240px, 100%); }
+.mpop .seg.modes { flex-direction: column; flex-wrap: nowrap; gap: 4px; padding: 4px; }
+.mpop .modes button { text-align: left; padding: 0 14px; font-size: 15px; }
+.mpop .modes button::before { inset: 0; border-radius: 8px; }
+.sdot { position: absolute; top: 9px; left: 24px; width: 8px; height: 8px; border-radius: 50%; background: var(--on); box-shadow: 0 0 0 2px var(--glass-solid, var(--surface)); }
+@media (max-width: 520px) {
+  .bar { gap: 6px; padding: 6px 8px; }
+  .bar .logo { display: none; }
+  .modebtn { display: inline-flex; }
+  .listbtn { padding: 0 12px; }
+  #spbtn { position: relative; min-width: 0; width: auto; padding: 0 10px; gap: 4px; }
+  #spbtn .fi { display: block; }
+  #spbtn .sdot.on { display: block; }
+  #spbtn .lbl, #mebtn .lbl, .nbtn .nd { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  #mebtn { padding: 0; width: 44px; }
+  .nbtn { padding: 0; width: 44px; justify-content: center; }
+}
+/* Spawning: the twelve-month ribbon. Tap a month, drag across to sweep, or use the arrow keys. */
+.spawn { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; }
+.year { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 2px; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.year.scrub button { cursor: ew-resize; }
+.year button { border: 0; background: transparent; cursor: pointer; padding: 4px 0 2px; border-radius: 8px; display: flex; flex-direction: column; align-items: stretch; gap: 2px; min-height: 52px; min-width: 0; }
+.year .stack { height: 30px; display: flex; flex-direction: column-reverse; margin: 0 3px; border-radius: 4px; overflow: hidden; background: var(--fill-row); }
+.year .stack i { display: block; flex: none; }
+.year .stack .p { background: var(--prime); }
+.year .stack .a { background: var(--good); }
+.year .m { font-size: 12px; line-height: 16px; font-weight: 600; text-align: center; color: var(--ink2); }
+.year button[aria-checked="true"] { background: var(--fill-toggle); box-shadow: inset 0 0 0 1.5px var(--on); }
+.year button[aria-checked="true"] .m { color: var(--ink); }
+.year button.now .m { text-decoration: underline; text-underline-offset: 2px; }
+.summary { font-size: 13px; line-height: 18px; }
+.summary b { font-variant-numeric: tabular-nums; }
+@media (max-width: 759px) { .year button { min-height: 44px; } .year .stack { height: 22px; } }
+.sppanel { max-height: min(50vh, 340px); overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 10px; }
 .sppanel .gl { margin: 0 0 6px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); }
 .row.sel { outline: 2px solid var(--on); outline-offset: -2px; }
 .row .sub2 { font-size: 12px; line-height: 16px; color: var(--ink2); }
-#app.typ .hl { display: none; }
+.mepanel .now { margin: 0; font-size: 12px; line-height: 16px; color: var(--ink2); }
+.metip { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 16px; width: auto; padding: 0 0 0 12px; }
+.sorts { margin: -4px 0 10px; }
+.dist { font-weight: 600; color: var(--ink); }
+.notes { display: flex; flex-direction: column; gap: 8px; }
+.notes .row { flex-direction: column; gap: 6px; }
+.notes a, .flow a { display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; font-weight: 600; }
+.flow { background: var(--fill-row); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+.flow .big { font-size: 15px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.flow .gsrc { font-size: 13px; line-height: 18px; color: var(--ink2); }
+.flow .cnote { margin: 0; font-size: 12px; line-height: 16px; color: var(--ink2); }
+.notes p { margin: 0; font-size: 14px; line-height: 19px; }
+.seg button[aria-pressed="true"] { background: var(--on); color: #fff; }
+#app.typ .hl, #app.spw .hl { display: none; }
 /* One basemap for both modes: a light land tint inside Washington, WDFW salt water over it, the state outline, then rivers. */
 #tbase .l { fill: var(--land); stroke: none; }
 #tbase .w0 { fill: var(--ground); fill-rule: evenodd; stroke: none; }
@@ -206,9 +302,24 @@ a { color: var(--on-text); }
 .legend ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; }
 .legend li { display: flex; align-items: center; gap: 3px; font-size: 12px; line-height: 16px; }
 .legend i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); display: block; }
-.legend li.fade i { opacity: 0.55; }
+/* "Faded" is a modifier on any rating, so its swatch is the whole ramp faded, not one more colour. */
+.legend li.fade i { width: 18px; border-radius: 4px; background: linear-gradient(90deg, var(--prime), var(--good), var(--fair), var(--slow)); opacity: 0.45; box-shadow: inset 0 0 0 1px var(--pin-edge); }
+.legend li.old i { width: 10px; height: 10px; background: transparent; border: 1.5px dashed var(--ink2); }
 .legend li.cl i { box-shadow: inset 0 0 0 1px var(--pin-edge); }
+.legend li.dash i { width: 10px; height: 10px; background: transparent; border: 1.5px dashed var(--ink2); }
 .legend .fine { margin-top: 6px; font-size: 12px; line-height: 16px; color: var(--ink2); }
+/* Phones (390px and under): the legend collapses to a 44px "Key" button so it stops covering the map; the button toggles it open. */
+.legkey { display: none; }
+@media (max-width: 390px) {
+  .legend { flex: 0 1 auto; }
+  .legkey { display: block; min-height: 44px; margin: -10px -12px; padding: 0 16px; border: 0; border-radius: 14px; background: transparent; color: var(--ink); font: 600 14px/20px var(--sans); min-width: 64px; cursor: pointer; }
+  .legend.open .legkey { margin-bottom: 0; }
+  .legend:not(.open) #legbody { display: none; }
+  .legend.open #legbody { margin-top: 10px; }
+  .legend:not(.open) .hint:not([hidden]) { margin-top: 0; }
+}
+/* The "Tap any river" hint goes after the first map interaction (tap, drag, zoom), for the session. */
+html.touched #rhint { display: none; }
 .zoom { flex: none; display: flex; flex-direction: column; overflow: hidden; }
 .zoom button { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: transparent; cursor: pointer; }
 .zoom button + button { border-top: 1px solid var(--glass-line); }
@@ -253,6 +364,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 .row { background: var(--fill-row); border-radius: 10px; padding: 10px; display: flex; gap: 10px; justify-content: space-between; align-items: flex-start; }
 .row .rt { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .row .nm { font-size: 15px; line-height: 20px; font-weight: 600; }
+.tideline { margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 14px; line-height: 20px; font-variant-numeric: tabular-nums; }
+.tideline span { white-space: nowrap; }
 .miss { margin: 0 0 8px; font-size: 13px; line-height: 18px; color: var(--ink2); }
 .row .dt { font-size: 12px; line-height: 16px; color: var(--ink2); }
 .row .ch { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
@@ -277,9 +390,30 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 .foot { display: flex; flex-direction: column; gap: 8px; font-size: 12px; line-height: 16px; color: var(--ink2); }
 .foot a { color: var(--ink2); }
 .foot .src { display: flex; flex-wrap: wrap; gap: 2px 12px; }
+/* Spawning sheets */
+.acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.more { display: inline-flex; align-items: center; padding: 10px 16px; border-radius: 999px; background: var(--fill-toggle); color: var(--ink); font-weight: 600; text-decoration: none; min-height: 44px; }
+.ladder { background: var(--fill-advisory); border-radius: 12px; padding: 10px 12px; font-size: 14px; line-height: 19px; }
+.note { margin: 0; font-size: 14px; line-height: 19px; }
+.prov { margin: 0; font-size: 12px; line-height: 16px; color: var(--ink2); }
+.cal { width: 100%; border-collapse: separate; border-spacing: 2px; table-layout: fixed; font-size: 12px; line-height: 16px; }
+.cal th { font-weight: 600; color: var(--ink2); text-align: center; padding: 0 0 2px; }
+.cal th.sp { text-align: left; width: 36%; color: var(--ink); padding-right: 4px; overflow-wrap: anywhere; }
+.cal th.sp .run { display: block; font-weight: 400; color: var(--ink2); }
+.cal abbr { text-decoration: none; }
+.cal td { height: 18px; border-radius: 3px; background: var(--fill-row); }
+.cal td.b { background: var(--prime); }
+.cal td.g { background: var(--good); }
+.cal td.f { background: var(--fair); }
+.cal td.cur { box-shadow: inset 0 0 0 2px var(--ink); }
+.cal thead th.cur { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+.calkey { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; font-size: 12px; line-height: 16px; color: var(--ink2); }
+.calkey span { display: inline-flex; align-items: center; gap: 4px; }
+.calkey i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); display: block; }
+.lgroup h3 .n { font-size: 13px; font-weight: 600; color: var(--ink2); font-variant-numeric: tabular-nums; }
 
 @media (min-width: 760px) {
-  .bar { max-width: 460px; }
+  #app.sheet-open .barstack { max-width: min(760px, calc(100% - 392px)); }
   #sheet {
     left: auto; right: 12px; top: 12px; bottom: 12px; width: 380px; max-height: none;
     border: 1px solid var(--glass-line); border-radius: 14px;
@@ -297,11 +431,50 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 }
 @media (max-width: 759px) {
   #app.sheet-open .bottom { visibility: hidden; }
+  /* With a sheet open on a phone the bar stays as it is (already one thin row); only its popovers and the ribbon step aside. */
+  #app.sheet-open #sppanel, #app.sheet-open #mpop, #app.sheet-open #npop, #app.sheet-open #mepanel, #app.sheet-open #metip { display: none; }
+  #app.sheet-open #spawn { display: none; }
+}
+.spawn[hidden] { display: none; }
+/* The app tab bar floats over the top of the map, which stays full bleed under its glass; the card and the inspector start below it. */
+nav.apptabs { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; }
+#chrome { padding-top: calc(var(--tabs-h) + 8px); }
+@media (min-width: 760px) {
+  #chrome { padding-top: calc(var(--tabs-h) + 12px); }
+  #sheet { top: calc(var(--tabs-h) + 12px); }
 }
 @media (prefers-reduced-motion: reduce) {
   #sheet, #sheet.open, .zoom { transition: none; }
 }
 </style>
+<!-- App tab bar (Map current): verbatim from merged/tabbar.html, built by mergebuild/build.py. -->
+<style>
+/* App tab bar: Map | Year | Spots | Counts. An App Kit SegmentedControl on a glass bar.
+   Self-contained; its tokens are App Kit values scoped to .apptabs and prefixed --tab-.
+   Glass is App Kit's web stand-in (rgba .55 + 16px blur); the labels sit on the opaque track,
+   so their contrast does not depend on the glass. Without backdrop-filter the glass goes to .92. */
+.apptabs{--tab-glass:rgba(255,255,255,.55);--tab-glass-solid:rgba(255,255,255,.92);--tab-hair:#D1D1D6;--tab-track:#E5E5EA;--tab-seg:#FFFFFF;--tab-seg-shadow:0 1px 2px rgba(0,0,0,.12);--tab-ink:#1D1D1F;--tab-ink-soft:#636366;--tab-accent:#007AFF;--tab-font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .apptabs{--tab-glass:rgba(44,44,46,.55);--tab-glass-solid:rgba(44,44,46,.92);--tab-hair:#38383A;--tab-track:#2C2C2E;--tab-seg:#636366;--tab-seg-shadow:0 1px 2px rgba(0,0,0,.5);--tab-ink:#F5F5F7;--tab-ink-soft:#98989D;--tab-accent:#0A84FF}}
+:root[data-theme=dark] .apptabs{--tab-glass:rgba(44,44,46,.55);--tab-glass-solid:rgba(44,44,46,.92);--tab-hair:#38383A;--tab-track:#2C2C2E;--tab-seg:#636366;--tab-seg-shadow:0 1px 2px rgba(0,0,0,.5);--tab-ink:#F5F5F7;--tab-ink-soft:#98989D;--tab-accent:#0A84FF}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
+.apptabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:1000;box-sizing:border-box;padding:6px max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
+.apptabs::before{content:"";position:absolute;z-index:-1;left:0;right:0;bottom:0;top:calc(-1 * env(safe-area-inset-top,0px));background:var(--tab-glass);-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);box-shadow:0 .5px 0 var(--tab-hair)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.apptabs::before{background:var(--tab-glass-solid)}}
+/* Track: surface-sunk, radius-md, 3px inset. It is 44px tall so every link is a full 44px target;
+   the visible segment is the link's ::before, 38px tall after the 3px inset top and bottom. */
+.apptabs-track{display:flex;box-sizing:border-box;max-width:420px;height:44px;margin:0 auto;padding:0 3px;border-radius:10px;background:var(--tab-track)}
+.apptabs a{position:relative;z-index:0;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;height:44px;padding:0 4px;color:var(--tab-ink-soft);font:600 15px/20px var(--tab-font);text-decoration:none;white-space:nowrap;outline:none;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;transition:color 150ms ease-out,opacity 150ms ease-out}
+.apptabs a::before{content:"";position:absolute;z-index:-1;inset:3px 0;border-radius:7px;transition:background-color 150ms ease-out}
+.apptabs a[aria-current=page]{color:var(--tab-ink)}
+.apptabs a[aria-current=page]::before{background:var(--tab-seg);box-shadow:var(--tab-seg-shadow)}
+@media (hover:hover){.apptabs a:not([aria-current=page]):hover{color:var(--tab-ink)}}
+.apptabs a:not([aria-current=page]):active{opacity:.55}
+.apptabs a:focus-visible{z-index:1}
+.apptabs a:focus-visible::before{outline:2px solid var(--tab-accent);outline-offset:2px}
+@media (max-width:389px){.apptabs a{font-size:14px}}
+@media (prefers-reduced-motion:reduce){.apptabs a,.apptabs a::before{transition:none}}
+</style>
+<nav class="apptabs" aria-label="Washington Fishing Map"><div class="apptabs-track"><a href="week/index.html">Week</a><a href="index.html" aria-current="page">Map</a><a href="year/index.html">Year</a><a href="spots/index.html">Spots</a><a href="counts/index.html">Counts</a></div></nav>
 
 <div id="app">
   <div id="map" role="application" aria-label="Map of salmon rivers in southwest Washington. Drag to pan, pinch or use the buttons to zoom, select a river marker for details.">
@@ -310,34 +483,36 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   </div>
 
   <div id="chrome">
-    <div class="glass bar" id="bar">
-      <div class="brand">
-        <svg viewBox="0 0 1024 1024" aria-hidden="true">
-          <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1797ae"/><stop offset="1" stop-color="#004a79"/></linearGradient></defs>
-          <rect width="1024" height="1024" rx="230" fill="url(#bg)"/>
-          <path fill="#fff" d="M456.70 512.00L194.56 389.12L194.56 634.88Z"/>
-          <path fill="#fff" fill-rule="evenodd" d="M337.92 512.00C501.76 386.39 665.60 386.39 829.44 512.00C665.60 637.61 501.76 637.61 337.92 512.00ZM767.18 503.81C767.18 488.43 754.71 475.96 739.33 475.96C723.95 475.96 711.48 488.43 711.48 503.81C711.48 519.19 723.95 531.66 739.33 531.66C754.71 531.66 767.18 519.19 767.18 503.81Z"/>
-        </svg>
-        <div class="t">
-          <div class="title" id="ttl">Salmon this month</div>
-          <div class="sub" id="sub"></div>
-        </div>
-        <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
-      </div>
+    <div class="barstack" id="barstack">
+    <div class="glass bar" id="bar" role="group" aria-label="Map controls">
+      <svg class="logo" viewBox="0 0 1024 1024" aria-hidden="true"><defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1797ae"/><stop offset="1" stop-color="#004a79"/></linearGradient></defs><rect width="1024" height="1024" rx="230" fill="url(#bg)"/><path fill="#fff" d="M456.70 512.00L194.56 389.12L194.56 634.88Z"/><path fill="#fff" fill-rule="evenodd" d="M337.92 512.00C501.76 386.39 665.60 386.39 829.44 512.00C665.60 637.61 501.76 637.61 337.92 512.00ZM767.18 503.81C767.18 488.43 754.71 475.96 739.33 475.96C723.95 475.96 711.48 488.43 711.48 503.81C711.48 519.19 723.95 531.66 739.33 531.66C754.71 531.66 767.18 519.19 767.18 503.81Z"/></svg>
+      <div class="sr"><div class="title" id="ttl">Salmon this month</div><div class="sub" id="sub"></div></div>
+      <button type="button" class="listbtn modebtn" id="modebtn" aria-expanded="false" aria-controls="mpop" aria-label="Map mode"><span id="modelbl">Reports</span><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div class="seg modes" id="modes" role="radiogroup" aria-label="Map mode">
-        <button type="button" role="radio" aria-checked="true" data-mode="reports">Recent reports</button>
-        <button type="button" role="radio" aria-checked="false" data-mode="typical">Typical season</button>
+        <button type="button" role="radio" aria-checked="true" data-mode="reports" aria-label="Recent reports">Reports</button>
+        <button type="button" role="radio" aria-checked="false" data-mode="typical" aria-label="Typical season">Typical</button>
+        <button type="button" role="radio" aria-checked="false" data-mode="spawning" aria-label="Spawning">Spawning</button>
       </div>
-      <div class="ctl">
-        <button type="button" class="listbtn" id="spbtn" aria-expanded="false" aria-controls="sppanel"></button>
-      </div>
-      <div class="sppanel" id="sppanel" role="radiogroup" aria-label="Species" hidden></div>
-      <div class="notice" id="notice" role="status" hidden></div>
-      <div class="hint" id="hint" hidden></div>
+      <button type="button" class="listbtn" id="spbtn" aria-expanded="false" aria-controls="sppanel"></button>
+      <button type="button" class="listbtn" id="mebtn" aria-label="My location" aria-expanded="false" aria-controls="mepanel"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 14.5s4.5-4.2 4.5-8A4.5 4.5 0 0 0 3.5 6.5c0 3.8 4.5 8 4.5 8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="8" cy="6.5" r="1.6" fill="currentColor"/></svg><span class="lbl">Near me</span></button>
+      <button type="button" class="nbtn" id="nbtn" aria-expanded="false" aria-controls="npop" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="12" r=".9" fill="currentColor"/></svg><span class="nd" id="nd"></span></button>
+      <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
+    </div>
+    <div class="glass pop mpop" id="mpop" hidden></div>
+    <div class="glass pop sppanel" id="sppanel" role="radiogroup" aria-label="Species" hidden></div>
+    <div class="glass pop sppanel mepanel" id="mepanel" role="group" aria-label="My location" hidden></div>
+    <div class="glass pop metip" id="metip" role="status" hidden><span>Tap the map where you are. Esc cancels.</span><button type="button" class="listbtn" id="mecancel">Cancel</button></div>
+    <div class="glass pop" id="npop" hidden><div class="notice" id="notice" role="status" hidden></div></div>
+    <div class="glass spawn" id="spawn" hidden>
+      <div class="year" id="year" role="radiogroup" aria-label="Month"></div>
+      <div class="summary" id="summary" aria-live="polite"></div>
+    </div>
     </div>
 
     <div class="bottom" id="bottom">
       <div class="glass legend" id="legend">
+        <button type="button" class="legkey" id="legkey" aria-expanded="false" aria-controls="legbody">Key</button>
+        <div id="legbody">
         <div class="lt" id="legt">Recent catch reports</div>
         <ul id="legl">
           <li style="--c:var(--prime)"><i></i>Excellent</li>
@@ -345,9 +520,13 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
           <li style="--c:var(--fair)"><i></i>Fair</li>
           <li style="--c:var(--slow)"><i></i>Slow</li>
           <li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li>
+          <li class="old"><i></i>Dashed: report over a week old</li>
           <li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>
         </ul>
         <div class="fine" id="legf">Catch reports, not season dates. Confirm rules on WDFW.</div>
+        </div>
+        <div class="hint" id="hint" hidden></div>
+        <div class="hint" id="rhint" hidden>Tap any river for its typical flow and WDFW notices.</div>
       </div>
       <div class="glass zoom">
         <button type="button" id="zin" aria-label="Zoom in"><svg viewBox="0 0 18 18"><path d="M9 3v12M3 9h12"/></svg></button>
@@ -364,16 +543,25 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 </div>
 
 <script src="geo.js"></script>
+<script src="rivers-tap.js"></script>
+<script src="rules.js"></script>
 <script src="reports.js"></script>
 <script src="counts.js"></script>
 <script src="creel.js"></script>
 <script src="typical.js"></script>
 <script src="season.js"></script>
 <script src="cluster.js"></script>
+<script src="sites.js"></script>
+<script src="links.js"></script>
+<script src="week/tides-data.js"></script>
+<script src="tides.js"></script>
 <script>
 (function () {
   'use strict';
   var D = window.GEO;
+  // Tappable rivers (rivers-tap.js) and WDFW notices (rules.js) are optional: without either the page works as before.
+  var TAP = typeof RIVERTAP !== 'undefined' && RIVERTAP && Array.isArray(RIVERTAP.rivers) ? RIVERTAP : null;
+  var RULES = typeof Rules !== 'undefined' && Rules && typeof Rules.forRiver === 'function' ? Rules : null;
   var NS = 'http://www.w3.org/2000/svg';
   var $ = function (s) { return document.querySelector(s); };
   function el(n, a, p) { var e = document.createElementNS(NS, n); if (a) for (var k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
@@ -390,8 +578,9 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
   }
   // ?today=YYYY-MM-DD lets a reviewer see how the page ages; it changes nothing on the live page for normal visitors.
-  var override = /[?&]today=(\d{4}-\d{2}-\d{2})/.exec(location.search);
-  var TODAY = override ? override[1] : todayISO();
+  // Same strict real-date check as links.js (an impossible date such as 2026-13-01 is ignored), so the map and Links agree.
+  var override = (window.Links && Links.read) ? Links.read(location.search).today : null;
+  var TODAY = override || todayISO();
 
   var SITES = Reports.SITES;
   SITES.forEach(function (s) { var p = D.pins[s.id]; s.ll = p.ll; s.xy = p.xy; });
@@ -416,7 +605,49 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     });
     TBY = new Map(TS.map(function (t) { return [t.id, t]; }));
   }
-  function siteOf(id) { return view === 'typical' ? TBY.get(id) : SITES.filter(function (q) { return q.id === id; })[0]; }
+  function siteOf(id) { return view === 'typical' ? TBY.get(id) : view === 'spawning' ? SBY.get(id) : SITES.filter(function (q) { return q.id === id; })[0]; }
+
+  /* ---- Spawning (the third mode): WDFW salmon viewing sites from sites.js, coloured by the chosen month's spawning status ----
+     Its own pins, legend, species list and sheets; it never shares a view with catch reports or the app's fishing guidance.
+     Status by month: 3 peak, 2 active, 1 starting or ending (a month next to the window), 0 quiet, -1 no species listed,
+     -2 the site has no run of the chosen species (not drawn). Pink salmon run in odd years only. Fish ladders: fish pass, they do not spawn. */
+  var SPAWN = Array.isArray(window.SITES) && window.SITES.length ? window.SITES : null;
+  var HAS_SPAWN = !!SPAWN;
+  var SP = null, SBY = null, SMONTH = MONTH;
+  var FAMS = ['Chinook Salmon', 'Coho Salmon', 'Chum Salmon', 'Pink Salmon', 'Sockeye Salmon'];
+  var SP_TOKEN = { '3': 'prime', '2': 'good', '1': 'fair', '0': 'slow', '-1': 'unrated' };
+  var SP_WORD = { '3': 'Peak', '2': 'Active', '1': 'Starting or ending', '0': 'Quiet', '-1': 'Species not listed' };
+  var SP_KIND = { creek: 'Spawning creek', river: 'River', hatchery: 'Hatchery', ladder: 'Fish ladder', falls: 'Falls' };
+  var SPAWN_FINE = 'Typical timing, not a guarantee and not regulation. Runs shift with rain and water temperature.';
+  function initSpawn() {
+    if (SP) return;
+    SP = SPAWN.map(function (s) {
+      return { id: s.id, name: s.name, kind: s.kind, ll: [s.lat, s.lon], xy: xy(s.lon, s.lat), site: s, sc: null, vw: { r: 'unrated', release: false } };
+    });
+    SBY = new Map(SP.map(function (t) { return [t.id, t]; }));
+  }
+  function inRun(r, m) { return r.best.indexOf(m) >= 0 || r.good.indexOf(m) >= 0; }
+  function offYear(r) { return !!r.odd && YEAR % 2 === 0; }
+  // One run in one month: its status and the word for it. A month next to the window says which side it is on.
+  function rowState(r, m) {
+    if (offYear(r)) return { v: 0, word: SP_WORD['0'] };
+    if (r.best.indexOf(m) >= 0) return { v: 3, word: SP_WORD['3'] };
+    if (r.good.indexOf(m) >= 0) return { v: 2, word: SP_WORD['2'] };
+    var next = inRun(r, m % 12 + 1), prev = inRun(r, (m + 10) % 12 + 1);
+    if (next || prev) return { v: 1, word: next && prev ? SP_WORD['1'] : next ? 'Starting' : 'Ending' };
+    return { v: 0, word: SP_WORD['0'] };
+  }
+  function spRows(s) { return s.sp.filter(function (r) { return species === null || r.fam === species; }); }
+  // A site's status is its best run's status in the month (among the chosen species' runs).
+  function spawnState(s, m) {
+    if (!s.sp.length) return { v: -1, word: SP_WORD['-1'], row: null };
+    var rows = spRows(s);
+    if (!rows.length) return { v: -2, word: 'No ' + species, row: null };
+    var best = { v: 0, word: SP_WORD['0'], row: null };
+    rows.forEach(function (r) { var st = rowState(r, m); if (st.v > best.v) best = { v: st.v, word: st.word, row: r }; });
+    return best;
+  }
+  function spToken(v) { return SP_TOKEN[String(Math.max(v, -1))]; }
 
   /* ---- basemap ---- */
   var vp = $('#vp');
@@ -429,10 +660,22 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     el('path', { 'class': 'w0', d: TypicalData.basemap.water }, tbase);
     el('path', { 'class': 'w', d: TypicalData.basemap.water }, tbase);
     el('path', { 'class': 'o', d: TypicalData.basemap.outline }, tbase);
-  } else { $('#modes').hidden = true; }
+  } else { $('#modes [data-mode="typical"]').hidden = true; }
+  // Spawning needs sites.js; without it (or without typical.js as well) the switch offers only what loaded.
+  if (!HAS_SPAWN) $('#modes [data-mode="spawning"]').hidden = true;
+  if (!HAS_TYPICAL && !HAS_SPAWN) $('#modes').hidden = true;
   Object.keys(D.base).forEach(function (o) {
     el('path', { 'class': 'r o' + o, d: D.base[o] }, vp);
   });
+  // One invisible hit path per named river, built once. Larger rivers are drawn last so they win where a creek runs into them.
+  var TAPBY = {};
+  if (TAP) {
+    var rtap = el('g', { id: 'rtap' }, vp);
+    TAP.rivers.slice().sort(function (a, b) { return a.order - b.order; }).forEach(function (r) {
+      TAPBY[r.id] = r;
+      el('path', { d: r.d, 'data-river': r.id }, rtap);
+    });
+  }
   var hlNodes = {};
   SITES.forEach(function (s) {
     if (!s.hl) return;
@@ -442,9 +685,19 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     el('path', { 'class': 'hit', d: D.hl[s.id] }, g);
     hlNodes[s.id] = g;
   });
+  var rsel = el('g', { id: 'rsel' }, vp);
+  var rselCase = el('path', { 'class': 'casing' }, rsel), rselLine = el('path', { 'class': 'line' }, rsel);
+  rsel.style.display = 'none';
 
   /* ---- overlay: landmarks, pins, clusters ---- */
   var over = $('#over');
+  // Created before the landmarks and pins, so the "You" dot sits under every pin.
+  var youG = el('g', { 'class': 'you', 'aria-hidden': 'true' }, over);
+  el('circle', { 'class': 'ring', r: 8.5 }, youG);
+  el('circle', { 'class': 'dot', r: 6 }, youG);
+  var youLab = el('text', { 'class': 'lab', x: 12, y: 4 }, youG);
+  youLab.textContent = 'You';
+  youG.style.display = 'none';
   var LM = [
     // name, lat, lon, kind, priority (lower wins)
     ['Portland', 45.52, -122.68, 'city', 2], ['Longview', 46.14, -122.94, 'city', 2], ['Astoria', 46.19, -123.83, 'city', 3],
@@ -531,8 +784,13 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   var anim = null;
 
   function size() { var r = map.getBoundingClientRect(); W = r.width; H = r.height; }
+  // The app tab bar floats over the top of the map: nothing is fitted under it.
+  var tabsEl = document.querySelector('nav.apptabs');
+  function tabsBottom() { return tabsEl ? Math.max(0, tabsEl.getBoundingClientRect().bottom - map.getBoundingClientRect().top) : 0; }
   function pads() {
-    var barB = $('#bar').getBoundingClientRect().bottom + 10;
+    var barB = $('#bar').getBoundingClientRect().bottom;
+    var spw = $('#spawn'); if (!spw.hidden) barB = Math.max(barB, spw.getBoundingClientRect().bottom);
+    barB += 10;
     var legT = $('#legend').getBoundingClientRect().top;
     var wide = window.innerWidth >= 760;
     var sheetOpen = $('#sheet').classList.contains('open');
@@ -556,8 +814,9 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   }
   function limits() {
     // Reports mode may zoom out to the unpadded state; Typical mode opens on the whole state, so its floor fits the state inside the chrome.
+    // The reports floor fits the state in the map below the app tab bar, so zooming all the way out never tucks the north edge under it.
     var f = fitFor(D.bounds.state, { t: 0, b: 0, l: 0, r: 0 });
-    var home = view === 'typical' ? homeFit().s : f.s;
+    var home = view !== 'reports' ? homeFit().s : fitFor(D.bounds.state, { t: tabsBottom(), b: 0, l: 0, r: 0 }).s;
     minS = home * 0.9; maxS = f.s * 90;
   }
   function setView(t) {
@@ -589,20 +848,26 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var ns = Math.min(Math.max(v.s * k, minS), maxS); k = ns / v.s;
     setView({ s: ns, tx: px - (px - v.tx) * k, ty: py - (py - v.ty) * k });
   }
-  // Typical season opens on all of Washington. Recent reports opens on the southwest, down to the Columbia (y 356 is 45.54 N, below Camas),
+  // Typical season and Spawning open on all of Washington. Recent reports opens on the southwest, down to the Columbia (y 356 is 45.54 N, below Camas),
   // so the view does not spend its bottom edge on blank Oregon ground.
-  function homeBounds() { return view === 'typical' ? D.bounds.state : [D.bounds.sw[0], [D.bounds.sw[1][0], 356]]; }
+  function homeBounds() { return view !== 'reports' ? D.bounds.state : [D.bounds.sw[0], [D.bounds.sw[1][0], 356]]; }
   // The opening view. Wide windows keep the card and legend in a left column and give the map everything to their right; narrow windows
   // stack the card, map and legend. Either way the bounds' southern edge sits on the bottom of the free area, so any blank band is
   // above the map (Canada side, under the card) and Oregon ground is off-screen.
   function homeFit() {
     var wide = window.innerWidth >= 760, b = homeBounds(), p = pads();
+    // Phones: the southwest box is wider than tall, so fitting it by width left the reported rivers in a strip above the legend.
+    // Fit the reported waters themselves and center them in the free area instead.
+    if (!wide && view === 'reports') {
+      var xs = SITES.map(function (s) { return s.xy[0]; }), ys = SITES.map(function (s) { return s.xy[1]; });
+      return fitFor([[Math.min.apply(null, xs) - 12, Math.min.apply(null, ys) - 24], [Math.max.apply(null, xs) + 12, b[1][1]]], p);
+    }
     // The southwest bounds end on the Columbia, so the legend can sit over Oregon ground: let the map run to the bottom edge on wide windows.
     if (wide && view === 'reports') p.b = 12;
     var f = fitFor(b, p), bottom = p.b;
     if (wide) {
       var col = $('#bar').getBoundingClientRect().right + 12;
-      var c = fitFor(b, { t: 12, b: 12, l: col, r: p.r > 8 ? p.r : 68 });
+      var c = fitFor(b, { t: tabsBottom() + 12, b: 12, l: col, r: p.r > 8 ? p.r : 68 });
       if (c.s > f.s) { f = c; bottom = 12; }
     }
     f.ty = (H - bottom) - b[1][1] * f.s;
@@ -621,7 +886,22 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function tLabel(t) { return t.name + ' \u00b7 ' + (t.vw.r === 'unrated' ? 'No guidance' : Season.LABEL[t.vw.r]); }
   // Where the full label does not fit, the rating word alone does: colour is never the only carrier of a rating.
   function tShort(t) { return Season.SHORT[t.vw.r]; }
+  function spAria(t) {
+    var sc = t.sc, mo = MONTH_NAMES[SMONTH - 1];
+    var word = sc.v === -1 ? 'species not listed' : sc.word.toLowerCase() + (sc.row ? ' for ' + sc.row.label + (sc.row.run ? ', ' + sc.row.run : '') : '') + ' in ' + mo;
+    return t.name + ', ' + SP_KIND[t.kind].toLowerCase() + ', ' + word + (t.kind === 'ladder' ? ', fish pass here and do not spawn' : '');
+  }
+  function spLabel(t) { return t.name + ' · ' + t.sc.word; }
   function applyStyles() {
+    if (view === 'spawning') {
+      initSpawn();
+      SP.forEach(function (t) {
+        t.sc = spawnState(t.site, SMONTH);
+        t.vw = { r: spToken(t.sc.v), release: false };
+      });
+      paintRibbon();
+      return;
+    }
     if (view === 'typical') {
       initTypical();
       TS.forEach(function (t) {
@@ -639,24 +919,32 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       pn.lab.style.display = '';          // getBBox needs a displayed node; render() re-hides it
       pn.w = pn.lab.getBBox().width;
       pn.g.classList.toggle('closed', vw.release);
-      pn.g.setAttribute('aria-label', Reports.pinLabel(s, vw, species));
+      // Stale: the rating comes from a report older than a week (or with no date). Shown on the map, not only in the sheet.
+      var stale = !!vw.k && !vw.fresh;
+      var age = stale ? Reports.ageDays(vw.asOf, TODAY) : null;
+      pn.g.classList.toggle('stale', stale);
+      pn.g.setAttribute('aria-label', Reports.pinLabel(s, vw, species) + (stale ? (age === null ? ', report undated' : ', report ' + age + ' days old') : ''));
       var h = hlNodes[s.id];
-      if (h) { h.style.setProperty('--rc', colorVar(vw.r)); h.classList.toggle('closed', vw.release); h.classList.toggle('sel', selected === s.id); }
+      if (h) { h.style.setProperty('--rc', colorVar(vw.r)); h.classList.toggle('closed', vw.release); h.classList.toggle('stale', stale); h.classList.toggle('sel', selected === s.id); }
     });
   }
   function overlap(a, b) { return a[0] < b[0] + b[2] && a[0] + a[2] > b[0] && a[1] < b[1] + b[3] && a[1] + a[3] > b[1]; }
 
   function render() {
     vp.setAttribute('transform', 'translate(' + v.tx + ' ' + v.ty + ') scale(' + v.s + ')');
-    var typ = view === 'typical';
-    var items = typ ? TS : SITES;
+    var typ = view === 'typical', spw = view === 'spawning';
+    // Typical season and Spawning draw from the pin pool; Recent reports keeps its eight fixed pins.
+    var pool = typ || spw;
+    var items = typ ? TS : spw ? SP : SITES;
     var pts = [], i, s, x, y;
     for (i = 0; i < items.length; i++) {
       s = items[i];
+      // Spawning with a species chosen: a site with no run of it is not drawn (unless its sheet is open).
+      if (spw && s.sc.v === -2 && s.id !== selected) continue;
       x = s.xy[0] * v.s + v.tx; y = s.xy[1] * v.s + v.ty;
       // Off-screen sites cannot cluster with anything visible, so thousands of them cost nothing.
-      if (typ && s.id !== selected && (x < -60 || x > W + 60 || y < -60 || y > H + 60)) continue;
-      pts.push({ s: s, id: s.id, x: x, y: y, vw: typ ? s.vw : viewOf(s) });
+      if (pool && s.id !== selected && (x < -60 || x > W + 60 || y < -60 || y > H + 60)) continue;
+      pts.push({ s: s, id: s.id, x: x, y: y, vw: pool ? s.vw : viewOf(s) });
     }
     pts.sort(function (a, b) {
       var ra = RANK[a.vw.r] - (a.vw.release ? 10 : 0), rb = RANK[b.vw.r] - (b.vw.release ? 10 : 0);
@@ -672,15 +960,18 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     clusterPool.forEach(function (c) { c.g.style.display = 'none'; });
     groups.forEach(function (g) {
       if (g.length === 1) {
-        var p = g[0], pn = typ ? getTPin(pi++) : pinNodes[p.s.id];
+        var p = g[0], pn = pool ? getTPin(pi++) : pinNodes[p.s.id];
         var sc = p.s.id === selected ? 0.98 : 0.8;
-        if (typ) {
+        if (pool) {
           pn.g.setAttribute('data-id', p.s.id);
           pn.g.style.setProperty('--rc', colorVar(p.vw.r));
           pn.g.style.setProperty('--gl', glyphColor(p.vw.r));
           pn.g.classList.toggle('closed', p.vw.release);
-          pn.g.setAttribute('aria-label', tAria(p.s));
-          pn.cands = [tLabel(p.s), tShort(p.s)];
+          pn.g.classList.toggle('ladder', spw && p.s.kind === 'ladder');
+          pn.g.setAttribute('aria-label', spw ? spAria(p.s) : tAria(p.s));
+          // Spawning, like Typical season: every single pin carries its status in words, the full label where it fits, else the word.
+          if (typ) pn.cands = [tLabel(p.s), tShort(p.s)];
+          else pn.cands = [spLabel(p.s), p.s.sc.v === -1 ? 'Not listed' : p.s.sc.word];
           shown.pins.push(pn.g);
         }
         p.node = pn;
@@ -700,7 +991,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
         c.t.textContent = g.length;
         c.g.__members = g.map(function (m) { return m.s; });
         c.g.setAttribute('data-cluster', g.length <= 12 ? g.map(function (m) { return m.s.id; }).join(',') : String(g.length));
-        c.g.setAttribute('aria-label', g.length + (typ ? ' sites' : ' rivers') + ' close together, zoom in');
+        c.g.setAttribute('aria-label', g.length + (pool ? ' sites' : ' rivers') + ' close together, zoom in');
         boxes.push([cx - 16, cy - 34, 32, 36]);
       }
     });
@@ -713,22 +1004,31 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     labelGroups.sort(function (a, b) { return (b[0].s.id === selected) - (a[0].s.id === selected); });
     labelGroups.forEach(function (g) {
       var p = g[0], pn = p.node;
-      var cands = typ ? pn.cands : [null];
+      var cands = pool ? pn.cands : [null];
       for (var k = 0; k < cands.length; k++) {
         var lw = cands[k] === null ? pn.w : textW(cands[k]);
         var left = p.x + 15 + lw + 4 > W - 8;
-        var bx = [left ? p.x - 15 - (lw + 4) : p.x + 15, p.y - 30, lw + 4, 14];
+        var bx =[left ? p.x - 15 - (lw + 4) : p.x + 15, p.y - 30, lw + 4, 14];
+        // A label must sit wholly on screen. One whose pin is off the left edge, or that fits on neither side, would be clipped
+        // ("wer Columbia · Excellent"): try the shorter word, or leave the pin unlabelled. The selected pin keeps its label.
+        if (p.s.id !== selected && (bx[0] < 4 || bx[0] + bx[2] > W - 4)) continue;
         var hit = p.s.id !== selected && boxes.some(function (b) { return overlap(bx, b); });
         if (hit) continue;
         if (cands[k] !== null) pn.lab.textContent = cands[k];
         pn.lab.style.display = '';
         pn.lab.setAttribute('text-anchor', left ? 'end' : 'start');
         pn.lab.setAttribute('x', (left ? p.x - 15 : p.x + 15).toFixed(1)); pn.lab.setAttribute('y', (p.y - 19).toFixed(1));
-        if (typ) shown.labs.push(pn.lab);
+        if (pool) shown.labs.push(pn.lab);
         boxes.push(bx);
         break;
       }
     });
+    if (me) {
+      var mx = me.xy[0] * v.s + v.tx, my = me.xy[1] * v.s + v.ty;
+      var onMap = mx > -20 && mx < W + 20 && my > -20 && my < H + 20;
+      youG.style.display = onMap ? '' : 'none';
+      if (onMap) { youG.setAttribute('transform', 'translate(' + mx.toFixed(1) + ' ' + my.toFixed(1) + ')'); boxes.push([mx - 9, my - 9, 46, 18]); }
+    } else youG.style.display = 'none';
     lms.forEach(function (l) {
       var x = l.xy[0] * v.s + v.tx, y = l.xy[1] * v.s + v.ty;
       var show = x > -80 && x < W + 80 && y > -20 && y < H + 20;
@@ -750,8 +1050,26 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 
   /* ---- gestures ---- */
   var ptrs = new Map(), down = null, pinch = null;
+  /* The "Tap any river" hint has done its job after the first tap, drag or zoom; it stays gone for the browser session. */
+  var HINT_KEY = 'wafish.hintSeen';
+  function hintSeen() { try { return sessionStorage.getItem(HINT_KEY) === '1'; } catch (e) { return false; } }
+  function touchMap() {
+    if (document.documentElement.classList.contains('touched')) return;
+    document.documentElement.classList.add('touched');
+    try { sessionStorage.setItem(HINT_KEY, '1'); } catch (e) { /* not persisted: gone until reload */ }
+  }
+  if (hintSeen()) document.documentElement.classList.add('touched');
+  map.addEventListener('wheel', touchMap, { passive: true });
+  ['zin', 'zout', 'zfit'].forEach(function (id) { $('#' + id).addEventListener('click', touchMap); });
+  var legend = $('#legend'), legkey = $('#legkey');
+  legkey.addEventListener('click', function () {
+    var open = !legend.classList.contains('open');
+    legend.classList.toggle('open', open);
+    legkey.setAttribute('aria-expanded', String(open));
+  });
   map.addEventListener('pointerdown', function (e) {
     if (e.button !== undefined && e.button > 0) return;
+    touchMap();
     anim = null;
     ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (ptrs.size === 1) {
@@ -791,7 +1109,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     if (ptrs.size < 2) pinch = null;
     if (ptrs.size === 0) {
       map.classList.remove('drag');
-      if (down && down.moved <= 6 && e.type === 'pointerup') tap(down.tgt);
+      if (down && down.moved <= 6 && e.type === 'pointerup') tap(down.tgt, down.x, down.y);
       down = null;
     }
   }
@@ -814,10 +1132,14 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   });
   map.setAttribute('tabindex', '0');
 
-  function tap(tgt) {
+  function tap(tgt, cx, cy) {
+    // "Tap the map" is armed: this tap sets the viewer's point, ahead of pins, clusters and rivers.
+    if (meArmed) { var mr = map.getBoundingClientRect(); setMeFromScreen(cx - mr.left, cy - mr.top); return; }
     var n = tgt && tgt.closest ? tgt.closest('[data-id],[data-cluster]') : null;
     if (n && n.getAttribute('data-cluster')) { zoomToCluster(n); return; }
     if (n) { openSheet(n.getAttribute('data-id')); return; }
+    var rv = view === 'reports' && tgt && tgt.closest ? tgt.closest('[data-river]') : null;
+    if (rv) { var mr2 = map.getBoundingClientRect(); openRiver(rv.getAttribute('data-river'), cx - mr2.left, cy - mr2.top); return; }
     if ($('#sheet').classList.contains('open')) closeSheet();
   }
   function zoomToCluster(node) {
@@ -827,7 +1149,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var cx = (b[0][0] + b[1][0]) / 2, cy = (b[0][1] + b[1][1]) / 2;
     var ns = Math.min(v.s * 2.6, maxS);
     var p = pads();
-    if (view === 'typical') {
+    if (view !== 'reports') {
       // A statewide cluster needs more than 2.6x to come apart: fit its members, between 2x and 8x.
       var fit = fitFor(b, { t: p.t + 30, b: p.b + 30, l: p.l + 30, r: p.r + 30 }).s;
       ns = Math.min(maxS, Math.max(v.s * 2, Math.min(fit, v.s * 8)));
@@ -840,7 +1162,49 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   $('#zout').addEventListener('click', function () { zoomAt(W / 2, H / 2, 1 / 1.6); });
   $('#zfit').addEventListener('click', resetView);
   var spbtn = $('#spbtn'), sppanel = $('#sppanel');
-  var CHEV = '<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" style="margin-left:6px;vertical-align:-1px"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  // The stale or typical-season notice lives in a popover opened from a chip in the bar; #notice stays the text element the page writes to.
+  var nbtn = $('#nbtn'), npop = $('#npop');
+  function toggleNotice(open) {
+    if (open && nbtn.hidden) open = false;
+    if (!open && npop.contains(document.activeElement)) nbtn.focus({ preventScroll: true });
+    if (open) { toggleSpecies(false); toggleModes(false); if (!$('#mepanel').hidden) toggleMe(false); }
+    npop.hidden = !open;
+    nbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  function syncNotice() {
+    var t = $('#notice').textContent || '', m = t.match(/\(([^)]+)\)/);
+    var has = !!t;
+    $('#notice').hidden = !has;
+    nbtn.hidden = !has;
+    $('#nd').textContent = has ? (m ? m[1] : 'Note') : '';
+    nbtn.setAttribute('aria-label', has ? (m ? 'Report notice, newest report ' + m[1] : 'About this map') : 'Notice');
+    if (!has) toggleNotice(false);
+  }
+  nbtn.addEventListener('click', function () { toggleNotice(npop.hidden); });
+  // Phones: the three mode buttons move into a popover opened from one menu button; the same buttons and handlers keep working.
+  var modesEl = $('#modes'), modebtn = $('#modebtn'), mpop = $('#mpop'), phoneMq = window.matchMedia('(max-width: 520px)');
+  function toggleModes(open) {
+    if (open && !phoneMq.matches) open = false;
+    if (!open && mpop.contains(document.activeElement)) modebtn.focus({ preventScroll: true });
+    if (open) { toggleSpecies(false); toggleNotice(false); if (!$('#mepanel').hidden) toggleMe(false); }
+    mpop.hidden = !open;
+    modebtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) { var on = modesEl.querySelector('[aria-checked="true"]'); if (on) on.focus({ preventScroll: true }); }
+  }
+  function placeModes() {
+    if (phoneMq.matches) mpop.appendChild(modesEl); else { $('#bar').insertBefore(modesEl, modebtn.nextSibling); toggleModes(false); }
+  }
+  modebtn.addEventListener('click', function () { toggleModes(mpop.hidden); });
+  if (phoneMq.addEventListener) phoneMq.addEventListener('change', placeModes); else phoneMq.addListener(placeModes);
+  placeModes();
+  function syncModeLbl() { var on = modesEl.querySelector('[aria-checked="true"]'); if (on) $('#modelbl').textContent = on.textContent; }
+  var CHEV = '<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" style="flex:none"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var FUNNEL = '<svg class="fi" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2 3h12l-4.5 5.5V13l-3-1.5V8.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+  function setSpLabel() {
+    var t = species || 'All species';
+    spbtn.innerHTML = FUNNEL + '<span class="sdot' + (species ? ' on' : '') + '"></span><span class="lbl">' + esc(t) + '</span>' + CHEV;
+    spbtn.setAttribute('aria-label', 'Species: ' + t);
+  }
   function mkChip(name, parent) {
     var b = document.createElement('button');
     b.type = 'button';
@@ -856,14 +1220,17 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     document.querySelectorAll('#sppanel button').forEach(function (o) {
       o.setAttribute('aria-checked', (o.getAttribute('data-species') || null) === species ? 'true' : 'false');
     });
-    spbtn.innerHTML = 'Species: ' + esc(species || 'All species') + CHEV;
+    setSpLabel();
     toggleSpecies(false);
     applyStyles(); render();
     if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList();
+    syncLink();
   }
   // One species dropdown for both modes. Closing hands focus back to the button, and opening puts it on the chosen species, so the keyboard never loses its place.
   function toggleSpecies(open) {
     if (!open && sppanel.contains(document.activeElement)) spbtn.focus({ preventScroll: true });
+    if (open && !$('#mepanel').hidden) toggleMe(false);
+    if (open) { toggleNotice(false); toggleModes(false); }
     sppanel.hidden = !open;
     spbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) { var on = sppanel.querySelector('[aria-checked="true"]'); if (on) on.focus({ preventScroll: true }); }
@@ -877,12 +1244,19 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function buildSpecies() {
     sppanel.innerHTML = '';
     $('#listbtn').hidden = view !== 'reports';
-    spbtn.innerHTML = 'Species: ' + esc(species || 'All species') + CHEV;
+    // Spawning has its own list, Sites; Typical season has none.
+    if (view === 'spawning') $('#listbtn').hidden = false;
+    $('#listbtn').textContent = view === 'spawning' ? 'Sites' : 'Rivers';
+    setSpLabel();
     toggleSpecies(false);
     var top = document.createElement('div'); top.className = 'seg'; sppanel.appendChild(top);
     mkChip(null, top);
     if (view === 'reports') {
       Reports.SPECIES.forEach(function (name) { mkChip(name, top); });
+      return;
+    }
+    if (view === 'spawning') {
+      FAMS.forEach(function (name) { mkChip(name, top); });
       return;
     }
     // Typical mode lists only species some site has guidance for (22+), grouped and scrollable so they stay usable at 375 px.
@@ -910,20 +1284,29 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function footHtml(extra) {
     return '<div class="foot"><div>Recent catch reports, not season dates. Not for navigation or safety decisions.</div>' +
       '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a>' +
-      '<a href="https://claude.ai/artifact/UUDwR9AvgqUZCWscdj5JJF" target="_blank" rel="noopener">Washington Fishing Year: season calendar, river map and migration</a>' +
+      '<a href="year/index.html">Washington Fishing Year: season calendar, river map and migration</a>' +
       (extra || '') + '</div>';
   }
-  function fillList() {
-    var rows = Reports.rankSites(SITES, species, TODAY).map(function (e) {
+  function fillList(keep) {
+    if (view === 'spawning') { fillSpawnList(keep); return; }
+    var ranked = Reports.rankSites(SITES, species, TODAY);
+    var near = !!me && listSort === 'near';
+    // Nearest first reorders by straight-line distance only; it changes no rating.
+    if (near) ranked = ranked.slice().sort(function (a, b) { return milesTo(a.site.ll) - milesTo(b.site.ll); });
+    var rows = ranked.map(function (e) {
       var s = e.site, vw = e.vw;
-      var line = vw.k ? vw.k + ' · ' + Reports.describeAge(vw.asOf, TODAY) : 'No report';
+      var line = (vw.k ? vw.k + ' · ' + Reports.describeAge(vw.asOf, TODAY) : 'No report') + (me ? ' · ' + miShort(milesTo(s.ll)) : '');
       return '<button type="button" class="row lrow" data-id="' + s.id + '"><span class="rt"><span class="nm">' + esc(s.name) +
         '</span><span class="dt">' + esc(line) + '</span></span><span class="ch">' + badge(vw.r, vw.release) +
         (vw.release ? '<span class="chip">Release only</span>' : '') + '</span></button>';
     }).join('');
     $('#stitle').textContent = 'Rivers';
-    $('#sbody').innerHTML = '<p class="lede">' + (species === null ? 'All salmon' : esc(species)) +
-      ', best first. Fresh reports rank above older ones.</p><div class="rows">' + rows + '</div>' + footHtml();
+    var sorts = me ? '<div class="seg sorts" role="radiogroup" aria-label="Sort rivers">' +
+      '<button type="button" role="radio" data-sort="best" aria-checked="' + !near + '">Best first</button>' +
+      '<button type="button" role="radio" data-sort="near" aria-checked="' + near + '">Nearest first</button></div>' : '';
+    $('#sbody').innerHTML = sorts + '<p class="lede">' + (species === null ? 'All salmon' : esc(species)) +
+      (near ? ', nearest first by straight-line distance from ' + esc(me.label) + '. Ratings are unchanged.'
+        : ', best first. Fresh reports rank above older ones.') + '</p><div class="rows">' + rows + '</div>' + footHtml();
     $('#sbody').scrollTop = 0;
   }
   // Dated WDFW creel counts, from counts.js. Display only: nothing here touches ratings, pins or ranking.
@@ -975,7 +1358,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function typicalFootHtml() {
     return '<div class="foot"><div>' + TYPICAL_LINE + ' Not for navigation or safety decisions.</div>' +
       '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a>' +
-      '<a href="https://claude.ai/artifact/UUDwR9AvgqUZCWscdj5JJF" target="_blank" rel="noopener">Washington Fishing Year: season calendar, river map and migration</a>' +
+      '<a href="year/index.html">Washington Fishing Year: season calendar, river map and migration</a>' +
       '<div>Guidance last updated ' + esc(TypicalData.guideUpdated) + '. Site list generated ' + esc(TypicalData.generated) + ' from WDFW access and pier data.</div></div>';
   }
   function scopeText(site) {
@@ -986,6 +1369,19 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     if (sc[0] === 'county') return 'Freshwater guidance for ' + sc[1] + ' County';
     return 'Statewide freshwater guidance';
   }
+  /* "Tides today" on marine sites only (site.area is a WDFW marine area): nearest bundled station and today's highs and lows. Text only, never a rating. */
+  function tidesHtml(site, t) {
+    var b = window.TIDES;
+    if (!site.area || !b || typeof Tides === 'undefined') return '';
+    var st = Tides.nearest(t.ll[0], t.ll[1], Tides.stationsOf(b));
+    var ds = st && Tides.days(st, { days: [TODAY] }, b);
+    if (!ds) return '';
+    var mi = Tides.miles(t.ll[0], t.ll[1], st), away = mi < 0.5 ? 'under 1 mi away' : Math.round(mi) + ' mi away';
+    var body = ds[0].note ? '<p class="miss">' + esc(ds[0].note) + '</p>' : ds[0].extremes.length ?
+      '<p class="tideline">' + ds[0].extremes.map(function (e) { return '<span>' + esc(Tides.fmtExtreme(e)) + '</span>'; }).join('') + '</p>' : '';
+    return '<section><h3>Tides today</h3><p class="miss">' + esc(st.name) + ' station, ' + away + '</p>' + body +
+      '<p class="miss">' + esc(Tides.footnote(b)) + '</p></section>';
+  }
   function fillTypical(id) {
     var t = TBY.get(id), site = t.site, month = Season.MONTHS[MONTH - 1];
     var sv = Season.siteView(prep, site, MONTH, species);
@@ -993,7 +1389,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     $('#stitle').textContent = t.name;
     var word = sv.r === 'unrated' ? Season.LABEL.unrated : Season.LABEL[sv.r] + ' · ' + (species || 'All species');
     var head = '<div class="head"><p>' + esc(Season.KIND_LABEL[t.kind]) + (site.county ? ' · ' + esc(site.county) + ' County' : '') + '</p>' +
-      '<p>' + esc(scopeText(site)) + '</p>' +
+      '<p>' + esc(scopeText(site)) + '</p>' + distHtml(t.ll) +
       '<span class="badge' + (sv.closure ? ' faded' : '') + '" style="--c:var(--' + sv.r + ')">' + esc(word) + (sv.closure ? ' · season often varies' : '') + '</span>' +
       (site.closed ? '<span class="chip">WDFW marks this pier closed</span>' : '') + '</div>';
     var body = rows.map(function (r) {
@@ -1014,17 +1410,18 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
       '<section><h3>Typical timing, ' + month + '</h3><p class="miss">' + TYPICAL_LINE + '</p>' + (miss ? '<p class="miss">' + esc(miss) + '</p>' : '') +
       (body ? '<div class="rows">' + body + '</div>' : '') + '</section>' +
-      creelSiteHtml(id) +
+      tidesHtml(site, t) + creelSiteHtml(id) +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Seasons, areas and limits change year to year and can close with little notice. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
       typicalFootHtml();
     $('#sbody').scrollTop = 0;
   }
   function fillSheet(id) {
     if (view === 'typical') { fillTypical(id); return; }
+    if (view === 'spawning') { fillSpawn(id); return; }
     var s = siteOf(id);
     var vw = viewOf(s);
     $('#stitle').textContent = s.name;
-    var head = '<div class="head"><p>' + esc(s.sub) + '</p>' +
+    var head = '<div class="head"><p>' + esc(s.sub) + '</p>' + distHtml(s.ll) +
       (vw.k ? '<span class="badge' + (vw.release ? ' faded' : '') + '" style="--c:var(--' + vw.r + ')">' + LABEL[vw.r] + ' · ' + esc(vw.k) + (vw.release ? ' · release only' : '') + '</span>' : '') + '</div>';
     var rows = Reports.reportRows(s).map(function (r) {
       var k = r.name, sp = r.sp;
@@ -1056,14 +1453,273 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       footHtml('<div class="src">' + src + '</div>');
     $('#sbody').scrollTop = 0;
   }
+
+  /* ---- river sheet (Recent reports): any named river from rivers-tap.js. Never rated or coloured: only a dated catch report colours a river. ---- */
+  var MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var riverSel = null;
+  function fmtCfs(n) { return Number(n).toLocaleString('en-US', { maximumFractionDigits: n < 10 ? 1 : 0 }); }
+  // USGS writes most gauge names in capitals; show them the way USGS titles its own pages ("Skagit River Near Concrete, WA").
+  var KEEP_CAPS = { WA: 1, US: 1, MF: 1, NF: 1, SF: 1 };
+  function gaugeTitle(n) {
+    return String(n).replace(/\s+/g, ' ').trim().split(' ').map(function (w) {
+      if (KEEP_CAPS[w.replace(/[^A-Za-z]/g, '').toUpperCase()]) return w.toUpperCase();
+      return w.toLowerCase().replace(/(^|[-'])([a-z])/g, function (m, a, b) { return a + b.toUpperCase(); }).replace(/^Mc([a-z])/, function (m, c) { return 'Mc' + c.toUpperCase(); });
+    }).join(' ');
+  }
+  // A river's vertices as [lat, lon], parsed once on first use (for "nearest point on the river").
+  var riverPts = {};
+  function riverLL(id) {
+    if (riverPts[id]) return riverPts[id];
+    var P = TAP.proj || D.proj, nums = TAPBY[id].d.match(/-?\d+(?:\.\d+)?/g) || [], pts = [];
+    for (var i = 0; i + 1 < nums.length; i += 2) pts.push([P.lat0 - nums[i + 1] / P.k, P.lon0 + nums[i] / P.kx]);
+    return (riverPts[id] = pts);
+  }
+  function riverMiles(id) {
+    var best = Infinity;
+    riverLL(id).forEach(function (q) { var m = milesTo(q); if (m < best) best = m; });
+    return best;
+  }
+  function fillRiver(id) {
+    var r = TAPBY[id], mo = MONTH_NAMES[MONTH - 1];
+    $('#stitle').textContent = r.name;
+    // The Columbia's report covers one reach (Lower Columbia River): say so rather than claim the river has no report anywhere.
+    var part = SITES.filter(function (s) { return s.name !== r.name && s.name.indexOf(r.name) >= 0; })[0];
+    var head = '<div class="head"><p>' + (part ? 'No recent catch report for this river outside the ' + esc(part.name) + ' reach.' : 'No recent catch report for this river.') +
+      ' Rivers are coloured only when a dated catch report exists.</p>' +
+      (me ? '<p class="dist">' + esc(miLong(riverMiles(id))) + ', to the nearest point on the river</p>' : '') +
+      (part ? '<button type="button" class="listbtn" data-open="' + esc(part.id) + '">Open the ' + esc(part.name) + ' report</button>' : '') + '</div>';
+    var notes = RULES ? RULES.forRiver(r.name).slice().sort(function (a, b) { return a.published < b.published ? 1 : -1; }) : [];
+    var notesHtml = notes.length ? '<section><h3>WDFW notices</h3><p class="miss">WDFW’s own notices that name this river, by the date WDFW posted them. They do not rate or colour the river. Confirm the current rule on WDFW before you fish.</p><div class="notes">' +
+      notes.map(function (n) {
+        return '<div class="row"><span class="chip">Posted ' + esc(Reports.formatDay(n.published)) + '</span><p>' + esc(n.d) + '</p>' +
+          '<a href="' + esc(n.url) + '" target="_blank" rel="noopener">Read the rule on WDFW</a></div>';
+      }).join('') + '</div></section>' : '';
+    var f = r.flow, q = f && f.months ? f.months[String(MONTH)] : null;
+    var flowHtml = q
+      ? '<section><h3>Typical flow in ' + mo + '</h3><div class="flow"><div class="big">Usually ' + fmtCfs(q[1]) + '–' + fmtCfs(q[3]) + ' cfs; median ' + fmtCfs(q[2]) + ' cfs</div>' +
+        '<div class="gsrc">USGS ' + esc(gaugeTitle(f.gaugeName)) + ', ' + esc(f.beginYear) + '–' + esc(f.endYear) + ' records</div>' +
+        '<p class="cnote">The middle half of daily flows at this gauge in ' + mo + ' over those years: its historical range for the month, not today’s reading.</p>' +
+        '<a href="https://waterdata.usgs.gov/monitoring-location/USGS-' + encodeURIComponent(f.gauge) + '/" target="_blank" rel="noopener">Today’s flow on USGS</a></div></section>'
+      : '<section><h3>Typical flow</h3><p class="miss">No USGS gauge in WA Fish Map’s river data for this river.</p></section>';
+    var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
+    $('#sbody').innerHTML = head + notesHtml + flowHtml +
+      '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Rules change in season and differ by river and species. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
+      footHtml();
+    $('#sbody').scrollTop = 0;
+  }
+  /* ---- Spawning: month ribbon, site sheet and Sites list ---- */
+  var SP_SHIELD = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
+  var SP_PROV = {
+    site: 'Species and months come from the site’s own visitor information.',
+    typical: 'WDFW lists this site without species or dates. These are the usual months for this water, so check locally before a long drive.',
+    none: 'WDFW lists this site without saying which fish run here, so no months are shown.'
+  };
+  var SP_VIEWING = 'https://wdfw.wa.gov/places-to-go/salmon-viewing';
+  function monthsShort(list) { return list.slice().sort(function (a, b) { return a - b; }).map(function (m) { return MONTH_NAMES[m - 1].slice(0, 3); }).join(', '); }
+  function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
+  function spBadge(v, text) { return '<span class="badge" style="--c:var(--' + spToken(v) + ')">' + esc(text) + '</span>'; }
+  function spawnFootHtml() {
+    return '<div class="foot"><div>' + SPAWN_FINE + ' Not for navigation or safety decisions.</div>' +
+      '<a href="' + SP_VIEWING + '" target="_blank" rel="noopener">WDFW Salmon Viewing list</a>' +
+      '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a></div>';
+  }
+  function spCalendar(s) {
+    var head = '<tr><th class="sp" scope="col"><span class="sr">Run</span></th>' + MONTH_NAMES.map(function (m, i) {
+      return '<th scope="col"' + (i + 1 === SMONTH ? ' class="cur"' : '') + '><abbr title="' + m + '">' + m.charAt(0) + '</abbr></th>';
+    }).join('') + '</tr>';
+    var body = s.sp.map(function (r) {
+      var cells = MONTH_NAMES.map(function (m, i) {
+        var st = rowState(r, i + 1), cls = (st.v === 3 ? 'b' : st.v === 2 ? 'g' : st.v === 1 ? 'f' : '') + (i + 1 === SMONTH ? ' cur' : '');
+        cls = cls.trim();
+        return '<td' + (cls ? ' class="' + cls + '"' : '') + '><span class="sr">' + m + ': ' + esc(st.word) + '</span></td>';
+      }).join('');
+      return '<tr><th class="sp" scope="row">' + esc(r.label) + (r.run ? '<span class="run">' + esc(r.run) + '</span>' : '') + '</th>' + cells + '</tr>';
+    }).join('');
+    return '<table class="cal"><caption class="sr">Spawning status by month for each run at this site, ' + YEAR + '</caption><thead>' + head + '</thead><tbody>' + body + '</tbody></table>' +
+      '<div class="calkey" aria-hidden="true"><span style="--c:var(--prime)"><i></i>Peak</span><span style="--c:var(--good)"><i></i>Active</span><span style="--c:var(--fair)"><i></i>Starting or ending</span></div>';
+  }
+  function fillSpawn(id, keep) {
+    var t = SBY.get(id), s = t.site, sc = spawnState(s, SMONTH), mo = MONTH_NAMES[SMONTH - 1];
+    var sb = $('#sbody'), top = keep ? sb.scrollTop : 0;
+    $('#stitle').textContent = s.name;
+    var status = sc.v === -2 ? '<span class="chip">No ' + esc(species) + ' run listed here</span>'
+      : sc.v === -1 ? spBadge(-1, SP_WORD['-1'])
+      : spBadge(sc.v, sc.word + ' in ' + mo + (sc.row ? ' · ' + sc.row.label : ''));
+    var head = '<div class="head"><p>' + esc(SP_KIND[s.kind]) + ' · ' + esc(s.water) + ' · ' + esc(s.county) + ' County</p>' + distHtml(t.ll) + status + '</div>';
+    var rows = s.sp.map(function (r) {
+      var st = rowState(r, SMONTH), parts = [];
+      if (r.run) parts.push(cap(r.run));
+      parts.push('Peak ' + monthsShort(r.best) + (r.good.length ? '; also ' + monthsShort(r.good) : ''));
+      if (offYear(r)) parts.push('None expected in ' + YEAR + '; next run ' + (YEAR + 1));
+      return '<div class="row' + (species === r.fam ? ' sel' : '') + '"><div class="rt"><div class="nm">' + esc(r.label) + '</div><div class="dt">' + esc(parts.join(' · ')) + '</div></div>' +
+        '<div class="ch">' + spBadge(st.v, st.word) + '</div></div>';
+    }).join('');
+    var dir = 'https://maps.apple.com/?q=' + encodeURIComponent(s.name) + '&sll=' + s.lat + ',' + s.lon;
+    sb.innerHTML = head +
+      '<div class="acts"><a class="dir" href="' + esc(dir) + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
+      '<a class="more" href="' + esc(s.url) + '" target="_blank" rel="noopener">Site info</a></div>' +
+      (s.kind === 'ladder' ? '<div class="ladder">Fish pass this ladder on their way upstream. You see them through a window, but they don’t spawn here.</div>' : '') +
+      (s.sp.length ? '<section><h3>In ' + mo + '</h3><div class="rows">' + rows + '</div></section>' +
+        '<section><h3>Through the year</h3>' + spCalendar(s) + '</section>' : '') +
+      (s.note ? '<p class="note">' + esc(s.note) + '</p>' : '') +
+      '<p class="prov">' + esc(SP_PROV[s.src]) + '</p>' +
+      '<section class="advisory">' + SP_SHIELD + '<div><h3>Before you go</h3><p>Stay out of the water and off the gravel where eggs are buried. Many spawning streams are closed to fishing, so check WDFW’s rules before you bring a rod.</p></div></section>' +
+      spawnFootHtml();
+    sb.scrollTop = top;
+  }
+  function fillSpawnList(keep) {
+    var mo = MONTH_NAMES[SMONTH - 1], near = !!me && listSort === 'near', all = [];
+    var sb = $('#sbody'), top = keep ? sb.scrollTop : 0;
+    var groups = { '3': [], '2': [], '1': [], '0': [], '-1': [] };
+    SP.forEach(function (t) { if (t.sc.v === -2) return; groups[String(t.sc.v)].push(t); all.push(t); });
+    function row(t) {
+      var sc = t.sc, s = t.site;
+      var what = sc.row ? sc.row.label + (sc.row.run ? ' · ' + sc.row.run : '')
+        : s.sp.length ? s.sp.map(function (r) { return r.label; }).filter(function (x, i, a) { return a.indexOf(x) === i; }).slice(0, 2).join(', ') : 'Species not listed';
+      var sub = what + ' · ' + s.county + ' County' + (s.kind === 'ladder' ? ' · fish ladder' : '') + (me ? ' · ' + miShort(milesTo(t.ll)) : '');
+      return '<button type="button" class="row lrow" data-id="' + esc(t.id) + '"><span class="rt"><span class="nm">' + esc(t.name) + '</span><span class="dt">' + esc(sub) + '</span></span>' +
+        '<span class="ch">' + spBadge(sc.v, sc.v === -1 ? 'Not listed' : sc.word) + '</span></button>';
+    }
+    var html = (me ? '<div class="seg sorts" role="radiogroup" aria-label="Sort sites">' +
+      '<button type="button" role="radio" data-sort="best" aria-checked="' + !near + '">Best first</button>' +
+      '<button type="button" role="radio" data-sort="near" aria-checked="' + near + '">Nearest first</button></div>' : '') +
+      '<p class="lede">' + (species ? esc(species) + ' sites' : 'All ' + SP.length + ' sites') + ' in ' + mo +
+      (near ? ', nearest first by straight-line distance from ' + esc(me.label) + '. Statuses are unchanged.' : ', grouped by status.') +
+      ' Pick a month on the ribbon to see another time of year.</p>';
+    if (near) {
+      // One list by distance: grouping by status first would put a far peak site above an active one down the road. Each row names its status.
+      all.sort(function (a, b) { return milesTo(a.ll) - milesTo(b.ll); });
+      html += '<section class="lgroup"><h3>Nearest first <span class="n">' + all.length + '</span></h3><div class="rows">' + all.map(row).join('') + '</div></section>';
+    } else {
+      ['3', '2', '1', '0', '-1'].forEach(function (k) {
+        var list = groups[k]; if (!list.length) return;
+        list.sort(function (a, b) { return a.name < b.name ? -1 : 1; });
+        html += '<section class="lgroup"><h3>' + SP_WORD[k] + ' <span class="n">' + list.length + '</span></h3><div class="rows">' + list.map(row).join('') + '</div></section>';
+      });
+    }
+    html += '<div class="foot"><div>From WDFW’s Salmon Viewing list. Species and months are typical for each water unless a site’s own information says otherwise. ' + SPAWN_FINE + '</div>' +
+      '<a href="' + SP_VIEWING + '" target="_blank" rel="noopener">WDFW Salmon Viewing list</a></div>';
+    $('#stitle').textContent = 'Sites in ' + mo;
+    sb.innerHTML = html;
+    sb.scrollTop = top;
+  }
+  // The ribbon: one radio per month, each a stacked bar of sites at peak (red) over sites active (orange) for the chosen species.
+  var yearEl = $('#year'), yearBtns = [];
+  function spCounts(m) {
+    var c = { 3: 0, 2: 0, 1: 0, 0: 0, sites: 0 };
+    SPAWN.forEach(function (s) { var x = spawnState(s, m).v; if (x >= 0) { c[x]++; c.sites++; } });
+    return c;
+  }
+  function paintRibbon() {
+    if (!yearBtns.length) return;
+    var all = MONTH_NAMES.map(function (_, i) { return spCounts(i + 1); });
+    var max = Math.max.apply(null, all.map(function (c) { return c[3] + c[2]; }).concat([1]));
+    yearBtns.forEach(function (b, i) {
+      var c = all[i], on = i + 1 === SMONTH;
+      b.setAttribute('aria-checked', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1;
+      b.querySelector('.p').style.height = (c[3] / max * 100).toFixed(1) + '%';
+      b.querySelector('.a').style.height = (c[2] / max * 100).toFixed(1) + '%';
+      b.setAttribute('aria-label', MONTH_NAMES[i] + ': ' + c[3] + ' sites at peak, ' + c[2] + ' active');
+    });
+    var c = all[SMONTH - 1], mo = MONTH_NAMES[SMONTH - 1];
+    var line = '<b>' + c[3] + '</b> at peak and <b>' + c[2] + '</b> active in ' + mo + (species ? ', of ' + c.sites + ' ' + esc(species) + ' sites' : '') + '.';
+    if (species === 'Pink Salmon' && YEAR % 2 === 0) line = 'Pink salmon return in odd years. None are expected in ' + YEAR + '; the next run is ' + (YEAR + 1) + '.';
+    $('#summary').innerHTML = line;
+    $('#sub').textContent = SPAWN.length + ' WDFW salmon viewing sites · ' + mo;
+    $('#legt').textContent = 'Spawning, ' + mo;
+  }
+  function setMonth(m) {
+    if (m === SMONTH) return;
+    SMONTH = m;
+    applyStyles(); render();
+    if (mode === 'detail') fillSpawn(selected, true); else if (mode === 'list') fillSpawnList(true);
+    syncLink();
+  }
+  if (HAS_SPAWN) {
+    MONTH_NAMES.forEach(function (name, i) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.setAttribute('role', 'radio');
+      b.innerHTML = '<span class="stack" aria-hidden="true"><i class="a"></i><i class="p"></i></span><span class="m" aria-hidden="true">' + name.slice(0, 3) + '</span>';
+      if (i + 1 === MONTH) b.classList.add('now');
+      b.addEventListener('click', function () { setMonth(i + 1); });
+      b.addEventListener('keydown', function (e) {
+        var k = e.key, to = k === 'ArrowRight' || k === 'ArrowDown' ? SMONTH % 12 + 1 : k === 'ArrowLeft' || k === 'ArrowUp' ? (SMONTH + 10) % 12 + 1 : k === 'Home' ? 1 : k === 'End' ? 12 : 0;
+        if (!to) return;
+        e.preventDefault(); setMonth(to); yearBtns[SMONTH - 1].focus();
+      });
+      yearEl.appendChild(b); yearBtns.push(b);
+    });
+    // Scrub: press on the ribbon and drag sideways to sweep the months. A press that barely moves stays a tap (the button's click);
+    // past a few pixels of mostly sideways travel the ribbon captures the pointer and the month follows it. touch-action: pan-y keeps
+    // the drag from scrolling, and the ribbon is outside #map, so the map's pan handlers (pointers that went down on #map) never see it.
+    var scrub = null, swallowClick = false;
+    var monthAt = function (x) { var r = yearEl.getBoundingClientRect(); return Math.min(12, Math.max(1, Math.floor((x - r.left) / r.width * 12) + 1)); };
+    yearEl.addEventListener('pointerdown', function (e) {
+      if (e.button !== undefined && e.button > 0) return;
+      scrub = { id: e.pointerId, x: e.clientX, y: e.clientY, on: false };
+    });
+    yearEl.addEventListener('pointermove', function (e) {
+      if (!scrub || e.pointerId !== scrub.id) return;
+      if (!scrub.on) {
+        var dx = Math.abs(e.clientX - scrub.x), dy = Math.abs(e.clientY - scrub.y);
+        if (dx < 6 || dx < dy) return;
+        scrub.on = true; yearEl.classList.add('scrub');
+        try { yearEl.setPointerCapture(e.pointerId); } catch (err) { /* capture refused: the drag still works while over the ribbon */ }
+      }
+      setMonth(monthAt(e.clientX));
+    });
+    var endScrub = function (e) {
+      if (!scrub || e.pointerId !== scrub.id) return;
+      var was = scrub.on; scrub = null;
+      if (!was) return;
+      yearEl.classList.remove('scrub');
+      swallowClick = e.type === 'pointerup';
+      setTimeout(function () { swallowClick = false; }, 0);
+      if (yearEl.contains(document.activeElement)) yearBtns[SMONTH - 1].focus({ preventScroll: true });
+    };
+    yearEl.addEventListener('pointerup', endScrub);
+    yearEl.addEventListener('pointercancel', endScrub);
+    // Only the ribbon's own capture ending counts: on touch, the pressed button's implicit capture is released when the ribbon takes over.
+    yearEl.addEventListener('lostpointercapture', function (e) { if (e.target === yearEl && scrub && scrub.on) endScrub(e); });
+    // The click that ends a scrub is not a tap on the month it lands on.
+    yearEl.addEventListener('click', function (e) { if (swallowClick) { swallowClick = false; e.stopPropagation(); e.preventDefault(); } }, true);
+  }
+
+  function clearRiver() { riverSel = null; rsel.style.display = 'none'; }
+  function openRiver(id, px, py) {
+    if (!Object.prototype.hasOwnProperty.call(TAPBY, id)) return;
+    var r = TAPBY[id];
+    // A river that is itself one of the reported waters opens its catch-report sheet, never a "no report" sheet.
+    var same = SITES.filter(function (s) { return s.name === r.name; })[0];
+    if (same) { openSheet(same.id); return; }
+    selected = null; mode = 'river'; riverSel = id;
+    fillRiver(id);
+    showSheet();
+    $('#listbtn').setAttribute('aria-expanded', 'false');
+    rselCase.setAttribute('d', r.d); rselLine.setAttribute('d', r.d); rsel.style.display = '';
+    applyStyles(); render();
+    syncLink();
+    // Keep the tapped spot in view: beside the inspector on wide screens, between the card and the sheet on phones.
+    if (px == null) return;
+    var wide = window.innerWidth >= 760, dx = 0, dy = 0;
+    if (wide && px > W - 404) dx = (W - 392) / 2 - px;
+    if (!wide) {
+      if (px < 48 || px > W - 48) dx = W / 2 - px;
+      var barB = $('#bar').getBoundingClientRect().bottom, free = H - Math.min(sheet.getBoundingClientRect().height || 0, H * 0.66);
+      if (py > free - 24 || py < barB + 12) dy = (barB + free) / 2 - py;
+    }
+    if (dx || dy) animateTo({ s: v.s, tx: v.tx + dx, ty: v.ty + dy }, 320);
+  }
   var returnFocus = null;
   function showSheet() {
     if (!sheet.classList.contains('open')) returnFocus = document.activeElement;
+    if (meArmed) armMe(false);
     sheet.classList.add('open'); sheet.setAttribute('aria-hidden', 'false');
     appEl.classList.add('sheet-open');
     sheet.focus({ preventScroll: true });
   }
   function openSheet(id) {
+    clearRiver();
     selected = id; mode = 'detail';
     fillSheet(id);
     showSheet();
@@ -1072,21 +1728,27 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var s = siteOf(id);
     var wide = window.innerWidth >= 760;
     var sh = sheet.getBoundingClientRect().height || 0;
-    var ns = Math.max(v.s, s0 * (view === 'typical' ? 5 : 1.5));
+    var ns = Math.max(v.s, s0 * (view === 'typical' ? 5 : view === 'spawning' ? 2.5 : 1.5));
     var barB = $('#bar').getBoundingClientRect().bottom;
     var tx, ty;
-    if (wide) { tx = (W - 392) / 2 - s.xy[0] * ns; ty = H / 2 + 20 - s.xy[1] * ns; }
+    if (wide) { tx = (W - 392) / 2 - s.xy[0] * ns; ty = (tabsBottom() + H) / 2 + 20 - s.xy[1] * ns; }
     else { tx = W / 2 - s.xy[0] * ns; ty = (barB + (H - Math.min(sh, H * 0.66))) / 2 + 24 - s.xy[1] * ns; }
     animateTo({ s: ns, tx: tx, ty: ty }, 320);
+    syncLink();
   }
   function openList() {
+    clearRiver();
     selected = null; mode = 'list';
     fillList();
     showSheet();
     $('#listbtn').setAttribute('aria-expanded', 'true');
     applyStyles(); render();
+    // Wide screens: the list covers the right side, so refit the rivers into the space beside it and every pin in the list stays on the map.
+    if (window.innerWidth >= 760 && view === 'reports') animateTo(homeFit(), 320);
+    syncLink();
   }
   function closeSheet() {
+    clearRiver();
     selected = null; mode = null;
     // Focus leaves the sheet before it is hidden from assistive technology, or the browser blocks aria-hidden on a focused element.
     if (sheet.contains(document.activeElement)) document.activeElement.blur();
@@ -1094,6 +1756,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     appEl.classList.remove('sheet-open');
     $('#listbtn').setAttribute('aria-expanded', 'false');
     applyStyles(); render();
+    syncLink();
     var back = returnFocus; returnFocus = null;
     if (back && back !== document.body && document.contains(back) && back.focus) back.focus({ preventScroll: true });
   }
@@ -1103,41 +1766,175 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var b = e.target.closest ? e.target.closest('.lrow') : null;
     if (b) openSheet(b.getAttribute('data-id'));
   });
+  $('#sbody').addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('[data-sort],[data-open]') : null;
+    if (!t) return;
+    if (t.hasAttribute('data-open')) { openSheet(t.getAttribute('data-open')); return; }
+    listSort = t.getAttribute('data-sort') === 'near' ? 'near' : 'best';
+    fillList();
+    var on = $('#sbody [data-sort="' + listSort + '"]'); if (on) on.focus({ preventScroll: true });
+  });
+  // Registered before the sheet's Escape handler: the species panel closes first (that handler), then the location panel or "Tap the map", then the sheet.
+  window.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || !sppanel.hidden) return;
+    if (!mpop.hidden) { toggleModes(false); modebtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
+    if (!npop.hidden) { toggleNotice(false); nbtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
+    if (!mepanel.hidden) { toggleMe(false); mebtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
+    if (meArmed) { armMe(false); e.stopImmediatePropagation(); }
+  });
   window.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
     if (!sppanel.hidden) { toggleSpecies(false); spbtn.focus({ preventScroll: true }); return; }
     if (mode) closeSheet();
   });
 
+  /* ---- my location: set by hand (the artifact viewer refuses geolocation), kept in this browser only ---- */
+  var TOWNS = [
+    ['Seattle', 47.606, -122.332], ['Tacoma', 47.253, -122.444], ['Olympia', 47.038, -122.900], ['Everett', 47.979, -122.202],
+    ['Bellingham', 48.750, -122.478], ['Port Angeles', 48.118, -123.430], ['Aberdeen', 46.975, -123.816], ['Longview', 46.138, -122.938],
+    ['Vancouver', 45.639, -122.661], ['Wenatchee', 47.423, -120.311], ['Yakima', 46.602, -120.506], ['Tri-Cities', 46.230, -119.200],
+    ['Spokane', 47.659, -117.426], ['Walla Walla', 46.065, -118.343]
+  ];
+  var ME_KEY = 'wafish.me', TAPPED = 'Tapped point';
+  var me = null, meArmed = false, listSort = 'best';
+  var mebtn = $('#mebtn'), mepanel = $('#mepanel'), metip = $('#metip');
+  function readMe() {
+    try {
+      var o = JSON.parse(window.localStorage.getItem(ME_KEY) || 'null');
+      if (o && isFinite(o.lat) && isFinite(o.lon) && Math.abs(o.lat) <= 90 && Math.abs(o.lon) <= 180) {
+        return { lat: +o.lat, lon: +o.lon, label: String(o.label || TAPPED).slice(0, 40) };
+      }
+    } catch (e) { /* storage blocked or unreadable: no point */ }
+    return null;
+  }
+  function writeMe(o) {
+    try { if (o) window.localStorage.setItem(ME_KEY, JSON.stringify(o)); else window.localStorage.removeItem(ME_KEY); } catch (e) { /* not persisted */ }
+  }
+  // Straight-line (haversine) miles from the viewer's point to [lat, lon].
+  function milesTo(ll) {
+    var rad = Math.PI / 180, dLat = (ll[0] - me.lat) * rad, dLon = (ll[1] - me.lon) * rad;
+    var a = Math.pow(Math.sin(dLat / 2), 2) + Math.cos(me.lat * rad) * Math.cos(ll[0] * rad) * Math.pow(Math.sin(dLon / 2), 2);
+    return 2 * 3958.8 * Math.asin(Math.min(1, Math.sqrt(a)));
+  }
+  function miShort(n) { return n < 1 ? 'under 1 mi' : Math.round(n).toLocaleString('en-US') + ' mi'; }
+  function miLong(n) { return n < 1 ? 'Less than 1 mi from you' : 'About ' + Math.round(n).toLocaleString('en-US') + ' mi from you'; }
+  function distHtml(ll) { return me ? '<p class="dist">' + esc(miLong(milesTo(ll))) + '</p>' : ''; }
+  function syncMeUi() {
+    mebtn.querySelector('.lbl').textContent = me ? me.label : 'Near me';
+    if (!mepanel.hidden) buildMe();
+  }
+  function buildMe() {
+    mepanel.innerHTML = '<p class="now">' + (me ? 'Distances are straight-line miles from ' + esc(me.label) + '.' : 'Set a point to see straight-line distances. It is saved in this browser only.') + '</p>' +
+      '<div class="seg"><button type="button" data-me="tap">Tap the map</button>' + (me ? '<button type="button" data-me="clear">Clear</button>' : '') + '</div>' +
+      '<div role="group" aria-label="Towns"><div class="gl" aria-hidden="true">Towns</div><div class="seg">' +
+      TOWNS.map(function (t, i) { return '<button type="button" data-town="' + i + '" aria-pressed="' + (!!me && me.label === t[0]) + '">' + esc(t[0]) + '</button>'; }).join('') +
+      '</div></div>';
+  }
+  function toggleMe(open) {
+    if (!open && mepanel.contains(document.activeElement)) mebtn.focus({ preventScroll: true });
+    if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); if (meArmed) armMe(false); buildMe(); }
+    mepanel.hidden = !open;
+    mebtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) { var first = mepanel.querySelector('button'); if (first) first.focus({ preventScroll: true }); }
+  }
+  // "Tap the map": the next tap that is not a drag sets the point; pins and rivers do not open while it is armed.
+  function armMe(on) {
+    meArmed = on;
+    metip.hidden = !on;
+    map.style.cursor = on ? 'crosshair' : '';
+    if (on) { toggleMe(false); $('#mecancel').focus({ preventScroll: true }); }
+  }
+  function setMe(o) {
+    me = o ? { lat: o.lat, lon: o.lon, label: o.label, xy: xy(o.lon, o.lat) } : null;
+    writeMe(o ? { lat: o.lat, lon: o.lon, label: o.label } : null);
+    if (!me) listSort = 'best';
+    syncMeUi();
+    render();
+    if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList(); else if (mode === 'river') fillRiver(riverSel);
+  }
+  function setMeFromScreen(px, py) {
+    var mx = (px - v.tx) / v.s, my = (py - v.ty) / v.s;
+    var lat = D.proj.lat0 - my / D.proj.k, lon = D.proj.lon0 + mx / D.proj.kx;
+    armMe(false);
+    setMe({ lat: Math.round(lat * 1e4) / 1e4, lon: Math.round(lon * 1e4) / 1e4, label: TAPPED });
+    mebtn.focus({ preventScroll: true });
+  }
+  mebtn.addEventListener('click', function () { toggleMe(mepanel.hidden); });
+  $('#mecancel').addEventListener('click', function () { armMe(false); mebtn.focus({ preventScroll: true }); });
+  mepanel.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button') : null;
+    if (!b) return;
+    var act = b.getAttribute('data-me'), town = b.getAttribute('data-town');
+    if (act === 'tap') { armMe(true); return; }
+    if (act === 'clear') { setMe(null); var t0 = mepanel.querySelector('button'); if (t0) t0.focus({ preventScroll: true }); return; }
+    if (town !== null) { var t = TOWNS[+town]; setMe({ lat: t[1], lon: t[2], label: t[0] }); toggleMe(false); mebtn.focus({ preventScroll: true }); }
+  });
+  (function () { var o = readMe(); if (o) { me = { lat: o.lat, lon: o.lon, label: o.label, xy: xy(o.lon, o.lat) }; } syncMeUi(); })();
+
   /* ---- mode ---- */
+  // The cluster legend entry, taken from the page's own legend so every mode says it the same way.
+  var CL_ITEM = $('#legl li.cl') ? $('#legl li.cl').outerHTML : '';
   function setMode(m) {
     // The ?mode=typical link comes through here too: without typical.js or season.js there is nothing to switch to.
-    if (m === view || (m === 'typical' && !HAS_TYPICAL)) return;
+    if (m === view || (m === 'spawning' && !HAS_SPAWN) || (m === 'typical' && !HAS_TYPICAL)) return;
     view = m; species = null; selected = null;
     if (mode) closeSheet();
     appEl.classList.toggle('typ', m === 'typical');
+    appEl.classList.toggle('spw', m === 'spawning');
     document.querySelectorAll('#modes button').forEach(function (b) { b.setAttribute('aria-checked', b.getAttribute('data-mode') === m ? 'true' : 'false'); });
-    var typ = m === 'typical';
+    syncModeLbl(); toggleModes(false);
+    var typ = m === 'typical', spw = m === 'spawning';
     if (typ) initTypical();
+    if (spw) initSpawn();
+    $('#rhint').hidden = typ || spw || !TAP;
     $('#ttl').textContent = typ ? 'Typical season' : 'Salmon this month';
     $('#sub').textContent = typ ? 'Washington piers, boat launches and shore access · ' + Season.MONTHS[MONTH - 1]
       : 'Southwest Washington · reports through ' + Reports.formatDay(Reports.latestReport(SITES));
     $('#legt').textContent = typ ? 'Typical timing, ' + Season.MONTHS[MONTH - 1] : 'Recent catch reports';
     $('#legl').innerHTML = typ
       ? '<li style="--c:var(--prime)"><i></i>Prime</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li style="--c:var(--slow)"><i></i>Slow</li><li style="--c:var(--unrated)"><i></i>No seasonal guidance</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: season often varies</li><li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>'
-      : '<li style="--c:var(--prime)"><i></i>Excellent</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li style="--c:var(--slow)"><i></i>Slow</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li><li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>';
-    $('#legf').textContent = typ ? TYPICAL_LINE + ' Confirm rules on WDFW.' : 'Catch reports, not season dates. Confirm rules on WDFW.';
-    var n = typ ? TYPICAL_LINE : Reports.staleNotice(SITES, TODAY);
-    $('#notice').textContent = n || ''; $('#notice').hidden = !n;
+      : '<li style="--c:var(--prime)"><i></i>Excellent</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li style="--c:var(--slow)"><i></i>Slow</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li><li class="old"><i></i>Dashed: report over a week old</li><li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>';
+    $('#legf').textContent = typ ? TYPICAL_LINE + ' Confirm rules on WDFW.' : spw ? SPAWN_FINE : 'Catch reports, not season dates. Confirm rules on WDFW.';
+    var n = typ ? TYPICAL_LINE : spw ? null : Reports.staleNotice(SITES, TODAY);
+    $('#notice').textContent = n || ''; syncNotice();
     map.setAttribute('aria-label', typ
       ? 'Map of Washington piers, boat launches and shore access sites colored by typical seasonal timing. Drag to pan, pinch or use the buttons to zoom, select a marker for details.'
       : 'Map of salmon rivers in southwest Washington. Drag to pan, pinch or use the buttons to zoom, select a river marker for details.');
+    // Spawning's own title, legend and map label (its subtitle and legend title follow the ribbon's month, in paintRibbon).
+    if (spw) {
+      $('#ttl').textContent = 'Where salmon spawn';
+      $('#legl').innerHTML = '<li style="--c:var(--prime)"><i></i>Peak</li><li style="--c:var(--good)"><i></i>Active</li><li style="--c:var(--fair)"><i></i>Starting or ending</li>' +
+        '<li style="--c:var(--slow)"><i></i>Quiet</li><li style="--c:var(--unrated)"><i></i>Species not listed</li><li class="dash"><i></i>Dashed: fish ladder, passing not spawning</li>' + CL_ITEM;
+      map.setAttribute('aria-label', 'Map of WDFW salmon viewing sites colored by typical spawning timing for the chosen month. Drag to pan, pinch or use the buttons to zoom, select a marker for details.');
+    }
+    $('#spawn').hidden = !spw;
     buildSpecies();
     applyStyles();
     limits();
     var f = homeFit(); s0 = f.s;
     if (reduce) setView(f); else animateTo(f, 350);
     render();
+    syncLink();
+  }
+
+  /* ---- URL state (links.js): what the page shows is what the address bar says ---- */
+  var LINK0 = (window.Links && window.Links.read) ? Links.read(location.search) : { mode: null, month: null, species: null, site: null, river: null, today: null };
+  function syncLink() {
+    if (!window.Links || !LINK0) return;
+    var rep = view === 'reports';
+    Links.write({
+      mode: view,
+      month: view === 'spawning' ? SMONTH : null,
+      species: species,
+      site: !rep && mode === 'detail' ? selected : null,
+      river: rep ? (mode === 'detail' ? selected : riverSel) : null,
+      today: LINK0.today
+    }, window.history, window.location);
+  }
+  function speciesKnown(name) {
+    var found = false;
+    document.querySelectorAll('#sppanel button').forEach(function (b) { if (b.getAttribute('data-species') === name) found = true; });
+    return found;
   }
 
   /* ---- boot ---- */
@@ -1156,12 +1953,22 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   }) : null;
   if (ro) ro.observe(map); else window.addEventListener('resize', function () { size(); limits(); render(); });
   buildSpecies();
+  $('#rhint').hidden = !TAP;
   var notice = Reports.staleNotice(SITES, TODAY);
-  if (notice) { $('#notice').textContent = notice; $('#notice').hidden = false; }
+  if (notice) { $('#notice').textContent = notice; }
+  syncNotice();
   $('#sub').textContent = 'Southwest Washington · reports through ' + Reports.formatDay(Reports.latestReport(SITES));
   init();
-  // ?mode=typical opens the page in Typical season (a shareable link); anything else keeps Recent reports.
-  if (/[?&]mode=typical(&|$)/.test(location.search)) setMode('typical');
+  // Deep links (links.js): mode first, then month and species, then the sheet, so each step sees the state the one before it set.
+  if (LINK0.mode && LINK0.mode !== 'reports') setMode(LINK0.mode);
+  if (LINK0.month && view === 'spawning') setMonth(LINK0.month);
+  if (LINK0.species && speciesKnown(LINK0.species)) pickSpecies(LINK0.species);
+  if (view === 'reports' && LINK0.river) {
+    if (SITES.some(function (s) { return s.id === LINK0.river; })) openSheet(LINK0.river);
+    else if (Object.prototype.hasOwnProperty.call(TAPBY, LINK0.river)) openRiver(LINK0.river);
+  } else if (view !== 'reports' && LINK0.site && siteOf(LINK0.site)) {
+    openSheet(LINK0.site);
+  }
+  syncLink();
 })();
 </script>
-

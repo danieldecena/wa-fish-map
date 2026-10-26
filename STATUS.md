@@ -2,6 +2,15 @@
 
 ## Confirmed working
 
+- Washington Fishing Map, published as versions 16-19 on 2026-10-26: a Week tab
+  (open seasons, this week's reports, new WDFW rules, coming up, a 7-day bundled NOAA
+  tide table, spots), deep links (`?mode=&month=&species=&site=&river=`), one
+  five-tab bar (Week, Map, Year, Spots, Counts) on every page, and the map's
+  control card as one 56 px row (phones: a mode menu and a species icon). 196
+  Node tests (193 pass, 3 skipped because the local salmon.db is absent; 62 in the
+  new week, tides, links and tabs files); `check-week.mjs` all checks pass. The
+  live tide fetch is blocked by the frame's CSP, so tides are bundled in
+  `week/tides-data.js` (see the 2026-10-26 entry); version 19 shipped the bundle.
 - `fisheries.json` now seeds all 16 statewide marine areas (1-8-2 + 9-13; the
   "Oregon" polygon is filtered out of the map, not seeded) plus freshwater rows:
   statewide, 8 county overrides and 6 waterbody rows (counted 2026-10-20;
@@ -141,6 +150,46 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-26 (Week page, deep links, tides, thin bar)
+- Tides are bundled, not fetched. The published page runs in a claude.ai frame whose CSP `connect-src` allows only claude.ai origins, so the Week tab's live `fetch` to NOAA was blocked for viewers (it worked from the build container and a local Playwright page, which is why the spike passed). `scripts/build_tides.py` now fetches CO-OPS hilo predictions (MLLW, english, `lst_ldt`) for 26 stations and writes `Artifacts/salmon-rivers/week/tides-data.js` (45 days, 134 KB); `tides.js` reads it, the Week tab says through which date, and marine Typical-season sheets show "Tides today" from the nearest bundled station. The page makes no network request at all (a test greps `tides.js`, `week.js` and both pages for `fetch(`/`XMLHttpRequest`). Re-run the script at least monthly and republish `week/tides-data.js`.
+- The 26 tide station ids were verified against NOAA station metadata (`mdapi/.../stations/<id>.json`, listed under `type=tidepredictions`, state WA) on 2026-10-26:
+
+      9447130 "Seattle" 47.60264 -122.3393
+      9446484 "Tacoma" 47.2667 -122.4133
+      9447659 "EVERETT" 47.98 -122.223
+      9444900 "Port Townsend" 48.11122 -122.759674
+      9449880 "Friday Harbor" 48.545277 -123.0125
+      9449424 "Cherry Point" 48.862717 -122.75858
+      9444090 "Port Angeles" 48.125 -123.44
+      9443090 "Neah Bay" 48.370724 -124.601585
+      9442396 "La Push, Quillayute River" 47.912838 -124.63574
+      9441102 "Westport" 46.90431 -124.10508
+      9440910 "Toke Point" 46.7075 -123.96694
+      9445478 "UNION, HOOD CANAL" 47.3583 -123.098
+      9445303 "Seabeck, Seabeck Bay" 47.6417 -122.828
+      9445133 "Bangor" 47.7483 -122.727
+      9446969 "OLYMPIA, BUD INLET, PUGET SOUND" 47.06 -122.903
+      9446281 "ALLYN" 47.3833 -122.823
+      9445958 "Bremerton" 47.5617 -122.623
+      9447427 "EDMONDS" 47.8133 -122.383
+      9445753 "Port Madison" 47.705 -122.525
+      9448794 "ANACORTES, FIDALGO ISLAND" 48.5183 -122.62
+      9449211 "BELLINGHAM" 48.745 -122.495
+      9447929 "Coupeville, Penn Cove, Whidbey Island" 48.2233 -122.69
+      9443361 "SEKIU, CLALLAM BAY" 48.2633 -124.297
+      9441187 "Aberdeen" 46.9683 -123.853
+      9440846 "BAY CENTER, PALIX RIVER, WILLAPA BAY" 46.6233 -123.945
+      9440581 "Cape Disappointment" 46.281 -124.0463
+
+  `build_tides.py` and `tides.js` use short names (Everett, La Push, Union) and NOAA's coordinates rounded to 4 decimals.
+- Typical season has no month control, so the `month` parameter applies to Spawning only.
+- The Year page has no season anchors, so Week links to the top of `../year/index.html`. Follow-up filed in TASKS.md.
+- Built in a local copy because the repo was unreachable, then applied here on top of a capture of live 1792491424-046f (the service's injected document skeleton stripped from index.html; geo.js kept as generated, the live copy differed only in number formatting). Four existing tests (controls x2, design spacing, typical deep-link guard) were rewritten for the thin bar and the links.js boot; each was watched failing on broken code.
+- The page's "No network requests from the page" rule has no exception (README).
+- The map's control card became one 56 px row on Daniel's request; on phones the mode switch is a menu and species a filter icon. Unselected mode labels measure 4.85:1 dark / 4.77:1 light.
+- Tests: 62 Node tests in 4 new files (`week`, `tides`, `links`, `tabs`); 196 Node tests in all (193 pass, 3 skipped without the local db); `check-week.mjs`: all checks passed, lowest tab-label contrast 4.77 (light) / 4.85 (dark).
+- The three standalone artifacts (Where Salmon Spawn, Washington Fishing Year, Three Friends Fishing Hole) were deleted 2026-10-26 after being merged into the main URL.
 
 ### 2026-10-20 (project docs brought up to date)
 

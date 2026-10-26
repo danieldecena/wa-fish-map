@@ -1,10 +1,12 @@
 {
-  "url": "https://claude.ai/artifact/UUDwR9AvgqUZCWscdj5JJF",
+  "url": "https://claude.ai/artifact/9oA145toRsmFcDYurdJbey",
   "title": "Washington Fishing Year",
   "account": "danieldecena@icloud.com",
   "what": "Calendar, river map and migration timing for the Seattle fishing year, Oct 2026 to Nov 2027. Dated seasons and rules are artifact-only guidance sourced from WDFW notices; the app never reads them.",
   "currentVersion": "1792455540-4ddb",
   "previousVersion": "1792387754-760c",
-  "note": "Edit seasons.json, run scripts/build_fishing_year.py (writes data.js, fails on bad data), run node check.mjs in this folder (type scale, contrast, tap targets, scroll, console; --selftest proves the checks fire), then refresh by PASSING THIS URL with file_path=index.html and files={data.js}. index.html is the built page and holds no data. Omitting the URL mints a second artifact. Before publishing, read the live version: an edit made outside the repo (2026-10-18, Skagit emergency rule WSR 26-21-045 and the Snohomish closure) was published straight to the page and had to be copied into seasons.json first.",
-  "synced": "2026-10-20: version 1792455540-4ddb (published outside the repo, Green River timing note and Three Friends stop note) was copied into seasons.json; the rebuilt data.js is byte-identical to the live one."
+  "note": "Published as year/ inside the Washington Fishing Map (Artifacts/salmon-rivers/year/), which carries the shared tab bar. This URL is the MAIN page: never publish this folder's index.html to it. Workflow: edit seasons.json, run scripts/build_fishing_year.py (writes data.js, fails on bad data), copy the rebuilt data.js to Artifacts/salmon-rivers/year/data.js, run node check.mjs in this folder (type scale, contrast, tap targets, scroll, console; --selftest proves the checks fire), then publish the main URL with file_path=Artifacts/salmon-rivers/index.html and files={\"year/index.html\": \"Artifacts/salmon-rivers/year/index.html\", \"year/data.js\": \"Artifacts/salmon-rivers/year/data.js\"}. Omitting the URL mints a second artifact. Before publishing, read the live version: an edit made outside the repo (2026-10-18, Skagit emergency rule WSR 26-21-045 and the Snohomish closure) was published straight to the page and had to be copied into seasons.json first.",
+  "synced": "2026-10-20: version 1792455540-4ddb (published outside the repo, Green River timing note and Three Friends stop note) was copied into seasons.json; the rebuilt data.js is byte-identical to the live one.",
+  "path": "year/index.html",
+  "deletedStandalone": "https://claude.ai/artifact/UUDwR9AvgqUZCWscdj5JJF (deleted 2026-10-26 on Daniel's instruction after merging into the main page)"
 }

@@ -12,16 +12,20 @@ test('one species dropdown serves both modes, and the old chip row is gone', () 
   assert.match(html, /id="sppanel" role="radiogroup" aria-label="Species" hidden/);
   assert.doesNotMatch(html, /id="spseg"|spseg/, 'the Recent reports chip row must not come back');
   const build = between('function buildSpecies', "document.querySelectorAll('#modes button')");
-  assert.match(build, /spbtn\.innerHTML = 'Species: ' \+ esc\(species \|\| 'All species'\) \+ CHEV;/, 'one button label for both modes');
+  assert.match(build, /setSpLabel\(\);/, 'one button label for both modes');
+  // The thin bar shows a funnel icon plus the species name (hidden on phones); the accessible name always says which species.
+  const label = between('function setSpLabel', 'function mkChip');
+  assert.match(label, /var t = species \|\| 'All species';/);
+  assert.match(label, /spbtn\.setAttribute\('aria-label', 'Species: ' \+ t\);/);
   // Recent reports fills the same panel with exact names from Reports.SPECIES; nothing else decides its species.
   assert.match(build, /Reports\.SPECIES\.forEach\(function \(name\) \{ mkChip\(name, top\); \}\);/);
   assert.match(build, /mkChip\(null, top\);/);
 });
 
-test('Rivers sits on the title row, and the title names the mode', () => {
-  const brand = between('<div class="brand">', '<div class="seg modes"');
-  assert.match(brand, /id="listbtn"[^>]*>Rivers<\/button>/);
-  assert.match(brand, /id="ttl">Salmon this month</, 'Recent reports is the default mode');
+test('Rivers sits in the one-row bar, and the (visually hidden) title names the mode', () => {
+  const bar = between('<div class="glass bar" id="bar"', '<div class="glass pop mpop"');
+  assert.match(bar, /id="listbtn"[^>]*>Rivers<\/button>/);
+  assert.match(bar, /<div class="sr"><div class="title" id="ttl">Salmon this month</, 'Recent reports is the default mode; the title stays for screen readers');
   assert.match(html, /\$\('#ttl'\)\.textContent = typ \? 'Typical season' : 'Salmon this month';/);
   assert.match(html, /\$\('#listbtn'\)\.hidden = view !== 'reports';/, 'Rivers belongs to Recent reports only');
 });
