@@ -110,6 +110,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
 <script src="../reports.js"></script>
 <script src="../rules.js"></script>
 <script src="../week.js"></script>
+<script src="tides-data.js"></script>
 <script src="../tides.js"></script>
 <script>
 (function () {
@@ -123,7 +124,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   document.getElementById('range').textContent = Week.fmtDow(res.range.start) + ' – ' + Week.fmtDow(res.range.end);
   document.getElementById('week').appendChild(root);
   document.getElementById('foot-date').textContent = ', updated ' + Week.fmt(window.FY.updated);
-  // Tides go after Coming up (closures first on phones) (tides.js, Task 7). The section is created here so the page shape is stable even before the request answers.
+  // Tides go after Coming up (closures first on phones). Read from the bundled tides-data.js; the page makes no network request.
   if (window.Tides && Tides.mount) Tides.mount(root, document.getElementById('upcoming'), res.range, TODAY, document);
 })();
 </script>

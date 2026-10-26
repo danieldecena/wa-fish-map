@@ -1,11 +1,11 @@
 ## Tasks
 - [ ] Year page: give each season row an `id` (its `seasons.json` id) in the Fishing Year source and rebuild, then switch the Week page's Year links to `../year/index.html#<id>` (`Week.render`, the Open now and Coming up rows).
 - [ ] Spot guides as data (`spots.js` + template) — sub-project 4; `Week.SPOTS` is the stopgap list.
-- [ ] Live conditions sub-project: USGS flow and NOAA tides inside the map's site sheets (tides.js is reusable).
-- [ ] [you] Open the Week tab in the desktop app and confirm the tide section shows 7 days of highs and lows (not "Tide predictions unavailable"). If unavailable, build `scripts/build_tides.py` → bundled `week/tides-data.js`.
+- [ ] Live conditions sub-project: USGS flow inside the map's site sheets (NOAA tides are done for marine Typical-season sheets, from the bundle).
+- [ ] [you] Re-run `scripts/build_tides.py` monthly (next by 2026-11-25) and republish `week/tides-data.js`; the Week tab says through which date it has (first bundle runs through 2026-12-09).
 - [ ] Fishing Year build: `scripts/build_fishing_year.py` writes `Artifacts/fishing-year/`, but the published page is now `salmon-rivers/year/` (with the tab bar). Make the build write `year/data.js` there, or copy it, before the next season refresh.
 - [ ] Harden `links.js` parsing: `month=11abc` is read as 11, and a `today` like `2026-13-99` passes the shape check (the Week page's day maths throws on it). Validate both strictly; `Links.toQuery(null)` also throws.
-- [ ] Week page tides: a stored "You" point with null lat/lon passes `isFinite` and picks `nearest(0,0)`; `now` is computed once at mount and goes stale on a long-open tab; `Tides.parse` throws on null prediction entries.
+- [ ] Week page tides: a stored "You" point with null lat/lon passes `isFinite` and picks `nearest(0,0)`; `now` is computed once at mount and goes stale on a long-open tab.
 - [ ] Week build robustness and tests: `upcoming()` lacks an `FY.seasons || []` guard, a future-dated report counts as fresh, an unknown rating gives the label "undefined"; add boundary tests (start == today, published == today, milestone == today, name tie-break) and render tests for the release-only suffix and escaping.
 - [ ] Map deep links: `?mode=spawning` without `month` gets `&month=<current>` appended on boot (per the spec's write rule); `setMode` fires a transient link sync before the final one. Both self-correct; revisit only if they show up in history or tests.
 - [ ] `check-week.mjs` hardening: the local static server allows `..` paths and a directory request rejects unhandled; unknown `--flags` are silent; a throwing `$eval` skips `browser.close()` (use try/finally).

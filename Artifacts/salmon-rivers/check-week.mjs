@@ -99,9 +99,8 @@ for (const scheme of ['light', 'dark']) {
         const chip = await page.$('.chip.soon');
         check(!!chip, `Week ${w}px: ends-soon chip present with today=${today}`);
         const tides = await page.$$eval('#tides table.tides tbody tr', rs => ({ n: rs.length, ex: rs.every(r => r.querySelector('.ex')) }));
-        const unavailable = await page.$eval('#tides', s => s.textContent.includes('unavailable'));
-        if (args.base) check(tides.n === 7 && tides.ex, `Week ${w}px: tide table has 7 rows, each with an extreme (${tides.n} rows, ex ${tides.ex})`);
-        else check((tides.n === 7 && tides.ex) || unavailable, `Week ${w}px: tide table filled (${tides.n} rows) or marked unavailable`);
+        check(tides.n === 7 && tides.ex, `Week ${w}px: tide table has 7 filled rows, each with an extreme (${tides.n} rows, ex ${tides.ex})`);
+        check(await page.$eval('#tides', s => /^NOAA predictions through [A-Z][a-z]{2} \d{1,2}, MLLW, local time\. Not observations\.$/.test(s.querySelector('.fine').textContent)), `Week ${w}px: tides footnote names the bundle end`);
       }
       if (args.shots) { await mkdir(args.shots, { recursive: true }); await page.screenshot({ path: path.join(args.shots, `${name.toLowerCase()}-${w}-${scheme}.png`), fullPage: true }); }
       await page.close();
@@ -134,11 +133,26 @@ for (const scheme of ['light', 'dark']) {
       check(pos0.r < pos0.t && pos0.r <= 1300, `Week 390px, no ?today: #rules above #tides and within 1300px (${Math.round(pos0.r)})`);
       // Week footer: disclaimer first, WDFW link
       check(await page.$eval('#foot', f => f.textContent.startsWith('Guidance, not regulation.') && !!f.querySelector('a[href*="wdfw.wa.gov"]')), 'Week footer starts with the disclaimer and links wdfw.wa.gov');
-      // tides blocked -> unavailable row
+      // no network: the Week page and the map make no request outside this origin
+      const outside = []; const pn = await ctx.newPage();
+      pn.on('request', r => { if (!r.url().startsWith(base) && !r.url().startsWith('data:') && !r.url().startsWith('blob:')) outside.push(r.url()); });
+      await pn.goto(base + '/week/index.html?today=' + today, { waitUntil: 'networkidle' });
+      await pn.goto(base + '/index.html?mode=typical&site=port-angeles-city-pier&today=' + today, { waitUntil: 'networkidle' });
+      check(outside.length === 0, `no network: no request leaves the page (${outside.slice(0, 3).join(', ')})`);
+      await pn.close();
+      // today past the bundle end -> beyond-bundle rows
       const p2 = await ctx.newPage();
-      await p2.route('**/api.tidesandcurrents.noaa.gov/**', r => r.abort());
-      await p2.goto(base + '/week/index.html?today=' + today, { waitUntil: 'networkidle' });
-      check(await p2.$eval('#tides', s => s.textContent.includes('Tide predictions unavailable right now')), 'tides: blocked request shows the unavailable row');
+      await p2.goto(base + '/week/index.html?today=2027-03-10', { waitUntil: 'networkidle' });
+      const bey = await p2.$$eval('#tides table.tides tbody td', tds => tds.map(t => t.textContent));
+      check(bey.length === 7 && bey.every(t => /^Beyond the bundled predictions \(through [A-Z][a-z]{2} \d{1,2}\)$/.test(t)), `tides: today past the bundle end shows 7 beyond-bundle rows (${bey[0]})`);
+      // map: a Typical season marine site sheet shows Tides today; a freshwater one does not
+      const p3 = await ctx.newPage();
+      await p3.goto(base + '/index.html?mode=typical&site=port-angeles-city-pier&today=' + today, { waitUntil: 'networkidle' });
+      const tt = await p3.$eval('#sbody', b => { const h = [...b.querySelectorAll('h3')].find(x => x.textContent === 'Tides today'); const sec = h && h.parentElement; return sec ? { text: sec.textContent, n: sec.querySelectorAll('.tideline span').length } : null; });
+      check(!!tt && tt.n >= 3 && /Port Angeles station, /.test(tt.text) && /NOAA predictions through [A-Z][a-z]{2} \d{1,2}, MLLW, local time\. Not observations\./.test(tt.text), `map: marine pier sheet shows Tides today with the nearest station and extremes (${tt && tt.text.slice(0, 80)})`);
+      await p3.goto(base + '/index.html?mode=typical&site=cow-lake&today=' + today, { waitUntil: 'networkidle' });
+      check(await p3.$eval('#sbody', b => b.textContent.length > 50 && ![...b.querySelectorAll('h3')].some(x => x.textContent === 'Tides today')), 'map: a freshwater site sheet has no Tides today');
+      await p3.close();
       await page.close(); await p2.close();
     }
     await ctx.close();

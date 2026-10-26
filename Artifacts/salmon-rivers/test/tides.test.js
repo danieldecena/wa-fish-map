@@ -2,54 +2,82 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
 const Tides = require('../tides.js');
 const Week = require('../week.js');
-const fixture = require('./fixtures/noaa-seattle.json');
-const range = Week.range('2026-10-26'); // Mon Oct 26 – Sun Nov 1, matches the fixture's dates
+const range = Week.range('2026-10-26'); // Mon Oct 26 – Sun Nov 1
 
-test('stations: eleven Washington stations with the default present', () => {
+/* A small synthetic bundle: four extremes a day, Oct 26 – Nov 30, three stations. */
+function mkBundle(start, end) {
+  const preds = {};
+  const stations = [
+    { id: '9447130', name: 'Seattle', lat: 47.6026, lon: -122.3393 },
+    { id: '9446484', name: 'Tacoma', lat: 47.2667, lon: -122.4133 },
+    { id: '9441102', name: 'Westport', lat: 46.9043, lon: -124.1051 }
+  ];
+  stations.forEach((s, k) => {
+    preds[s.id] = [];
+    for (let d = Date.parse(start + 'T00:00:00Z'); d <= Date.parse(end + 'T00:00:00Z'); d += 86400000) {
+      const day = new Date(d).toISOString().slice(0, 10);
+      preds[s.id].push([day + ' 06:00', 'H', 11.5 + k], [day + ' 12:00', 'L', 5.04], [day + ' 18:00', 'H', 11.04], [day + ' 23:30', 'L', -2.04]);
+    }
+  });
+  return { generated: start, start, end, stations, predictions: preds };
+}
+const bundle = mkBundle('2026-10-26', '2026-11-30');
+
+test('stations: the fallback list is the eleven verified stations; a bundle replaces it', () => {
   assert.equal(Tides.STATIONS.length, 11);
   assert.ok(Tides.byId(Tides.DEFAULT));
   assert.equal(Tides.byId('nope'), null);
   Tides.STATIONS.forEach(s => { assert.match(s.id, /^\d{7}$/); assert.ok(s.lat > 45 && s.lat < 49.1 && s.lon < -122 && s.lon > -125.5, s.name); });
+  assert.equal(Tides.stationsOf(bundle).length, 3);
+  assert.equal(Tides.stationsOf(undefined), Tides.STATIONS);
+  assert.equal(Tides.stationsOf({ stations: [] }), Tides.STATIONS);
 });
 
-test('nearest: Ballard -> Seattle, Grays Harbor -> Westport', () => {
+test('nearest: Ballard -> Seattle, Grays Harbor -> Westport; a list can be passed; miles is haversine', () => {
   assert.equal(Tides.nearest(47.668, -122.386).id, '9447130');
   assert.equal(Tides.nearest(46.93, -124.05).id, '9441102');
+  assert.equal(Tides.nearest(47.3, -122.4, Tides.stationsOf(bundle)).id, '9446484');
+  const sea = Tides.byId('9447130'), tac = Tides.byId('9446484');
+  const mi = Tides.miles(sea.lat, sea.lon, tac);
+  assert.ok(mi > 22 && mi < 25, String(mi));
+  assert.equal(Tides.miles(sea.lat, sea.lon, sea), 0);
 });
 
-test('url: documented CO-OPS query for the week', () => {
-  const u = Tides.url(Tides.byId('9447130'), range);
-  assert.ok(u.startsWith('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?'));
-  for (const kv of ['product=predictions', 'datum=MLLW', 'interval=hilo', 'units=english', 'time_zone=lst_ldt', 'format=json', 'station=9447130', 'begin_date=20261026', 'end_date=20261101']) assert.ok(u.includes(kv), kv);
+test('days: bundled extremes for the week, in order, heights as numbers', () => {
+  const ds = Tides.days(Tides.byId('9447130'), range, bundle);
+  assert.deepEqual(ds.map(d => d.date), range.days);
+  assert.equal(ds[0].extremes.length, 4);
+  assert.deepEqual(ds[0].extremes[0], { t: '06:00', type: 'H', v: 11.5 });
+  assert.ok(ds.every(d => !d.note));
 });
 
-test('parse: one entry per day of the range, extremes in NOAA order, heights as numbers, outside days dropped', () => {
-  const days = Tides.parse(fixture, range);
-  assert.deepEqual(days.map(d => d.date), range.days);
-  assert.ok(days[0].extremes.length >= 2);
-  assert.equal(typeof days[0].extremes[0].v, 'number');
-  assert.match(days[0].extremes[0].t, /^\d{2}:\d{2}$/);
-  assert.ok(['H', 'L'].includes(days[0].extremes[0].type));
-  const total = days.reduce((n, d) => n + d.extremes.length, 0);
-  const inRange = fixture.predictions.filter(p => p.t.slice(0, 10) >= range.start && p.t.slice(0, 10) <= range.end).length;
-  assert.equal(total, inRange);
-  const shifted = Tides.parse(fixture, Week.range('2026-11-02'));
-  assert.equal(shifted.reduce((n, d) => n + d.extremes.length, 0), fixture.predictions.filter(p => p.t.slice(0, 10) >= '2026-11-02').length);
+test('days: after the bundle end the day has no extremes and a note naming the last date', () => {
+  const short = mkBundle('2026-10-26', '2026-10-28');
+  const ds = Tides.days(Tides.byId('9447130'), range, short);
+  assert.equal(ds[2].extremes.length, 4);
+  assert.equal(ds[3].extremes.length, 0);
+  assert.equal(ds[3].note, 'Beyond the bundled predictions (through Oct 28)');
+  assert.equal(ds[6].note, ds[3].note);
+  const early = Tides.days(Tides.byId('9447130'), range, mkBundle('2026-10-28', '2026-11-30'));
+  assert.equal(early[0].note, 'Before the bundled predictions (from Oct 28)');
 });
 
-test('load: resolves parsed days; rejects on HTTP error, bad JSON and a NOAA error object', async () => {
-  const ok = () => Promise.resolve({ ok: true, json: () => Promise.resolve(fixture) });
-  assert.equal((await Tides.load(Tides.byId('9447130'), range, ok)).length, 7);
-  await assert.rejects(Tides.load(Tides.byId('9447130'), range, () => Promise.resolve({ ok: false, status: 503, json: () => Promise.resolve({}) })), /503/);
-  await assert.rejects(Tides.load(Tides.byId('9447130'), range, () => Promise.resolve({ ok: true, json: () => Promise.reject(new Error('bad json')) })), /bad json/);
-  await assert.rejects(Tides.load(Tides.byId('9447130'), range, () => Promise.resolve({ ok: true, json: () => Promise.resolve({ error: { message: 'No data was found' } }) })), /No data was found/);
+test('days: null without a bundle or without predictions for the station', () => {
+  assert.equal(Tides.days(Tides.byId('9447130'), range, undefined), null);
+  assert.equal(Tides.days(Tides.byId('9447130'), range, { start: 'a', end: 'b' }), null);
+  assert.equal(Tides.days(Tides.byId('9444900'), range, bundle), null);
 });
 
-test('fmtTime', () => {
+test('fmtTime, fmtExtreme and footnote', () => {
   assert.equal(Tides.fmtTime('03:12'), '3:12 am'); assert.equal(Tides.fmtTime('13:40'), '1:40 pm');
   assert.equal(Tides.fmtTime('00:05'), '12:05 am'); assert.equal(Tides.fmtTime('12:00'), '12:00 pm');
+  assert.equal(Tides.fmtExtreme({ t: '13:40', type: 'L', v: -1.04 }), 'L 1:40 pm · -1.0 ft');
+  assert.equal(Tides.footnote(bundle), 'NOAA predictions through Nov 30, MLLW, local time. Not observations.');
 });
 
 function fakeDoc() {
@@ -72,14 +100,14 @@ function fakeDoc() {
   El.prototype.querySelector = function (sel) { return this.querySelectorAll(sel)[0] || null; };
   return { createElement: t => new El(t), createTextNode: t => ({ tagName: '#text', children: [], textContent: String(t), parentNode: null }) };
 }
-const days0 = Tides.parse(fixture, range);
+
+const days0 = Tides.days(Tides.byId('9447130'), range, bundle);
 
 test('nextIndex: the first extreme after now, only one, none when the week is over', () => {
-  const first = days0[0].extremes[0], second = days0[0].extremes[1];
   assert.deepEqual(Tides.nextIndex(days0, '2026-10-26 00:00'), { day: 0, i: 0 });
-  assert.deepEqual(Tides.nextIndex(days0, '2026-10-26 ' + first.t), { day: 0, i: 1 });
+  assert.deepEqual(Tides.nextIndex(days0, '2026-10-26 06:00'), { day: 0, i: 1 });
+  assert.deepEqual(Tides.nextIndex(days0, '2026-10-26 23:45'), { day: 1, i: 0 });
   assert.equal(Tides.nextIndex(days0, '2026-11-02 00:00'), null);
-  assert.ok(second);
 });
 
 test('render: seven rows, today marked, exactly one next extreme, am/pm times and feet', () => {
@@ -92,81 +120,96 @@ test('render: seven rows, today marked, exactly one next extreme, am/pm times an
   assert.match(t.querySelectorAll('.ex')[0].textContent, /^[HL] \d{1,2}:\d{2} [ap]m · -?\d+\.\d ft$/);
 });
 
-test('render: a day without extremes shows a dash', () => {
+test('render: a day without extremes shows a dash; a beyond-bundle day shows its note and no extremes', () => {
   const t = Tides.render([{ date: '2026-10-26', extremes: [] }], '2026-10-26 00:00', fakeDoc());
   assert.equal(t.querySelectorAll('td')[0].textContent, '—');
-});
-
-test('mount: section inserted after the given one, default station, stored and nearest choice, failure row', async () => {
-  const doc = fakeDoc();
-  const root = doc.createElement('div'), a = doc.createElement('section'), b = doc.createElement('section');
-  a.id = 'reported'; b.id = 'rules'; root.appendChild(a); root.appendChild(b);
-  const store = {};
-  const storage = { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); } };
-  const calls = [];
-  const fetchOk = u => { calls.push(u); return Promise.resolve({ ok: true, json: () => Promise.resolve(fixture) }); };
-  await Tides.mount(root, a, range, '2026-10-26', doc, { fetch: fetchOk, storage, now: '2026-10-26 00:00' });
-  assert.equal(root.children[1].id, 'tides');
-  assert.ok(calls[0].includes('station=9447130'));
-  assert.equal(root.children[1].querySelector('select').value, '9447130');
-  assert.equal(root.children[1].querySelectorAll('tr').length, 7);
-  // a stored choice wins over the default
-  store[Tides.STORE_KEY] = '9446484';
-  const root2 = doc.createElement('div'), a2 = doc.createElement('section'); root2.appendChild(a2);
-  await Tides.mount(root2, a2, range, '2026-10-26', doc, { fetch: fetchOk, storage, now: '2026-10-26 00:00' });
-  assert.ok(calls[1].includes('station=9446484'));
-  // an unknown stored id falls back; a stored "me" point picks the nearest
-  store[Tides.STORE_KEY] = 'bogus'; store[Tides.ME_KEY] = JSON.stringify({ lat: 46.93, lon: -124.05, label: 'x' });
-  const root3 = doc.createElement('div'), a3 = doc.createElement('section'); root3.appendChild(a3);
-  await Tides.mount(root3, a3, range, '2026-10-26', doc, { fetch: fetchOk, storage, now: '2026-10-26 00:00' });
-  assert.ok(calls[2].includes('station=9441102'));
-  // failure shows the unavailable row with a NOAA link
-  const root4 = doc.createElement('div'), a4 = doc.createElement('section'); root4.appendChild(a4);
-  await Tides.mount(root4, a4, range, '2026-10-26', doc, { fetch: () => Promise.reject(new Error('blocked')), storage, now: '2026-10-26 00:00' });
-  assert.ok(root4.children[1].textContent.includes('Tide predictions unavailable right now'));
-  assert.ok(root4.children[1].querySelectorAll('a').some(x => x.attrs.href.includes('tidesandcurrents.noaa.gov')));
-  // changing the picker fetches again and stores the choice
-  const sel = root.children[1].querySelector('select'); sel.value = '9444900'; sel.fire('change');
-  await new Promise(r => setTimeout(r, 0));
-  assert.ok(calls[calls.length - 1].includes('station=9444900'));
-  assert.equal(store[Tides.STORE_KEY], '9444900');
+  const ds = Tides.days(Tides.byId('9447130'), range, mkBundle('2026-10-26', '2026-10-28'));
+  const t2 = Tides.render(ds, '2026-10-26 00:00', fakeDoc());
+  const tds = t2.querySelectorAll('td');
+  assert.equal(tds[3].textContent, 'Beyond the bundled predictions (through Oct 28)');
+  assert.equal(tds[3].querySelectorAll('.ex').length, 0);
+  assert.equal(t2.querySelectorAll('.next').length, 1);
 });
 
 function mkRoot(doc) { const root = doc.createElement('div'), a = doc.createElement('section'); root.appendChild(a); return { root, a }; }
-const oneJson = { predictions: [{ t: '2026-10-26 03:33', v: '1.0', type: 'H' }] };
+const NOW = '2026-10-26 00:00';
+const noStore = { getItem: () => null, setItem: () => {} };
 
-test('mount: a stale response from an earlier picker choice is dropped', async () => {
-  const doc = fakeDoc(), { root, a } = mkRoot(doc), pend = [];
-  const fetchDef = () => new Promise(res => pend.push(res));
-  const storage = { getItem: () => null, setItem: () => {} };
-  const p0 = Tides.mount(root, a, range, '2026-10-26', doc, { fetch: fetchDef, storage, now: '2026-10-26 00:00' });
-  const sel = root.children[1].querySelector('select'); sel.value = '9446484'; sel.fire('change');
-  const ok = j => ({ ok: true, json: () => Promise.resolve(j) });
-  pend[1](ok(oneJson)); await new Promise(r => setTimeout(r, 0));
-  pend[0](ok(fixture)); await p0; await new Promise(r => setTimeout(r, 0));
-  const sec = root.children[1];
-  assert.equal(sec.querySelector('.cap').textContent, 'Tides · Tacoma');
-  assert.equal(sec.querySelectorAll('.ex').length, 1);
-});
-
-test('mount: a throwing localStorage getter does not stop the section mounting', async () => {
-  const doc = fakeDoc(), { root, a } = mkRoot(doc), calls = [];
-  Object.defineProperty(globalThis, 'localStorage', { get() { throw new Error('SecurityError'); }, configurable: true });
-  try {
-    await Tides.mount(root, a, range, '2026-10-26', doc, { fetch: u => { calls.push(u); return Promise.resolve({ ok: true, json: () => Promise.resolve(fixture) }); }, now: '2026-10-26 00:00' });
-  } finally { delete globalThis.localStorage; }
-  assert.equal(root.children[1].id, 'tides');
-  assert.ok(calls[0].includes('station=9447130'));
-});
-
-test('mount: a pinned today inside the week marks that row and its first extreme is next', async () => {
+test('mount: synchronous; section after the given one, default station, footnote, seven filled rows', () => {
   const doc = fakeDoc(), { root, a } = mkRoot(doc);
-  // No opts.now: stub the clock far from the fixture week so the pinned `today` (not the real date) must drive the result.
+  const sec = Tides.mount(root, a, range, '2026-10-26', doc, { bundle, storage: noStore, now: NOW });
+  assert.equal(root.children[1], sec);
+  assert.equal(sec.id, 'tides');
+  assert.equal(sec.querySelector('select').value, '9447130');
+  assert.equal(sec.querySelector('.cap').textContent, 'Tides · Seattle');
+  assert.equal(sec.querySelectorAll('select')[0].children.length, 3);
+  assert.equal(sec.querySelectorAll('tr').length, 7);
+  assert.ok(sec.querySelectorAll('tr').every(r => r.querySelector('.ex')));
+  assert.equal(sec.querySelectorAll('.fine')[0].textContent, 'NOAA predictions through Nov 30, MLLW, local time. Not observations.');
+});
+
+test('mount: stored choice wins; an unknown stored id falls back to the nearest saved point; picker stores and re-renders', () => {
+  const doc = fakeDoc(), store = {};
+  const storage = { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); } };
+  store[Tides.STORE_KEY] = '9446484';
+  let m = mkRoot(doc);
+  let sec = Tides.mount(m.root, m.a, range, '2026-10-26', doc, { bundle, storage, now: NOW });
+  assert.equal(sec.querySelector('select').value, '9446484');
+  assert.equal(sec.querySelector('.cap').textContent, 'Tides · Tacoma');
+  store[Tides.STORE_KEY] = 'bogus'; store[Tides.ME_KEY] = JSON.stringify({ lat: 46.93, lon: -124.05, label: 'x' });
+  m = mkRoot(doc);
+  sec = Tides.mount(m.root, m.a, range, '2026-10-26', doc, { bundle, storage, now: NOW });
+  assert.equal(sec.querySelector('select').value, '9441102');
+  // a station the bundle does not have is not picked even if stored
+  store[Tides.STORE_KEY] = '9444900'; delete store[Tides.ME_KEY];
+  m = mkRoot(doc);
+  sec = Tides.mount(m.root, m.a, range, '2026-10-26', doc, { bundle, storage, now: NOW });
+  assert.equal(sec.querySelector('select').value, '9447130');
+  // changing the picker redraws synchronously and stores the choice
+  const sel = sec.querySelector('select'); sel.value = '9441102'; sel.fire('change');
+  assert.equal(sec.querySelector('.cap').textContent, 'Tides · Westport');
+  assert.equal(store[Tides.STORE_KEY], '9441102');
+  assert.equal(sec.querySelectorAll('tr').length, 7);
+  assert.equal(sec.querySelectorAll('.ex')[0].textContent, 'H 6:00 am · 13.5 ft');
+});
+
+test('mount: no bundle shows the unavailable row with a NOAA link and the fallback stations', () => {
+  const doc = fakeDoc(), { root, a } = mkRoot(doc);
+  const sec = Tides.mount(root, a, range, '2026-10-26', doc, { bundle: undefined, storage: noStore, now: NOW });
+  assert.ok(sec.textContent.includes('Tide predictions unavailable right now'));
+  assert.ok(sec.querySelectorAll('a').some(x => x.attrs.href.includes('tidesandcurrents.noaa.gov') && x.textContent === 'See NOAA for Seattle'));
+  assert.equal(sec.querySelectorAll('tr').length, 0);
+  assert.equal(sec.querySelector('select').children.length, 11);
+});
+
+test('mount: a bundle without predictions for the chosen station also shows the unavailable row', () => {
+  const doc = fakeDoc(), { root, a } = mkRoot(doc);
+  const b = mkBundle('2026-10-26', '2026-11-30'); delete b.predictions['9447130'];
+  const sec = Tides.mount(root, a, range, '2026-10-26', doc, { bundle: b, storage: noStore, now: NOW });
+  assert.ok(sec.textContent.includes('Tide predictions unavailable right now'));
+});
+
+test('mount: window.TIDES (globalThis) is used when no bundle is passed', () => {
+  const doc = fakeDoc(), { root, a } = mkRoot(doc);
+  globalThis.TIDES = bundle;
+  try { Tides.mount(root, a, range, '2026-10-26', doc, { storage: noStore, now: NOW }); } finally { delete globalThis.TIDES; }
+  assert.equal(root.children[1].querySelectorAll('tr').length, 7);
+});
+
+test('mount: a throwing localStorage getter does not stop the section mounting', () => {
+  const doc = fakeDoc(), { root, a } = mkRoot(doc);
+  Object.defineProperty(globalThis, 'localStorage', { get() { throw new Error('SecurityError'); }, configurable: true });
+  try { Tides.mount(root, a, range, '2026-10-26', doc, { bundle, now: NOW }); } finally { delete globalThis.localStorage; }
+  assert.equal(root.children[1].id, 'tides');
+  assert.equal(root.children[1].querySelector('select').value, '9447130');
+});
+
+test('mount: a pinned today inside the week marks that row and its first extreme is next', () => {
+  const doc = fakeDoc(), { root, a } = mkRoot(doc);
+  // No opts.now: stub the clock far from the week so the pinned `today` (not the real date) must drive the result.
   const RealDate = globalThis.Date, FIXED = new RealDate('2030-01-01T12:00:00').getTime();
   globalThis.Date = class extends RealDate { constructor(...args) { if (args.length) super(...args); else super(FIXED); } static now() { return FIXED; } };
-  try {
-    await Tides.mount(root, a, range, '2026-10-28', doc, { fetch: () => Promise.resolve({ ok: true, json: () => Promise.resolve(fixture) }), storage: null });
-  } finally { globalThis.Date = RealDate; }
+  try { Tides.mount(root, a, range, '2026-10-28', doc, { bundle, storage: null }); } finally { globalThis.Date = RealDate; }
   const t = root.children[1];
   const today = t.querySelectorAll('tr').filter(r => r.className === 'today');
   assert.equal(today.length, 1);
@@ -176,8 +219,52 @@ test('mount: a pinned today inside the week marks that row and its first extreme
   assert.equal(nx[0].textContent, today[0].querySelectorAll('.ex')[0].textContent);
 });
 
-test('mount: a fetch that never answers falls to the unavailable row after opts.timeoutMs', async () => {
+test('mount: a week past the bundle end shows beyond rows (no extremes) and the footnote still names the end', () => {
   const doc = fakeDoc(), { root, a } = mkRoot(doc);
-  await Tides.mount(root, a, range, '2026-10-26', doc, { fetch: () => new Promise(() => {}), storage: null, now: '2026-10-26 00:00', timeoutMs: 20 });
-  assert.ok(root.children[1].textContent.includes('Tide predictions unavailable right now'));
+  const r2 = Week.range('2026-12-09');
+  const sec = Tides.mount(root, a, r2, '2026-12-09', doc, { bundle, storage: noStore });
+  const tds = sec.querySelectorAll('td');
+  assert.equal(tds.length, 7);
+  assert.ok(tds.every(td => td.textContent === 'Beyond the bundled predictions (through Nov 30)'));
+  assert.equal(sec.querySelectorAll('.ex').length, 0);
+  assert.ok(sec.querySelectorAll('.fine')[0].textContent.includes('through Nov 30'));
+});
+
+/* The no-network rule: the page makes no requests at all. */
+test('no network: tides.js, week.js, index.html and week/index.html contain no fetch( or XMLHttpRequest', () => {
+  for (const f of ['tides.js', 'week.js', 'index.html', 'week/index.html']) {
+    const src = fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
+    assert.ok(!/\bfetch\s*\(/.test(src), f + ' calls fetch(');
+    assert.ok(!/XMLHttpRequest/.test(src), f + ' uses XMLHttpRequest');
+    assert.ok(!/AbortController|sendBeacon|new WebSocket|new EventSource/.test(src), f + ' uses a network API');
+  }
+});
+
+/* The bundle itself (written by scripts/build_tides.py). */
+test('tides-data.js: parses, covers at least 30 days, every station has every day, ids are 7-digit WA stations', () => {
+  const src = fs.readFileSync(path.join(__dirname, '..', 'week', 'tides-data.js'), 'utf8');
+  assert.ok(/^\/\* Generated by scripts\/build_tides\.py/.test(src));
+  const win = {}; vm.runInNewContext(src, { window: win });
+  const T = win.TIDES;
+  assert.match(T.generated, /^\d{4}-\d{2}-\d{2}$/);
+  const n = (Date.parse(T.end + 'T00:00:00Z') - Date.parse(T.start + 'T00:00:00Z')) / 86400000 + 1;
+  assert.ok(n >= 30, 'covers ' + n + ' days');
+  assert.ok(T.stations.length >= 20);
+  const seen = new Set();
+  T.stations.forEach(s => {
+    assert.match(s.id, /^\d{7}$/); assert.ok(!seen.has(s.id)); seen.add(s.id);
+    assert.ok(s.name && s.name.length < 24, s.id);
+    assert.ok(s.lat > 45.5 && s.lat < 49.1 && s.lon < -122 && s.lon > -125, s.name + ' is inside Washington');
+    const rows = T.predictions[s.id];
+    assert.ok(Array.isArray(rows) && rows.length >= n * 3, s.id + ' has predictions');
+    const days = new Set(rows.map(r => r[0].slice(0, 10)));
+    for (let i = 0; i < n; i++) assert.ok(days.has(new Date(Date.parse(T.start + 'T00:00:00Z') + i * 86400000).toISOString().slice(0, 10)), s.name + ' has every day');
+    rows.forEach((r, i) => {
+      assert.match(r[0], /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/); assert.ok(r[1] === 'H' || r[1] === 'L'); assert.equal(typeof r[2], 'number');
+      if (i) assert.ok(r[0] > rows[i - 1][0], s.id + ' increasing at ' + r[0]);
+    });
+    assert.ok(rows[0][0].slice(0, 10) >= T.start && rows[rows.length - 1][0].slice(0, 10) <= T.end);
+  });
+  assert.deepEqual(Object.keys(T.predictions).sort(), [...seen].sort());
+  Tides.STATIONS.forEach(s => assert.ok(seen.has(s.id), 'bundle keeps ' + s.name));
 });
