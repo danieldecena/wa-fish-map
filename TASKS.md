@@ -4,22 +4,22 @@
 - [ ] Live conditions sub-project: USGS flow inside the map's site sheets (NOAA tides are done for marine Typical-season sheets, from the bundle).
 - [ ] [you] Re-run `scripts/build_tides.py` monthly (next by 2026-11-25) and republish `week/tides-data.js`; the Week tab says through which date it has (first bundle runs through 2026-12-09).
 - [ ] Fishing Year build: `scripts/build_fishing_year.py` writes `Artifacts/fishing-year/`, but the published page is now `salmon-rivers/year/` (with the tab bar). Make the build write `year/data.js` there, or copy it, before the next season refresh.
-- [ ] Harden `links.js` parsing: `month=11abc` is read as 11, and a `today` like `2026-13-99` passes the shape check (the Week page's day maths throws on it). Validate both strictly; `Links.toQuery(null)` also throws.
-- [ ] Week page tides: a stored "You" point with null lat/lon passes `isFinite` and picks `nearest(0,0)`; `now` is computed once at mount and goes stale on a long-open tab.
-- [ ] Week build robustness and tests: `upcoming()` lacks an `FY.seasons || []` guard, a future-dated report counts as fresh, an unknown rating gives the label "undefined"; add boundary tests (start == today, published == today, milestone == today, name tie-break) and render tests for the release-only suffix and escaping.
+- [x] Harden `links.js` parsing: month `^\d{1,2}$`, `today` a real calendar date, `Links.toQuery(null)` returns ''.
+- [ ] Week page tides: `now` is computed once at mount and goes stale on a long-open tab (skipped this batch). Done: a stored "You" point with null/non-number lat/lon is ignored.
+- [x] Week build robustness and tests: `FY.seasons || []` guard, future-dated reports are not fresh, unknown rating reads "No report", empty Spots row; boundary, tie-break, release-only and escaping tests.
 - [ ] Map deep links: `?mode=spawning` without `month` gets `&month=<current>` appended on boot (per the spec's write rule); `setMode` fires a transient link sync before the final one. Both self-correct; revisit only if they show up in history or tests.
-- [ ] `check-week.mjs` hardening: the local static server allows `..` paths and a directory request rejects unhandled; unknown `--flags` are silent; a throwing `$eval` skips `browser.close()` (use try/finally).
+- [x] `check-week.mjs` hardening: static server 403 on escaping paths, directory serves index.html or 404, unknown `--flags` exit 2 with usage, `browser.close()` in try/finally.
 
 #### Design critique 2026-10-26
 
-- [ ] Counts on a phone hides the counts: at <=480 px put the filters in a closed `<details>` ("Filters · N active"), make the River column sticky, add a right-edge fade on the scroller.
-- [ ] Counts does not follow the site's page shell: centred column and `h1` like Week/Spots, plain subtitle, rename "(not parsed)" to "Unclear species".
-- [ ] Tide rows wrap raggedly on desktop: at >=600 px make each `td` a 4-column grid so extremes line up.
-- [ ] Map overlays cover most of the map on phones: collapse the legend to a "Key" button at <=390 px and hide the hint after first interaction.
-- [ ] Amber/orange used outside the rating ramp: Year progress bars to `--accent`/neutral; Week "ends soon" chip adds the words "Ends soon".
-- [ ] Unexplained "Taste #3" chip on Week: render "Taste #3 of 5" with a title explaining the taste order.
-- [ ] Repeated "Read the rule" link text on Week: add an `aria-label` naming the rivers.
-- [ ] Small Week copy redundancies: caption "Tides" instead of "Tides · Seattle"; merge the footer to "Seasons from Washington Fishing Year, updated Oct 19."
+- [x] Counts on a phone: closed Filters details ("Filters · N active"), sticky River column, right-edge fade (<=480 px).
+- [x] Counts page shell: centred column, large h1, plain subtitle, "(not parsed)" shown as "Unclear species" (display only; `counts/index.html` is hand-maintained, the data keeps the raw value).
+- [x] Tide rows: at >=600 px each `td` is a 4-column grid so extremes line up (long extremes still wrap inside their column).
+- [x] Map overlays on phones: legend collapses to a 44 px "Key" button at <=390 px; the "Tap any river" hint hides after the first tap, drag or zoom (session).
+- [x] Amber/orange outside the rating ramp: Year progress meter and selected calendar bar use `--accent` (plain CSS in `year/index.html`); Week chip reads "Ends soon · ends Oct 31 · 5 days". Follow-up: the Year source that builds `year/index.html` is not in this repo, so the same two CSS values must be changed there before the next rebuild.
+- [x] "Taste #3 of 5" with a title explaining the taste order.
+- [x] Repeated "Read the rule" links carry `aria-label="Read the WDFW rule for <rivers>"`.
+- [x] Week copy: tides caption is "Tides" (picker names the station); footer already read "Seasons from Washington Fishing Year, updated <date>."
 - [ ] Open-now rows on Week have no way onward (Year detail or map state); file with the Year-anchor follow-up above.
 - [x] Harden WeatherKit attribution: larger mark + legal link
 - [x] Device UI test asserts attribution mark and legal link

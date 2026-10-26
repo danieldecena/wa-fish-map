@@ -1,7 +1,7 @@
 // Artifacts/salmon-rivers/check-week.mjs — page check for the five-tab site. Local: serves this folder; published: pass --base <url>.
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -14,15 +14,28 @@ const loadPW = async () => {
 };
 const { chromium } = await loadPW();
 
-const args = Object.fromEntries(process.argv.slice(2).map((a, i, arr) => a.startsWith('--') ? [a.slice(2), arr[i + 1]] : []).filter(x => x.length));
+const USAGE = 'usage: node check-week.mjs [--base <url>] [--today YYYY-MM-DD] [--shots <dir>]';
+const args = {};
+{
+  const argv = process.argv.slice(2);
+  for (let i = 0; i < argv.length; i++) {
+    const k = argv[i].startsWith('--') ? argv[i].slice(2) : null;
+    if (!['base', 'today', 'shots'].includes(k) || argv[i + 1] === undefined || argv[i + 1].startsWith('--')) { console.error((k ? `bad or unknown option: ${argv[i]}` : `unexpected argument: ${argv[i]}`) + '\n' + USAGE); process.exit(2); }
+    args[k] = argv[++i];
+  }
+}
 const today = args.today || '2026-10-26';
 let base = args.base, server = null;
 if (!base) {
   const types = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.png': 'image/png' };
   server = createServer(async (req, res) => {
-    const p = path.join(here, decodeURIComponent(req.url.split('?')[0]));
-    if (!existsSync(p)) { res.writeHead(404); res.end(); return; }
-    res.writeHead(200, { 'content-type': types[path.extname(p)] || 'application/octet-stream' }); res.end(await readFile(p));
+    try {
+      let p = path.resolve(here, '.' + decodeURIComponent(req.url.split('?')[0]));
+      if (p !== here && !p.startsWith(here + path.sep)) { res.writeHead(403); res.end(); return; }
+      if (existsSync(p) && statSync(p).isDirectory()) p = path.join(p, 'index.html');
+      if (!existsSync(p) || statSync(p).isDirectory()) { res.writeHead(404); res.end(); return; }
+      res.writeHead(200, { 'content-type': types[path.extname(p)] || 'application/octet-stream' }); res.end(await readFile(p));
+    } catch { res.writeHead(400); res.end(); }
   }).listen(0);
   base = 'http://127.0.0.1:' + server.address().port;
 }
@@ -31,7 +44,17 @@ const MINC = 4.5;
 const fails = [];
 const check = (ok, msg) => { if (!ok) fails.push(msg); console.log((ok ? 'ok   ' : 'FAIL ') + msg); };
 const browser = await chromium.launch();
+try {
 const sizes = [[320, 700], [390, 844], [1024, 768]];
+if (server) {
+  // The local static server: no path may leave this folder, a directory serves its index.html, a missing directory is a 404.
+  const raw = p => new Promise((ok, no) => { const r = httpRequest({ host: '127.0.0.1', port: server.address().port, path: p }, res => { res.resume(); ok(res.statusCode); }); r.on('error', no); r.end(); });
+  check(await raw('/../package.json') === 403, 'static server: /../ escaping the folder is 403');
+  check(await raw('/week/../../x') === 403, 'static server: nested .. escaping the folder is 403');
+  check(await raw('/%2e%2e/x') === 403, 'static server: encoded .. escaping the folder is 403');
+  check(await raw('/week/') === 200, 'static server: a directory serves its index.html');
+  check(await raw('/nope/') === 404, 'static server: a missing directory is 404');
+}
 for (const scheme of ['light', 'dark']) {
   for (const [w, h] of sizes) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h }, colorScheme: scheme });
@@ -102,6 +125,57 @@ for (const scheme of ['light', 'dark']) {
         check(tides.n === 7 && tides.ex, `Week ${w}px: tide table has 7 filled rows, each with an extreme (${tides.n} rows, ex ${tides.ex})`);
         check(await page.$eval('#tides', s => /^NOAA predictions through [A-Z][a-z]{2} \d{1,2}, MLLW, local time\. Not observations\.$/.test(s.querySelector('.fine').textContent)), `Week ${w}px: tides footnote names the bundle end`);
       }
+      if (name === 'Week' && w >= 600) {
+        // Polish: at >=600px each day's td is a four-column grid, so the nth extreme of every row starts at the same x.
+        const g = await page.$$eval('#tides table.tides tbody tr', rs => rs.map(r => { const td = r.querySelector('td'); return { cols: getComputedStyle(td).gridTemplateColumns.split(' ').length, display: getComputedStyle(td).display, lefts: [...td.querySelectorAll('.ex')].map(e => Math.round(e.getBoundingClientRect().left)) }; }));
+        check(g.every(r => r.display === 'grid' && r.cols === 4), `Week ${w}px ${scheme}: every tide td is a 4-column grid (${g.map(r => r.cols).join(',')})`);
+        const aligned = [0, 1, 2, 3].every(k => new Set(g.filter(r => r.lefts.length > k).map(r => r.lefts[k])).size <= 1);
+        check(aligned, `Week ${w}px ${scheme}: the nth extreme starts at the same x in every row (${g.map(r => r.lefts.join('/')).join(' | ')})`);
+      }
+      if (name === 'Week') {
+        const t = await page.evaluate(() => ({ cap: document.querySelector('#tides .cap').textContent, soon: document.querySelector('.chip.soon').textContent, taste: [...document.querySelectorAll('.chip')].filter(c => /^Taste/.test(c.textContent)).map(c => [c.textContent, c.title]), rules: [...document.querySelectorAll('#rules a')].map(a => [a.textContent, a.getAttribute('aria-label')]) }));
+        check(t.cap === 'Tides', `Week ${w}px: tides caption is just "Tides" (${t.cap})`);
+        check(/^Ends soon · ends [A-Z][a-z]{2} \d{1,2} · \d+ days?$|^Ends soon · ends today$/.test(t.soon), `Week ${w}px: ends-soon chip has the words (${t.soon})`);
+        check(t.taste.length > 0 && t.taste.every(([x, ti]) => /^Taste #\d of 5$/.test(x) && /Taste order, richest first/.test(ti)), `Week ${w}px: taste chips read "of 5" with a title (${t.taste[0]})`);
+        check(t.rules.length > 0 && t.rules.every(([x, l]) => x === 'Read the rule' && /^Read the WDFW rule for \S/.test(l)), `Week ${w}px: rule links name their rivers (${t.rules[0] && t.rules[0][1]})`);
+      }
+      if (name === 'Counts') {
+        const c = await page.evaluate(() => {
+          const d = document.getElementById('filters'), sum = document.getElementById('fsum'), h1 = document.querySelector('h1');
+          const grid = document.getElementById('grid'), th = document.querySelector('thead th'), td = document.querySelector('tbody tr td');
+          grid.scrollLeft = 150;
+          const gl = grid.getBoundingClientRect().left;
+          return { open: d.open, sumShown: getComputedStyle(sum).display !== 'none', sumText: sum.textContent, sumH: sum.getBoundingClientRect().height, h1: h1.textContent, hAlign: Math.abs((h1.getBoundingClientRect().left + h1.getBoundingClientRect().right) / 2 - innerWidth / 2) < 40 || innerWidth < 600,
+            thPos: getComputedStyle(th).position, tdPos: getComputedStyle(td).position, scrolled: grid.scrollLeft, tdLeft: Math.round(td.getBoundingClientRect().left - gl), fade: getComputedStyle(document.getElementById('gridwrap'), '::after').opacity,
+            text: document.querySelector('main').textContent };
+        });
+        check(c.h1 === 'SW Washington creel counts' && c.hAlign, `Counts ${w}px: h1 in the centred column (${c.h1})`);
+        check(!/\(not parsed\)/.test(c.text) && /Unclear species/.test(c.text), `Counts ${w}px: "(not parsed)" is shown as "Unclear species"`);
+        if (w <= 480) {
+          check(!c.open && c.sumShown && /^Filters · \d+ active$/.test(c.sumText) && c.sumH >= 44, `Counts ${w}px ${scheme}: filters are in a closed details, "${c.sumText}", summary ${Math.round(c.sumH)}px`);
+          check(c.scrolled > 0 && c.thPos === 'sticky' && c.tdPos === 'sticky' && c.tdLeft === 0, `Counts ${w}px ${scheme}: River column is sticky (scrolled ${c.scrolled}px, cell at ${c.tdLeft}px from the scroller edge)`);
+          check(Number(c.fade) === 1, `Counts ${w}px ${scheme}: right-edge fade shows while the table can scroll (${c.fade})`);
+        } else {
+          check(c.open && !c.sumShown, `Counts ${w}px: filters are open and the summary is hidden`);
+        }
+      }
+      if (name === 'Map' && w <= 390) {
+        const k = await page.evaluate(() => { const b = document.getElementById('legkey'), body = document.getElementById('legbody'); return { h: b.getBoundingClientRect().height, shown: getComputedStyle(b).display !== 'none', body: getComputedStyle(body).display !== 'none', exp: b.getAttribute('aria-expanded'), text: b.textContent, hint: getComputedStyle(document.getElementById('rhint')).display !== 'none' }; });
+        check(k.shown && k.text === 'Key' && k.h >= 44 && !k.body && k.exp === 'false', `Map ${w}px ${scheme}: legend is collapsed to a 44px Key button (${Math.round(k.h)}px, body shown ${k.body})`);
+        await page.click('#legkey');
+        const k2 = await page.evaluate(() => ({ body: getComputedStyle(document.getElementById('legbody')).display !== 'none', exp: document.getElementById('legkey').getAttribute('aria-expanded') }));
+        check(k2.body && k2.exp === 'true', `Map ${w}px ${scheme}: Key opens the legend`);
+        await page.click('#legkey');
+        check(await page.evaluate(() => getComputedStyle(document.getElementById('legbody')).display === 'none'), `Map ${w}px ${scheme}: Key closes it again`);
+        check(k.hint, `Map ${w}px ${scheme}: the "Tap any river" hint shows before any interaction`);
+        await page.click('#zin');
+        check(await page.evaluate(() => getComputedStyle(document.getElementById('rhint')).display === 'none'), `Map ${w}px ${scheme}: the hint hides after the first map interaction`);
+        await page.reload({ waitUntil: 'networkidle' });
+        check(await page.evaluate(() => getComputedStyle(document.getElementById('rhint')).display === 'none'), `Map ${w}px ${scheme}: the hint stays hidden for the session`);
+      }
+      if (name === 'Map' && w >= 1024) {
+        check(await page.evaluate(() => getComputedStyle(document.getElementById('legkey')).display === 'none' && getComputedStyle(document.getElementById('legbody')).display !== 'none'), `Map ${w}px: no Key button, the legend is open`);
+      }
       if (args.shots) { await mkdir(args.shots, { recursive: true }); await page.screenshot({ path: path.join(args.shots, `${name.toLowerCase()}-${w}-${scheme}.png`), fullPage: true }); }
       await page.close();
     }
@@ -158,6 +232,6 @@ for (const scheme of ['light', 'dark']) {
     await ctx.close();
   }
 }
-await browser.close(); if (server) server.close();
+} finally { await browser.close(); if (server) server.close(); }
 console.log(fails.length ? `\n${fails.length} FAILED` : '\nall checks passed');
 process.exit(fails.length ? 1 : 0);
