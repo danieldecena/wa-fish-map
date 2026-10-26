@@ -239,6 +239,9 @@ a { color: var(--on-text); }
 .modes button[aria-checked="true"]::before { background: var(--seg-on); box-shadow: var(--seg-shadow); }
 @media (hover: hover) { .modes button:not([aria-checked="true"]):hover { color: var(--seg-ink); } }
 .modebtn, .fi, .sdot { display: none; }
+/* Phones only: the stale-report date is otherwise behind the icon-only notice button. Plain ink on glass, never a rating colour. */
+.agechip { display: none; align-self: flex-start; max-width: 100%; padding: 6px 12px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink); }
+@media (max-width: 520px) { .agechip:not([hidden]) { display: block; } }
 .mpop { width: min(240px, 100%); }
 .mpop .seg.modes { flex-direction: column; flex-wrap: nowrap; gap: 4px; padding: 4px; }
 .mpop .modes button { text-align: left; padding: 0 14px; font-size: 15px; }
@@ -498,6 +501,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
       <button type="button" class="nbtn" id="nbtn" aria-expanded="false" aria-controls="npop" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="12" r=".9" fill="currentColor"/></svg><span class="nd" id="nd"></span></button>
       <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
     </div>
+    <div class="glass agechip" id="agechip" role="status" hidden></div>
     <div class="glass pop mpop" id="mpop" hidden></div>
     <div class="glass pop sppanel" id="sppanel" role="radiogroup" aria-label="Species" hidden></div>
     <div class="glass pop sppanel mepanel" id="mepanel" role="group" aria-label="My location" hidden></div>
@@ -1178,6 +1182,10 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     nbtn.hidden = !has;
     $('#nd').textContent = has ? (m ? m[1] : 'Note') : '';
     nbtn.setAttribute('aria-label', has ? (m ? 'Report notice, newest report ' + m[1] : 'About this map') : 'Notice');
+    // Only Recent reports carries the stale-report notice; the other two modes put their own line in #notice.
+    var chip = $('#agechip'), stale = has && view === 'reports' && !!m;
+    chip.hidden = !stale;
+    chip.textContent = stale ? 'Dashed pins: reports over a week old (newest ' + m[1] + ')' : '';
     if (!has) toggleNotice(false);
   }
   nbtn.addEventListener('click', function () { toggleNotice(npop.hidden); });

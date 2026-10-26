@@ -136,7 +136,7 @@ for (const scheme of ['light', 'dark']) {
       }
       if (name === 'Week') {
         const t = await page.evaluate(() => ({ cap: document.querySelector('#tides .cap').textContent, soon: document.querySelector('.chip.soon').textContent, taste: [...document.querySelectorAll('.chip')].filter(c => /^Taste/.test(c.textContent)).map(c => [c.textContent, c.title]), rules: [...document.querySelectorAll('#rules a')].map(a => [a.textContent, a.getAttribute('aria-label')]) }));
-        check(t.cap === 'Tides', `Week ${w}px: tides caption is just "Tides" (${t.cap})`);
+        check(t.cap === 'Tides, next 7 days', `Week ${w}px: tides caption names its window (${t.cap})`);
         check(/^Ends soon · ends [A-Z][a-z]{2} \d{1,2} · \d+ days?$|^Ends soon · ends today$/.test(t.soon), `Week ${w}px: ends-soon chip has the words (${t.soon})`);
         check(t.taste.length > 0 && t.taste.every(([x, ti]) => /^Taste #\d of 5$/.test(x) && /Taste order, richest first/.test(ti)), `Week ${w}px: taste chips read "of 5" with a title (${t.taste[0]})`);
         check(t.rules.length > 0 && t.rules.every(([x, l]) => x === 'Read the rule' && /^Read the WDFW rule for \S/.test(l)), `Week ${w}px: rule links name their rivers (${t.rules[0] && t.rules[0][1]})`);
@@ -164,8 +164,10 @@ for (const scheme of ['light', 'dark']) {
       if (name === 'Map' && w <= 390) {
         const k = await page.evaluate(() => { const b = document.getElementById('legkey'), body = document.getElementById('legbody'); return { h: b.getBoundingClientRect().height, shown: getComputedStyle(b).display !== 'none', body: getComputedStyle(body).display !== 'none', exp: b.getAttribute('aria-expanded'), text: b.textContent, hint: getComputedStyle(document.getElementById('rhint')).display !== 'none' }; });
         check(k.shown && k.text === 'Key' && k.h >= 44 && !k.body && k.exp === 'false', `Map ${w}px ${scheme}: legend is collapsed to a 44px Key button (${Math.round(k.h)}px, body shown ${k.body})`);
+        const age = await page.evaluate(() => { const c = document.getElementById('agechip'), r = c.getBoundingClientRect(); return { shown: getComputedStyle(c).display !== 'none' && !c.hidden, text: c.textContent, h: Math.round(r.height), right: Math.round(r.right) }; });
+        check(age.shown && /^Dashed pins: reports over a week old \(newest [A-Z][a-z]{2} \d{1,2}\)$/.test(age.text) && age.right <= w, `Map ${w}px ${scheme}: the stale-report line is visible on a phone and fits (${age.text})`);
         await page.click('#legkey');
-        const k2 = await page.evaluate(() => ({ body: getComputedStyle(document.getElementById('legbody')).display !== 'none', exp: document.getElementById('legkey').getAttribute('aria-expanded') }));
+        const k2 =await page.evaluate(() => ({ body: getComputedStyle(document.getElementById('legbody')).display !== 'none', exp: document.getElementById('legkey').getAttribute('aria-expanded') }));
         check(k2.body && k2.exp === 'true', `Map ${w}px ${scheme}: Key opens the legend`);
         await page.click('#legkey');
         check(await page.evaluate(() => getComputedStyle(document.getElementById('legbody')).display === 'none'), `Map ${w}px ${scheme}: Key closes it again`);

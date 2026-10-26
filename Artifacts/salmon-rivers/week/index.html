@@ -143,7 +143,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   }
   try { document.getElementById('foot-date').textContent = ', updated ' + Week.fmt(window.FY.updated); } catch (e) { /* footer reads without the date */ }
   // Tides go after Coming up (closures first on phones). Read from the bundled tides-data.js; the page makes no network request.
-  try { if (window.Tides && Tides.mount) Tides.mount(root, after, Week.next7(TODAY), TODAY, document); } catch (e) { /* tides are optional */ }
+  try { if (window.Tides && Tides.mount) Tides.mount(root, after, Week.next7(TODAY), TODAY, document, { caption: 'Tides, next 7 days' }); } catch (e) { /* tides are optional */ }
 })();
 </script>
 </body></html>
