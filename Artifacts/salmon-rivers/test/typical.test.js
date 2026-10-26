@@ -182,7 +182,7 @@ test('Recent reports pin colours still equal the baseline published on 2026-10-1
   const filters = { all: null, coho: 'Coho Salmon', chinook: 'Chinook Salmon' };
   assert.deepEqual(Object.keys(base).sort(), Object.keys(filters).sort(), 'control: baseline has the three filters');
   for (const f of Object.keys(filters)) {
-    const now = R.SITES.map(s => {
+    const now = R.SITES.filter(s => !s.added).map(s => {
       const v = R.viewOf(s, filters[f], '2026-10-18');
       return `${s.id}:var(--${v.r}):${v.release}`;
     }).sort();
