@@ -1,11 +1,20 @@
 # Washington Fishing Map (salmon-rivers page)
 
-The published page "Washington Fishing Map" (first published as "SW Washington Salmon Rivers"; the folder keeps the old name) has two modes behind one switch at the top of the page. It is not part of the iOS app.
+The published page "Washington Fishing Map" (first published as "SW Washington Salmon Rivers"; the folder keeps the old name) is a five-tab site on one URL: **Week | Map | Year | Spots | Counts**, with the same tab bar on every page (`test/tabs.test.js`). It is not part of the iOS app.
 
-- **Recent reports** (the default): a full-bleed river map of eight southwest Washington salmon fisheries (Cowlitz, Lower Columbia, Lewis, Wind, Klickitat, Drano Lake, Kalama, Washougal) with a species dropdown, a ranked Rivers list and a detail sheet. It shows recent catch reports, not season dates, and routes people to WDFW to confirm rules.
-- **Typical season** (published 2026-10-18): about 540 WDFW piers, boat launches and shore access sites across Washington, each coloured by the WA Fish Map app's own seasonal rating for the chosen species in the current month. It is typical timing from the app's curated guidance. It is not a catch report and not a claim that a fishery is open. `?mode=typical` opens the page in this mode.
+**Map** (`index.html`) has three modes behind one thin control bar (one 56 px row; on phones the mode switch is a menu and species a filter icon):
 
-The two modes never share a map view: switching swaps the pin set, the legend, the species list and the sheets. Catch-report colours and seasonal colours are never drawn together.
+- **Recent reports** (the default): eight southwest Washington salmon fisheries (Cowlitz, Lower Columbia, Lewis, Wind, Klickitat, Drano Lake, Kalama, Washougal) with a species dropdown, a ranked Rivers list and a detail sheet. Every other named river is tappable (`rivers-tap.js`) for its typical flow and WDFW notices (`rules.js`). It shows recent catch reports, not season dates, and routes people to WDFW to confirm rules.
+- **Typical season**: about 540 WDFW piers, boat launches and shore access sites, each coloured by the WA Fish Map app's own seasonal rating for the chosen species in the current month. Typical timing, not a catch report and not a claim that a fishery is open.
+- **Spawning**: 75 WDFW salmon viewing sites (`sites.js`) coloured by each run's typical spawning status in the chosen month.
+
+The modes never share a map view: switching swaps the pin set, the legend, the species list and the sheets. Catch-report colours and seasonal colours are never drawn together.
+
+**Deep links** (`links.js`): `?mode=reports|typical|spawning`, `month=1-12` (Spawning), `species=<exact name>`, `site=<id>` (Typical, Spawning), `river=<id>` (Recent reports) open that exact view, and the address bar follows what is on screen (`history.replaceState`, never `pushState`). `?today=YYYY-MM-DD` is read for testing and never written.
+
+**Week** (`week/index.html`, `week.js`, `tides.js`): open seasons (ending soonest first, an "ends soon" chip within 7 days), catch reports from the last 7 days with the map's own badges, WDFW rules published in the last 14 days, the next three dated items, a 7-day NOAA tide table for one station (picker; nearest to the map's saved point), and the spot guides. Nothing on it is a new rating: seasons, rules and tides are text and dates.
+
+**Year** (`year/`) is the Washington Fishing Year page (source: `Artifacts/fishing-year/`), **Spots** (`spots/`) is Three Friends Fishing Hole (source: `Artifacts/three-friends-fishing-hole/`), **Counts** (`counts/`) is the SW Washington creel table. Each carries the shared tab bar.
 
 Live: https://claude.ai/artifact/9oA145toRsmFcDYurdJbey (binding and versions in `artifact.json`).
 
@@ -31,9 +40,17 @@ Live: https://claude.ai/artifact/9oA145toRsmFcDYurdJbey (binding and versions in
 | `test/design.test.js` | Design-system pins: the rating tokens equal the app's system colours in both appearances, the app source still draws the ramp from `DS.Rating`, the two dark token blocks agree, glass-card and legend spacing, colour-blindness simulation of the page's own tokens, and the pin label words. |
 | `test/basemap.test.js` | The land tint and outline in `typical.js`: one closed polygon in the state box, the north and east edges are the straight borders, the south edge lies on `geo.js` river geometry, the closure through the water never touches Canadian ground, and both modes draw the same basemap from tokens. |
 | `test/hint.test.js` | The "Most sites rate the same this month" hint: more than 80 percent of rated sites in view, unrated ignored, at least 10 rated sites, computed from the bundled data and shown only in All species. |
-| `test/controls.test.js` | The control card: one species dropdown for both modes, Rivers on the title row, the title names the mode, 44 px targets, keyboard and focus handling. |
+| `test/controls.test.js` | The control bar: one species dropdown for every mode (its accessible name says which species), Rivers in the one-row bar, the visually hidden title names the mode, 44 px targets, keyboard and focus handling. |
 | `test/species-vocab.test.js` | Every name in `reports.js` `SPECIES` is an exact species name from the app's `fisheries.json` (near-misses rejected, no duplicates), and the catch-report files never carry seasonal timing. |
 | `test/baseline-pins.json` | Pin colours per species filter from the page as first published; a Task 2 check that nothing changed visibly. |
+| `links.js` | Deep-link state for the map: `Links.read(search)`, `Links.toQuery(state)`, `Links.write(state, history, location)`. Pure; runs in the browser and in Node. |
+| `week.js` | `Week.build(FY, Reports, Rules, today)` composes the Week page from `year/data.js`, `reports.js` and `rules.js`; `Week.render(result, doc)` builds its DOM with text nodes only. |
+| `tides.js` | NOAA CO-OPS tide predictions for the Week page: 11 verified Washington stations, `nearest`, `url`, `parse`, `load` (10 s timeout), `render`, `mount` (picker, saved choice, stale-response guard, fails closed). The site's only network call. |
+| `week/index.html` | The Week page. |
+| `rivers-tap.js`, `rules.js`, `sites.js` | Tappable river geometry with flow stats; WDFW emergency-rule notices (dated, linked, never colour anything); Spawning-mode viewing sites. Captured from the live page 2026-10-26. |
+| `year/`, `spots/`, `counts/` | The Year, Spots and Counts tabs as published (each with the shared tab bar). |
+| `check-week.mjs` | Playwright page check over the five pages: console errors, tab order/44 px/contrast, no horizontal scroll at 320/390/1024 in light and dark, Week sections and ends-soon chip, map deep links (including prototype-name ids), and the tide table filled or failing closed. `--shots <dir>` saves captures. |
+| `test/week.test.js`, `test/tides.test.js`, `test/links.test.js`, `test/tabs.test.js` | Unit tests for the Week page, tides, deep links, and the shared tab bar (identical on all five pages). `test/fixtures/noaa-seattle.json` is a saved NOAA response. |
 | `baseline.html` | The page as first published, single file. The rollback source. |
 | `serve.js` | Local static server that wraps `index.html` the way the publisher does. |
 
@@ -42,6 +59,7 @@ Live: https://claude.ai/artifact/9oA145toRsmFcDYurdJbey (binding and versions in
 ```bash
 node Artifacts/salmon-rivers/serve.js          # http://127.0.0.1:4173/
 node --test "Artifacts/salmon-rivers/test/*.test.js"
+node Artifacts/salmon-rivers/check-week.mjs     # page check (Playwright; set PLAYWRIGHT_CORE if needed)
 ```
 
 No dependencies to install. Add `?today=2026-10-26` to the local URL to see how the page looks on another date (the stale-reports banner appears once the newest report is more than 7 days old; Typical season uses that date's month and year, so `?today=2026-07-15&mode=typical` shows July).
@@ -83,23 +101,22 @@ Edit `SITES` in `reports.js`. Each species entry has `r` (`prime`, `good` or `fa
 
 ## Publish and roll back
 
-Publishing replaces the live page. Read the live artifact first (it refuses a stale base), then publish `index.html` to the same URL with its seven scripts:
+Publishing replaces the live page. Read the live artifact first (it refuses a stale base, and pages have been edited outside the repo), then publish `index.html` to the same URL with whichever files changed. Files left out stay as they are on the live page; the full list is `files` in `artifact.json`.
 
 ```
 Artifact  file_path=Artifacts/salmon-rivers/index.html
           url=https://claude.ai/artifact/9oA145toRsmFcDYurdJbey
-          files={ "geo.js": "Artifacts/salmon-rivers/geo.js", "reports.js": "Artifacts/salmon-rivers/reports.js", "counts.js": "Artifacts/salmon-rivers/counts.js", "creel.js": "Artifacts/salmon-rivers/creel.js",
-                  "typical.js": "Artifacts/salmon-rivers/typical.js", "season.js": "Artifacts/salmon-rivers/season.js", "cluster.js": "Artifacts/salmon-rivers/cluster.js" }
+          files={ "week/index.html": "Artifacts/salmon-rivers/week/index.html", "week.js": "Artifacts/salmon-rivers/week.js", ... }
 ```
 
-Record the new version id in `artifact.json`. To roll back, publish `baseline.html` to the same URL as the page file (pass `files={ "geo.js": null, "reports.js": null, "counts.js": null, "creel.js": null, "typical.js": null, "season.js": null, "cluster.js": null }` to remove the scripts). Never pass `force`.
+Record the new version id in `artifact.json`. To roll back, republish a previous version id. Never pass `force`.
 
 ## Rules that bind this page
 
-- Guidance, not regulation. The advisory, the WDFW link and the "not season dates" line stay on every sheet and on the list.
+- Guidance, not regulation. The advisory, the WDFW link and the "not season dates" line stay on every sheet and on the list. The Week page's footer starts "Guidance, not regulation." and links WDFW emergency rules and regulations.
 - Rating is always also written as text; colour alone is not enough (orange and yellow fail this repo's colour-blind gate for deuteranopia). In Typical season every single pin carries its rating word beside it: the full label where it fits, else the word alone (`Season.SHORT`). `test/design.test.js` simulates deuteranopia and protanopia on the page's own tokens.
 - Text 4.5:1, pins 3:1, buttons at least 44 px, light and dark.
-- No network requests from the page.
+- No network requests from the page, with one exception: the Week tab's tide table fetches NOAA CO-OPS predictions (keyless, read-only, 10 s timeout). If the request fails or hangs, the section shows "Tide predictions unavailable right now" with a link to NOAA and the rest of the page is unaffected. Tide heights are never turned into a rating or a "good time to fish" word.
 - Typical season: the legend, the notice, every sheet and the footer say "Typical timing from WA Fish Map guidance, not a catch report and not a claim a fishery is open", keep the WDFW rules link and "Before you go", and never present season dates as authoritative. Colours are the same four tokens plus gray. Slow is blue; in Recent reports it appears only where the source itself says slow or poor (Kalama, with the phrase and a link recorded), never from a count. Species names are the app's exact names. Notes are shown exactly where the app shows them (area, county, statewide), never moved to a narrower or wider place.
 - Clusters never carry a rating they do not share. Typical season clusters are neutral (`--cluster`) with the count; colour is on single pins only. A Recent reports cluster is coloured only when every member has the same rating and release-only state.
 - `reports.js`, `counts.js`, `creel.js`, `geo.js` and `index.html` never contain seasonal timing fields (a test enforces it). Timing lives only in `typical.js` and is read only by `season.js`.

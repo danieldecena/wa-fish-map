@@ -1,4 +1,26 @@
 ## Tasks
+- [ ] Year page: give each season row an `id` (its `seasons.json` id) in the Fishing Year source and rebuild, then switch the Week page's Year links to `../year/index.html#<id>` (`Week.render`, the Open now and Coming up rows).
+- [ ] Spot guides as data (`spots.js` + template) — sub-project 4; `Week.SPOTS` is the stopgap list.
+- [ ] Live conditions sub-project: USGS flow and NOAA tides inside the map's site sheets (tides.js is reusable).
+- [ ] [you] Open the Week tab in the desktop app and confirm the tide section shows 7 days of highs and lows (not "Tide predictions unavailable"). If unavailable, build `scripts/build_tides.py` → bundled `week/tides-data.js`.
+- [ ] Fishing Year build: `scripts/build_fishing_year.py` writes `Artifacts/fishing-year/`, but the published page is now `salmon-rivers/year/` (with the tab bar). Make the build write `year/data.js` there, or copy it, before the next season refresh.
+- [ ] Harden `links.js` parsing: `month=11abc` is read as 11, and a `today` like `2026-13-99` passes the shape check (the Week page's day maths throws on it). Validate both strictly; `Links.toQuery(null)` also throws.
+- [ ] Week page tides: a stored "You" point with null lat/lon passes `isFinite` and picks `nearest(0,0)`; `now` is computed once at mount and goes stale on a long-open tab; `Tides.parse` throws on null prediction entries.
+- [ ] Week build robustness and tests: `upcoming()` lacks an `FY.seasons || []` guard, a future-dated report counts as fresh, an unknown rating gives the label "undefined"; add boundary tests (start == today, published == today, milestone == today, name tie-break) and render tests for the release-only suffix and escaping.
+- [ ] Map deep links: `?mode=spawning` without `month` gets `&month=<current>` appended on boot (per the spec's write rule); `setMode` fires a transient link sync before the final one. Both self-correct; revisit only if they show up in history or tests.
+- [ ] `check-week.mjs` hardening: the local static server allows `..` paths and a directory request rejects unhandled; unknown `--flags` are silent; a throwing `$eval` skips `browser.close()` (use try/finally).
+
+#### Design critique 2026-10-26
+
+- [ ] Counts on a phone hides the counts: at <=480 px put the filters in a closed `<details>` ("Filters · N active"), make the River column sticky, add a right-edge fade on the scroller.
+- [ ] Counts does not follow the site's page shell: centred column and `h1` like Week/Spots, plain subtitle, rename "(not parsed)" to "Unclear species".
+- [ ] Tide rows wrap raggedly on desktop: at >=600 px make each `td` a 4-column grid so extremes line up.
+- [ ] Map overlays cover most of the map on phones: collapse the legend to a "Key" button at <=390 px and hide the hint after first interaction.
+- [ ] Amber/orange used outside the rating ramp: Year progress bars to `--accent`/neutral; Week "ends soon" chip adds the words "Ends soon".
+- [ ] Unexplained "Taste #3" chip on Week: render "Taste #3 of 5" with a title explaining the taste order.
+- [ ] Repeated "Read the rule" link text on Week: add an `aria-label` naming the rivers.
+- [ ] Small Week copy redundancies: caption "Tides" instead of "Tides · Seattle"; merge the footer to "Seasons from Washington Fishing Year, updated Oct 19."
+- [ ] Open-now rows on Week have no way onward (Year detail or map state); file with the Year-anchor follow-up above.
 - [x] Harden WeatherKit attribution: larger mark + legal link
 - [x] Device UI test asserts attribution mark and legal link
 - [x] Review notes: WeatherKit attribution paragraph + STATUS log
