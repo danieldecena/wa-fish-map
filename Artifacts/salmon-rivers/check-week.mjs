@@ -126,10 +126,11 @@ for (const scheme of ['light', 'dark']) {
         check(await page.$eval('#tides', s => /^NOAA predictions through [A-Z][a-z]{2} \d{1,2}, MLLW, local time\. Not observations\.$/.test(s.querySelector('.fine').textContent)), `Week ${w}px: tides footnote names the bundle end`);
       }
       if (name === 'Week' && w >= 600) {
-        // Polish: at >=600px each day's td is a four-column grid, so the nth extreme of every row starts at the same x.
-        const g = await page.$$eval('#tides table.tides tbody tr', rs => rs.map(r => { const td = r.querySelector('td'); return { cols: getComputedStyle(td).gridTemplateColumns.split(' ').length, display: getComputedStyle(td).display, lefts: [...td.querySelectorAll('.ex')].map(e => Math.round(e.getBoundingClientRect().left)) }; }));
-        check(g.every(r => r.display === 'grid' && r.cols === 4), `Week ${w}px ${scheme}: every tide td is a 4-column grid (${g.map(r => r.cols).join(',')})`);
-        const aligned = [0, 1, 2, 3].every(k => new Set(g.filter(r => r.lefts.length > k).map(r => r.lefts[k])).size <= 1);
+        // At >=600px each day's td is a two-column grid of fixed width, so extremes line up by column and no extreme wraps onto a second line.
+        const g = await page.$$eval('#tides table.tides tbody tr', rs => rs.map(r => { const td = r.querySelector('td'); return { cols: getComputedStyle(td).gridTemplateColumns.split(' ').length, display: getComputedStyle(td).display, lefts: [...td.querySelectorAll('.ex')].map(e => Math.round(e.getBoundingClientRect().left)), wrapped: [...td.querySelectorAll('.ex')].filter(e => e.getClientRects().length > 1 || e.getBoundingClientRect().height > 24 || e.scrollWidth > e.clientWidth + 1).length }; }));
+        check(g.every(r => r.display === 'grid' && r.cols === 2), `Week ${w}px ${scheme}: every tide td is a 2-column grid (${g.map(r => r.cols).join(',')})`);
+        check(g.every(r => r.wrapped === 0), `Week ${w}px ${scheme}: no tide extreme wraps or overflows its column (${g.map(r => r.wrapped).join(',')})`);
+        const aligned = [0, 1].every(k => new Set(g.flatMap(r => r.lefts.filter((_, i) => i % 2 === k))).size <= 1);
         check(aligned, `Week ${w}px ${scheme}: the nth extreme starts at the same x in every row (${g.map(r => r.lefts.join('/')).join(' | ')})`);
       }
       if (name === 'Week') {

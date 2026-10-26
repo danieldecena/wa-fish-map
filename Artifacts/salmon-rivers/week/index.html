@@ -67,8 +67,8 @@ table.tides tr.today th { color: var(--accent); }
 table.tides .ex { display: inline-block; margin-right: 12px; white-space: nowrap; }
 /* Desktop: each day's extremes sit in four fixed columns so times line up down the table. */
 @media (min-width: 600px) {
-  table.tides td:not(.none) { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 8px; align-items: start; }
-  table.tides td .ex { margin-right: 0; white-space: normal; }
+  table.tides td:not(.none) { display: grid; grid-template-columns: repeat(2, 158px); gap: 4px 24px; align-items: start; }
+  table.tides td .ex { margin-right: 0; white-space: nowrap; }
 }
 table.tides .ex.L { color: var(--soft); }
 table.tides tr.today .ex.L { color: var(--soft); }
