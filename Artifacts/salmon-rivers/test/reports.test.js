@@ -226,3 +226,55 @@ test('the Recent reports legend lists Slow exactly when some site in Recent repo
   assert.equal(staticLegend.includes(slowItem), anySlow, 'static legend');
   assert.equal(recentJs.includes(slowItem), anySlow, 'legend set when switching back to Recent reports');
 });
+
+// ---- new report sites (entries with `added`): docs/superpowers/specs/2026-10-26-puget-river-reports-design.md ----
+const loadGlobal = (file, name) => { const w = {}; new Function('window', fs.readFileSync(path.join(__dirname, '..', file), 'utf8'))(w); return w[name]; };
+const GEO = loadGlobal('geo.js', 'GEO');
+const TAP = loadGlobal('rivers-tap.js', 'RIVERTAP');
+const TAP_IDS = new Set(TAP.rivers.map(r => r.id));
+const ENTRY_DAYS = 14;
+const dayNo = iso => Date.parse(iso + 'T00:00:00Z') / 86400000;
+function newSiteProblems(s) {
+  const out = [];
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(s.added))) out.push(`${s.id}: added is not YYYY-MM-DD`);
+  if (!TAP_IDS.has(s.tap)) out.push(`${s.id}: tap ${s.tap} is not a river in rivers-tap.js`);
+  if (!Array.isArray(s.ll) || s.ll.length !== 2) out.push(`${s.id}: ll is not [lat, lon]`);
+  else {
+    const x = (s.ll[1] - GEO.proj.lon0) * GEO.proj.kx, y = (GEO.proj.lat0 - s.ll[0]) * GEO.proj.k, b = GEO.bounds.state;
+    if (!(x >= b[0][0] && x <= b[1][0] && y >= b[0][1] && y <= b[1][1])) out.push(`${s.id}: ll is outside Washington`);
+  }
+  for (const [k, sp] of Object.entries(s.reports || {})) {
+    if (!sp.src || !sp.src.label || !/^https:\/\//.test(sp.src.url || '')) out.push(`${s.id}/${k}: src needs a label and an https url`);
+    if (!sp.asOf) out.push(`${s.id}/${k}: a new entry needs a dated report`);
+    else {
+      const age = dayNo(s.added) - dayNo(sp.asOf);
+      if (!(age >= 0 && age <= ENTRY_DAYS)) out.push(`${s.id}/${k}: report is ${age} days old on the day it was added (max ${ENTRY_DAYS})`);
+    }
+    if (sp.r === 'slow' && !sp.phrase) out.push(`${s.id}/${k}: slow needs the source's phrase`);
+  }
+  return out;
+}
+const GOOD = { id: 'fx', name: 'Fixture River', sub: 's', hl: true, tap: 'skagit-river', ll: [48.42, -122.33], added: '2026-10-25',
+  reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-24', d: 'Fixture.', src: { label: 'Fixture shop, Oct 24', url: 'https://example.org/r' } } } };
+const withSp = patch => ({ ...GOOD, reports: { 'Coho Salmon': { ...GOOD.reports['Coho Salmon'], ...patch } } });
+
+test('new-site rules: a well-formed fixture passes, and each broken one fails for its own reason', () => {
+  assert.deepEqual(newSiteProblems(GOOD), []);
+  const cases = [
+    [{ ...GOOD, tap: 'no-such-river' }, /tap no-such-river/],
+    [{ ...GOOD, ll: [45.0, -110.0] }, /outside Washington/],
+    [{ ...GOOD, added: 'Oct 25' }, /added is not/],
+    [withSp({ src: undefined }), /src needs/],
+    [withSp({ src: { label: 'x', url: 'http://x' } }), /src needs/],
+    [withSp({ asOf: null }), /dated report/],
+    [withSp({ asOf: '2026-10-10' }), /15 days old/],
+    [withSp({ asOf: '2026-10-26' }), /-1 days old/],
+    [withSp({ r: 'slow' }), /slow needs/],
+  ];
+  for (const [s, re] of cases) assert.match(newSiteProblems(s).join('\n'), re);
+});
+
+test('every new report site follows the rules (entries without `added` are the original eight)', () => {
+  assert.deepEqual(R.SITES.filter(s => s.added).flatMap(newSiteProblems), []);
+  assert.equal(R.SITES.filter(s => !s.added).length, 8, 'control: the original eight carry no added date');
+});
