@@ -1,0 +1,347 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>SW Washington Creel Table</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* App Kit restyle (CSS only). Layout as before: filters above, the table on a surface panel, notes below.
+   Token names are the page's own; values are App Kit's:
+   bg=ground  fg=ink  dim=ink-soft  rule=hair  cursor=fill  link=accent-ink.
+   dim-on-fill: ink-soft stepped for text on a fill row (hover, open detail). Dark ink-soft on fill over
+   surface (#323236) is 4.45:1, so dark steps to #A1A1A6 (4.96:1); light ink-soft already passes (5.2:1). */
+:root {
+  --bg: #F2F2F7;
+  --surface: #FFFFFF;
+  --fg: #1D1D1F;
+  --dim: #636366;
+  --rule: #D1D1D6;
+  --cursor: rgba(118, 118, 128, 0.12);
+  --cursor-hover: rgba(118, 118, 128, 0.20);
+  --dim-on-fill: #636366;
+  --link: #0058B9;
+  --accent: #007AFF;
+  --accent-wash: rgba(0, 122, 255, 0.12);
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", system-ui, sans-serif;
+  --display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000; --surface: #1C1C1E; --fg: #F5F5F7; --dim: #98989D; --rule: #38383A;
+    --cursor: rgba(118, 118, 128, 0.24); --cursor-hover: rgba(118, 118, 128, 0.32); --dim-on-fill: #A1A1A6;
+    --link: #5DABFF; --accent: #0A84FF; --accent-wash: rgba(10, 132, 255, 0.20);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000000; --surface: #1C1C1E; --fg: #F5F5F7; --dim: #98989D; --rule: #38383A;
+  --cursor: rgba(118, 118, 128, 0.24); --cursor-hover: rgba(118, 118, 128, 0.32); --dim-on-fill: #A1A1A6;
+  --link: #5DABFF; --accent: #0A84FF; --accent-wash: rgba(10, 132, 255, 0.20);
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font: 400 15px/20px var(--sans);
+  padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+/* title-2 */
+h1 { font: 700 22px/28px var(--display); margin: 0; text-wrap: balance; }
+.sub { color: var(--dim); max-width: 70ch; margin: 4px 0 0; }
+
+/* Filters: App Kit `label` keys, FilterPill buttons */
+.filters { display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.filters > .row { gap: 6px 12px; }
+.row > .row { flex: 1 1 320px; min-width: 0; }
+.row > .label { color: var(--dim); font: 600 11px/13px var(--mono); text-transform: uppercase; letter-spacing: .08em; min-width: 70px; }
+button.b {
+  position: relative; display: inline-flex; align-items: center; box-sizing: border-box;
+  min-height: 40px; padding: 0 12px; border: 0; border-radius: 999px;
+  font: 600 13px/18px var(--sans); color: var(--fg); background: var(--cursor);
+  cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent;
+  transition: background-color 150ms ease-out, color 150ms ease-out, box-shadow 150ms ease-out;
+}
+/* No "[ ]": ::before now only widens the 40px pill to a 44px hit area (2px into the 6px gap). */
+button.b::before { content: ""; position: absolute; inset: -2px 0; }
+button.b::after { content: none; }
+@media (hover: hover) { button.b:not([aria-pressed="true"]):hover { background: var(--cursor-hover); } }
+button.b[aria-pressed="true"] { background: var(--accent-wash); color: var(--link); box-shadow: inset 0 0 0 1.5px var(--accent); }
+button.b:focus-visible, th button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.status { font: 400 13px/18px var(--sans); color: var(--dim); font-variant-numeric: tabular-nums; }
+
+/* The table: a surface Panel (radius-lg, no border or shadow), hair row dividers */
+.grid { overflow-x: auto; background: var(--surface); border-radius: 14px; }
+table { border-collapse: collapse; width: 100%; font: 400 13px/18px var(--sans); }
+th, td { padding: 13px 12px; text-align: left; white-space: nowrap; font-variant-numeric: tabular-nums; }
+th { position: sticky; top: env(safe-area-inset-top, 0px); background: var(--surface); border-bottom: 1px solid var(--rule); padding: 0; }
+th button { display: block; box-sizing: border-box; min-height: 44px; font: 600 13px/18px var(--sans); color: var(--dim); background: none; border: 0; padding: 13px 12px; width: 100%; text-align: inherit; cursor: pointer; }
+th button:focus-visible { outline-offset: -2px; }
+th.n, td.n { text-align: right; }
+th.n button { text-align: right; }
+td.n { font-family: var(--mono); }
+td { border-bottom: 1px solid var(--rule); }
+tbody tr:last-child td { border-bottom: 0; }
+@media (hover: hover) { tbody tr:hover td { background: var(--cursor); } tbody tr:hover td.note { color: var(--dim-on-fill); } }
+td.note { color: var(--dim); }
+td a { color: var(--link); }
+tbody tr[tabindex] { cursor: pointer; }
+tbody tr:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+tr.detail td { white-space: normal; background: var(--cursor); max-width: 100vw; }
+tr.detail .dim { color: var(--dim-on-fill); }
+.dim { color: var(--dim); }
+table.mini { width: auto; font-size: 15px; line-height: 20px; }
+table.mini td { padding: 2px 16px 2px 0; border: 0; }
+tr.detail td div { padding: 1px 0; }
+details { font-size: 13px; }
+summary { cursor: pointer; font: 400 13px/18px var(--sans); }
+[hidden] { display: none !important; }
+/* App Kit gray Button: 44px capsule, fill, ink */
+button.b.more { align-self: flex-start; min-height: 44px; padding: 0 16px; font: 600 15px/20px var(--sans); color: var(--fg); background: var(--cursor); box-shadow: none; }
+button.b.more::before { content: none; }
+/* headline */
+h2 { font: 600 17px/22px var(--sans); margin: 8px 0 6px; }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px 32px; font-size: 15px; line-height: 20px; }
+.notes > div { min-width: 0; }
+.notes p, .notes ul { margin: 0 0 6px; }
+.notes ul { padding-left: 18px; }
+.notes li + li { margin-top: 4px; }
+.notes code { font-family: var(--mono); font-size: 13px; overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) { button.b { transition: none; } }
+</style>
+<style>
+/* App tab bar: Map | Year | Spots | Counts. An App Kit SegmentedControl on a glass bar.
+   Self-contained; its tokens are App Kit values scoped to .apptabs and prefixed --tab-.
+   Glass is App Kit's web stand-in (rgba .55 + 16px blur); the labels sit on the opaque track,
+   so their contrast does not depend on the glass. Without backdrop-filter the glass goes to .92. */
+.apptabs{--tab-glass:rgba(255,255,255,.55);--tab-glass-solid:rgba(255,255,255,.92);--tab-hair:#D1D1D6;--tab-track:#E5E5EA;--tab-seg:#FFFFFF;--tab-seg-shadow:0 1px 2px rgba(0,0,0,.12);--tab-ink:#1D1D1F;--tab-ink-soft:#636366;--tab-accent:#007AFF;--tab-font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .apptabs{--tab-glass:rgba(44,44,46,.55);--tab-glass-solid:rgba(44,44,46,.92);--tab-hair:#38383A;--tab-track:#2C2C2E;--tab-seg:#636366;--tab-seg-shadow:0 1px 2px rgba(0,0,0,.5);--tab-ink:#F5F5F7;--tab-ink-soft:#98989D;--tab-accent:#0A84FF}}
+:root[data-theme=dark] .apptabs{--tab-glass:rgba(44,44,46,.55);--tab-glass-solid:rgba(44,44,46,.92);--tab-hair:#38383A;--tab-track:#2C2C2E;--tab-seg:#636366;--tab-seg-shadow:0 1px 2px rgba(0,0,0,.5);--tab-ink:#F5F5F7;--tab-ink-soft:#98989D;--tab-accent:#0A84FF}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
+.apptabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:1000;box-sizing:border-box;padding:6px max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
+.apptabs::before{content:"";position:absolute;z-index:-1;left:0;right:0;bottom:0;top:calc(-1 * env(safe-area-inset-top,0px));background:var(--tab-glass);-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);box-shadow:0 .5px 0 var(--tab-hair)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.apptabs::before{background:var(--tab-glass-solid)}}
+/* Track: surface-sunk, radius-md, 3px inset. It is 44px tall so every link is a full 44px target;
+   the visible segment is the link's ::before, 38px tall after the 3px inset top and bottom. */
+.apptabs-track{display:flex;box-sizing:border-box;max-width:420px;height:44px;margin:0 auto;padding:0 3px;border-radius:10px;background:var(--tab-track)}
+.apptabs a{position:relative;z-index:0;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;height:44px;padding:0 4px;color:var(--tab-ink-soft);font:600 15px/20px var(--tab-font);text-decoration:none;white-space:nowrap;outline:none;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;transition:color 150ms ease-out,opacity 150ms ease-out}
+.apptabs a::before{content:"";position:absolute;z-index:-1;inset:3px 0;border-radius:7px;transition:background-color 150ms ease-out}
+.apptabs a[aria-current=page]{color:var(--tab-ink)}
+.apptabs a[aria-current=page]::before{background:var(--tab-seg);box-shadow:var(--tab-seg-shadow)}
+@media (hover:hover){.apptabs a:not([aria-current=page]):hover{color:var(--tab-ink)}}
+.apptabs a:not([aria-current=page]):active{opacity:.55}
+.apptabs a:focus-visible{z-index:1}
+.apptabs a:focus-visible::before{outline:2px solid var(--tab-accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.apptabs a,.apptabs a::before{transition:none}}
+</style>
+<style>/* tab bar offset for this page only: cancel body padding so the bar is full-bleed and flush to the top */
+.apptabs{margin:-20px calc(-1 * max(16px,env(safe-area-inset-right,0px))) 20px calc(-1 * max(16px,env(safe-area-inset-left,0px)))}</style>
+</head><body>
+<nav class="apptabs" aria-label="Washington Fishing Map"><div class="apptabs-track"><a href="../index.html">Map</a><a href="../year/index.html">Year</a><a href="../spots/index.html">Spots</a><a href="index.html" aria-current="page">Counts</a></div></nav>
+<main>
+  <header>
+    <h1>SW WASHINGTON CREEL TABLE</h1>
+    <p class="sub">A mirror of salmon.db: weekly angler interviews from WDFW's Southwest Washington Columbia River and tributary reports. Every sheet in the database is here, with the same columns and rows. These are counts people reported, not ratings of how good a river is.</p>
+  </header>
+
+  <section class="filters" aria-label="Filters">
+    <div class="row"><span class="label">Sheet</span><span id="views" class="row"></span></div>
+    <div class="row" id="riverRow"><span class="label">River</span><span id="rivers" class="row"></span></div>
+    <div class="row" id="speciesRow"><span class="label">Species</span><span id="species" class="row"></span></div>
+    <div class="row" id="yearRow"><span class="label">Year</span><span id="years" class="row"></span></div>
+    <div class="row" id="catchRow"><span class="label">Rows</span><span class="row"><button class="b" id="catchOnly" aria-pressed="false">Catch rows only</button></span></div>
+  </section>
+
+  <div class="status" id="status" role="status"></div>
+  <div class="grid"><table>
+    <thead><tr id="head"></tr></thead>
+    <tbody id="body"></tbody>
+  </table></div>
+  <button class="b more" id="more" hidden>Show 200 more rows</button>
+
+  <section class="notes">
+    <div>
+      <h2>The database</h2>
+      <table class="mini" id="mirror"></table>
+      <p class="dim" id="mirrorNote"></p>
+    </div>
+    <div>
+      <h2>How to read it</h2>
+      <ul>
+        <li><b>Anglers</b> is bank anglers plus boat rods for that river and week, so it repeats on each species row. <b>Bank</b> and <b>Boat rods</b> are its two parts.</li>
+        <li><b>Kept/100</b> is fish kept per 100 anglers for that species. Blank when Kept or Anglers is blank.</li>
+        <li>A blank <b>Kept</b> or <b>Released</b> means the report did not state it. It is not zero.</li>
+        <li>Jacks are young males and have their own rows. Where the report says "jacks" without a species, the row says so.</li>
+        <li>Rivers split by reach (Cowlitz, Klickitat, Washougal) or section (Lower Columbia) show it in the River cell.</li>
+        <li>Rows are interviews at select access sites, not every angler. Click a row for the sentence it came from.</li>
+        <li><b>Week from</b> says whether the week came from the report's file name or was worked out from its date.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Not in this table</h2>
+      <p id="gaps"></p>
+      <p>Rivers outside the creel section of these reports are not in the database.</p>
+    </div>
+  </section>
+  <p class="status" id="foot"></p>
+</main>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  var D = window.SALMON;
+  var PAGE = 200;
+  var state = { view: 0, river: "All", species: "All", year: "All", catchOnly: false, sort: null, dir: -1, shown: PAGE, open: null };
+
+  function el(tag, attrs, text) {
+    var e = document.createElement(tag);
+    for (var a in (attrs || {})) e.setAttribute(a, attrs[a]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function S() { return D.sheets[state.view]; }
+  function ci(name) {
+    var c = S().cols;
+    for (var i = 0; i < c.length; i++) if (c[i].name === name) return i;
+    return -1;
+  }
+  function family(r) { return r.split(",")[0]; }
+  function distinct(rows, fn) {
+    var seen = {}, out = [];
+    rows.forEach(function (r) { var v = fn(r); if (v && !seen[v]) { seen[v] = 1; out.push(v); } });
+    return out.sort();
+  }
+  function buttons(host, items, key, all, after) {
+    host.textContent = "";
+    (all === false ? items : ["All"].concat(items)).forEach(function (v, i) {
+      var b = el("button", { "class": "b", type: "button", "aria-pressed": String(all === false ? state[key] === i : state[key] === v) }, v);
+      b.onclick = function () { state[key] = all === false ? i : v; state.shown = PAGE; state.open = null; if (after) after(); draw(); };
+      host.appendChild(b);
+    });
+  }
+  function defaultSort() {
+    var w = ci("Week");
+    state.sort = w >= 0 ? w : 0;
+    state.dir = w >= 0 ? -1 : 1;
+  }
+  function visible() {
+    var s = S(), wk = ci("Week"), sp = ci("Species");
+    var rows = s.rows.filter(function (r) {
+      if (state.year !== "All" && wk >= 0 && String(r[wk]).slice(0, 4) !== state.year) return false;
+      if (s.view !== "board") return true;
+      if (state.river !== "All" && family(r[0]) !== state.river) return false;
+      if (state.species !== "All" && r[sp] !== state.species) return false;
+      if (state.catchOnly && r[sp].charAt(0) === "(") return false;
+      return true;
+    });
+    var k = state.sort, num = s.cols[k].n;
+    rows.sort(function (a, b) {
+      var x = a[k], y = b[k];
+      if (x == null || x === "") return (y == null || y === "") ? 0 : 1;
+      if (y == null || y === "") return -1;
+      var c = num ? x - y : (x < y ? -1 : x > y ? 1 : 0);
+      return c * state.dir;
+    });
+    return rows;
+  }
+  function cell(r, c, i) {
+    var td = el("td", c.n ? { "class": "n" } : {});
+    var v = r[i];
+    if (v == null) return td;
+    if (c.name === "Source") {
+      var a = el("a", { href: D.sources[v], target: "_blank", rel: "noopener" }, "PDF");
+      a.onclick = function (e) { e.stopPropagation(); };
+      td.appendChild(a);
+    } else if (c.name === "Report text") {
+      td.textContent = D.texts[v].length > 60 ? D.texts[v].slice(0, 59) + "\u2026" : D.texts[v];
+    } else {
+      td.textContent = c.name === "Kept/100" ? v.toFixed(1) : v;
+      if (c.name === "Species" && v.charAt(0) === "(") td.className = "note";
+    }
+    return td;
+  }
+  function draw() {
+    var s = S(), board = s.view === "board", wk = ci("Week");
+    buttons(document.getElementById("views"), D.sheets.map(function (x) { return x.label; }), "view", false, function () {
+      state.river = state.species = state.year = "All"; state.catchOnly = false; defaultSort();
+    });
+    s = S(); board = s.view === "board"; wk = ci("Week");
+    if (state.sort == null || state.sort >= s.cols.length) defaultSort();
+    document.getElementById("riverRow").hidden = !board;
+    document.getElementById("speciesRow").hidden = !board;
+    document.getElementById("catchRow").hidden = !board;
+    document.getElementById("yearRow").hidden = wk < 0;
+    if (board) {
+      buttons(document.getElementById("rivers"), distinct(s.rows, function (r) { return family(r[0]); }), "river");
+      buttons(document.getElementById("species"), distinct(s.rows, function (r) { return r[ci("Species")]; }), "species");
+      document.getElementById("catchOnly").setAttribute("aria-pressed", String(state.catchOnly));
+    }
+    if (wk >= 0) buttons(document.getElementById("years"), distinct(s.rows, function (r) { return String(r[wk]).slice(0, 4); }), "year");
+    var head = document.getElementById("head");
+    head.textContent = "";
+    s.cols.forEach(function (c, i) {
+      var th = el("th", c.n ? { "class": "n", scope: "col" } : { scope: "col" });
+      var arrow = state.sort === i ? (state.dir < 0 ? " \u25BC" : " \u25B2") : "";
+      var b = el("button", { type: "button" }, c.name + arrow);
+      b.onclick = function () {
+        if (state.sort === i) state.dir = -state.dir;
+        else { state.sort = i; state.dir = (c.n || c.name === "Week" || c.name === "Reported") ? -1 : 1; }
+        draw();
+      };
+      th.setAttribute("aria-sort", state.sort === i ? (state.dir < 0 ? "descending" : "ascending") : "none");
+      th.appendChild(b);
+      head.appendChild(th);
+    });
+    var textAt = ci("Report text");
+    var rows = visible(), body = document.getElementById("body");
+    body.textContent = "";
+    var frag = document.createDocumentFragment();
+    rows.slice(0, state.shown).forEach(function (r) {
+      var tr = el("tr", { tabindex: "0", "aria-expanded": String(state.open === r) });
+      s.cols.forEach(function (c, i) { tr.appendChild(cell(r, c, i)); });
+      var toggle = function () { state.open = state.open === r ? null : r; draw(); };
+      tr.onclick = toggle;
+      tr.onkeydown = function (e) { if (e.key === "Enter") toggle(); };
+      frag.appendChild(tr);
+      if (state.open === r) {
+        var d = el("tr", { "class": "detail" });
+        var td = el("td", { colspan: String(s.cols.length) });
+        s.cols.forEach(function (c, i) {
+          if (r[i] == null || c.name === "Source") return;
+          var line = el("div");
+          line.appendChild(el("span", { "class": "dim" }, c.name + ": "));
+          line.appendChild(document.createTextNode(c.name === "Report text" ? D.texts[r[i]] : String(r[i])));
+          td.appendChild(line);
+        });
+        d.appendChild(td);
+        frag.appendChild(d);
+      }
+    });
+    body.appendChild(frag);
+    var more = document.getElementById("more");
+    more.hidden = rows.length <= state.shown;
+    more.textContent = "Show " + Math.min(PAGE, rows.length - state.shown) + " more rows";
+    document.getElementById("status").textContent =
+      "Showing " + Math.min(state.shown, rows.length) + " of " + rows.length + " rows" + (rows.length === s.rows.length ? " (all of " + s.view + ")" : " after filters (" + s.rows.length + " in " + s.view + ")");
+  }
+  document.getElementById("catchOnly").onclick = function () { state.catchOnly = !state.catchOnly; state.shown = PAGE; draw(); };
+  document.getElementById("more").onclick = function () { state.shown += PAGE; draw(); };
+
+  var mirror = document.getElementById("mirror");
+  D.sheets.forEach(function (x) {
+    var tr = el("tr");
+    tr.appendChild(el("td", null, x.view));
+    tr.appendChild(el("td", { "class": "n" }, String(D.counts[x.view])));
+    mirror.appendChild(tr);
+  });
+  document.getElementById("mirrorNote").textContent =
+    "Database built " + D.built.replace("T", " ") + ". The board sheet joins the entries and catch tables; the rest are one-to-one.";
+  document.getElementById("gaps").textContent = D.gaps.length +
+    " stretches of a week or more have no report on WDFW's page: " + D.gaps.join("; ") + ".";
+  document.getElementById("foot").textContent =
+    D.counts.weeks + " weekly reports, " + D.first + " to " + D.last + ". Source: wdfw.wa.gov/fishing/reports/creel/southwest.";
+  defaultSort();
+  draw();
+})();
+</script>
+</body></html>
