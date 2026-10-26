@@ -5,10 +5,10 @@
   "account": "danieldecena@icloud.com",
   "what": "Five-tab site on one URL (Week | Map | Year | Spots | Counts). Map: Recent reports (eight SW Washington salmon waters rated from sourced catch reports, WDFW notices on tapped rivers), Typical season (540 statewide sites by the app's seasonal timing) and Spawning (75 WDFW salmon viewing sites by month), under one thin control bar. Week: open seasons, this week's reports, new WDFW rules, coming up, a 7-day bundled NOAA tide table (26 stations; also Tides today on marine site sheets of the map) and spots. Year: Washington Fishing Year. Spots: Three Friends Fishing Hole. Counts: SW Washington creel table. Counts and timing never mix with ratings.",
   "baselineVersion": "1792352926-fede",
-  "currentVersion": "1793041542-d3ff",
+  "currentVersion": "1793047375-b5df",
   "previousVersion": "1793035013-1d8a",
   "note": "Refresh by PASSING THIS URL with file_path=Artifacts/salmon-rivers/index.html and files= any changed paths from `files` (files left out are kept on the live page). Read the live version first. Rollback: republish a previous version id. 2026-10-26: versions 16 (Week tab, deep links, tides, five-tab bar), 17 (thin control bar) and 18 (phone bar) were published from the week-page-and-deep-links branch; 1792491424-046f had been published outside the repo and was captured here first.",
-  "synced": "2026-10-26: live 1793041542-d3ff (version 19: bundled tides, Tides today on marine sheets, polish batch) matches this folder (index.html minus the service's injected skeleton).",
+  "synced": "2026-10-26: live 1793047375-b5df (version 20: review fixes, Week boot fallback and strict ?today on the map, on top of v19 bundled tides and polish batch) matches this folder (index.html minus the service's injected skeleton).",
   "files": [
     "index.html",
     "cluster.js",
