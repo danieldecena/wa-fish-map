@@ -51,3 +51,27 @@ test('write: replaceState with pathname + query + hash, and no call when unchang
   Links.write({ mode: 'spawning', month: 3 }, history, location);
   assert.equal(calls.length, 1);
 });
+
+test('read: month must be one or two digits; trailing junk and signs are rejected', () => {
+  assert.equal(Links.read('?month=11abc').month, null);
+  assert.equal(Links.read('?month=1.5').month, null);
+  assert.equal(Links.read('?month=%2B3').month, null);
+  assert.equal(Links.read('?month=011').month, null);
+  assert.equal(Links.read('?month=11').month, 11);
+  assert.equal(Links.read('?month=03').month, 3);
+  assert.equal(Links.read('?month=1').month, 1);
+  assert.equal(Links.read('?month=12').month, 12);
+  assert.equal(Links.read('?month=13').month, null);
+});
+
+test('read: today must be a real calendar date', () => {
+  for (const bad of ['2026-13-99', '2026-02-30', '2026-00-10', '2026-04-31', '2027-02-29', '2026-10-00']) assert.equal(Links.read('?today=' + bad).today, null, bad);
+  for (const ok of ['2026-10-26', '2028-02-29', '2026-12-31']) assert.equal(Links.read('?today=' + ok).today, ok, ok);
+});
+
+test('toQuery: null or a non-object state is an empty query; an impossible today is not written', () => {
+  assert.equal(Links.toQuery(null), '');
+  assert.equal(Links.toQuery(undefined), '');
+  assert.equal(Links.toQuery({ mode: 'reports', today: '2026-13-99' }), '');
+  assert.equal(Links.toQuery({ mode: 'reports', today: '2026-10-26' }), '?today=2026-10-26');
+});

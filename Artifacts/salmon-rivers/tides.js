@@ -82,8 +82,8 @@
       var tr = doc.createElement('tr'); if (d.date === today) tr.className = 'today';
       var th = doc.createElement('th'); th.setAttribute('scope', 'row'); th.textContent = dayLabel(d.date); tr.appendChild(th);
       var td = doc.createElement('td');
-      if (d.note) td.textContent = d.note;
-      else if (!d.extremes.length) td.textContent = '—';
+      if (d.note) { td.textContent = d.note; td.className = 'none'; }
+      else if (!d.extremes.length) { td.textContent = '—'; td.className = 'none'; }
       d.extremes.forEach(function (e, i) {
         var s = doc.createElement('span');
         s.className = 'ex ' + e.type + (nx && nx.day === di && nx.i === i ? ' next' : '');
@@ -102,7 +102,7 @@
     if (stored) return stored;
     try {
       var me = JSON.parse(readStorage(storage, ME_KEY) || 'null');
-      if (me && isFinite(me.lat) && isFinite(me.lon)) return nearest(+me.lat, +me.lon, list);
+      if (me && typeof me.lat === 'number' && typeof me.lon === 'number' && isFinite(me.lat) && isFinite(me.lon)) return nearest(+me.lat, +me.lon, list);
     } catch (e) { /* unreadable: default */ }
     return byId(DEFAULT, list) || list[0];
   }
@@ -136,7 +136,7 @@
       p.appendChild(a); return p;
     }
     function go(st) {
-      h.textContent = 'Tides · ' + st.name;
+      h.textContent = 'Tides';
       var ds = days(st, range, bundle);
       if (!ds) { fine.textContent = ''; show(unavailable(st)); return; }
       fine.textContent = footnote(bundle);

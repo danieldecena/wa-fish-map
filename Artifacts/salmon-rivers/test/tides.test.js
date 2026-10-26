@@ -141,7 +141,7 @@ test('mount: synchronous; section after the given one, default station, footnote
   assert.equal(root.children[1], sec);
   assert.equal(sec.id, 'tides');
   assert.equal(sec.querySelector('select').value, '9447130');
-  assert.equal(sec.querySelector('.cap').textContent, 'Tides · Seattle');
+  assert.equal(sec.querySelector('.cap').textContent, 'Tides');
   assert.equal(sec.querySelectorAll('select')[0].children.length, 3);
   assert.equal(sec.querySelectorAll('tr').length, 7);
   assert.ok(sec.querySelectorAll('tr').every(r => r.querySelector('.ex')));
@@ -155,7 +155,7 @@ test('mount: stored choice wins; an unknown stored id falls back to the nearest 
   let m = mkRoot(doc);
   let sec = Tides.mount(m.root, m.a, range, '2026-10-26', doc, { bundle, storage, now: NOW });
   assert.equal(sec.querySelector('select').value, '9446484');
-  assert.equal(sec.querySelector('.cap').textContent, 'Tides · Tacoma');
+  assert.equal(sec.querySelector('.cap').textContent, 'Tides');
   store[Tides.STORE_KEY] = 'bogus'; store[Tides.ME_KEY] = JSON.stringify({ lat: 46.93, lon: -124.05, label: 'x' });
   m = mkRoot(doc);
   sec = Tides.mount(m.root, m.a, range, '2026-10-26', doc, { bundle, storage, now: NOW });
@@ -167,7 +167,7 @@ test('mount: stored choice wins; an unknown stored id falls back to the nearest 
   assert.equal(sec.querySelector('select').value, '9447130');
   // changing the picker redraws synchronously and stores the choice
   const sel = sec.querySelector('select'); sel.value = '9441102'; sel.fire('change');
-  assert.equal(sec.querySelector('.cap').textContent, 'Tides · Westport');
+  assert.equal(sec.querySelector('.cap').textContent, 'Tides');
   assert.equal(store[Tides.STORE_KEY], '9441102');
   assert.equal(sec.querySelectorAll('tr').length, 7);
   assert.equal(sec.querySelectorAll('.ex')[0].textContent, 'H 6:00 am · 13.5 ft');
@@ -267,4 +267,30 @@ test('tides-data.js: parses, covers at least 30 days, every station has every da
   });
   assert.deepEqual(Object.keys(T.predictions).sort(), [...seen].sort());
   Tides.STATIONS.forEach(s => assert.ok(seen.has(s.id), 'bundle keeps ' + s.name));
+});
+
+test('mount: a stored "You" point with null, string or missing coordinates is ignored (default station), a numeric one is used', () => {
+  const doc = fakeDoc();
+  const pick = me => {
+    const store = { [Tides.ME_KEY]: JSON.stringify(me) };
+    const storage = { getItem: k => (k in store ? store[k] : null), setItem: () => {} };
+    const m = mkRoot(doc);
+    return Tides.mount(m.root, m.a, range, '2026-10-26', doc, { bundle, storage, now: NOW }).querySelector('select').value;
+  };
+  assert.equal(pick({ lat: null, lon: null }), '9447130', 'null/null would be nearest(0,0)');
+  assert.equal(pick({ lat: '46.93', lon: '-124.05' }), '9447130');
+  assert.equal(pick({ lat: 46.93 }), '9447130');
+  assert.equal(pick({ lat: 46.93, lon: -124.05 }), '9441102');
+});
+
+test('mount: the heading is just "Tides"; the station is named by the picker', () => {
+  const doc = fakeDoc(), m = mkRoot(doc);
+  const sec = Tides.mount(m.root, m.a, range, '2026-10-26', doc, { bundle, storage: noStore, now: NOW });
+  assert.equal(sec.querySelector('.cap').textContent, 'Tides');
+  assert.ok(!/Seattle/.test(sec.querySelector('.cap').textContent));
+});
+
+test('render: notes and dashes are marked .none so the desktop grid does not squeeze them into one column', () => {
+  const cells = Tides.render([{ date: '2026-10-26', extremes: [], note: 'Beyond the bundled predictions (through Nov 30)' }, { date: '2026-10-27', extremes: [] }, { date: '2026-10-28', extremes: [{ t: '06:00', type: 'H', v: 1 }] }], '2026-10-26 00:00', fakeDoc()).querySelectorAll('td');
+  assert.deepEqual(cells.map(c => c.className), ['none', 'none', '']);
 });
