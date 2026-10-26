@@ -28,6 +28,7 @@
     "week/index.html",
     "year/index.html",
     "year/data.js",
+    "year/anchor.js",
     "spots/index.html",
     "counts/index.html",
     "counts/data.js"
