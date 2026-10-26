@@ -65,6 +65,11 @@ table.tides tr + tr th, table.tides tr + tr td { border-top: 0.5px solid var(--h
 table.tides th { font-weight: 600; white-space: nowrap; width: 110px; }
 table.tides tr.today th { color: var(--accent); }
 table.tides .ex { display: inline-block; margin-right: 12px; white-space: nowrap; }
+/* Desktop: each day's extremes sit in four fixed columns so times line up down the table. */
+@media (min-width: 600px) {
+  table.tides td:not(.none) { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 8px; align-items: start; }
+  table.tides td .ex { margin-right: 0; white-space: normal; }
+}
 table.tides .ex.L { color: var(--soft); }
 table.tides tr.today .ex.L { color: var(--soft); }
 table.tides .ex.next, table.tides .ex.L.next, table.tides tr.today .ex.L.next { font-weight: 700; color: var(--ink); }

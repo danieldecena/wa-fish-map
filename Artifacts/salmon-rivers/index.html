@@ -308,6 +308,18 @@ a { color: var(--on-text); }
 .legend li.cl i { box-shadow: inset 0 0 0 1px var(--pin-edge); }
 .legend li.dash i { width: 10px; height: 10px; background: transparent; border: 1.5px dashed var(--ink2); }
 .legend .fine { margin-top: 6px; font-size: 12px; line-height: 16px; color: var(--ink2); }
+/* Phones (390px and under): the legend collapses to a 44px "Key" button so it stops covering the map; the button toggles it open. */
+.legkey { display: none; }
+@media (max-width: 390px) {
+  .legend { flex: 0 1 auto; }
+  .legkey { display: block; min-height: 44px; margin: -10px -12px; padding: 0 16px; border: 0; border-radius: 14px; background: transparent; color: var(--ink); font: 600 14px/20px var(--sans); min-width: 64px; cursor: pointer; }
+  .legend.open .legkey { margin-bottom: 0; }
+  .legend:not(.open) #legbody { display: none; }
+  .legend.open #legbody { margin-top: 10px; }
+  .legend:not(.open) .hint:not([hidden]) { margin-top: 0; }
+}
+/* The "Tap any river" hint goes after the first map interaction (tap, drag, zoom), for the session. */
+html.touched #rhint { display: none; }
 .zoom { flex: none; display: flex; flex-direction: column; overflow: hidden; }
 .zoom button { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: transparent; cursor: pointer; }
 .zoom button + button { border-top: 1px solid var(--glass-line); }
@@ -499,6 +511,8 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
 
     <div class="bottom" id="bottom">
       <div class="glass legend" id="legend">
+        <button type="button" class="legkey" id="legkey" aria-expanded="false" aria-controls="legbody">Key</button>
+        <div id="legbody">
         <div class="lt" id="legt">Recent catch reports</div>
         <ul id="legl">
           <li style="--c:var(--prime)"><i></i>Excellent</li>
@@ -510,6 +524,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
           <li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>
         </ul>
         <div class="fine" id="legf">Catch reports, not season dates. Confirm rules on WDFW.</div>
+        </div>
         <div class="hint" id="hint" hidden></div>
         <div class="hint" id="rhint" hidden>Tap any river for its typical flow and WDFW notices.</div>
       </div>
@@ -1034,8 +1049,26 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
 
   /* ---- gestures ---- */
   var ptrs = new Map(), down = null, pinch = null;
+  /* The "Tap any river" hint has done its job after the first tap, drag or zoom; it stays gone for the browser session. */
+  var HINT_KEY = 'wafish.hintSeen';
+  function hintSeen() { try { return sessionStorage.getItem(HINT_KEY) === '1'; } catch (e) { return false; } }
+  function touchMap() {
+    if (document.documentElement.classList.contains('touched')) return;
+    document.documentElement.classList.add('touched');
+    try { sessionStorage.setItem(HINT_KEY, '1'); } catch (e) { /* not persisted: gone until reload */ }
+  }
+  if (hintSeen()) document.documentElement.classList.add('touched');
+  map.addEventListener('wheel', touchMap, { passive: true });
+  ['zin', 'zout', 'zfit'].forEach(function (id) { $('#' + id).addEventListener('click', touchMap); });
+  var legend = $('#legend'), legkey = $('#legkey');
+  legkey.addEventListener('click', function () {
+    var open = !legend.classList.contains('open');
+    legend.classList.toggle('open', open);
+    legkey.setAttribute('aria-expanded', String(open));
+  });
   map.addEventListener('pointerdown', function (e) {
     if (e.button !== undefined && e.button > 0) return;
+    touchMap();
     anim = null;
     ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (ptrs.size === 1) {
