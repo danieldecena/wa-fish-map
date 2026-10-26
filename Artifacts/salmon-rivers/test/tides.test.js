@@ -204,6 +204,18 @@ test('mount: a throwing localStorage getter does not stop the section mounting',
   assert.equal(root.children[1].querySelector('select').value, '9447130');
 });
 
+test('mount: the clock is Washington time, whatever zone the device is in', () => {
+  const doc = fakeDoc(), { root, a } = mkRoot(doc);
+  // 06:30 UTC on Oct 28 is 23:30 PDT on Oct 27: a UTC or Asian device reads the 28th, Washington is still on the 27th.
+  const RealDate = globalThis.Date, FIXED = RealDate.parse('2026-10-28T06:30:00Z');
+  globalThis.Date = class extends RealDate { constructor(...args) { if (args.length) super(...args); else super(FIXED); } static now() { return FIXED; } };
+  // No pinned today, so the clock alone decides which row is today.
+  try { Tides.mount(root, a, Week.next7('2026-10-27'), undefined, doc, { bundle, storage: null }); } finally { globalThis.Date = RealDate; }
+  const today = root.children[1].querySelectorAll('tr').filter(r => r.className === 'today');
+  assert.equal(today.length, 1);
+  assert.match(today[0].querySelector('th').textContent, /^Tue Oct 27/);
+});
+
 test('mount: a pinned today inside the week marks that row and its first extreme is next', () => {
   const doc = fakeDoc(), { root, a } = mkRoot(doc);
   // No opts.now: stub the clock far from the week so the pinned `today` (not the real date) must drive the result.

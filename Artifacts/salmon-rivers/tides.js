@@ -96,7 +96,13 @@
   }
   function readStorage(storage, key) { try { return storage ? storage.getItem(key) : null; } catch (e) { return null; } }
   function writeStorage(storage, key, v) { try { if (storage) storage.setItem(key, v); } catch (e) { /* not persisted */ } }
-  function localNow() { var d = new Date(); function p(n) { return String(n).padStart(2, '0'); } return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
+  /* Washington time, not the device's: every bundled station is in America/Los_Angeles, and the t strings are in that zone. */
+  function localNow() {
+    var o = {};
+    new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+      .formatToParts(new Date()).forEach(function (p) { o[p.type] = p.value; });
+    return o.year + '-' + o.month + '-' + o.day + ' ' + o.hour + ':' + o.minute;
+  }
   function startingStation(storage, list) {
     var stored = byId(readStorage(storage, STORE_KEY) || '', list);
     if (stored) return stored;

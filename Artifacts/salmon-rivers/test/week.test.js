@@ -19,6 +19,15 @@ test('range: Monday to Sunday containing today, across month and year boundaries
   assert.equal(Week.range('2026-10-28').days.length, 7);
 });
 
+test('next7: today and the six days after it, across month and year boundaries', () => {
+  const r = Week.next7('2026-11-01');                                                     // a Sunday: range() would start a week earlier
+  assert.deepEqual(r.days, ['2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05', '2026-11-06', '2026-11-07']);
+  assert.equal(r.start, '2026-11-01');
+  assert.equal(r.end, '2026-11-07');
+  assert.equal(Week.next7('2026-12-30').end, '2027-01-05');
+  assert.throws(() => Week.next7('2026-02-30'), /bad date/);
+});
+
 test('build: every section is present and empty with no data', () => {
   const r = Week.build(FY0, R0, RL0, '2026-10-26');
   assert.deepEqual(r.open, []); assert.deepEqual(r.reported, []); assert.deepEqual(r.rules, []); assert.deepEqual(r.upcoming, []);
