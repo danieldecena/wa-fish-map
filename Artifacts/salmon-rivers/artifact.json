@@ -5,10 +5,10 @@
   "account": "danieldecena@icloud.com",
   "what": "One map on one URL: Recent reports, Typical season and Spawning modes under one thin control bar, plus three layers from the Layers menu: Seasons (Washington Fishing Year seasons outlined by month, with a month slider and ends-soon/opens-soon tags), Spot guides (Three Friends Fishing Hole in Kent) Piers and shore (63 WDFW piers and 80 shore access sites, no rating) and Creel counts (last week's fish kept beside each surveyed report river). Six spot guides around Puget Sound. The old Week, Year, Spots and Counts paths redirect into the map. Counts and timing never mix with ratings.",
   "baselineVersion": "1792352926-fede",
-  "currentVersion": "1793083287-e7f9",
-  "previousVersion": "1793082800-3051",
+  "currentVersion": "1793084530-99d6",
+  "previousVersion": "1793083287-e7f9",
   "note": "Refresh by PASSING THIS URL with file_path=Artifacts/salmon-rivers/index.html and files= any changed paths from `files` (files left out are kept on the live page). Read the live version first. Rollback: republish a previous version id. 2026-10-26: versions 16 (Week tab, deep links, tides, five-tab bar), 17 (thin control bar) and 18 (phone bar) were published from the week-page-and-deep-links branch; 1792491424-046f had been published outside the repo and was captured here first.",
-  "synced": "2026-10-26: live 1793083287-e7f9 (version 35: the Tap any river hint hides after the first map interaction again, PR 84 removed a stray brace that dropped the hiding rule; only index.html changed) published from main after PR 84. Live geo.js differs from the repo's in the cowlitz and lewis highlight lines and three base layers; it was left as live has it.",
+  "synced": "2026-10-27: live 1793084530-99d6 (version 36: the month names in the month card keep a gap on 360-389 px phones, PR 93; only index.html changed) published from main after PR 93. Live geo.js differs from the repo's in the cowlitz and lewis highlight lines and three base layers; it was left as live has it.",
   "files": [
     "index.html",
     "cluster.js",
