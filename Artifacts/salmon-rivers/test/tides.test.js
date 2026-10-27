@@ -104,7 +104,7 @@ function fakeDoc() {
 const days0 = Tides.days(Tides.byId('9447130'), range, bundle);
 
 test('no network: no page code file contains fetch(, XMLHttpRequest, sendBeacon, WebSocket, EventSource or import(', () => {
-  const files = ['index.html', 'links.js', 'layers.js', 'spots.js', 'season-places.js', 'tides.js', 'reports.js', 'rules.js', 'season.js', 'cluster.js',
+  const files = ['index.html', 'links.js', 'layers.js', 'spots.js', 'season-places.js', 'tide-predictor.js', 'tide-harmonics.js', 'tides.js', 'reports.js', 'rules.js', 'season.js', 'cluster.js',
     'week/index.html', 'spots/index.html', 'counts/index.html', 'year/index.html'];
   const allow = {}; // file -> [pattern names allowed there, with a reason]
   const bad = { 'fetch(': /\bfetch\s*\(/, XMLHttpRequest: /XMLHttpRequest/, sendBeacon: /sendBeacon/, WebSocket: /WebSocket/, EventSource: /EventSource/, 'import(': /\bimport\s*\(/ };

@@ -65,5 +65,56 @@
   function fmtExtreme(e) { return e.type + ' ' + fmtTime(e.t) + ' · ' + e.v.toFixed(1) + ' ft'; }
   function footnote(bundle) { return 'NOAA predictions through ' + shortDate(bundle.end) + ', MLLW, local time. Not observations.'; }
 
-  return { STATIONS: STATIONS, DEFAULT: DEFAULT, stationsOf: stationsOf, byId: byId, miles: miles, nearest: nearest, days: days, fmtTime: fmtTime, fmtExtreme: fmtExtreme, footnote: footnote, shortDate: shortDate };
+  /* Tides computed in the page: the Neaps engine (tide-predictor.js) on NOAA's harmonic constants (tide-harmonics.js), so no date
+     runs out and nothing is fetched. Heights read against MLLW and times in Washington time, as NOAA's own predictions do; test/tide-engine.test.js
+     holds them to NOAA's published predictions. A subordinate station predicts from its reference station with NOAA's corrections. */
+  var TZ = 'America/Los_Angeles', MS = 60000;
+  var laFmt = null;
+  function laParts(d) {
+    laFmt = laFmt || new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+    var p = {}; laFmt.formatToParts(d).forEach(function (x) { p[x.type] = x.value; });
+    return { date: p.year + '-' + p.month + '-' + p.day, hm: p.hour + ':' + p.minute };
+  }
+  // The instant Washington's local midnight begins on an ISO date: 07:00 or 08:00 UTC, whichever reads as 00:00 there.
+  function laMidnight(iso) {
+    var y = +iso.slice(0, 4), m = +iso.slice(5, 7) - 1, d = +iso.slice(8, 10);
+    for (var h = 7; h <= 8; h++) { var t = new Date(Date.UTC(y, m, d, h)); if (laParts(t).hm === '00:00') return t; }
+    return new Date(Date.UTC(y, m, d, 8));
+  }
+  function engine(H, TP) {
+    if (!H || !Array.isArray(H.stations) || !TP || typeof TP.createTidePredictor !== 'function') return null;
+    var byStation = {}, cache = {};
+    H.stations.forEach(function (s) { byStation[s.id] = s; });
+    function model(id) {
+      var s = byStation[id]; if (!s) return null;
+      var ref = s.harmonics ? s : byStation[s.ref];
+      if (!ref || !ref.harmonics) return null;
+      cache[ref.id] = cache[ref.id] || TP.createTidePredictor(ref.harmonics, { offset: ref.msl });
+      return { p: cache[ref.id], offsets: s.harmonics ? undefined : s.offsets };
+    }
+    function day(id, iso) {
+      var m = model(id); if (!m) return null;
+      var start = laMidnight(iso);
+      // Two hours either side, so a subordinate station's time correction cannot push a tide out of its own day.
+      var ex = m.p.getExtremesPrediction({ start: new Date(start.getTime() - 2 * 60 * MS), end: new Date(start.getTime() + 26 * 60 * MS), offsets: m.offsets });
+      return ex.filter(function (x) { return laParts(x.time).date === iso; })
+        .map(function (x) { return { t: laParts(x.time).hm, type: x.high ? 'H' : 'L', v: Math.round(x.level * 10) / 10, at: x.time }; });
+    }
+    // Level at an instant, and whether the water is rising: compared with ten minutes later.
+    function now(id, when) {
+      var m = model(id); if (!m) return null;
+      var a = m.p.getWaterLevelAtTime({ time: when, offsets: m.offsets }), b = m.p.getWaterLevelAtTime({ time: new Date(when.getTime() + 10 * MS), offsets: m.offsets });
+      return { v: Math.round(a.level * 10) / 10, rising: b.level > a.level };
+    }
+    function curve(id, iso) {
+      var m = model(id); if (!m) return null;
+      var start = laMidnight(iso);
+      return m.p.getTimelinePrediction({ start: start, end: new Date(start.getTime() + 24 * 60 * MS), timeFidelity: 900, offsets: m.offsets })
+        .map(function (q) { return { at: q.time, v: q.level }; });
+    }
+    var list = H.stations.filter(function (s) { return !s.refOnly; }).map(function (s) { return { id: s.id, name: s.name, lat: s.lat, lon: s.lon }; });
+    return { stations: list, day: day, now: now, curve: curve };
+  }
+
+  return { STATIONS: STATIONS, DEFAULT: DEFAULT, stationsOf: stationsOf, byId: byId, miles: miles, nearest: nearest, days: days, fmtTime: fmtTime, fmtExtreme: fmtExtreme, footnote: footnote, shortDate: shortDate, engine: engine, laParts: laParts, laMidnight: laMidnight };
 });
