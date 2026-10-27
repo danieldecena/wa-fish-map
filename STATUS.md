@@ -153,6 +153,10 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-27 (page check serves the live wrapper; month names fit at 360)
+- The page check's screenshots showed the "Tap the map where you are" banner and the species panel open on load. Live never does: the publisher wraps the page in a doctype and `[hidden]{display:none!important}`, and the local server served the bare file, so `.metip`/`.sppanel` display rules beat `[hidden]` only locally. Ruled out first: PR 84's brace fix (the pre-fix page showed the same). `check-week.mjs` now prepends the wrapper copied from live 1793083287-e7f9, to `index.html` only, as the publisher does.
+- On phones under 390 px the month names in the month card touched ("May"/"Jun" overlapped 1.8 px at 360, 0.4 at 375), breaking the 360 px fit promise. Fixed keeping 12 px text (`design.test.js` floor): 40 px label column, -0.03em tracking, 8 px card sides. The check now runs at 360 and asserts a 1 px gap; it failed on the old page and passes on the new. 320 px still crowds, below the promise.
+
 ### 2026-10-26 (monthly tide refresh retired)
 - Decided: the `[you]` task to re-run `build_tides.py` monthly is retired, not automated. The map stopped loading `tides-data.js` when it moved to computing tides in the page (`tide-predictor.js` over `tide-harmonics.js`, node corrections from the date), so it never runs out; checked in `index.html`, which loads only those two. `tides-data.js` stays as the engine's test oracle. README updated to match.
 
