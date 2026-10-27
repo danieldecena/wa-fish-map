@@ -3,12 +3,12 @@
   "title": "Washington Fishing Map",
   "identified": "2026-10-18, named by Daniel when asking for improvements",
   "account": "danieldecena@icloud.com",
-  "what": "Five-tab site on one URL (Week | Map | Year | Spots | Counts). Map: Recent reports (eight SW Washington salmon waters and the Skagit, rated from sourced catch reports; the Skagit's is stale, from 2026-10-10; WDFW notices on tapped rivers), Typical season (540 statewide sites by the app's seasonal timing) and Spawning (75 WDFW salmon viewing sites by month), under one thin control bar. Week: open seasons, this week's reports, new WDFW rules, coming up, a 7-day bundled NOAA tide table (26 stations; also Tides today on marine site sheets of the map) and spots. Year: Washington Fishing Year. Spots: Three Friends Fishing Hole. Counts: SW Washington creel table. Counts and timing never mix with ratings.",
+  "what": "One map on one URL: Recent reports, Typical season and Spawning modes under one thin control bar, plus three layers from the Layers menu: Seasons (Washington Fishing Year seasons outlined by month, with a month slider and ends-soon/opens-soon tags), Spot guides (Three Friends Fishing Hole in Kent) and Creel counts (last week's fish kept beside each surveyed report river). The old Week, Year, Spots and Counts paths redirect into the map. Counts and timing never mix with ratings.",
   "baselineVersion": "1792352926-fede",
-  "currentVersion": "1793062288-0c70",
-  "previousVersion": "1793061511-4ac6",
+  "currentVersion": "1793064789-18e9",
+  "previousVersion": "1793062288-0c70",
   "note": "Refresh by PASSING THIS URL with file_path=Artifacts/salmon-rivers/index.html and files= any changed paths from `files` (files left out are kept on the live page). Read the live version first. Rollback: republish a previous version id. 2026-10-26: versions 16 (Week tab, deep links, tides, five-tab bar), 17 (thin control bar) and 18 (phone bar) were published from the week-page-and-deep-links branch; 1792491424-046f had been published outside the repo and was captured here first.",
-  "synced": "2026-10-27: live 1793062288-0c70 (version 25: the Skagit River added to Recent reports as a stale Fair rating on The Confluence Fly Shop's 2026-10-10 report, and the phone opening view kept clear of the report-age line, PR 74; index.html and reports.js on top of v24) matches this folder for those two files (index.html minus the service's injected skeleton). The two ship together: index.html calls Reports.homeBox and Reports.regionName, which only the current reports.js has.",
+  "synced": "2026-10-26: live 1793064789-18e9 (version 26: the one-map layers change, docs/superpowers/plans/2026-10-26-one-map-layers.md) published from this folder after reading version 25 and confirming it matched the repo.",
   "files": [
     "index.html",
     "cluster.js",
@@ -22,15 +22,15 @@
     "sites.js",
     "typical.js",
     "links.js",
-    "week.js",
+    "layers.js",
+    "spots.js",
+    "seasons-data.js",
+    "season-places.js",
     "tides.js",
-    "week/tides-data.js",
+    "tides-data.js",
     "week/index.html",
     "year/index.html",
-    "year/data.js",
-    "year/anchor.js",
     "spots/index.html",
-    "counts/index.html",
-    "counts/data.js"
+    "counts/index.html"
   ]
 }
