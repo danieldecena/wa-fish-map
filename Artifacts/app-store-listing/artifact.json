@@ -4,7 +4,8 @@
   "identified": "2026-10-02, by /pointer-audit: live and owned by this account, not claimed by any owner file",
   "account": "danieldecena@icloud.com",
   "what": "A single static page styled as an App Store listing: icon, TestFlight link, stat strip (477 sites/63 piers, iOS 18+), screenshot rail, feature cards, what's-new, privacy/info tables. Published back-to-back with Artifacts/interactive-preview on 2026-09-18 (consecutive epoch versions).",
-  "note": "KNOWN DEFECT, found 2026-10-02 by reading the published source: the page's 'Try It Here' / demo link does a fetch HEAD on 'demo/index.html', and this artifact has NO published files at all -- that path, plus linked 'privacy.html' and 'support.html', are all dead. The actual demo is published separately as Artifacts/interactive-preview's url. Fix needs either pointing this page's demo link at that url directly, or publishing that demo's content to this artifact at the path 'demo/index.html'. Not fixed here -- republishing is an outward-facing action and wants confirmation first. Refresh by PASSING THIS URL regardless of which fix is chosen.",
-  "currentVersion": "1789746961-58f6",
-  "source": "Source captured into this folder 2026-10-20 from the live version above; index.html is the page as published, with its screenshots inlined. The dead demo, privacy and support links noted above are still in it."
+  "note": "Fixed 2026-10-27 (version 10): Privacy and Support point at the hosted pages the App Store listing uses (danieldecena.github.io/wa-fish-map/privacy.html and support.html), and 'Try It Here' links straight to Artifacts/interactive-preview's url instead of probing a demo/index.html this artifact never had. The Get button now opens the public App Store listing and the release text says 1.0 build 10 is released. Refresh by PASSING THIS URL.",
+  "currentVersion": "1793090014-02d2",
+  "source": "index.html is the page body without the publisher's wrapper (the doctype/head line and closing tags it adds on publish); the 2026-10-20 capture included the wrapper and was stripped on 2026-10-27 so a republish does not double it.",
+  "previousVersion": "1789746961-58f6"
 }

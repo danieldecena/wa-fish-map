@@ -132,13 +132,11 @@
   it is in the default test plan.
 - The App Store screenshots predate the 2026-10-14 design pass; refresh them
   at the next submission.
-- `Artifacts/app-store-listing` has dead demo, privacy and support links (see
-  its `artifact.json`); fixing it means republishing, which wants Daniel's OK.
 
 ## Next Up
 
 - 1.0 is public in the App Store (apps.apple.com/us/app/wa-fish-map/id6807799974,
-  seen 2026-10-27 01:22). Next: refresh the screenshots and listing links.
+  seen 2026-10-27 01:22). Next: refresh the App Store screenshots.
 - Fishing Year: pink seasons once WDFW sets the 2027 odd-year rules (Apr 2027).
 - 1.0 (9) carries the pin VoiceOver fix and is with both TestFlight groups,
   `Internal` and `insideout`, beta review approved (read from Apple 2026-10-09).
@@ -147,6 +145,9 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-27 (old marketing page links fixed; version 10)
+- `Artifacts/app-store-listing` republished as 1793090014-02d2 in a /goal run: Privacy and Support now go to the github.io pages App Store Connect uses (both answered 200), "Try It Here" is a plain link to the interactive preview artifact (an iframe of another claude.ai artifact was never going to load, and the probe for `demo/index.html` always failed), and the TestFlight "Flight" button and "In App Review" text became the public App Store link and "released Oct 27, 2026". Live read back equals the source plus one publisher wrapper.
 
 ### 2026-10-27 (overlapping guide pins grouped; map version 37)
 - Guide pins closer than 30 px now draw as one pin with a count ("2 spot guides"); a tap opens a sheet listing them plus "Zoom in here", which fits them at 2x to 8x. It follows the Figma mockup's content but uses the page's sheet, not a popover, so it matches every other tap on the map. Guide pins moved to their own `#guides` layer above `#over`, so marks built later cannot cover them.
