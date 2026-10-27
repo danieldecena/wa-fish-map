@@ -137,8 +137,8 @@
 
 ## Next Up
 
-- 1.0 (10) is approved and waits on a manual release (Pending Developer
-  Release, read from Apple 2026-10-27). Releasing makes it public: Daniel's call.
+- 1.0 (10) is released: Apple reads READY_FOR_SALE (2026-10-27 01:12). Confirm
+  the public listing appears (the iTunes lookup was still empty at release).
 - Fishing Year: pink seasons once WDFW sets the 2027 odd-year rules (Apr 2027).
 - 1.0 (9) carries the pin VoiceOver fix and is with both TestFlight groups,
   `Internal` and `insideout`, beta review approved (read from Apple 2026-10-09).
@@ -147,6 +147,12 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-27 (1.0 (10) released; pin checks wait on an unlocked phone)
+- Released on Daniel's explicit "Release now" (asked in session, recommendation was to hold for the stale screenshots and dead listing links). Read first through `app-ship`'s key: exactly one iOS version pending, 1.0 build 10, release type MANUAL. `POST /v1/appStoreVersionReleaseRequests` returned a release-request object with the version id (a 2xx: the client raises on any error status), and the version read back READY_FOR_SALE at 01:12:16. The public iTunes lookup by bundle id returned 0 results right after; that is propagation lag until shown otherwise, not a failed release. `ship.py` has no release command; the scratch call reused its client.
+- Device pin checks not run: the iPhone was paired, developer mode on, but locked (`passcodeRequired: true`) and its Wi-Fi tunnel came and went. `scripts/verify_pins_device.sh` now does the run in one command. Device signing is proven: `build-for-testing` for `generic/platform=iOS` succeeded and the app is signed for team 877MLS29T9 with WeatherKit. Its pass detector was checked on the other session's real passing simulator log (accepted) and a copy with one test turned to failed (refused); its unlocked branch has not run.
+- A `build-for-testing` aimed at the locked phone by id sat with a 245-byte log; aim at `generic/platform=iOS` to build, and let the test run name the phone.
+- `PinVoiceOverProbe` passed once on the iPhone 18 Pro simulator in another session (00:59). Known broken still says it fails every run; one pass does not overturn an intermittent failure, and a repeat run was refused here because three simulators were booted.
 
 ### 2026-10-27 (one-map page looked over in a browser; link quirks closed)
 - The one-map look-over was done by machine, not by hand: `check-week.mjs --today 2026-10-27` passed 163 checks at 320, 360, 390 and 1024 px, light and dark (Layers menu, month slider, three legend lines, 44 px targets, no horizontal scroll, the four old-page redirects). A scratch click-through at 390 and 1280 px then opened the Layers menu, turned on Seasons, Spot guides and Creel counts (link carries them), found 8 "N kept" count badges and 26 season shapes and tags, with no console errors. Screenshots showed the Skagit coho tag and the Kent guide pin drawn. The phone summary chips run off the right edge by design (`.dsum` scrolls sideways). Not covered: how touch feels on a real phone.

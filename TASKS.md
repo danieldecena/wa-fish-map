@@ -11,11 +11,12 @@
 #### Design critique 2026-10-26
 
 - [x] Edge-tap UI test for the 44pt marker target
-- [ ] [you] Run the marker edge-tap test on the iPhone
+- [ ] [you] Unlock the iPhone and run the pin device script
 - [x] [you] Check the attached recording shows the far-date state -- moot, 1.0 (10) approved
 - [x] [you] Reply to Apple only if build 10 is rejected -- approved, no reply
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
-- [ ] [you] Release to the App Store after approval (manual release)
+- [x] Release 1.0 (10) to the App Store -- READY_FOR_SALE 2026-10-27
+- [ ] Confirm 1.0 shows in the public App Store
 - [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
 - [x] Fishing Year: confirm Two Rivers Point (city plan)
 
