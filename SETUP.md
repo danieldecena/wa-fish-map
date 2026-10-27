@@ -140,5 +140,5 @@ These feed the web pages in `Artifacts/`, not the app. Run them with
 | `scripts/build_salmon_db.py` | Build `~/database/salmon-rivers/salmon.db` from WDFW's weekly SW Washington reports; `--fetch` downloads new PDFs first. |
 | `scripts/build_salmon_counts.py` | Write `Artifacts/salmon-rivers/counts.js` from `salmon.db`. |
 | `scripts/export_salmon_page.py` | Write `Artifacts/salmon-catch-table/data.js` from `salmon.db`; refuses if a row count disagrees. |
-| `scripts/build_fishing_year.py` | Write `Artifacts/fishing-year/data.js` from `seasons.json`; `--check` validates only. |
+| `scripts/build_fishing_year.py` | Write `Artifacts/salmon-rivers/seasons-data.js` from `Artifacts/salmon-rivers/seasons/seasons.json`; `--check` validates only. |
 | `scripts/test_*.py` | Unit tests for the scripts above: `/opt/homebrew/bin/python3 -m unittest discover -s scripts -p "test_*.py"`. |

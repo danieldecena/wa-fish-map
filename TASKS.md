@@ -20,6 +20,10 @@
 
 ## Completed
 
+### 2026-10-27 — Artifacts folder organized
+
+- [x] Seasons source moved from `Artifacts/fishing-year/` to `Artifacts/salmon-rivers/seasons/`; the build writes only `seasons-data.js` (byte-identical output), and `test/season-places.test.js` now checks it against `seasons.json`. The retired Fishing Year and Three Friends pages moved to `Artifacts/archive/`; still-published pages stay at `Artifacts/<slug>/`, where the home artifact checks look.
+
 ### 2026-10-26 — cleared from Tasks
 
 - [x] Year page row links: the built Year page already gives every season row `id="row-<season id>"`; `year/anchor.js` (new, loaded after `data.js`) presses the row named by the URL hash, and Week's Open now and Coming up season rows link to `../year/index.html#<id>`. Not yet viewed in a browser (local server and browsers are blocked in this session): open `year/index.html#chum` and a Week link once to confirm the row selects and scrolls.

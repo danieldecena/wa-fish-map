@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Write Artifacts/fishing-year/data.js from Artifacts/fishing-year/seasons.json.
+"""Write Artifacts/salmon-rivers/seasons-data.js, the map's Seasons layer, from
+Artifacts/salmon-rivers/seasons/seasons.json. test/season-places.test.js fails
+if the two fall out of step.
 
-The same bytes go to Artifacts/salmon-rivers/seasons-data.js, the map's Seasons
-layer; its test/season-places.test.js fails if the two differ.
-
-    build_fishing_year.py            build data.js, print the report
+    build_fishing_year.py            build seasons-data.js, print the report
     build_fishing_year.py --check    build nothing, exit 1 on any error
 
-seasons.json is the one place the Washington Fishing Year page gets its dated
-seasons, key dates, migration months, river text and access points. The page
-holds no data of its own. Dated seasons and rules are artifact-only: the app
+seasons.json is the one place the map's Seasons layer gets its dated seasons,
+key dates, migration months, river text and access points (it began as the
+Washington Fishing Year page, retired 2026-10-26). The page holds no data of its
+own. Dated seasons and rules are artifact-only: the app
 shows month ratings from fisheries.json and never reads them.
 
 Shared sources, so a fact lives in one place:
@@ -42,9 +42,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "Artifacts" / "fishing-year" / "seasons.json"
-OUT = ROOT / "Artifacts" / "fishing-year" / "data.js"
-MAP_COPY = ROOT / "Artifacts" / "salmon-rivers" / "seasons-data.js"
+SRC = ROOT / "Artifacts" / "salmon-rivers" / "seasons" / "seasons.json"
+OUT = ROOT / "Artifacts" / "salmon-rivers" / "seasons-data.js"
 SITES = ROOT / "site" / "data" / "sites.json"
 RIVERS = ROOT / "WAFishMap" / "Resources" / "rivers.json"
 
@@ -275,9 +274,8 @@ def main():
         + json.dumps(data, ensure_ascii=False, separators=(",", ":"))
         + ";\n"
     )
-    for out in (OUT, MAP_COPY):
-        out.write_text(text)
-        print("wrote", out.relative_to(ROOT), out.stat().st_size, "bytes")
+    OUT.write_text(text)
+    print("wrote", OUT.relative_to(ROOT), OUT.stat().st_size, "bytes")
     return 0
 
 
