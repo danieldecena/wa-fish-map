@@ -11,8 +11,8 @@
 
 - [x] Edge-tap UI test for the 44pt marker target
 - [ ] [you] Run the marker edge-tap test on the iPhone
-- [ ] [you] Check the attached recording shows the far-date state
-- [ ] [you] Reply to Apple only if build 10 is rejected
+- [x] [you] Check the attached recording shows the far-date state -- moot, 1.0 (10) approved
+- [x] [you] Reply to Apple only if build 10 is rejected -- approved, no reply
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [ ] [you] Release to the App Store after approval (manual release)
 - [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
