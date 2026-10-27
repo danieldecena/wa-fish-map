@@ -5,12 +5,14 @@
 
 - [ ] [you] Unlock the iPhone and run the pin device script
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
+- [ ] Retake the App Store screenshots in daylight
 - [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
 
 ## Completed
 
 ### 2026-10-27 — cleared from Tasks
 
+- [x] Fix dead links on the old marketing page -- 84d8c6e
 - [x] Kent guide pin hidden under Codiga Park at opening zoom -- map v37
 - [x] Confirm 1.0 shows in the public App Store -- live 01:22
 - [x] Look over the one-map page on a phone and a desktop -- browser pass 2026-10-27, see STATUS
