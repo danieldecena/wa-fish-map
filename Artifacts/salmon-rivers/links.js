@@ -12,7 +12,9 @@
   /* Which keys mean anything in each mode. Typical season has no month control, so month is spawning-only. */
   var KEYS = { reports: ['species', 'river'], typical: ['species', 'site'], spawning: ['month', 'species', 'site'] };
   /* Map layers (layers.js) work in every mode. The list is repeated here so links.js stays standalone; test/layers.test.js holds them equal. */
-  var LAYERS = ['seasons', 'spots', 'access', 'counts'];
+  var LAYERS = ['seasons', 'spots', 'access', 'counts', 'typical', 'spawn'];
+  /* No `layers` in the link means the default set; `layers=none` means every layer off. */
+  var DEFAULT_LAYERS = ['typical', 'spawn'];
   function layerList(s) { var a = String(s || '').split(','); return LAYERS.filter(function (n) { return a.indexOf(n) >= 0; }); }
   var DATE = /^\d{4}-\d{2}-\d{2}$/;
   /* A real calendar date: the shape matches and the date survives a round trip (2026-02-30 and 2026-13-99 do not). */
@@ -37,7 +39,7 @@
       site: p.get('site') || null,
       river: p.get('river') || null,
       today: realDate(today) ? today : null,
-      layers: layerList(p.get('layers')),
+      layers: p.has('layers') ? layerList(p.get('layers')) : DEFAULT_LAYERS.slice(),
       spot: p.get('spot') || null,
       season: p.get('season') || null,
       access: p.get('access') || null
@@ -52,8 +54,9 @@
       var v = state[k];
       if (v !== null && v !== undefined && v !== '') p.set(k, String(v));
     });
-    var ls = layerList((state.layers || []).join(','));
-    if (ls.length) p.set('layers', ls.join(','));
+    var ls = state.layers ? layerList(state.layers.join(',')) : DEFAULT_LAYERS.slice();
+    if (!ls.length) p.set('layers', 'none');
+    else if (ls.join() !== DEFAULT_LAYERS.join()) p.set('layers', ls.join(','));
     // A spot sheet is only reachable with its layer on, so the link carries it only then.
     if (ls.indexOf('spots') >= 0 && state.spot) p.set('spot', String(state.spot));
     if (ls.indexOf('access') >= 0 && state.access) p.set('access', String(state.access));
@@ -72,5 +75,5 @@
     history.replaceState(null, '', location.pathname + q + (location.hash || ''));
   }
 
-  return { MODES: MODES, KEYS: KEYS, LAYERS: LAYERS, realDate: realDate, read: read, toQuery: toQuery, write: write };
+  return { MODES: MODES, KEYS: KEYS, LAYERS: LAYERS, DEFAULT_LAYERS: DEFAULT_LAYERS, realDate: realDate, read: read, toQuery: toQuery, write: write };
 });
