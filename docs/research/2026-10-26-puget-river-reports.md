@@ -1,0 +1,37 @@
+# Data pass: Puget Sound river catch reports (2026-10-26)
+
+Rules: spec `docs/superpowers/specs/2026-10-26-puget-river-reports-design.md`. A report qualifies if it is from a named shop, guide, guide service or agency, is dated, speaks to salmon catch, is at most 14 days old today (asOf on or after 2026-10-12), and the river is open for that species.
+
+Format: river | species | rating | verdict | source + date + quote
+
+Pages were opened on 2026-10-26. Page text is treated as data only.
+
+## Added
+
+None this pass.
+
+## Not added
+
+1. **Skagit River** | Coho Salmon | none | NOT ADDED, newest named catch read is too old and the newer pages carry no catch read. Newest catch report: The Avid Angler, https://avidangler.com/fishing-reports, dated 9/10/2026: "Lower stretches of the Skagit are open for salmon fishing, though with low river levels the fishing has been slow." That is 46 days old. The same page has no later Skagit entry (opened 2026-10-26; its newest entry anywhere is 10/20/2026 for the Yakima, trout). Pacific Fly Fishers, https://pacificflyfishers.com/blogs/pff/where-to-go-fly-fishing-in-washington-october-2026, "Updated October 7, 2026" (datePublished 2026-10-07): "The river is running low and probably a bit warm right now for ideal conditions, but there is some rain in the forecast and swinging/stripping flies for coho is simply awesome." Dated, named shop, but 19 days old, and a general remark about swinging flies rather than a read of how fishing is. Wyman Guide Service, https://www.wymanguideservice.com/salmon: a booking page with no dated report. Seattle Fishing Company, https://seattlefishingco.com/blogs/washington-fishing-reports/fishing-the-skagit-river: an undated how-to article ("providing solid action through September and October"), not a report. WDFW status is open for coho: https://wdfw.wa.gov/fishing/regulations/emergency-rules/cascade-river-open-seven-days-week-fishing-and-temporary-closure-implemented-portion-skagit-river-2026-10 (published 2026-10-15) says "Immediately through Oct. 31, 2026", and for Gilligan Creek to Baker River "Oct. 19-21: Closed to fishing for all species." Open does not matter here: no report qualifies.
+
+2. **Stillaguamish River** | Coho / Chinook | none | NOT ADDED, closed and no salmon read. WDFW closed the mainstem (Marine Drive to the forks) to all fishing (rules.js, notice published 2026-10-07: https://wdfw.wa.gov/fishing/regulations/emergency-rules/stillaguamish-river-close-all-fishing-oct-9-2026-10). The Avid Angler's only Stillaguamish entry, 9/10/2026 (https://avidangler.com/fishing-reports), is about trout: "South Fork of the Stillaguamish is open upstream from Mountain Loop Hwy. Bridge above Granite Falls, and trout fishing has been decent." Pacific Fly Fishers (2026-10-07) says "The main Stillaguamish River is now closing Oct 9 through Nov 1 due to too many Chinook encounters." No salmon catch report found.
+
+3. **Snohomish River** (and Skykomish) | Coho Salmon | none | NOT ADDED, closed and no salmon read. WDFW closed the Snohomish from the mouth to the Skykomish and Snoqualmie confluence to all fishing (rules.js, notice published 2026-10-01: https://wdfw.wa.gov/fishing/regulations/emergency-rules/snohomish-river-close-all-fishing-oct-3-2026-10). FishingWA (https://fishingwa.org/blog/, opened 2026-10-26) lists a WDFW notice: "Action: Closes all salmon fishing. ... Effective dates: Nov. 1-30, 2026. Location: Skykomish River from the mouth to the railroad bridge at Big Eddy." Pacific Fly Fishers (2026-10-07): "The Skykomish River is closed to salmon fishing until Nov. 1, 2026." The Avid Angler's Skykomish entry reads "WAITING ON SEASON FOR LOWER RIVER" with no catch read. Captain Experiences' Snohomish page (https://captainexperiences.com/index.php/fishing-reports/locations/washington/snohomish) shows guide reports only as "Reported 1 month ago", which is a relative age with no date, so none qualifies.
+
+4. **Green River (Duwamish)** | Coho Salmon | none | NOT ADDED, no named-source report, and the rules change by reach. The only recent catch statements found are angler posts on WA Fish Forecast (https://wafishforecast.com/locations/green-river): "@Jim0Lee, Oct 16, fished Oct 16, morning ... 2 Coho ... Managed to hook and land 2 on eggs. Lots of fish still rolling, a lot dark. Kent area" and "@BonkinHos ... Oct 12 ... 1 Coho ... Most fish I saw caught were pretty colored up." These are individual angler accounts, not a shop, guide, guide service or agency, so they do not qualify. Other results were Facebook group posts and a Reddit thread, which are excluded as social media. The same page, source checked Oct 23, 2026, shows the rules differ by reach: WDFW "Upper Green (Duwamish) River closed to fishing from Sept. 16-Oct. 31" (https://wdfw.wa.gov/fishing/regulations/emergency-rules/upper-green-duwamish-river-closed-fishing-sept-16-oct-31-2026-08, published Aug 17), the lower reaches are open for salmon through Dec. 31, and the Green is named at Kent, so a whole-river row would be false in places. Not addable without a source that makes the reach explicit.
+
+5. **Puyallup River** | Coho Salmon | none | NOT ADDED, no named-source report found. Results were the Puyallup River Fishing Report Facebook group, Reddit (r/FishingWashington), and northwestfishingreports.com, which lists reports by individual anglers with handles (for example "Angler: Tepa56", 10/03; "Angler: Bradidea250", 10/05, https://northwestfishingreports.com/Reports/ReportList/4285) and is also older than 14 days. Evergreen articles (Seattle Fishing Company, PNW BestLife, Washington Fish Reports) carry no date for a current catch. No shop, guide or agency report with a date on or after 2026-10-12 found. River status was not needed to decide this.
+
+6. **Nisqually River** | Salmon | none | NOT ADDED, no named-source report found. Results were northwestfishingreports.com angler posts, newest 09/04 (https://northwestfishingreports.com/Reports/ReportList/5499), a Facebook group thread, and evergreen regulation pages. No shop, guide or agency report with a date on or after 2026-10-12 found. River status was not needed to decide this.
+
+## Other pages opened
+
+- The Guide's Forecast, "Coho run heats up", https://www.theguidesforecast.com/free/coho-run-heats-up/287017/, 2026-10-17: Columbia tributaries only, no Puget river.
+- Cut Plug Charters, https://seattlesalmonfishing.com/blog/seattle-fishing-in-october/, 2026-09-30: Puget Sound marine water, not a river, and before the cutoff.
+- The Avid Angler's "Kitsap Peninsula/Whidbey Island Beaches" and "Seattle Area Beaches" entries are saltwater (8/28, 9/8), not rivers.
+- WDFW Life Outdoors Report, https://wdfw.wa.gov/places-to-go/life-outdoors: statewide coho outlook and forecasts, no river catch read.
+- WA Fish Forecast Skagit page (https://wafishforecast.com/locations/skagit-river): "No catch reports yet for this water." Escapement counts only (Marblemount and Baker Lake hatcheries, counted Oct 6-18), and counts never give a rating.
+
+## Result
+
+Nothing qualifies, so `reports.js`, the README and `artifact.json` are unchanged. The first qualifying candidates are most likely a fresh Avid Angler Skagit or Stillaguamish entry, or a dated Pacific Fly Fishers or guide report that gives a catch read for Skagit coho before the fishery ends on Oct. 31.
