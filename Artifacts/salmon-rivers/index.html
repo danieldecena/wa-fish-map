@@ -246,6 +246,8 @@ a { color: var(--on-text); }
 .mpop .seg.modes, .modes { background: var(--seg-track); }
 #spbtn .lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #mebtn { max-width: 170px; }
+#laybtn .li, #laycount { display: none; }
+#laycount { font-variant-numeric: tabular-nums; }
 #mebtn .lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .listbtn[aria-expanded="true"] { background: var(--on); border-color: var(--on); color: #fff; }
 .lrow { border: 0; width: 100%; text-align: left; cursor: pointer; min-height: 44px; font: inherit; color: inherit; }
@@ -278,6 +280,12 @@ a { color: var(--on-text); }
   #spbtn .sdot.on { display: block; }
   #spbtn .lbl, #mebtn .lbl, .nbtn .nd { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   #mebtn { padding: 0; width: 44px; }
+  /* Phones: Layers is an icon with the number of layers on; its name stays readable to assistive technology. */
+  #laybtn { padding: 0 10px; gap: 4px; }
+  #laybtn .li { display: block; }
+  #laybtn .lch { display: none; }
+  #laylbl { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  #laycount:not([hidden]) { display: inline; }
   .nbtn { padding: 0; width: 44px; justify-content: center; }
 }
 /* Spawning: the twelve-month ribbon. Tap a month, drag across to sweep, or use the arrow keys. */
@@ -505,7 +513,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       <button type="button" class="listbtn" id="mebtn" aria-label="My location" aria-expanded="false" aria-controls="mepanel"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 14.5s4.5-4.2 4.5-8A4.5 4.5 0 0 0 3.5 6.5c0 3.8 4.5 8 4.5 8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="8" cy="6.5" r="1.6" fill="currentColor"/></svg><span class="lbl">Near me</span></button>
       <button type="button" class="nbtn" id="nbtn" aria-expanded="false" aria-controls="npop" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="12" r=".9" fill="currentColor"/></svg><span class="nd" id="nd"></span></button>
       <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
-      <button type="button" class="listbtn" id="laybtn" aria-expanded="false" aria-controls="laypop"><span id="laylbl">Layers</span><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button type="button" class="listbtn" id="laybtn" aria-expanded="false" aria-controls="laypop"><svg class="li" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 2 14.5 5.5 8 9 1.5 5.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M1.5 8.5 8 12l6.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span id="laylbl">Layers</span><span class="lc" id="laycount" aria-hidden="true" hidden></span><svg class="lch" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
     <div class="glass agechip" id="agechip" role="status" hidden></div>
     <div class="glass pop mpop" id="mpop" hidden></div>
@@ -1359,6 +1367,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     $('#layl').hidden = !layers.length;
     laypop.querySelectorAll('[data-layer]').forEach(function (b) { b.setAttribute('aria-checked', layers.indexOf(b.getAttribute('data-layer')) >= 0 ? 'true' : 'false'); });
     $('#laylbl').textContent = layers.length ? 'Layers · ' + layers.length : 'Layers';
+    $('#laycount').textContent = layers.length || ''; $('#laycount').hidden = !layers.length;
   }
   function setLayers(list) { layers = list; syncLayUi(); syncSeasonUi(); applyStyles(); render(); syncLink(); }
   function toggleLayers(open) {
