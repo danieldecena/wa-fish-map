@@ -269,7 +269,7 @@ to
     const now = R.SITES.filter(s => !s.added).map(s => {
 ```
 
-Run: `node --test Artifacts/salmon-rivers/test/typical.test.js` — Expected: PASS.
+Run: `node --test Artifacts/salmon-rivers/test/typical.test.js`. Expected: PASS.
 
 - [ ] **Step 2: Pins from `ll` when `geo.js` has none**
 
@@ -375,7 +375,7 @@ and directly after the boot line `$('#sub').textContent = REGION + ' · reports 
   if (view === 'reports') map.setAttribute('aria-label', REPORTS_ARIA);
 ```
 
-Run: `grep -n "Southwest Washington\|southwest Washington" Artifacts/salmon-rivers/index.html` — Expected: only the static `aria-label` on `#map` (line ~483, overwritten at boot), the `regionName` text is in `reports.js`, and the `REPORTS_ARIA` line.
+Run: `grep -n "Southwest Washington\|southwest Washington" Artifacts/salmon-rivers/index.html`. Expected: only the static `aria-label` on `#map` (line ~483, overwritten at boot), the `regionName` text is in `reports.js`, and the `REPORTS_ARIA` line.
 
 - [ ] **Step 6: Run the suite**
 
@@ -552,7 +552,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -- docs/research/2026-1
 
 - [ ] **Step 1: Full run**
 
-Run: `node --test "Artifacts/salmon-rivers/test/*.test.js"` — Expected: 0 fail.
+Run: `node --test "Artifacts/salmon-rivers/test/*.test.js"`. Expected: 0 fail.
 Run: `node Artifacts/salmon-rivers/check-week.mjs` if a Playwright browser is available.
 
 - [ ] **Step 2: Push and open the PR**
