@@ -22,7 +22,7 @@
 
 ### 2026-10-27 — Artifacts folder organized
 
-- [x] Seasons source moved from `Artifacts/fishing-year/` to `Artifacts/salmon-rivers/seasons/`; the build writes only `seasons-data.js` (byte-identical output), and `test/season-places.test.js` now checks it against `seasons.json`. Retired pages (Fishing Year, Three Friends) and the older marketing pages moved to `Artifacts/archive/`.
+- [x] Seasons source moved from `Artifacts/fishing-year/` to `Artifacts/salmon-rivers/seasons/`; the build writes only `seasons-data.js` (byte-identical output), and `test/season-places.test.js` now checks it against `seasons.json`. The retired Fishing Year and Three Friends pages moved to `Artifacts/archive/`; still-published pages stay at `Artifacts/<slug>/`, where the home artifact checks look.
 
 ### 2026-10-26 — cleared from Tasks
 

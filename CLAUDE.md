@@ -184,13 +184,14 @@ is minted and the old link goes stale. Read the live version before publishing
 | `salmon-catch-table/` | SW Washington Creel Table — WDFW weekly counts | `~/database/salmon-rivers/salmon.db` → its README |
 | `design-system/` | WA Fish Map design system (Design System type) | `project/` + `index.html`; the type's own files are not copied |
 | `one-map-layers-design/` | Washington Fishing Map: one map with layers (Design canvas, 2026-10-26): mockups for the one-map change, not the live map | `project/`; the type's own files are not copied |
-| `archive/` | Retired and older pages, kept as published: `fishing-year-page/` (Washington Fishing Year, now the map's Seasons layer; frozen, its `data.js` is not rebuilt), `three-friends-fishing-hole/` (now the map's Spot guides layer, `salmon-rivers/spots.js`), and the older `app-store-listing/`, `interactive-preview/`, `inside-wafishmap/` (captured 2026-10-20) | `index.html` as published; nothing here is edited |
+| `app-store-listing/`, `interactive-preview/`, `inside-wafishmap/` | Older marketing and explainer pages, still published | `index.html` as published, captured 2026-10-20 |
+| `archive/` | Retired pages, kept as last published: `fishing-year-page/` (Washington Fishing Year, now the map's Seasons layer; its `data.js` is frozen) and `three-friends-fishing-hole/` (now the map's Spot guides layer, `salmon-rivers/spots.js`) | `index.html` as published; not rebuilt |
 
-In `archive/`, the two retired pages (`fishing-year-page/` and
-`three-friends-fishing-hole/`) no longer publish: their history is in a
+The pages in `archive/` no longer publish: their history is in a
 `published-in.json`, not an `artifact.json`, so the main map's binding is the
-only owner of its url. The three older pages are still published at their own
-urls and keep their `artifact.json`.
+only owner of its url. A page that still publishes stays at
+`Artifacts/<slug>/artifact.json`, one level down: `~/bin/artifact-refs.sh`
+(invariants checks 28 and 29) finds bindings only there.
 
 Every fish artifact on the account is in this table. A new one gets a folder
 with its `artifact.json` and source the day it is published.

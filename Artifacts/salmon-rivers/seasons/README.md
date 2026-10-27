@@ -19,6 +19,8 @@ season goes on the map.
 
 ## Change something
 
+Run from the repo root:
+
 ```zsh
 # 1. edit seasons.json
 /opt/homebrew/bin/python3 scripts/build_fishing_year.py --check   # validate only

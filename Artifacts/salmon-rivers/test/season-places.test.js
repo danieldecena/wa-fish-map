@@ -12,9 +12,12 @@ const FY = ctx.window.FY, TAP = ctx.window.RIVERTAP, PLACES = ctx.window.SEASON_
 const Reports = require('../reports.js');
 
 test('seasons-data.js was rebuilt from seasons/seasons.json (scripts/build_fishing_year.py)', () => {
+  // The build's own transform: rivers keep every field, and a stop drops site_id for that WDFW site's lat/lon.
   const src = JSON.parse(fs.readFileSync(here('seasons/seasons.json'), 'utf8'));
-  const plain = v => JSON.parse(JSON.stringify(v));
-  ['updated', 'seasons', 'milestones', 'migration'].forEach(k => assert.deepEqual(plain(FY[k]), src[k], k + ' differs: rebuild seasons-data.js'));
+  const sites = new Map(JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'site', 'data', 'sites.json'), 'utf8')).sites.map(s => [s.id, s]));
+  const rivers = src.rivers.map(r => ({ ...r, stops: r.stops.map(({ site_id, ...st }) => site_id ? { ...st, lat: sites.get(site_id).lat, lon: sites.get(site_id).lon } : st) }));
+  const want = { updated: src.updated, seasons: src.seasons, milestones: src.milestones, migration: src.migration, rivers };
+  assert.deepEqual(JSON.parse(JSON.stringify(FY)), want, 'seasons-data.js is stale: rerun scripts/build_fishing_year.py');
 });
 
 test('every season has an entry, and no entry names an unknown season', () => {

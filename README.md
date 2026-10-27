@@ -89,10 +89,10 @@ not part of the app, and the app never reads them:
   creel counts.
 - The WA Fish Map design system (`Artifacts/design-system/`) and the one-map
   design canvas (`Artifacts/one-map-layers-design/`).
-- `Artifacts/archive/`: retired and older pages, kept with their published
-  source: the Washington Fishing Year and Three Friends Fishing Hole pages (now
-  layers of the map), the App Store listing and its interactive preview, and the
-  "Inside WAFishMap" explainer.
+- Older pages, kept with their published source: the App Store listing and its
+  interactive preview, and the "Inside WAFishMap" explainer.
+- `Artifacts/archive/`: the retired Washington Fishing Year and Three Friends
+  Fishing Hole pages, now layers of the map.
 
 Each folder's README covers how to refresh, test and publish it. Node tests:
 
