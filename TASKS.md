@@ -1,26 +1,29 @@
 ## Tasks
-- [x] Look over the one-map page on a phone and a desktop -- browser pass 2026-10-27, see STATUS
 - [ ] Kent guide pin hidden under Codiga Park at opening zoom
-- [x] Run `node Artifacts/salmon-rivers/check-week.mjs` where Playwright is installed (the MacBook); it was cut to the one map on 2026-10-26 and has not run since.
 - [ ] Puget Sound river reports: repeat the sourcing pass (spec 2026-10-26-puget-river-reports) when new shop or guide reports appear; a river is added only with a report at most 21 days old (Skagit added 2026-10-26 on the Confluence Fly Shop's Oct 10 report; replace it when a fresher one appears). First pass: docs/research/2026-10-26-puget-river-reports.md.
+
+#### Design critique 2026-10-26
+
+- [ ] [you] Unlock the iPhone and run the pin device script
+- [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
+- [ ] Confirm 1.0 shows in the public App Store
+- [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
+
+## Completed
+
+### 2026-10-27 — cleared from Tasks
+
+- [x] Look over the one-map page on a phone and a desktop -- browser pass 2026-10-27, see STATUS
+- [x] Run `node Artifacts/salmon-rivers/check-week.mjs` where Playwright is installed (the MacBook); it was cut to the one map on 2026-10-26 and has not run since.
 - [x] Live conditions sub-project: USGS flow inside the map's site sheets (NOAA tides are done for marine Typical-season sheets, from the bundle).
 - [x] Fishing Year build: `scripts/build_fishing_year.py` writes `Artifacts/fishing-year/data.js`; the map reads a byte copy at `salmon-rivers/seasons-data.js` (`test/season-places.test.js` fails until it is copied). Make the build write both, and add a `season-places.js` entry for any new season.
 - [x] Recover the river-rules note and generators — 1af89ed
 - [x] Map deep links: spawning month append and transient sync -- no history entry, see STATUS
-
-#### Design critique 2026-10-26
-
 - [x] Edge-tap UI test for the 44pt marker target
-- [ ] [you] Unlock the iPhone and run the pin device script
 - [x] [you] Check the attached recording shows the far-date state -- moot, 1.0 (10) approved
 - [x] [you] Reply to Apple only if build 10 is rejected -- approved, no reply
-- [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [x] Release 1.0 (10) to the App Store -- READY_FOR_SALE 2026-10-27
-- [ ] Confirm 1.0 shows in the public App Store
-- [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
 - [x] Fishing Year: confirm Two Rivers Point (city plan)
-
-## Completed
 
 ### 2026-10-27 — Artifacts folder organized
 
