@@ -27,7 +27,8 @@ const args = {};
 const today = args.today || '2026-10-26';
 let base = args.base, server = null;
 if (!base) {
-  const types = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.png': 'image/png' };
+  // utf-8 is stated because the publisher's wrapper declares it on the live page; without it a "·" reads as "Â·" and text checks fail.
+  const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json', '.css': 'text/css', '.png': 'image/png' };
   server = createServer(async (req, res) => {
     try {
       let p = path.resolve(here, '.' + decodeURIComponent(req.url.split('?')[0]));
