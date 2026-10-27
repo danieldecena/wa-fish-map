@@ -11,7 +11,7 @@
 
 ### 2026-10-27 — cleared from Tasks
 
-- [x] Kent guide pin hidden under Codiga Park at opening zoom -- grouped, not yet published
+- [x] Kent guide pin hidden under Codiga Park at opening zoom -- map v37
 - [x] Confirm 1.0 shows in the public App Store -- live 01:22
 - [x] Look over the one-map page on a phone and a desktop -- browser pass 2026-10-27, see STATUS
 - [x] Run `node Artifacts/salmon-rivers/check-week.mjs` where Playwright is installed (the MacBook); it was cut to the one map on 2026-10-26 and has not run since.
