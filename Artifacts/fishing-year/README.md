@@ -22,7 +22,7 @@ Live: the URL in `artifact.json` (with the current and previous version ids).
 ```zsh
 # 1. edit seasons.json
 /opt/homebrew/bin/python3 scripts/build_fishing_year.py --check   # validate only
-/opt/homebrew/bin/python3 scripts/build_fishing_year.py           # write data.js
+/opt/homebrew/bin/python3 scripts/build_fishing_year.py           # write data.js and salmon-rivers/seasons-data.js
 cd Artifacts/fishing-year && node check.mjs                       # needs playwright-core + Chrome
 ```
 
