@@ -85,3 +85,8 @@ coordinates, and the build confirms only from OpenStreetMap, so `confirmed`
 stays false. The stop's note in `seasons.json` now says what the plan says
 (the earlier note credited the plan with "south end", which only TrailLink
 says).
+
+Decided the same day (Daniel): a government plan that names and maps a place
+can confirm it when OpenStreetMap lacks it. Two Rivers Point is now confirmed
+by Sumner's plan (`place_check.plan` in `seasons.json`), so the page drops its
+"Location unconfirmed" label.

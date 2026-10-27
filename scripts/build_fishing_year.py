@@ -18,7 +18,8 @@ Shared sources, so a fact lives in one place:
  * A stop with site_id null keeps its own lat/lon, because WDFW's layer does not
    list it. It must carry a place_check against OpenStreetMap: confirmed with the
    OSM name (or, for an unnamed feature, its "osm" type/id) and its distance
-   (0 to 250 m), or confirmed false. The page shows
+   (0 to 250 m), or confirmed by an official plan that OSM lacks ("plan": a
+   government source's label and https url), or confirmed false. The page shows
    "Location unconfirmed" on the unconfirmed ones.
  * Each river's line is measured against WAFishMap/Resources/rivers.json. A point
    more than 1.5 km from the named river is an error. The mouth end can be
@@ -178,16 +179,23 @@ def main():
                         )
                     elif pc["confirmed"] and not (
                         (
-                            str(pc.get("name", "")).strip()
-                            or re.fullmatch(
-                                r"(node|way|relation)/\d+", str(pc.get("osm", ""))
+                            (
+                                str(pc.get("name", "")).strip()
+                                or re.fullmatch(
+                                    r"(node|way|relation)/\d+", str(pc.get("osm", ""))
+                                )
                             )
+                            and isinstance(pc.get("meters"), int)
+                            and 0 <= pc["meters"] <= 250
                         )
-                        and isinstance(pc.get("meters"), int)
-                        and 0 <= pc["meters"] <= 250
+                        or (
+                            isinstance(pc.get("plan"), dict)
+                            and str(pc["plan"].get("label", "")).strip()
+                            and str(pc["plan"].get("url", "")).startswith("https://")
+                        )
                     ):
                         errors.append(
-                            f"{sw}: a confirmed place needs the OSM name or osm id, and meters 0 to 250"
+                            f"{sw}: a confirmed place needs the OSM name or osm id and meters 0 to 250, or a plan with label and https url"
                         )
                     elif not pc["confirmed"]:
                         unconfirmed.append(f"{where} stop {st['id']} {st['name']}")
