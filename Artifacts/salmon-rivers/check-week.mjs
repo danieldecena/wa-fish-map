@@ -251,6 +251,36 @@ for (const scheme of ['light', 'dark']) {
     await ctx.close();
   }
 }
+// A report site beyond geo.js (spec 2026-10-26-puget-river-reports): served by intercepting reports.js, so the real data stays unchanged.
+const FIXTURE = "\nif (typeof window !== 'undefined') window.Reports.SITES.push({ id: 'fx-skagit', name: 'Skagit River', sub: 'Fixture', hl: true, tap: 'skagit-river', ll: [48.42, -122.33], added: '2026-10-25', reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-24', d: 'Fixture.', src: { label: 'Fixture', url: 'https://example.org/r' } } } });\n";
+for (const [w, h] of [[390, 844], [1280, 800]]) {
+  const fctx = await browser.newContext({ viewport: { width: w, height: h } });
+  const fp = await fctx.newPage(); const ferr = [];
+  fp.on('pageerror', e => ferr.push(String(e)));
+  await fp.route('**/reports.js', async route => { const res = await route.fetch(); await route.fulfill({ response: res, body: (await res.text()) + FIXTURE }); });
+  await fp.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+  const f = await fp.evaluate(() => {
+    const pin = document.querySelector('#over .pin[data-id="fx-skagit"]'), g = document.querySelector('.hl[data-id="fx-skagit"]'), r = pin && pin.getBoundingClientRect();
+    return { pin: !!pin, inView: !!r && r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight, line: !!g, rc: g ? g.style.getPropertyValue('--rc') : '',
+      sub: document.getElementById('sub').textContent, aria: document.getElementById('map').getAttribute('aria-label'),
+      lab: [...document.querySelectorAll('#over text.lab')].some(t => t.textContent.includes('Skagit · Good')) };
+  });
+  check(f.pin && f.inView, `map ${w}px fixture: a site beyond geo.js has a pin inside the opening view`);
+  check(f.line && f.rc === 'var(--good)', `map ${w}px fixture: its line comes from the tappable river, coloured by its rating (${f.rc})`);
+  check(/^Washington · reports through /.test(f.sub) && /^Map of salmon rivers in Washington\./.test(f.aria), `map ${w}px fixture: the region reads Washington (${f.sub})`);
+  check(f.lab, `map ${w}px fixture: its pin label reads Skagit · Good`);
+  // The fixture site's own sheet: no Columbia-tributary sources, and the Skagit WDFW notice (rules.js) reachable from it.
+  await fp.goto(base + '/index.html?mode=reports&river=fx-skagit&today=' + today, { waitUntil: 'networkidle' });
+  const sh = await fp.evaluate(() => {
+    const b = document.getElementById('sbody'), h = [...b.querySelectorAll('h3')].find(x => x.textContent === 'WDFW notices');
+    return { title: document.getElementById('stitle').textContent, gf: [...b.querySelectorAll('a')].filter(a => a.href.includes('theguidesforecast.com')).length,
+      notice: !!h && /Gilligan Creek/.test(h.parentElement.textContent) };
+  });
+  check(sh.title === 'Skagit River' && sh.gf === 0, `map ${w}px fixture: its sheet cites no Guide's Forecast link (${sh.title}, ${sh.gf} links)`);
+  check(sh.title === 'Skagit River' && sh.notice, `map ${w}px fixture: its sheet shows the Skagit WDFW notice`);
+  check(ferr.length === 0, `map ${w}px fixture: no page errors (${ferr.join(' | ').slice(0, 160)})`);
+  await fctx.close();
+}
 } finally { await browser.close(); if (server) server.close(); }
 console.log(fails.length ? `\n${fails.length} FAILED` : '\nall checks passed');
 process.exit(fails.length ? 1 : 0);

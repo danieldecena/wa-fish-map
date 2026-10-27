@@ -587,7 +587,12 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   var TODAY = override || todayISO();
 
   var SITES = Reports.SITES;
-  SITES.forEach(function (s) { var p = D.pins[s.id]; s.ll = p.ll; s.xy = p.xy; });
+  // geo.js places the original eight; a site added later (reports.js `tap`, `ll`) is projected from its own ll.
+  SITES.forEach(function (s) { var p = D.pins[s.id]; if (p) { s.ll = p.ll; s.xy = p.xy; } else { s.xy = xy(s.ll[1], s.ll[0]); } });
+  // Recent reports' southwest box, down to the Columbia (y 356 is 45.54 N, below Camas).
+  var SW_BOX = [D.bounds.sw[0], [D.bounds.sw[1][0], 356]];
+  var REGION = Reports.regionName(SITES.map(function (s) { return s.xy; }), SW_BOX);
+  var REPORTS_ARIA = 'Map of salmon rivers in ' + (REGION === 'Washington' ? 'Washington' : 'southwest Washington') + '. Drag to pan, pinch or use the buttons to zoom, select a river marker for details.';
 
   var species = null;
   var selected = null;
@@ -682,11 +687,13 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   }
   var hlNodes = {};
   SITES.forEach(function (s) {
-    if (!s.hl) return;
+    // geo.js draws the original eight; a later site borrows its tappable river's line (same viewport coordinates).
+    var d = D.hl[s.id] || (s.tap && TAPBY[s.tap] ? TAPBY[s.tap].d : null);
+    if (!s.hl || !d) return;
     var g = el('g', { 'class': 'hl', 'data-id': s.id }, vp);
-    el('path', { 'class': 'casing', d: D.hl[s.id] }, g);
-    el('path', { 'class': 'line', d: D.hl[s.id] }, g);
-    el('path', { 'class': 'hit', d: D.hl[s.id] }, g);
+    el('path', { 'class': 'casing', d: d }, g);
+    el('path', { 'class': 'line', d: d }, g);
+    el('path', { 'class': 'hit', d: d }, g);
     hlNodes[s.id] = g;
   });
   var rsel = el('g', { id: 'rsel' }, vp);
@@ -852,9 +859,9 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     var ns = Math.min(Math.max(v.s * k, minS), maxS); k = ns / v.s;
     setView({ s: ns, tx: px - (px - v.tx) * k, ty: py - (py - v.ty) * k });
   }
-  // Typical season and Spawning open on all of Washington. Recent reports opens on the southwest, down to the Columbia (y 356 is 45.54 N, below Camas),
-  // so the view does not spend its bottom edge on blank Oregon ground.
-  function homeBounds() { return view !== 'reports' ? D.bounds.state : [D.bounds.sw[0], [D.bounds.sw[1][0], 356]]; }
+  // Typical season and Spawning open on all of Washington. Recent reports opens on the southwest box grown to hold every report pin,
+  // so the view does not spend its bottom edge on blank Oregon ground and a river added beyond the southwest is on screen.
+  function homeBounds() { return view !== 'reports' ? D.bounds.state : Reports.homeBox(SITES.map(function (s) { return s.xy; }), SW_BOX); }
   // The opening view. Wide windows keep the card and legend in a left column and give the map everything to their right; narrow windows
   // stack the card, map and legend. Either way the bounds' southern edge sits on the bottom of the free area, so any blank band is
   // above the map (Canada side, under the card) and Oregon ground is off-screen.
@@ -1448,8 +1455,9 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     var dir = 'https://maps.apple.com/?ll=' + s.ll[0] + ',' + s.ll[1] + '&q=' + encodeURIComponent(s.name);
     var GF = 'https://www.theguidesforecast.com/free/coho-run-heats-up/287017/';
     extraSrc = extraSrc.filter(function (e) { return e.url !== GF; });
-    var src = '<a href="' + GF + '" target="_blank" rel="noopener">The Guide’s Forecast, Oct 17</a>' +
-      '<a href="https://www.theguidesforecast.com/sw-washington-fishing-reports/" target="_blank" rel="noopener">SW Washington reports, Oct 15</a>' +
+    // The two Guide's Forecast links are Columbia-tributary sources: only the original eight cite them.
+    var src = (s.added ? '' : '<a href="' + GF + '" target="_blank" rel="noopener">The Guide’s Forecast, Oct 17</a>' +
+      '<a href="https://www.theguidesforecast.com/sw-washington-fishing-reports/" target="_blank" rel="noopener">SW Washington reports, Oct 15</a>') +
       (s.extra === 'nws' ? '<a href="https://nwsportsmanmag.com/sw-wa-buoy-10-lower-columbia-hanford-reach-report-10-13-2026/" target="_blank" rel="noopener">NW Sportsman, Oct 13</a>' : '') +
       extraSrc.map(function (e) { return '<a href="' + esc(e.url) + '" target="_blank" rel="noopener">' + esc(e.label) + '</a>'; }).join('');
     $('#sbody').innerHTML =
@@ -1457,6 +1465,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
       '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
       '<section><h3>What’s biting</h3>' + (missing ? '<p class="miss">' + esc(missing) + '</p>' : '') + '<div class="rows">' + rows + '</div></section>' +
       creelHtml(id) +
+      (s.tap && TAPBY[s.tap] ? noticesHtml(TAPBY[s.tap].name) : '') +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Rules change in season and differ by river and species. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
       footHtml('<div class="src">' + src + '</div>');
     $('#sbody').scrollTop = 0;
@@ -1487,6 +1496,15 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     riverLL(id).forEach(function (q) { var m = milesTo(q); if (m < best) best = m; });
     return best;
   }
+  // WDFW's own notices that name a river, newest first. Shared by the river sheet and by a report site drawn from a tappable river.
+  function noticesHtml(riverName) {
+    var notes = RULES ? RULES.forRiver(riverName).slice().sort(function (a, b) { return a.published < b.published ? 1 : -1; }) : [];
+    return notes.length ? '<section><h3>WDFW notices</h3><p class="miss">WDFW’s own notices that name this river, by the date WDFW posted them. They do not rate or colour the river. Confirm the current rule on WDFW before you fish.</p><div class="notes">' +
+      notes.map(function (n) {
+        return '<div class="row"><span class="chip">Posted ' + esc(Reports.formatDay(n.published)) + '</span><p>' + esc(n.d) + '</p>' +
+          '<a href="' + esc(n.url) + '" target="_blank" rel="noopener">Read the rule on WDFW</a></div>';
+      }).join('') + '</div></section>' : '';
+  }
   function fillRiver(id) {
     var r = TAPBY[id], mo = MONTH_NAMES[MONTH - 1];
     $('#stitle').textContent = r.name;
@@ -1496,12 +1514,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
       ' Rivers are coloured only when a dated catch report exists.</p>' +
       (me ? '<p class="dist">' + esc(miLong(riverMiles(id))) + ', to the nearest point on the river</p>' : '') +
       (part ? '<button type="button" class="listbtn" data-open="' + esc(part.id) + '">Open the ' + esc(part.name) + ' report</button>' : '') + '</div>';
-    var notes = RULES ? RULES.forRiver(r.name).slice().sort(function (a, b) { return a.published < b.published ? 1 : -1; }) : [];
-    var notesHtml = notes.length ? '<section><h3>WDFW notices</h3><p class="miss">WDFW’s own notices that name this river, by the date WDFW posted them. They do not rate or colour the river. Confirm the current rule on WDFW before you fish.</p><div class="notes">' +
-      notes.map(function (n) {
-        return '<div class="row"><span class="chip">Posted ' + esc(Reports.formatDay(n.published)) + '</span><p>' + esc(n.d) + '</p>' +
-          '<a href="' + esc(n.url) + '" target="_blank" rel="noopener">Read the rule on WDFW</a></div>';
-      }).join('') + '</div></section>' : '';
+    var notesHtml = noticesHtml(r.name);
     var f = r.flow, q = f && f.months ? f.months[String(MONTH)] : null;
     var flowHtml = q
       ? '<section><h3>Typical flow in ' + mo + '</h3><div class="flow"><div class="big">Usually ' + fmtCfs(q[1]) + '–' + fmtCfs(q[3]) + ' cfs; median ' + fmtCfs(q[2]) + ' cfs</div>' +
@@ -1897,7 +1910,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     $('#rhint').hidden = typ || spw || !TAP;
     $('#ttl').textContent = typ ? 'Typical season' : 'Salmon this month';
     $('#sub').textContent = typ ? 'Washington piers, boat launches and shore access · ' + Season.MONTHS[MONTH - 1]
-      : 'Southwest Washington · reports through ' + Reports.formatDay(Reports.latestReport(SITES));
+      : REGION + ' · reports through ' + Reports.formatDay(Reports.latestReport(SITES));
     $('#legt').textContent = typ ? 'Typical timing, ' + Season.MONTHS[MONTH - 1] : 'Recent catch reports';
     $('#legl').innerHTML = typ
       ? '<li style="--c:var(--prime)"><i></i>Prime</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li style="--c:var(--slow)"><i></i>Slow</li><li style="--c:var(--unrated)"><i></i>No seasonal guidance</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: season often varies</li><li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>'
@@ -1907,7 +1920,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     $('#notice').textContent = n || ''; syncNotice();
     map.setAttribute('aria-label', typ
       ? 'Map of Washington piers, boat launches and shore access sites colored by typical seasonal timing. Drag to pan, pinch or use the buttons to zoom, select a marker for details.'
-      : 'Map of salmon rivers in southwest Washington. Drag to pan, pinch or use the buttons to zoom, select a river marker for details.');
+      : REPORTS_ARIA);
     // Spawning's own title, legend and map label (its subtitle and legend title follow the ribbon's month, in paintRibbon).
     if (spw) {
       $('#ttl').textContent = 'Where salmon spawn';
@@ -1965,7 +1978,8 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   var notice = Reports.staleNotice(SITES, TODAY);
   if (notice) { $('#notice').textContent = notice; }
   syncNotice();
-  $('#sub').textContent = 'Southwest Washington · reports through ' + Reports.formatDay(Reports.latestReport(SITES));
+  $('#sub').textContent = REGION + ' · reports through ' + Reports.formatDay(Reports.latestReport(SITES));
+  if (view === 'reports') map.setAttribute('aria-label', REPORTS_ARIA);
   init();
   // Deep links (links.js): mode first, then month and species, then the sheet, so each step sees the state the one before it set.
   if (LINK0.mode && LINK0.mode !== 'reports') setMode(LINK0.mode);
