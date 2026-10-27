@@ -447,6 +447,14 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 .layrow[aria-checked="true"] .sw { background: var(--on); }
 .layrow[aria-checked="true"] .sw::after { transform: translateX(16px); }
 .laypop .fine { margin: 6px 8px 2px; font-size: 12px; line-height: 16px; color: var(--ink2); }
+/* Compact bar: a mouse on a wide window gets one 44px row with 36px controls. Phones and touch screens keep 44px targets. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .bar { height: 44px; padding: 4px 8px; }
+  .bar .logo { width: 28px; height: 28px; }
+  .pop { top: 50px; }
+  .bar .listbtn, .bar .nbtn, .bar .seg button { min-height: 36px; }
+  .bar .seg.modes button { font-size: 13px; line-height: 18px; }
+}
 @media (prefers-reduced-motion: reduce) {
   #sheet, #sheet.open, .zoom { transition: none; }
   .layrow .sw::after { transition: none; }

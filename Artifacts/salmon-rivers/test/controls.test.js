@@ -56,3 +56,12 @@ test('no page tab bar; a Layers button and menu in the map bar', () => {
   });
   assert.match(html, /if \(!laypop\.hidden\) \{ toggleLayers\(false\); laybtn\.focus/);
 });
+
+test('compact bar only for a mouse on a wide window; touch keeps 44 px', () => {
+  const q = '@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {';
+  const i = html.indexOf(q); assert.ok(i > 0);
+  const block = html.slice(i, html.indexOf('\n}\n', i));
+  assert.match(block, /\.bar \{ height: 44px; padding: 4px 8px; \}/);
+  assert.match(block, /\.bar \.listbtn, \.bar \.nbtn, \.bar \.seg button \{ min-height: 36px; \}/);
+  assert.doesNotMatch(html.replace(block, ''), /min-height: 36px/, 'no 36 px control outside the mouse-only block');
+});
