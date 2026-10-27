@@ -9,6 +9,8 @@
 - [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
 
 ## Completed
+- [x] Settle whether PinVoiceOverProbe still fails -- ab1aea4
+- [x] Replace placeholder circles with real icons in the Figma library -- ab1aea4
 - [x] Web map: rating colors moved to the iOS 26 values — v38
 - [x] Sync the design system page's rating colors with the code — v13
 
