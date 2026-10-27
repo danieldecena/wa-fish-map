@@ -2077,7 +2077,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   });
   function fillSeason(id) {
     var s = FYS.filter(function (x) { return x.id === id; })[0], m = seasonMonth(), tg = Layers.tagFor(s, TODAY);
-    var src = s.source ? [].concat(s.source) : [];
+    // The season's own source, then the WDFW rule behind any place the season's wording does not name.
+    var src = (s.source ? [].concat(s.source) : []).concat(SPLACES.filter(function (o) { return o.s.id === id && o.p.source; }).map(function (o) { return o.p.source; }));
     // Other seasons open this month at a place this season shares (Westport has lingcod and rockfish on one ring).
     var mine = SPLACES.filter(function (o) { return o.s.id === id; }).map(function (o) { return o.label; });
     var also = openSeasons(m).filter(function (x) { return x.id !== id && SPLACES.some(function (o) { return o.s.id === x.id && mine.indexOf(o.label) >= 0; }); });

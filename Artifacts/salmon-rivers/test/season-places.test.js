@@ -19,11 +19,12 @@ test('every season has an entry, and no entry names an unknown season', () => {
   assert.deepEqual(Object.keys(PLACES).sort(), Array.from(FY.seasons, s => s.id).sort());
 });
 
-test('every place resolves, sits in Washington, and its evidence is a phrase of the season where text', () => {
+test('every place resolves, sits in Washington, and is backed by the season where text or a WDFW rule', () => {
   const rivers = new Set(TAP.rivers.map(r => r.id));
   const sites = new Set(Reports.SITES.map(s => s.id));
   FY.seasons.forEach(s => PLACES[s.id].forEach(p => {
-    assert.ok(p.evidence && s.where.toLowerCase().includes(p.evidence.toLowerCase()), s.id + ': evidence is not in where: ' + p.evidence);
+    if (p.source) assert.match(p.source.url, /^https:\/\/(wdfw\.wa\.gov|lawfilesext\.leg\.wa\.gov)\//, s.id + ': a sourced place cites a WDFW rule');
+    else assert.ok(p.evidence && s.where.toLowerCase().includes(p.evidence.toLowerCase()), s.id + ': evidence is not in where: ' + p.evidence);
     if (p.river) assert.ok(rivers.has(p.river) || sites.has(p.river), s.id + ': unknown river ' + p.river);
     else {
       assert.ok(Array.isArray(p.point) && p.label, s.id + ': a point needs [lon, lat] and a label');
