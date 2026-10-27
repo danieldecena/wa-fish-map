@@ -1838,7 +1838,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
       '<section><h3>Typical timing, ' + month + '</h3><p class="miss">' + TYPICAL_LINE + '</p>' + (miss ? '<p class="miss">' + esc(miss) + '</p>' : '') +
       (body ? '<div class="rows">' + body + '</div>' : '') + '</section>' +
-      tidesHtml(site, t) + creelSiteHtml(id) +
+      tidesHtml(site, t) + siteFlowHtml(id) + creelSiteHtml(id) +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Seasons, areas and limits change year to year and can close with little notice. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
       typicalFootHtml();
     $('#sbody').scrollTop = 0;
@@ -1904,6 +1904,20 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     for (var i = 0; i + 1 < nums.length; i += 2) pts.push([P.lat0 - nums[i + 1] / P.k, P.lon0 + nums[i] / P.kx]);
     return (riverPts[id] = pts);
   }
+  // A gauge's typical range for this month and a link to its live USGS page (the page never fetches flow). The river sheet and site sheets share it.
+  function flowSection(f, title, lead) {
+    var mo = MONTH_NAMES[MONTH - 1], q = f.months[String(MONTH)];
+    return '<section><h3>' + title + '</h3>' + lead + '<div class="flow"><div class="big">Usually ' + fmtCfs(q[1]) + '–' + fmtCfs(q[3]) + ' cfs; median ' + fmtCfs(q[2]) + ' cfs</div>' +
+      '<div class="gsrc">USGS ' + esc(gaugeTitle(f.gaugeName)) + ', ' + esc(f.beginYear) + '–' + esc(f.endYear) + ' records</div>' +
+      '<p class="cnote">The middle half of daily flows at this gauge in ' + mo + ' over those years: its historical range for the month, not today’s reading.</p>' +
+      '<a href="https://waterdata.usgs.gov/monitoring-location/USGS-' + encodeURIComponent(f.gauge) + '/" target="_blank" rel="noopener">Today’s flow on USGS</a></div></section>';
+  }
+  // A launch or shore site on a gauged river (rivers-tap.js siteRiver, the app's 150 m waterbody rule) gets that river's gauge.
+  function siteFlowHtml(id) {
+    var r = TAP && TAP.siteRiver ? TAPBY[TAP.siteRiver[id]] : null, f = r && r.flow;
+    if (!f || !f.months[String(MONTH)]) return '';
+    return flowSection(f, 'River flow', '<p class="miss">This site is on the ' + esc(r.name) + '. Its USGS gauge can be miles up or down the river from here.</p>');
+  }
   function riverMiles(id) {
     var best = Infinity;
     riverLL(id).forEach(function (q) { var m = milesTo(q); if (m < best) best = m; });
@@ -1930,10 +1944,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var notesHtml = noticesHtml(r.name);
     var f = r.flow, q = f && f.months ? f.months[String(MONTH)] : null;
     var flowHtml = q
-      ? '<section><h3>Typical flow in ' + mo + '</h3><div class="flow"><div class="big">Usually ' + fmtCfs(q[1]) + '–' + fmtCfs(q[3]) + ' cfs; median ' + fmtCfs(q[2]) + ' cfs</div>' +
-        '<div class="gsrc">USGS ' + esc(gaugeTitle(f.gaugeName)) + ', ' + esc(f.beginYear) + '–' + esc(f.endYear) + ' records</div>' +
-        '<p class="cnote">The middle half of daily flows at this gauge in ' + mo + ' over those years: its historical range for the month, not today’s reading.</p>' +
-        '<a href="https://waterdata.usgs.gov/monitoring-location/USGS-' + encodeURIComponent(f.gauge) + '/" target="_blank" rel="noopener">Today’s flow on USGS</a></div></section>'
+      ? flowSection(f, 'Typical flow in ' + mo, '')
       : '<section><h3>Typical flow</h3><p class="miss">No USGS gauge in WA Fish Map’s river data for this river.</p></section>';
     var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
     $('#sbody').innerHTML = head + notesHtml + flowHtml +
