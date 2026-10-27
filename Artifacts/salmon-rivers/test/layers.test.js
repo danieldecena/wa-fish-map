@@ -33,3 +33,24 @@ test('keptText: every water in counts.js gets a badge text', () => {
   Object.keys(C.WATERS).forEach(id => assert.match(Layers.keptText(C.forWater(id)), /^(\d+ kept|Kept not reported)$/, id));
   assert.equal(Layers.keptText(C.forWater('columbia')), '133 kept');
 });
+
+test('openIn: any overlap with the calendar month, across year ends', () => {
+  const s = (start, end) => ({ start, end });
+  assert.equal(Layers.openIn(s('2026-10-01', '2026-10-31'), 2026, 10), true);
+  assert.equal(Layers.openIn(s('2026-10-16', '2026-11-30'), 2026, 11), true);
+  assert.equal(Layers.openIn(s('2026-12-01', '2027-03-31'), 2027, 1), true);
+  assert.equal(Layers.openIn(s('2026-12-01', '2027-03-31'), 2026, 11), false);
+  assert.equal(Layers.openIn(s('2026-10-01', '2026-10-31'), 2027, 10), false);
+  assert.equal(Layers.openIn(s('2027-02-28', '2027-02-28'), 2027, 2), true);
+});
+
+test('tagFor: ends within 7 days, opens within 14, else none', () => {
+  const s = (start, end) => ({ start, end });
+  assert.deepEqual(Layers.tagFor(s('2026-10-01', '2026-10-31'), '2026-10-26'), { kind: 'ends', days: 5, text: 'ends Oct 31' });
+  assert.deepEqual(Layers.tagFor(s('2026-11-05', '2026-11-30'), '2026-10-26'), { kind: 'opens', days: 10, text: 'opens Nov 5' });
+  assert.equal(Layers.tagFor(s('2026-10-01', '2026-11-30'), '2026-10-26'), null);
+  assert.equal(Layers.tagFor(s('2026-12-01', '2027-03-31'), '2026-10-26'), null);
+  assert.deepEqual(Layers.tagFor(s('2026-10-01', '2026-10-26'), '2026-10-26'), { kind: 'ends', days: 0, text: 'ends today' });
+});
+
+test('monthLabel', () => assert.equal(Layers.monthLabel(2026, 10), 'October 2026'));

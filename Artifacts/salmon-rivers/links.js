@@ -38,7 +38,8 @@
       river: p.get('river') || null,
       today: realDate(today) ? today : null,
       layers: layerList(p.get('layers')),
-      spot: p.get('spot') || null
+      spot: p.get('spot') || null,
+      season: p.get('season') || null
     };
   }
   function toQuery(state) {
@@ -54,6 +55,11 @@
     if (ls.length) p.set('layers', ls.join(','));
     // A spot sheet is only reachable with its layer on, so the link carries it only then.
     if (ls.indexOf('spots') >= 0 && state.spot) p.set('spot', String(state.spot));
+    // The Seasons layer has its own month outside Spawning, and its sheet; both travel with the layer.
+    if (ls.indexOf('seasons') >= 0) {
+      if (mode !== 'spawning' && state.month >= 1 && state.month <= 12) p.set('month', String(state.month));
+      if (state.season) p.set('season', String(state.season));
+    }
     if (realDate(state.today)) p.set('today', state.today);
     var s = p.toString();
     return s ? '?' + s : '';

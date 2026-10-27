@@ -172,6 +172,18 @@ a { color: var(--on-text); }
 .cbadge rect { fill: var(--sheet); stroke: var(--glass-line); stroke-width: 1; }
 .cbadge text { font: 600 11px/13px var(--sans); fill: var(--ink); }
 .cbadge:focus-visible rect { stroke: var(--on); stroke-width: 2; }
+/* Seasons layer: a dotted halo along a named river, a dashed ring at a named place, and a tag for a season ending or opening soon.
+   One neutral ink token; never a fill and never a rating colour, so it can sit over Recent reports without reading as a rating. */
+#seasons .shalo { fill: none; stroke: var(--ink); stroke-opacity: .7; stroke-width: 10px; stroke-dasharray: 1 7; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; pointer-events: stroke; cursor: pointer; }
+.sring { fill: transparent; stroke: var(--ink); stroke-opacity: .9; stroke-width: 2; stroke-dasharray: 5 4; pointer-events: auto; cursor: pointer; }
+.stag { pointer-events: auto; cursor: pointer; outline: none; }
+.stag rect { fill: var(--sheet); stroke: var(--ink); stroke-width: 1.2; stroke-dasharray: 3 2; }
+.stag text { font: 600 11px/13px var(--sans); fill: var(--ink); }
+.stag:focus-visible rect { stroke: var(--on); stroke-width: 2; stroke-dasharray: none; }
+.months { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 2px; }
+.months button { min-width: 0; min-height: 44px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--ink2); cursor: pointer; font: 600 12px/16px var(--sans); }
+.months button[aria-checked="true"] { background: var(--fill-toggle); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--on); }
+.months button.now:not([aria-checked="true"]) { color: var(--ink); }
 #layl { margin: 6px 0 0; padding: 6px 0 0; list-style: none; border-top: 1px solid var(--glass-line); font-size: 12px; line-height: 16px; color: var(--ink2); }
 #layl li + li { margin-top: 2px; }
 .cluster { pointer-events: auto; cursor: pointer; outline: none; }
@@ -445,7 +457,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   #app.sheet-open .bottom { visibility: hidden; }
   /* With a sheet open on a phone the bar stays as it is (already one thin row); only its popovers and the ribbon step aside. */
   #app.sheet-open #sppanel, #app.sheet-open #mpop, #app.sheet-open #npop, #app.sheet-open #laypop, #app.sheet-open #mepanel, #app.sheet-open #metip { display: none; }
-  #app.sheet-open #spawn { display: none; }
+  #app.sheet-open #spawn, #app.sheet-open #smonth { display: none; }
 }
 .spawn[hidden] { display: none; }
 .laypop { left: auto; right: 0; width: min(300px, 100%); padding: 8px; }
@@ -508,6 +520,10 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="counts"><span class="lt"><b>Creel counts</b><span>Fish kept last week, from WDFW surveys.</span></span><span class="sw" aria-hidden="true"></span></button>
       <p class="fine">Layers add to the mode you are in. They never change a pin colour.</p>
     </div>
+    <div class="glass spawn smonth" id="smonth" hidden>
+      <div class="summary" id="sml" aria-live="polite"></div>
+      <div class="months" id="months" role="radiogroup" aria-label="Season month"></div>
+    </div>
     <div class="glass spawn" id="spawn" hidden>
       <div class="year" id="year" role="radiogroup" aria-label="Month"></div>
       <div class="summary" id="summary" aria-live="polite"></div>
@@ -559,6 +575,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 <script src="cluster.js"></script>
 <script src="sites.js"></script>
 <script src="spots.js"></script>
+<script src="seasons-data.js"></script>
+<script src="season-places.js"></script>
 <script src="links.js"></script>
 <script src="layers.js"></script>
 <script src="week/tides-data.js"></script>
@@ -689,6 +707,26 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       el('path', { d: r.d, 'data-river': r.id }, rtap);
     });
   }
+  // Seasons layer (seasons-data.js, season-places.js): one entry per place a season names. Rivers get a halo here in the basemap,
+  // under the report highlights; named points get a ring in the overlay, built below once the overlay exists.
+  var FYS = window.FY && window.SEASON_PLACES ? window.FY.seasons : [];
+  var seasonG = el('g', { id: 'seasons' }, vp); seasonG.style.display = 'none';
+  var SPLACES = [];
+  FYS.forEach(function (s) {
+    (window.SEASON_PLACES[s.id] || []).forEach(function (p) {
+      var o = { s: s, p: p, halo: null, ring: null };
+      if (p.river) {
+        var site = SITES.filter(function (q) { return q.id === p.river; })[0];
+        var tr = site ? (site.tap ? TAPBY[site.tap] : null) : TAPBY[p.river];
+        var d = site ? (D.hl[site.id] || (tr ? tr.d : null)) : (tr ? tr.d : null);
+        if (!d) return;
+        o.halo = el('path', { 'class': 'shalo', d: d, 'data-season': s.id }, seasonG);
+        o.xy = site ? site.xy : tr.center;
+        o.label = site ? site.name : tr.name;
+      } else { o.xy = xy(p.point[0], p.point[1]); o.label = p.label; }
+      SPLACES.push(o);
+    });
+  });
   var hlNodes = {};
   SITES.forEach(function (s) {
     // geo.js draws the original eight; a later site borrows its tappable river's line (same viewport coordinates).
@@ -774,6 +812,21 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     return { s: s, xy: xy(s.lon, s.lat), ll: [s.lat, s.lon], g: g, lab: lab, w: 0 };
   });
   // Creel counts: one badge per surveyed report river (counts.js). Text only; the sheet it opens says the counts are not ratings.
+  SPLACES.forEach(function (o) {
+    if (o.halo) return;
+    o.ring = el('circle', { 'class': 'sring', r: 14, 'data-season': o.s.id, tabindex: '0', role: 'button', 'aria-label': o.s.name + ', ' + o.label + ', season' }, over);
+    o.ring.style.display = 'none';
+    o.ring.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSeason(o.s.id); } });
+  });
+  var stagPool = [];
+  function getSTag(i) {
+    if (stagPool[i]) return stagPool[i];
+    var g = el('g', { 'class': 'stag', tabindex: '0', role: 'button' }, over);
+    var o = { g: g, r: el('rect', { rx: 9, y: -10, height: 20 }, g), t: el('text', { x: 8, y: 4 }, g) };
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSeason(g.getAttribute('data-season')); } });
+    stagPool[i] = o;
+    return o;
+  }
   var COUNTBADGES = typeof Counts === 'undefined' ? [] : SITES.filter(function (s) { return Layers.keptText(Counts.forWater(s.id)); }).map(function (s) {
     var w = Counts.forWater(s.id), txt = Layers.keptText(w);
     var g = el('g', { 'class': 'cbadge', 'data-count': s.id, tabindex: '0', role: 'button', 'aria-label': s.name + ', WDFW creel survey, ' + txt + ', week of ' + w.week }, over);
@@ -825,6 +878,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function pads() {
     var barB = $('#bar').getBoundingClientRect().bottom;
     var spw = $('#spawn'); if (!spw.hidden) barB = Math.max(barB, spw.getBoundingClientRect().bottom);
+    var smo = $('#smonth'); if (!smo.hidden) barB = Math.max(barB, smo.getBoundingClientRect().bottom);
     // The phone report-age line sits under the bar: keep the opening view clear of it so it never covers a pin label.
     var age = $('#agechip').getBoundingClientRect(); if (age.height) barB = Math.max(barB, age.bottom);
     barB += 10;
@@ -1059,6 +1113,31 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
         break;
       }
     });
+    // Seasons: halos and rings for every season open in the layer's month; in the current month, a tag for each season ending
+    // within 7 days or opening within 14, at its first place on screen. A tag that would cover a pin or label is left out.
+    var seasOn = layers.indexOf('seasons') >= 0, sm = seasonMonth(), sy = seasonYear(sm), tagged = {}, ti = 0;
+    seasonG.style.display = seasOn ? '' : 'none';
+    stagPool.forEach(function (t) { t.g.style.display = 'none'; });
+    SPLACES.forEach(function (o) {
+      var on = seasOn && Layers.openIn(o.s, sy, sm);
+      if (o.halo) o.halo.style.display = on ? '' : 'none';
+      var x = o.xy[0] * v.s + v.tx, y = o.xy[1] * v.s + v.ty, inView = x > -30 && x < W + 30 && y > -30 && y < H + 30;
+      if (o.ring) {
+        o.ring.style.display = on && inView ? '' : 'none';
+        if (on && inView) { o.ring.setAttribute('cx', x.toFixed(1)); o.ring.setAttribute('cy', y.toFixed(1)); boxes.push([x - 14, y - 14, 28, 28]); }
+      }
+      if (!on || !inView || sm !== MONTH || tagged[o.s.id]) return;
+      var tg = Layers.tagFor(o.s, TODAY);
+      if (!tg) return;
+      var t = getSTag(ti), txt = o.s.name + ' · ' + tg.text;
+      t.t.textContent = txt; t.g.setAttribute('data-season', o.s.id); t.g.setAttribute('aria-label', txt + ', ' + o.label);
+      t.g.style.display = '';
+      var tw = textW(txt) + 16; t.r.setAttribute('width', tw.toFixed(1));
+      var left = x + 16 + tw > W - 8, bx = [left ? x - 16 - tw : x + 16, y + 6, tw, 20];
+      if (boxes.some(function (q) { return overlap(bx, q); })) { t.g.style.display = 'none'; return; }
+      t.g.setAttribute('transform', 'translate(' + bx[0].toFixed(1) + ' ' + (y + 16).toFixed(1) + ')');
+      boxes.push(bx); tagged[o.s.id] = true; ti++;
+    });
     // Spot guides sit above the mode's pins in the label order: the guide pin and its name are drawn when the layer is on.
     var spotsOn = layers.indexOf('spots') >= 0;
     SPOTLIST.forEach(function (o) {
@@ -1204,6 +1283,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var n = tgt && tgt.closest ? tgt.closest('[data-id],[data-cluster]') : null;
     var cnt = tgt && tgt.closest ? tgt.closest('[data-count]') : null;
     if (cnt) { openCounts(cnt.getAttribute('data-count')); return; }
+    var sea = tgt && tgt.closest ? tgt.closest('[data-season]') : null;
+    if (sea) { openSeason(sea.getAttribute('data-season')); return; }
     var sp = tgt && tgt.closest ? tgt.closest('[data-spot]') : null;
     if (sp) { openSpot(sp.getAttribute('data-spot')); return; }
     if (n && n.getAttribute('data-cluster')) { zoomToCluster(n); return; }
@@ -1279,7 +1360,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     laypop.querySelectorAll('[data-layer]').forEach(function (b) { b.setAttribute('aria-checked', layers.indexOf(b.getAttribute('data-layer')) >= 0 ? 'true' : 'false'); });
     $('#laylbl').textContent = layers.length ? 'Layers · ' + layers.length : 'Layers';
   }
-  function setLayers(list) { layers = list; syncLayUi(); applyStyles(); render(); syncLink(); }
+  function setLayers(list) { layers = list; syncLayUi(); syncSeasonUi(); applyStyles(); render(); syncLink(); }
   function toggleLayers(open) {
     if (!open && laypop.contains(document.activeElement)) laybtn.focus({ preventScroll: true });
     if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); if (!$('#mepanel').hidden) toggleMe(false); }
@@ -1793,7 +1874,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     // A river that is itself one of the reported waters opens its catch-report sheet, never a "no report" sheet.
     var same = SITES.filter(function (s) { return s.name === r.name; })[0];
     if (same) { openSheet(same.id); return; }
-    selected = null; mode = 'river'; riverSel = id; spotSel = null;
+    selected = null; mode = 'river'; riverSel = id; spotSel = null; seasonSel = null;
     fillRiver(id);
     showSheet();
     $('#listbtn').setAttribute('aria-expanded', 'false');
@@ -1821,7 +1902,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   }
   function openSheet(id) {
     clearRiver();
-    selected = id; mode = 'detail'; spotSel = null;
+    selected = id; mode = 'detail'; spotSel = null; seasonSel = null;
     fillSheet(id);
     showSheet();
     $('#listbtn').setAttribute('aria-expanded', 'false');
@@ -1866,7 +1947,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function openSpot(id) {
     if (!SPOTLIST.some(function (q) { return q.s.id === id; })) return;
     clearRiver();
-    selected = null; mode = 'spot'; spotSel = id;
+    selected = null; mode = 'spot'; spotSel = id; seasonSel = null;
     fillSpot(id);
     showSheet();
     $('#listbtn').setAttribute('aria-expanded', 'false');
@@ -1885,9 +1966,72 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var sec = $('#sbody .creel');
     if (sec) $('#sbody').scrollTop = sec.closest('section').offsetTop - 8;
   }
+  /* ---- Seasons layer: its own month (Spawning lends its ribbon month instead), and the season sheet ---- */
+  var LMONTH = MONTH, seasonSel = null, monthBtns = [];
+  function seasonMonth() { return view === 'spawning' ? SMONTH : LMONTH; }
+  // The Fishing Year runs from this month forward, so an earlier month means next year.
+  function seasonYear(m) { return m < MONTH ? YEAR + 1 : YEAR; }
+  function openSeasons(m) { var y = seasonYear(m); return FYS.filter(function (s) { return Layers.openIn(s, y, m); }); }
+  function syncSeasonUi() {
+    var on = layers.indexOf('seasons') >= 0;
+    $('#smonth').hidden = !on || view === 'spawning';
+    if (!on) return;
+    var n = openSeasons(LMONTH).length;
+    $('#sml').innerHTML = '<b>' + n + '</b> ' + (n === 1 ? 'season' : 'seasons') + ' open in ' + esc(Layers.monthLabel(seasonYear(LMONTH), LMONTH));
+    monthBtns.forEach(function (b, i) { var c = i + 1 === LMONTH; b.setAttribute('aria-checked', c ? 'true' : 'false'); b.tabIndex = c ? 0 : -1; });
+  }
+  function setLMonth(m) {
+    if (m === LMONTH) return;
+    LMONTH = m; syncSeasonUi(); render();
+    if (mode === 'season') fillSeason(seasonSel);
+    syncLink();
+  }
+  MONTH_NAMES.forEach(function (name, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-label', name);
+    b.textContent = name.slice(0, 3);
+    if (i + 1 === MONTH) b.classList.add('now');
+    b.addEventListener('click', function () { setLMonth(i + 1); });
+    b.addEventListener('keydown', function (e) {
+      var k = e.key, to = k === 'ArrowRight' || k === 'ArrowDown' ? LMONTH % 12 + 1 : k === 'ArrowLeft' || k === 'ArrowUp' ? (LMONTH + 10) % 12 + 1 : k === 'Home' ? 1 : k === 'End' ? 12 : 0;
+      if (!to) return;
+      e.preventDefault(); setLMonth(to); monthBtns[LMONTH - 1].focus();
+    });
+    $('#months').appendChild(b); monthBtns.push(b);
+  });
+  function fillSeason(id) {
+    var s = FYS.filter(function (x) { return x.id === id; })[0], m = seasonMonth(), tg = Layers.tagFor(s, TODAY);
+    var src = s.source ? [].concat(s.source) : [];
+    // Other seasons open this month at a place this season shares (Westport has lingcod and rockfish on one ring).
+    var mine = SPLACES.filter(function (o) { return o.s.id === id; }).map(function (o) { return o.label; });
+    var also = openSeasons(m).filter(function (x) { return x.id !== id && SPLACES.some(function (o) { return o.s.id === x.id && mine.indexOf(o.label) >= 0; }); });
+    var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
+    $('#stitle').textContent = s.name;
+    $('#sbody').innerHTML = '<div class="head"><p>' + esc(s.where) + '</p>' + (tg ? '<span class="chip">' + esc(cap(tg.text)) + '</span>' : '') + '</div>' +
+      '<section><h3>Dates</h3><div class="rows"><div class="row"><div class="rt"><div class="nm">Open</div><div class="dt">' + esc(Reports.formatDay(s.start)) + ' to ' + esc(Reports.formatDay(s.end)) + '</div></div></div></div></section>' +
+      (s.note ? '<section><h3>Note</h3><p class="miss">' + esc(s.note) + '</p></section>' : '') +
+      (also.length ? '<section><h3>Also open here in ' + esc(MONTH_NAMES[m - 1]) + '</h3><div class="rows">' + also.map(function (x) {
+        return '<button type="button" class="row lrow" data-season="' + esc(x.id) + '"><span class="rt"><span class="nm">' + esc(x.name) + '</span><span class="dt">' + esc(Reports.formatDay(x.start)) + ' to ' + esc(Reports.formatDay(x.end)) + '</span></span></button>';
+      }).join('') + '</div></section>' : '') +
+      '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Guidance, not regulation. Seasons change and can close with little notice. Confirm the rules on WDFW before you fish.</p></div></section>' +
+      '<div class="foot"><div>Season dates from Washington Fishing Year, updated ' + esc(Reports.formatDay(window.FY.updated)) + '. Not for navigation or safety decisions.</div>' +
+      '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a>' +
+      (src.length ? '<div class="src">' + src.map(function (x) { return x.url ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.label) + (x.checked ? ' (checked ' + esc(Reports.formatDay(x.checked)) + ')' : '') + '</a>' : '<span>' + esc(x.label) + '</span>'; }).join('') + '</div>' : '') + '</div>';
+    $('#sbody').scrollTop = 0;
+  }
+  function openSeason(id) {
+    if (!FYS.some(function (x) { return x.id === id; })) return;
+    clearRiver();
+    selected = null; mode = 'season'; spotSel = null; seasonSel = id;
+    fillSeason(id);
+    showSheet();
+    $('#listbtn').setAttribute('aria-expanded', 'false');
+    render();
+    syncLink();
+  }
   function openList() {
     clearRiver();
-    selected = null; mode = 'list'; spotSel = null;
+    selected = null; mode = 'list'; spotSel = null; seasonSel = null;
     fillList();
     showSheet();
     $('#listbtn').setAttribute('aria-expanded', 'true');
@@ -1898,7 +2042,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   }
   function closeSheet() {
     clearRiver();
-    selected = null; mode = null; spotSel = null;
+    selected = null; mode = null; spotSel = null; seasonSel = null;
     // Focus leaves the sheet before it is hidden from assistive technology, or the browser blocks aria-hidden on a focused element.
     if (sheet.contains(document.activeElement)) document.activeElement.blur();
     sheet.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true');
@@ -1913,7 +2057,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   $('#listbtn').addEventListener('click', function () { if (mode === 'list') closeSheet(); else openList(); });
   $('#sbody').addEventListener('click', function (e) {
     var b = e.target.closest ? e.target.closest('.lrow') : null;
-    if (b) openSheet(b.getAttribute('data-id'));
+    if (b && b.hasAttribute('data-season')) openSeason(b.getAttribute('data-season'));
+    else if (b) openSheet(b.getAttribute('data-id'));
   });
   $('#sbody').addEventListener('click', function (e) {
     var t = e.target.closest ? e.target.closest('[data-sort],[data-open]') : null;
@@ -2000,7 +2145,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     if (!me) listSort = 'best';
     syncMeUi();
     render();
-    if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList(); else if (mode === 'river') fillRiver(riverSel); else if (mode === 'spot') fillSpot(spotSel);
+    if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList(); else if (mode === 'river') fillRiver(riverSel); else if (mode === 'spot') fillSpot(spotSel); else if (mode === 'season') fillSeason(seasonSel);
   }
   function setMeFromScreen(px, py) {
     var mx = (px - v.tx) / v.s, my = (py - v.ty) / v.s;
@@ -2058,6 +2203,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       map.setAttribute('aria-label', 'Map of WDFW salmon viewing sites colored by typical spawning timing for the chosen month. Drag to pan, pinch or use the buttons to zoom, select a marker for details.');
     }
     $('#spawn').hidden = !spw;
+    syncSeasonUi();
     buildSpecies();
     applyStyles();
     limits();
@@ -2068,19 +2214,20 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   }
 
   /* ---- URL state (links.js): what the page shows is what the address bar says ---- */
-  var LINK0 = (window.Links && window.Links.read) ? Links.read(location.search) : { mode: null, month: null, species: null, site: null, river: null, today: null, layers: [], spot: null };
+  var LINK0 = (window.Links && window.Links.read) ? Links.read(location.search) : { mode: null, month: null, species: null, site: null, river: null, today: null, layers: [], spot: null, season: null };
   function syncLink() {
     if (!window.Links || !LINK0) return;
     var rep = view === 'reports';
     Links.write({
       mode: view,
-      month: view === 'spawning' ? SMONTH : null,
+      month: view === 'spawning' ? SMONTH : layers.indexOf('seasons') >= 0 ? LMONTH : null,
       species: species,
       site: !rep && mode === 'detail' ? selected : null,
       river: rep ? (mode === 'detail' ? selected : riverSel) : null,
       today: LINK0.today,
       layers: layers,
-      spot: mode === 'spot' ? spotSel : null
+      spot: mode === 'spot' ? spotSel : null,
+      season: mode === 'season' ? seasonSel : null
     }, window.history, window.location);
   }
   function speciesKnown(name) {
@@ -2115,7 +2262,9 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   // Deep links (links.js): mode first, then month and species, then the sheet, so each step sees the state the one before it set.
   if (LINK0.mode && LINK0.mode !== 'reports') setMode(LINK0.mode);
   if (LINK0.layers && LINK0.layers.length) setLayers(LINK0.layers);
+  if (LINK0.month && view !== 'spawning' && layers.indexOf('seasons') >= 0) setLMonth(LINK0.month);
   if (LINK0.spot && layers.indexOf('spots') >= 0) openSpot(LINK0.spot);
+  if (LINK0.season && layers.indexOf('seasons') >= 0) openSeason(LINK0.season);
   if (LINK0.month && view === 'spawning') setMonth(LINK0.month);
   if (LINK0.species && speciesKnown(LINK0.species)) pickSpecies(LINK0.species);
   if (view === 'reports' && LINK0.river) {

@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const Links = require('../links.js');
 
 test('read: empty search gives all nulls', () => {
-  assert.deepEqual(Links.read(''), { mode: null, month: null, species: null, site: null, river: null, today: null, layers: [], spot: null });
+  assert.deepEqual(Links.read(''), { mode: null, month: null, species: null, site: null, river: null, today: null, layers: [], spot: null, season: null });
 });
 
 test('read: every key round-trips', () => {
@@ -87,4 +87,12 @@ test('spot: written only with the spots layer on', () => {
   assert.equal(Links.read('?layers=spots&spot=three-friends').spot, 'three-friends');
   assert.equal(Links.toQuery({ mode: 'reports', layers: ['spots'], spot: 'three-friends' }), '?layers=spots&spot=three-friends');
   assert.equal(Links.toQuery({ mode: 'reports', layers: [], spot: 'three-friends' }), '');
+});
+
+test('seasons layer: month and season travel with the layer, in any mode', () => {
+  assert.equal(Links.toQuery({ mode: 'reports', layers: ['seasons'], month: 12, season: 'steelhead' }), '?layers=seasons&month=12&season=steelhead');
+  assert.equal(Links.toQuery({ mode: 'typical', layers: ['seasons'], month: 3 }), '?mode=typical&layers=seasons&month=3');
+  assert.equal(Links.toQuery({ mode: 'reports', layers: [], month: 12, season: 'steelhead' }), '');
+  assert.equal(Links.toQuery({ mode: 'spawning', layers: ['seasons'], month: 11 }), '?mode=spawning&month=11&layers=seasons');
+  assert.equal(Links.read('?layers=seasons&season=chum').season, 'chum');
 });

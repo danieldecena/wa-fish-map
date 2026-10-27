@@ -26,5 +26,23 @@
     return known.reduce(function (n, r) { return n + r.kept; }, 0) + ' kept';
   }
 
-  return { NAMES: NAMES, parse: parse, toggle: toggle, keptText: keptText };
+  var DAY = 86400000;
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  function day(iso) { return Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / DAY; }
+  function short(iso) { return MON[+iso.slice(5, 7) - 1] + ' ' + (+iso.slice(8, 10)); }
+  /* Open at any point in that calendar month. */
+  function openIn(s, year, month) {
+    return day(s.start) <= Date.UTC(year, month, 0) / DAY && day(s.end) >= Date.UTC(year, month - 1, 1) / DAY;
+  }
+  /* The Week page's two windows, kept: an open season ending within 7 days, or one opening within 14. */
+  function tagFor(s, today) {
+    var t = day(today), a = day(s.start), b = day(s.end);
+    if (a <= t && t <= b && b - t <= 7) return { kind: 'ends', days: b - t, text: b === t ? 'ends today' : 'ends ' + short(s.end) };
+    if (a > t && a - t <= 14) return { kind: 'opens', days: a - t, text: 'opens ' + short(s.start) };
+    return null;
+  }
+  function monthLabel(year, month) { return MONTHS[month - 1] + ' ' + year; }
+
+  return { NAMES: NAMES, parse: parse, toggle: toggle, keptText: keptText, openIn: openIn, tagFor: tagFor, monthLabel: monthLabel };
 });

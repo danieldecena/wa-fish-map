@@ -178,9 +178,9 @@ test('legend, footer and sheet fine print are at least 12 px; only text drawn on
     const px = /font-size:\s*(\d+(?:\.\d+)?)px/.exec(m[2]) || /font:\s*[\w-]*\s*(\d+(?:\.\d+)?)px/.exec(m[2]);
     if (px && +px[1] < 12) small.push(m[1].trim().replace(/\s+/g, ' ') + ' ' + px[1] + 'px');
   }
-  // Map labels, the count inside a cluster mark and a creel-count badge follow the design system's mapLabel and clusterCount roles (11 px);
+  // Map labels, the count inside a cluster mark a creel-count badge and a season tag follow the design system's mapLabel and clusterCount roles (11 px);
   // the region name is a watermark.
-  assert.deepEqual(small.sort(), ['.cbadge text 11px', '.cluster text 11px', '.lab 11px', '.lab.region 10px']);
+  assert.deepEqual(small.sort(), ['.cbadge text 11px', '.cluster text 11px', '.lab 11px', '.lab.region 10px', '.stag text 11px']);
   assert.match(css, /\.legend li \{[^}]*font-size: 12px/);
   assert.match(css, /\.legend \.fine \{[^}]*font-size: 12px/);
   assert.match(css, /\.legend \.lt \{[^}]*font-size: 12px/);
