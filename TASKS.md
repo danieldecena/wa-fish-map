@@ -7,9 +7,9 @@
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [ ] Retake the App Store screenshots in daylight
 - [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
-- [ ] Web map: move rating colors to the iOS 26 values the app draws
 
 ## Completed
+- [x] Web map: rating colors moved to the iOS 26 values — v38
 - [x] Sync the design system page's rating colors with the code — v13
 
 ### 2026-10-27 — cleared from Tasks

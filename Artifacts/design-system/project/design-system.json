@@ -96,9 +96,9 @@
   ],
   "lastChange": {
     "by": "Daniel",
-    "at": "2026-10-27T09:40:00Z",
+    "at": "2026-10-27T10:05:00Z",
     "via": "Claude Code",
-    "note": "Rating ramp synced to the iOS 26 system colours the app draws (measured), legacy literal and -system tokens removed; layer toggle and fine-print tokens added; badge labels, closure badge and Closed badge brought in line with the code."
+    "note": "README: the web map now draws the same iOS 26 rating colours (map version 38), so that divergence is closed."
   },
   "layout": "files",
   "libraries": [],

@@ -27,13 +27,14 @@ const darkMedia = tokens(block('  :root:not([data-theme="light"]) {'));
 const darkForced = tokens(block(':root[data-theme="dark"] {'));
 
 // The app draws the system ramp: DS.Rating in WAFishMap/DesignSystem.swift is Color.red, orange, yellow, blue, gray, and
-// FishingRating.color reads it (WAFishMap/ColorRamp.swift). Hex values are Apple's resolved systemRed, systemOrange, systemYellow,
-// systemBlue and systemGray, as the design system's tokens.json lists them under rating-*-system.
+// FishingRating.color reads it (WAFishMap/ColorRamp.swift). Hex values are what those resolve to on iOS 26, as the design system's
+// tokens.json lists them under rating-*: they reproduce the six adjacent-stop lightness gaps RampLightnessTests measured on device,
+// which the iOS 18 values (#ff3b30 and friends) did not. Gray is Apple's published value, not measured.
 const RAMP = {
-  '--prime': ['#ff3b30', '#ff453a'],
-  '--good': ['#ff9500', '#ff9f0a'],
-  '--fair': ['#ffcc00', '#ffd60a'],
-  '--slow': ['#007aff', '#0a84ff'],
+  '--prime': ['#ff383c', '#ff4245'],
+  '--good': ['#ff8d28', '#ff9230'],
+  '--fair': ['#ffcc00', '#ffd600'],
+  '--slow': ['#0088ff', '#0091ff'],
   '--unrated': ['#8e8e93', '#8e8e93']
 };
 
@@ -93,20 +94,43 @@ const dL = (a, b, kind, theme) => {
   const c = n => (kind ? simulate(hex((theme === 'dark' ? darkForced[n] || light[n] : light[n])), kind) : hex(theme === 'dark' ? darkForced[n] || light[n] : light[n]));
   return Math.abs(Lstar(c(a)) - Lstar(c(b)));
 };
-// The app's own gate (RampLightnessTests) is a lightness step of 12 L* between adjacent ramp stops.
-const GATE = 12;
+const lab = rgb => {
+  const [r, g, b] = rgb.map(lin);
+  const f = t => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  const x = f((0.4124564 * r + 0.3575761 * g + 0.1804375 * b) / 0.95047), y = f(0.2126729 * r + 0.7151522 * g + 0.072175 * b), z = f((0.0193339 * r + 0.119192 * g + 0.9503041 * b) / 1.08883);
+  return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+};
+const dE = (a, b, kind, theme) => {
+  const c = n => lab(simulate(hex(theme === 'dark' ? darkForced[n] || light[n] : light[n]), kind));
+  const p = c(a), q = c(b);
+  return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
+};
+// The app's own gates (RampLightnessTests, CVDSeparationTests): 12 L* between adjacent stops, and a pair simulated for colour blindness
+// fails only when it is under 12 L* AND under 30 dE76 AND both pins carry the same glyph ink.
+const GATE = 12, DE_GATE = 30;
+// The page's glyph rule, read from its source: which ratings draw dark ink on the balloon instead of white.
+const inkRule = html.match(/function glyphColor\(r\) \{ return r === '(\w+)' \|\| r === '(\w+)' \? 'rgba\(0,0,0,0\.72\)' : '#fff'; \}/);
+const darkInk = new Set(inkRule ? [inkRule[1], inkRule[2]] : []);
+const inkDiffers = (a, b) => darkInk.has(a) !== darkInk.has(b);
 
-test('red and orange stay apart under simulated deuteranopia and protanopia, in both themes', () => {
+test('adjacent ratings stay apart under simulated deuteranopia and protanopia, by lightness, colour or glyph ink', () => {
+  assert.ok(inkRule, 'glyphColor no longer has the shape this test reads');
   for (const theme of ['light', 'dark']) for (const kind of ['deuteranopia', 'protanopia']) {
-    const d = dL('--prime', '--good', kind, theme);
-    assert.ok(d >= GATE, `prime vs good, ${kind}, ${theme}: dL* ${d.toFixed(1)} is under ${GATE}`);
+    for (const [a, b] of [['prime', 'good'], ['good', 'fair'], ['fair', 'slow']]) {
+      const l = dL('--' + a, '--' + b, kind, theme), e = dE('--' + a, '--' + b, kind, theme);
+      assert.ok(l >= GATE || e >= DE_GATE || inkDiffers(a, b), `${a} vs ${b}, ${kind}, ${theme}: dL* ${l.toFixed(1)}, dE ${e.toFixed(1)}, same ink`);
+    }
   }
 });
 
-test('control: the lightness check can fail, and the weak pair is named (good vs fair under deuteranopia)', () => {
-  // Orange and yellow collapse toward one hue under deuteranopia (the repo README says the same). That pair is under the app gate, so a
-  // word on every pin is what separates them. If this stops being true the label may be reconsidered; until then it is the proof the check bites.
-  for (const theme of ['light', 'dark']) assert.ok(dL('--good', '--fair', 'deuteranopia', theme) < GATE, theme);
+test('control: the colour check can fail, and the pair it fails is carried by ink (red vs orange under deuteranopia)', () => {
+  // Measured the same in the app on device (CVDSeparationTests, 2026-10-06): dL* 11.1 in both appearances, dE76 19.5 light / 21.1 dark.
+  // White ink on red and dark ink on orange is what separates them, here as in the app.
+  for (const theme of ['light', 'dark']) {
+    assert.ok(dL('--prime', '--good', 'deuteranopia', theme) < GATE && dE('--prime', '--good', 'deuteranopia', theme) < DE_GATE, theme);
+  }
+  assert.ok(inkDiffers('prime', 'good'), 'red and orange pins carry different ink');
+  assert.ok(!inkDiffers('good', 'fair'), 'orange and yellow share ink: the ink check is not always true');
   assert.ok(dL('--prime', '--slow', null, 'light') < GATE, 'control: red and blue are the same lightness in the app ramp, hue alone apart');
 });
 

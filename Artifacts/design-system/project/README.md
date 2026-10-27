@@ -159,13 +159,10 @@ here before are gone: the views draw `DS.Rating` (the literal ramp in
 `ColorRamp.swift` was removed, so there is one ramp), and `GuidanceFooter`
 fills with `DS.Surface.advisory`, not yellow.
 
-One remains, outside the app:
-
-1. **The web map draws the older iOS palette.** The published Washington
-   Fishing Map uses `#ff3b30`, `#ff9500`, `#ffcc00`, `#007aff` (and the matching
-   dark values), the iOS 17/18 system colours. The app on iOS 26 draws the
-   values in `tokens.json`. Same hues, slightly different stops. The palette in
-   `docs/web-demo-spec.md` (prime `#E4572E` and so on) was never built.
+The published Washington Fishing Map was brought onto the same iOS 26 values
+the same day (map version 38); its pins use the same ink rule, white on Prime
+and Slow and dark on Good and Fair. The palette in `docs/web-demo-spec.md`
+(prime `#E4572E` and so on) was never built.
 
 ## Not synced
 
