@@ -163,6 +163,10 @@ a { color: var(--on-text); }
 /* Spawning: a fish ladder, where fish pass on their way upstream and do not spawn. */
 .pin.ladder .balloon { stroke-dasharray: 3 2; stroke-width: 1.8; }
 .pin:focus-visible .balloon { stroke: var(--on); stroke-width: 3; }
+/* Spot guides layer: a white balloon with a bookmark, never a rating colour. */
+.pin.spotpin .balloon { fill: #fff; }
+.pin.spotpin .mark { fill: var(--brand-a); }
+.pin.spotpin:focus-visible .balloon { stroke: var(--on); }
 .cluster { pointer-events: auto; cursor: pointer; outline: none; }
 .cluster circle { fill: var(--rc); stroke: var(--pin-edge); stroke-width: 2; }
 .cluster text { fill: var(--gl, #fff); font: 700 11px/13px var(--sans); text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; }
@@ -546,6 +550,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 <script src="season.js"></script>
 <script src="cluster.js"></script>
 <script src="sites.js"></script>
+<script src="spots.js"></script>
 <script src="links.js"></script>
 <script src="layers.js"></script>
 <script src="week/tides-data.js"></script>
@@ -747,6 +752,19 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   }
   var pinNodes = {};
   SITES.forEach(function (s) { pinNodes[s.id] = buildPin(s.id, s.name.replace(' River', '')); });
+  // Spot guides: one pin per guide (spots.js), shown only while the layer is on. No data-id, so a tap never reaches the mode's own sheet.
+  var SPOTLIST = (window.SPOTS || []).map(function (s) {
+    var g = el('g', { 'class': 'pin spotpin', 'data-spot': s.id, tabindex: '0', role: 'button', 'aria-label': s.name + ', spot guide' }, over);
+    var sc = el('g', { 'class': 'pin-s' }, g);
+    el('ellipse', { 'class': 'tipshadow', cx: 0, cy: 0, rx: 6, ry: 2.2 }, sc);
+    el('circle', { r: 26, cy: -16, fill: 'transparent' }, sc);
+    el('path', { 'class': 'balloon', d: 'M0 0L-6.5 -10.5A13 13 0 1 1 6.5 -10.5Z' }, sc);
+    el('path', { 'class': 'mark', d: 'M-4.5 -27.5h9v10.5l-4.5 -2.9 -4.5 2.9z' }, sc);
+    var lab = el('text', { 'class': 'lab' }, over); lab.textContent = s.name;
+    g.style.display = 'none'; lab.style.display = 'none';
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSpot(s.id); } });
+    return { s: s, xy: xy(s.lon, s.lat), ll: [s.lat, s.lon], g: g, lab: lab, w: 0 };
+  });
   // Typical mode draws from a pool: only what is on screen has nodes, so hundreds or thousands of sites cost the same.
   var tPool = [];
   function getTPin(i) { return tPool[i] || (tPool[i] = buildPin('', '')); }
@@ -1023,6 +1041,23 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
         break;
       }
     });
+    // Spot guides sit above the mode's pins in the label order: the guide pin and its name are drawn when the layer is on.
+    var spotsOn = layers.indexOf('spots') >= 0;
+    SPOTLIST.forEach(function (o) {
+      var x = o.xy[0] * v.s + v.tx, y = o.xy[1] * v.s + v.ty;
+      var vis = spotsOn && x > -40 && x < W + 40 && y > -40 && y < H + 40;
+      o.g.style.display = vis ? '' : 'none'; o.lab.style.display = 'none';
+      if (!vis) return;
+      o.g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + (spotSel === o.s.id ? 0.98 : 0.8) + ')');
+      boxes.push([x - 15, y - 36, 30, 38]);
+      if (!o.w) { o.lab.style.display = ''; o.w = o.lab.getBBox().width; o.lab.style.display = 'none'; }
+      var left = x + 15 + o.w + 4 > W - 8, bx = [left ? x - 15 - (o.w + 4) : x + 15, y - 30, o.w + 4, 14];
+      if (spotSel !== o.s.id && boxes.some(function (b) { return overlap(bx, b); })) return;
+      o.lab.style.display = '';
+      o.lab.setAttribute('text-anchor', left ? 'end' : 'start');
+      o.lab.setAttribute('x', (left ? x - 15 : x + 15).toFixed(1)); o.lab.setAttribute('y', (y - 19).toFixed(1));
+      boxes.push(bx);
+    });
     if (me) {
       var mx = me.xy[0] * v.s + v.tx, my = me.xy[1] * v.s + v.ty;
       var onMap = mx > -20 && mx < W + 20 && my > -20 && my < H + 20;
@@ -1136,6 +1171,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     // "Tap the map" is armed: this tap sets the viewer's point, ahead of pins, clusters and rivers.
     if (meArmed) { var mr = map.getBoundingClientRect(); setMeFromScreen(cx - mr.left, cy - mr.top); return; }
     var n = tgt && tgt.closest ? tgt.closest('[data-id],[data-cluster]') : null;
+    var sp = tgt && tgt.closest ? tgt.closest('[data-spot]') : null;
+    if (sp) { openSpot(sp.getAttribute('data-spot')); return; }
     if (n && n.getAttribute('data-cluster')) { zoomToCluster(n); return; }
     if (n) { openSheet(n.getAttribute('data-id')); return; }
     var rv = view === 'reports' && tgt && tgt.closest ? tgt.closest('[data-river]') : null;
@@ -1720,7 +1757,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     // A river that is itself one of the reported waters opens its catch-report sheet, never a "no report" sheet.
     var same = SITES.filter(function (s) { return s.name === r.name; })[0];
     if (same) { openSheet(same.id); return; }
-    selected = null; mode = 'river'; riverSel = id;
+    selected = null; mode = 'river'; riverSel = id; spotSel = null;
     fillRiver(id);
     showSheet();
     $('#listbtn').setAttribute('aria-expanded', 'false');
@@ -1748,7 +1785,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   }
   function openSheet(id) {
     clearRiver();
-    selected = id; mode = 'detail';
+    selected = id; mode = 'detail'; spotSel = null;
     fillSheet(id);
     showSheet();
     $('#listbtn').setAttribute('aria-expanded', 'false');
@@ -1764,9 +1801,51 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     animateTo({ s: ns, tx: tx, ty: ty }, 320);
     syncLink();
   }
+  /* ---- spot guide sheet (Spot guides layer). Guidance, not regulation: dated, sourced, and it sends people to WDFW. ---- */
+  var spotSel = null;
+  function fillSpot(id) {
+    var o = SPOTLIST.filter(function (q) { return q.s.id === id; })[0], s = o.s;
+    $('#stitle').textContent = s.name;
+    var head = '<tr><th scope="col">Species</th>' + s.timing.cols.map(function (c) { return '<th scope="col">' + esc(c) + '</th>'; }).join('') + '</tr>';
+    var body = s.timing.rows.map(function (r) { return '<tr><th scope="row">' + esc(r.species) + '</th>' + r.cells.map(function (c) { return '<td>' + esc(c) + '</td>'; }).join('') + '</tr>'; }).join('');
+    var rows = function (list) {
+      return '<div class="rows">' + list.map(function (r) {
+        return '<div class="row"><div class="rt"><div class="nm">' + esc(r[0]) + '</div><div class="dt">' + esc(r[1]) + '</div></div>' + (r[2] ? '<div class="ch"><span class="chip">' + esc(r[2]) + '</span></div>' : '') + '</div>';
+      }).join('') + '</div>';
+    };
+    var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
+    var dir = 'https://maps.apple.com/?ll=' + s.lat + ',' + s.lon + '&q=' + encodeURIComponent(s.name);
+    $('#sbody').innerHTML = '<div class="head"><p>' + esc(s.sub) + '</p><p>' + esc(s.intro) + '</p>' + distHtml(o.ll) + '<p>Updated ' + esc(Reports.formatDay(s.updated)) + '</p></div>' +
+      '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
+      (s.closure ? '<section class="advisory">' + shield + '<div><h3>' + esc(s.closure.title) + '</h3><p>' + esc(s.closure.text) + '</p></div></section>' : '') +
+      '<section><h3>When the fish are in</h3><div class="creel"><table class="ctab"><caption class="sr">Typical run timing at ' + esc(s.name) + '</caption><thead>' + head + '</thead><tbody>' + body + '</tbody></table>' +
+      '<p class="cnote">' + esc(s.timing.note) + '</p></div></section>' +
+      '<section><h3>Best times to go</h3>' + rows(s.tips) + '</section>' +
+      '<section><h3>' + esc(s.rulesTitle) + '</h3>' + rows(s.rules) + '</section>' +
+      '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Guidance, not regulation. These rules were checked on the date above and change by emergency rule. Confirm them on WDFW the morning you go.</p></div></section>' +
+      '<div class="foot"><div>A hand-written guide, not a catch report. Not for navigation or safety decisions.</div><div class="src">' +
+      s.sources.map(function (x) { return '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.label) + '</a>'; }).join('') + '</div></div>';
+    $('#sbody').scrollTop = 0;
+  }
+  function openSpot(id) {
+    if (!SPOTLIST.some(function (q) { return q.s.id === id; })) return;
+    clearRiver();
+    selected = null; mode = 'spot'; spotSel = id;
+    fillSpot(id);
+    showSheet();
+    $('#listbtn').setAttribute('aria-expanded', 'false');
+    render();
+    var o = SPOTLIST.filter(function (q) { return q.s.id === id; })[0];
+    var wide = window.innerWidth >= 760, ns = Math.max(v.s, s0 * 2.5);
+    var barB = $('#bar').getBoundingClientRect().bottom, sh = sheet.getBoundingClientRect().height || 0;
+    var tx = wide ? (W - 392) / 2 - o.xy[0] * ns : W / 2 - o.xy[0] * ns;
+    var ty = wide ? H / 2 + 20 - o.xy[1] * ns : (barB + (H - Math.min(sh, H * 0.66))) / 2 + 24 - o.xy[1] * ns;
+    animateTo({ s: ns, tx: tx, ty: ty }, 320);
+    syncLink();
+  }
   function openList() {
     clearRiver();
-    selected = null; mode = 'list';
+    selected = null; mode = 'list'; spotSel = null;
     fillList();
     showSheet();
     $('#listbtn').setAttribute('aria-expanded', 'true');
@@ -1777,7 +1856,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   }
   function closeSheet() {
     clearRiver();
-    selected = null; mode = null;
+    selected = null; mode = null; spotSel = null;
     // Focus leaves the sheet before it is hidden from assistive technology, or the browser blocks aria-hidden on a focused element.
     if (sheet.contains(document.activeElement)) document.activeElement.blur();
     sheet.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true');
@@ -1879,7 +1958,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     if (!me) listSort = 'best';
     syncMeUi();
     render();
-    if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList(); else if (mode === 'river') fillRiver(riverSel);
+    if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList(); else if (mode === 'river') fillRiver(riverSel); else if (mode === 'spot') fillSpot(spotSel);
   }
   function setMeFromScreen(px, py) {
     var mx = (px - v.tx) / v.s, my = (py - v.ty) / v.s;
@@ -1947,7 +2026,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   }
 
   /* ---- URL state (links.js): what the page shows is what the address bar says ---- */
-  var LINK0 = (window.Links && window.Links.read) ? Links.read(location.search) : { mode: null, month: null, species: null, site: null, river: null, today: null, layers: [] };
+  var LINK0 = (window.Links && window.Links.read) ? Links.read(location.search) : { mode: null, month: null, species: null, site: null, river: null, today: null, layers: [], spot: null };
   function syncLink() {
     if (!window.Links || !LINK0) return;
     var rep = view === 'reports';
@@ -1958,7 +2037,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       site: !rep && mode === 'detail' ? selected : null,
       river: rep ? (mode === 'detail' ? selected : riverSel) : null,
       today: LINK0.today,
-      layers: layers
+      layers: layers,
+      spot: mode === 'spot' ? spotSel : null
     }, window.history, window.location);
   }
   function speciesKnown(name) {
@@ -1993,6 +2073,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   // Deep links (links.js): mode first, then month and species, then the sheet, so each step sees the state the one before it set.
   if (LINK0.mode && LINK0.mode !== 'reports') setMode(LINK0.mode);
   if (LINK0.layers && LINK0.layers.length) setLayers(LINK0.layers);
+  if (LINK0.spot && layers.indexOf('spots') >= 0) openSpot(LINK0.spot);
   if (LINK0.month && view === 'spawning') setMonth(LINK0.month);
   if (LINK0.species && speciesKnown(LINK0.species)) pickSpecies(LINK0.species);
   if (view === 'reports' && LINK0.river) {

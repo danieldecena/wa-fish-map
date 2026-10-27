@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const Links = require('../links.js');
 
 test('read: empty search gives all nulls', () => {
-  assert.deepEqual(Links.read(''), { mode: null, month: null, species: null, site: null, river: null, today: null, layers: [] });
+  assert.deepEqual(Links.read(''), { mode: null, month: null, species: null, site: null, river: null, today: null, layers: [], spot: null });
 });
 
 test('read: every key round-trips', () => {
@@ -81,4 +81,10 @@ test('layers: read and written in every mode, canonical order', () => {
   assert.deepEqual(Links.read('?layers=bogus').layers, []);
   assert.equal(Links.toQuery({ mode: 'reports', layers: ['counts', 'spots'] }), '?layers=spots%2Ccounts');
   assert.equal(Links.toQuery({ mode: 'typical', layers: [] }), '?mode=typical');
+});
+
+test('spot: written only with the spots layer on', () => {
+  assert.equal(Links.read('?layers=spots&spot=three-friends').spot, 'three-friends');
+  assert.equal(Links.toQuery({ mode: 'reports', layers: ['spots'], spot: 'three-friends' }), '?layers=spots&spot=three-friends');
+  assert.equal(Links.toQuery({ mode: 'reports', layers: [], spot: 'three-friends' }), '');
 });

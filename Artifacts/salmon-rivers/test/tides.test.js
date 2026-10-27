@@ -246,7 +246,7 @@ test('mount: a week past the bundle end shows beyond rows (no extremes) and the 
    below appears in any of these files (including the bundled year/ and counts/ pages), so the allowlist is empty. If a bundled
    third-party library ever carries one as dead code, list the file and the string here with the reason, per file. */
 test('no network: no page code file contains fetch(, XMLHttpRequest, sendBeacon, WebSocket, EventSource or import(', () => {
-  const files = ['index.html', 'links.js', 'week.js', 'tides.js', 'reports.js', 'rules.js', 'season.js', 'cluster.js',
+  const files = ['index.html', 'links.js', 'layers.js', 'spots.js', 'week.js', 'tides.js', 'reports.js', 'rules.js', 'season.js', 'cluster.js',
     'week/index.html', 'spots/index.html', 'counts/index.html', 'year/index.html'];
   const allow = {}; // file -> [pattern names allowed there, with a reason]
   const bad = { 'fetch(': /\bfetch\s*\(/, XMLHttpRequest: /XMLHttpRequest/, sendBeacon: /sendBeacon/, WebSocket: /WebSocket/, EventSource: /EventSource/, 'import(': /\bimport\s*\(/ };

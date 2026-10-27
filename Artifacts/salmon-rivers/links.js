@@ -37,7 +37,8 @@
       site: p.get('site') || null,
       river: p.get('river') || null,
       today: realDate(today) ? today : null,
-      layers: layerList(p.get('layers'))
+      layers: layerList(p.get('layers')),
+      spot: p.get('spot') || null
     };
   }
   function toQuery(state) {
@@ -51,6 +52,8 @@
     });
     var ls = layerList((state.layers || []).join(','));
     if (ls.length) p.set('layers', ls.join(','));
+    // A spot sheet is only reachable with its layer on, so the link carries it only then.
+    if (ls.indexOf('spots') >= 0 && state.spot) p.set('spot', String(state.spot));
     if (realDate(state.today)) p.set('today', state.today);
     var s = p.toString();
     return s ? '?' + s : '';
