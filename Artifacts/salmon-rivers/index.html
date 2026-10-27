@@ -564,6 +564,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   /* Phones: the summary scrolls sideways in one row, so the card stays short. */
   .dsum { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .dsum button { flex: none; }
+  /* More chips past the right edge: fade it, so the row reads as scrollable. */
+  .dsum.fadeend { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
   .smonth.dash .months, .heat { grid-template-columns: 46px repeat(12, minmax(0, 1fr)); }
 }
 /* Under 390 px a month cell is 21-22 px and "May" ran into "Jun". Text stays 12 px (the fine-print floor); a 40 px label column ("Spawn" is 38),
@@ -1103,18 +1105,27 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   }
   function limits() {
     // Reports mode may zoom out to the unpadded state; Typical mode opens on the whole state, so its floor fits the state inside the chrome.
+    // On wide windows, never above the opening view: at 1280x800 the Reports home fit is smaller than the unpadded state fit, and a floor
+    // above it pushed the Columbia rivers off the bottom edge. Phones keep the state floor, which frames the reported rivers as designed.
     var f = fitFor(D.bounds.state, { t: 0, b: 0, l: 0, r: 0 });
-    var home = view !== 'reports' ? homeFit().s : fitFor(D.bounds.state, { t: 0, b: 0, l: 0, r: 0 }).s;
+    var home = view !== 'reports' ? homeFit().s : window.innerWidth >= 760 ? Math.min(f.s, homeFit().s) : f.s;
     minS = home * 0.9; maxS = f.s * 90;
   }
+  // Clamp the scale about the view's centre, so a clamped view stays where it was aimed instead of growing from its corner.
+  function clampScale(t) {
+    var s = Math.min(Math.max(t.s, minS), maxS);
+    if (s === t.s) return;
+    var cx = (W / 2 - t.tx) / t.s, cy = (H / 2 - t.ty) / t.s;
+    t.s = s; t.tx = W / 2 - cx * s; t.ty = H / 2 - cy * s;
+  }
   function setView(t) {
-    t.s = Math.min(Math.max(t.s, minS), maxS);
+    clampScale(t);
     clampView(t);
     v.s = t.s; v.tx = t.tx; v.ty = t.ty;
     render();
   }
   function animateTo(t, ms) {
-    t.s = Math.min(Math.max(t.s, minS), maxS);
+    clampScale(t);
     clampView(t);
     if (reduce) { setView(t); return; }
     var a = { s: v.s, tx: v.tx, ty: v.ty }, t0 = performance.now();
@@ -2420,6 +2431,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       '<button type="button" data-dash="seasons" aria-pressed="' + (layers.indexOf('seasons') >= 0) + '"><b>' + nSeasons + '</b> ' + (nSeasons === 1 ? 'season' : 'seasons') + ' open</button>' +
       (HAS_SPAWN ? '<button type="button" data-dash="spawn"><b>' + spN + '</b> spawning</button>' : '') +
       (HAS_TYPICAL ? '<button type="button" data-dash="typical"><b>' + tN + '</b> prime-season sites</button>' : '') + '</div>';
+    dsumEdge();
     $('#heat').innerHTML = rows.map(function (row) {
       var max = Math.max.apply(null, row.v.concat([1]));
       return '<span class="hk">' + row.k + '</span>' + row.v.map(function (n, i) {
@@ -2428,6 +2440,13 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     }).join('');
     monthBtns.forEach(function (b, i) { b.setAttribute('aria-label', MONTH_NAMES[i] + ': ' + rows.map(function (row) { return row.v[i] + ' ' + row.what; }).join(', ')); });
   }
+  function dsumEdge() {
+    var d = $('#sml .dsum');
+    if (d) d.classList.toggle('fadeend', d.scrollLeft + d.clientWidth < d.scrollWidth - 1);
+  }
+  $('#sml').addEventListener('scroll', dsumEdge, true);
+  // Also when the card is first shown or resized (it can be drawn while hidden, at zero width).
+  if (window.ResizeObserver) new ResizeObserver(dsumEdge).observe($('#sml')); else window.addEventListener('resize', dsumEdge);
   $('#sml').addEventListener('click', function (e) {
     var b = e.target.closest ? e.target.closest('[data-dash]') : null;
     if (!b) return;

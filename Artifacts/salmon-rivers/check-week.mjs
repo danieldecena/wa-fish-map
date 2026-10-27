@@ -197,6 +197,33 @@ for (const [w, h] of [[390, 844], [1280, 800]]) {
   check(ferr.length === 0, `map ${w}px fixture: no page errors (${ferr.join(' | ').slice(0, 160)})`);
   await fctx.close();
 }
+// Opening view (critique 2026-10-27): on laptop windows every report pin, or the cluster holding it, is on screen below the bar, on load
+// and after Reset view. The zoom floor once sat above the fitted scale at 1280x800 and pushed four Columbia rivers off the bottom.
+// Phones: the summary chips that run past the card's edge are faded there, and the fade goes once the row is scrolled to its end.
+for (const [w, h] of [[1024, 768], [1280, 800], [1440, 900], [390, 844]]) {
+  const octx = await browser.newContext({ viewport: { width: w, height: h } });
+  const op = await octx.newPage();
+  await op.goto(base + '/index.html?mode=reports&today=' + today, { waitUntil: 'networkidle' });
+  const seen = () => op.evaluate(() => {
+    const top = document.getElementById('bar').getBoundingClientRect().bottom;
+    const pins = [...document.querySelectorAll('#over .pin[aria-label]')].map(e => ({ n: e.getAttribute('aria-label').split(',')[0], r: e.getBoundingClientRect() })).filter(q => q.r.width);
+    return { n: pins.length, out: pins.filter(q => { const x = q.r.left + q.r.width / 2, y = q.r.top + q.r.height / 2; return x < 0 || x > innerWidth || y < top || y > innerHeight; }).map(q => q.n) };
+  });
+  const a = await seen();
+  await op.click('#zfit'); await op.waitForTimeout(600);
+  const b = await seen();
+  check(a.n > 0 && !a.out.length && !b.out.length, `open ${w}x${h}: every report pin is on screen, on load and after Reset view (off: ${a.out.concat(b.out).join(', ')})`);
+  if (w < 760) {
+    const fd = await op.evaluate(() => {
+      const d = document.querySelector('#sml .dsum'); if (!d || !d.clientWidth) return null;
+      const r = { scrolls: d.scrollWidth > d.clientWidth + 1, start: d.classList.contains('fadeend') };
+      d.scrollLeft = d.scrollWidth; d.dispatchEvent(new Event('scroll'));
+      r.end = d.classList.contains('fadeend'); return r;
+    });
+    check(!!fd && (!fd.scrolls || (fd.start && !fd.end)), `open ${w}px: summary chips past the card's edge fade there, and not at the row's end (${JSON.stringify(fd)})`);
+  }
+  await octx.close();
+}
 // Guide pins: Kent (three-friends) and Codiga Park overlap at the opening zoom. Every guide must be the thing a tap at its pin reaches,
 // either its own pin or a group pin that lists it, and the group's "Zoom in here" must pull the two apart.
 for (const [w, h] of [[390, 844], [1280, 800]]) {
