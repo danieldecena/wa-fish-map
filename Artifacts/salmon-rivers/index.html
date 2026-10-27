@@ -173,11 +173,12 @@ a { color: var(--on-text); }
 /* Typical season and Spawning as layers over another mode: neutral ink shapes, never a rating colour, so they cannot be read as catch reports.
    Square a boat launch, diamond a pier, circle shore access, triangle a salmon viewing site. Solid: in season (Prime or Good) or spawning (Peak or Active) in the month. */
 .omark { pointer-events: auto; cursor: pointer; outline: none; }
-.omark .d { fill: var(--sheet); stroke: var(--ink); stroke-width: 1.5; }
+/* At 55 percent the shapes stay distinct (about 3.4:1 on the light map) but sit behind the coloured report rivers. */
+.omark .d { fill: var(--sheet); stroke: var(--ink); stroke-width: 1.5; opacity: 0.55; }
 .omark.on .d { fill: var(--ink); stroke: var(--sheet); stroke-width: 1.2; }
 .omark.ladder .d { stroke-dasharray: 2 1.5; }
 .omark .hit { fill: transparent; }
-.omark:focus-visible .d { stroke: var(--on); stroke-width: 2.5; }
+.omark:focus-visible .d { stroke: var(--on); stroke-width: 2.5; opacity: 1; }
 /* Recent reports: a better report draws a thicker river, as a second cue beside the colour and the word. */
 .hl[data-r="prime"] .line { stroke-width: 5px; }
 .hl[data-r="prime"] .casing { stroke-width: 8.5px; }
@@ -301,8 +302,14 @@ a { color: var(--on-text); }
 .modes button[aria-checked="true"]::before { background: var(--seg-on); box-shadow: var(--seg-shadow); }
 @media (hover: hover) { .modes button:not([aria-checked="true"]):hover { color: var(--seg-ink); } }
 .modebtn, .fi, .sdot { display: none; }
+/* Desktop names these two in words; the phone block below swaps in the icon. Kept above that block: an equal-specificity rule after it wins and blanks the phone button. */
+#keybtn .ki, #listbtn .ri { display: none; }
 /* Phones only: the stale-report date is otherwise behind the icon-only notice button. Plain ink on glass, never a rating colour. */
-.agechip { display: none; align-self: flex-start; max-width: 100%; padding: 6px 12px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink); }
+.agechip { display: none; position: relative; align-self: flex-start; max-width: 100%; padding: 6px 12px; border: 0; border-radius: 999px; font: 600 12px/16px var(--sans); color: var(--ink); text-align: left; cursor: pointer; }
+/* The chip is 28 px tall; its tap area reaches 44. */
+.agechip::after { content: ''; position: absolute; inset: -8px 0; }
+/* Phones in Recent reports: the month card opens folded to its counts; this button shows the month chart. */
+.mfold { display: none; width: max-content; min-height: 44px; margin: 6px 0 0 auto; align-items: center; padding: 0 14px; border: 0; border-radius: 22px; background: var(--fill-toggle); color: var(--ink); font: 600 13px/18px var(--sans); cursor: pointer; }
 @media (max-width: 520px) { .agechip:not([hidden]) { display: block; } }
 .mpop { width: min(240px, 100%); }
 .mpop .seg.modes { flex-direction: column; flex-wrap: nowrap; gap: 4px; padding: 4px; }
@@ -310,11 +317,13 @@ a { color: var(--on-text); }
 .mpop .modes button::before { inset: 0; border-radius: 8px; }
 .sdot { position: absolute; top: 9px; left: 24px; width: 8px; height: 8px; border-radius: 50%; background: var(--on); box-shadow: 0 0 0 2px var(--glass-solid, var(--surface)); }
 @media (max-width: 520px) {
-  .bar { gap: 6px; padding: 6px 8px; }
+  .bar { gap: 4px; padding: 6px 8px; }
+  /* A control never shrinks below its own width: Reports once squeezed the species button to 22 px. */
+  .bar > * { flex-shrink: 0; }
   .bar .logo { display: none; }
   .modebtn { display: inline-flex; }
   .listbtn { padding: 0 12px; }
-  #spbtn { position: relative; min-width: 0; width: auto; padding: 0 10px; gap: 4px; }
+  #spbtn { position: relative; min-width: 44px; width: auto; padding: 0 10px; gap: 4px; }
   #spbtn .fi { display: block; }
   #spbtn .sdot.on { display: block; }
   #spbtn .lbl, #mebtn .lbl, .nbtn .nd { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -326,9 +335,21 @@ a { color: var(--on-text); }
   #keybtn { padding: 0; width: 44px; }
   #keybtn .ki { display: block; }
   #keybtn .kl { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  #listbtn { padding: 0; width: 44px; }
+  #listbtn .ri { display: block; }
+  #listbtn .rl { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  /* The age line under the bar says the same thing and opens the same notice, so the bar drops its icon for it. */
+  .bar.aged .nbtn { display: none; }
+  .smonth.dash.fold .heat, .smonth.dash.fold .months { display: none; }
+  .mfold:not([hidden]) { display: flex; }
   #laylbl { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   #laycount:not([hidden]) { display: inline; }
   .nbtn { padding: 0; width: 44px; justify-content: center; }
+}
+/* 360 px phones: tighter spacing keeps every control at 44 px without the bar scrolling. */
+@media (max-width: 370px) {
+  .bar { gap: 2px; padding: 6px; }
+  .modebtn, #spbtn { padding: 0 8px; }
 }
 /* Spawning: the twelve-month ribbon. Tap a month, drag across to sweep, or use the arrow keys. */
 .spawn { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; }
@@ -374,7 +395,6 @@ a { color: var(--on-text); }
 .legend { padding: 10px 12px; max-width: 360px; flex: 1 1 auto; min-width: 0; }
 /* The key opens from the bar like the Layers menu. Only the short hints stay at the bottom, and only while one is showing. */
 .keypop { left: auto; right: 0; width: min(340px, 100%); }
-#keybtn .ki { display: none; }
 .hints { padding: 8px 12px; max-width: 360px; }
 .hints .hint { margin: 0; }
 .hints:not(:has(.hint:not([hidden]))) { display: none; }
@@ -590,11 +610,11 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       <button type="button" class="listbtn" id="spbtn" aria-expanded="false" aria-controls="sppanel"></button>
       <button type="button" class="listbtn" id="mebtn" aria-label="My location" aria-expanded="false" aria-controls="mepanel"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 14.5s4.5-4.2 4.5-8A4.5 4.5 0 0 0 3.5 6.5c0 3.8 4.5 8 4.5 8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="8" cy="6.5" r="1.6" fill="currentColor"/></svg><span class="lbl">Near me</span></button>
       <button type="button" class="nbtn" id="nbtn" aria-expanded="false" aria-controls="npop" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="12" r=".9" fill="currentColor"/></svg><span class="nd" id="nd"></span></button>
-      <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
+      <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet"><svg class="ri" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="rl">Rivers</span></button>
       <button type="button" class="listbtn" id="laybtn" aria-expanded="false" aria-controls="laypop"><svg class="li" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 2 14.5 5.5 8 9 1.5 5.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M1.5 8.5 8 12l6.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span id="laylbl">Layers</span><span class="lc" id="laycount" aria-hidden="true" hidden></span><svg class="lch" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button type="button" class="listbtn" id="keybtn" aria-expanded="false" aria-controls="keypop" aria-label="Map key"><svg class="ki" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7.2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="4.9" r=".9" fill="currentColor"/></svg><span class="kl">Key</span></button>
     </div>
-    <div class="glass agechip" id="agechip" role="status" hidden></div>
+    <button type="button" class="glass agechip" id="agechip" aria-expanded="false" aria-controls="npop" hidden></button>
     <div class="glass pop mpop" id="mpop" hidden></div>
     <div class="glass pop sppanel" id="sppanel" role="radiogroup" aria-label="Species" hidden></div>
     <div class="glass pop sppanel mepanel" id="mepanel" role="group" aria-label="My location" hidden></div>
@@ -628,6 +648,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     </div>
     <div class="glass spawn smonth" id="smonth" hidden>
       <div class="summary" id="sml" aria-live="polite"></div>
+      <button type="button" class="mfold" id="mfold" aria-expanded="false" aria-controls="heat months" hidden>Months</button>
       <div class="heat" id="heat" aria-hidden="true" hidden></div>
       <div class="months" id="months" role="radiogroup" aria-label="Month"><span class="msp"></span></div>
     </div>
@@ -1095,6 +1116,9 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   // above the map (Canada side, under the card) and Oregon ground is off-screen.
   function homeFit() {
     var wide = window.innerWidth >= 760, b = homeBounds(), p = pads();
+    // Pins and their labels rise about 30 px above their point, so a site on the state's north edge would sit under the bar.
+    var rise = view !== 'reports' ? 30 : 0;
+    p.t += rise;
     // Phones: the southwest box is wider than tall, so fitting it by width left the reported rivers in a strip above the legend.
     // Fit the reported waters themselves and center them in the free area instead.
     if (!wide && view === 'reports') {
@@ -1106,10 +1130,12 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var f = fitFor(b, p), bottom = p.b;
     if (wide) {
       var col = $('#bar').getBoundingClientRect().right + 12;
-      var c = fitFor(b, { t: 12, b: 12, l: col, r: p.r > 8 ? p.r : 68 });
+      var c = fitFor(b, { t: 12 + rise, b: 12, l: col, r: p.r > 8 ? p.r : 68 });
       if (c.s > f.s) { f = c; bottom = 12; }
     }
-    f.ty = (H - bottom) - b[1][1] * f.s;
+    // Wide windows anchor the state to the bottom edge. Phones keep fitFor's centring: the state is width-bound there,
+    // and anchoring it low left a blank band above it in Typical season and Spawning.
+    if (wide) f.ty = (H - bottom) - b[1][1] * f.s;
     return f;
   }
   function resetView() { animateTo(homeFit(), 350); }
@@ -1260,6 +1286,12 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
         pn.lab.style.display = '';
         pn.lab.setAttribute('text-anchor', left ? 'end' : 'start');
         pn.lab.setAttribute('x', (left ? p.x - 15 : p.x + 15).toFixed(1)); pn.lab.setAttribute('y', (p.y - 19).toFixed(1));
+        // Pins and labels share one layer in creation order, so a neighbour drawn later covered the selected label. Raise both.
+        if (p.s.id === selected && over.lastChild !== pn.lab) {
+          var had = document.activeElement === pn.g;
+          over.appendChild(pn.g); over.appendChild(pn.lab);
+          if (had) pn.g.focus({ preventScroll: true });
+        }
         if (pool) shown.labs.push(pn.lab);
         boxes.push(bx);
         break;
@@ -1518,10 +1550,11 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   var nbtn = $('#nbtn'), npop = $('#npop');
   function toggleNotice(open) {
     if (open && nbtn.hidden) open = false;
-    if (!open && npop.contains(document.activeElement)) nbtn.focus({ preventScroll: true });
+    if (!open && npop.contains(document.activeElement)) (nbtn.offsetParent ? nbtn : $('#agechip')).focus({ preventScroll: true });
     if (open) { toggleSpecies(false); toggleModes(false); toggleLayers(false); toggleKey(false); if (!$('#mepanel').hidden) toggleMe(false); }
     npop.hidden = !open;
     nbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    $('#agechip').setAttribute('aria-expanded', open ? 'true' : 'false');
   }
   function syncNotice() {
     var t = $('#notice').textContent || '', m = t.match(/\(([^)]+)\)/);
@@ -1534,9 +1567,11 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var chip = $('#agechip'), stale = has && view === 'reports' && !!m;
     chip.hidden = !stale;
     chip.textContent = stale ? 'Dashed pins: reports over a week old (newest ' + m[1] + ')' : '';
+    $('#bar').classList.toggle('aged', stale);
     if (!has) toggleNotice(false);
   }
   nbtn.addEventListener('click', function () { toggleNotice(npop.hidden); });
+  $('#agechip').addEventListener('click', function () { toggleNotice(npop.hidden); });
   // Phones: the three mode buttons move into a popover opened from one menu button; the same buttons and handlers keep working.
   var modesEl = $('#modes'), modebtn = $('#modebtn'), mpop = $('#mpop'), phoneMq = window.matchMedia('(max-width: 520px)');
   function toggleModes(open) {
@@ -1633,7 +1668,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     $('#listbtn').hidden = view !== 'reports';
     // Spawning has its own list, Sites; Typical season has none.
     if (view === 'spawning') $('#listbtn').hidden = false;
-    $('#listbtn').textContent = view === 'spawning' ? 'Sites' : 'Rivers';
+    $('#listbtn .rl').textContent = view === 'spawning' ? 'Sites' : 'Rivers';
     setSpLabel();
     toggleSpecies(false);
     var top = document.createElement('div'); top.className = 'seg'; sppanel.appendChild(top);
@@ -2256,7 +2291,13 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     syncLink();
   }
   /* ---- Seasons layer: its own month (Spawning lends its ribbon month instead), and the season sheet ---- */
-  var LMONTH = MONTH, seasonSel = null, monthBtns = [];
+  var LMONTH = MONTH, seasonSel = null, monthBtns = [], monthsOpen = false;
+  $('#mfold').addEventListener('click', function () {
+    monthsOpen = !monthsOpen;
+    $('#smonth').classList.toggle('fold', !monthsOpen);
+    this.setAttribute('aria-expanded', monthsOpen ? 'true' : 'false');
+    this.textContent = monthsOpen ? 'Hide months' : 'Months';
+  });
   function seasonMonth() { return view === 'spawning' ? SMONTH : LMONTH; }
   // The Fishing Year runs from this month forward, so an earlier month means next year.
   function seasonYear(m) { return m < MONTH ? YEAR + 1 : YEAR; }
@@ -2268,6 +2309,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     $('#smonth').hidden = !(on || dash) || view === 'spawning';
     $('#smonth').classList.toggle('dash', dash);
     $('#heat').hidden = !dash;
+    $('#mfold').hidden = !(dash && !on);
+    $('#smonth').classList.toggle('fold', dash && !on && !monthsOpen);
     if (!on && !dash) return;
     var n = openSeasons(LMONTH).length;
     if (dash) dashHtml(n); else
