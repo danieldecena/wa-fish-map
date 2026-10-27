@@ -11,9 +11,9 @@ of spot: a boat for a launch, an angler for a shore site, a fish for a pier.
 
 | State | Balloon | Glyph | Why |
 | --- | --- | --- | --- |
-| Open, rated | rating colour | white | The normal case. |
-| Season may be closed | `surface-background` (pale) | rating colour | The spot keeps its colour and its tap target; the outline is the warning. |
-| Closed | rating colour at `pin-closed` | white | Faded, still tappable — the details stay one tap away. |
+| Open, rated | rating colour | white on Prime and Slow, black on Good and Fair | The normal case. Ink is whichever clears 3:1, white first. |
+| Season may be closed | rating colour | as above | A small `exclamationmark.circle.fill` badge sits at the balloon's top right. A shape, so colour still does one job. |
+| Closed | rating colour at `pin-closed` | as above | Faded, still tappable — the details stay one tap away. |
 | No season data | `rating-unrated` | white | A real state, not a failure. |
 
 ## Clusters carry the signal, not just the count
@@ -23,8 +23,9 @@ reads as worth going to instead of collapsing to one flat red. It draws a fixed
 step larger than a single pin — `marker-cluster` against `marker-pin` — so a
 count never reads as one spot.
 
-A cluster is outlined only when *every* member carrying its colour is outlined.
-One solid member at that rating is a spot worth going to.
+A cluster carries the closure badge only when *every* member carrying its
+colour does. One unflagged member at that rating is a spot worth going to. The
+badge is a subview, not the glyph, because a cluster's glyph is its count.
 
 Marine-area labels ("MA 9") sit outside the site cluster group on purpose — a
 label must never merge into a site badge.

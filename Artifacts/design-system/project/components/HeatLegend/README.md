@@ -5,7 +5,7 @@ Hand-written from `WAFishMap/FishingMapView.swift` (`private struct HeatLegend`)
 Four discrete 20×8 swatches — one per band of `overlay-density` at
 `density-band-0` … `density-band-3` — clipped to `radius-swatch`, with "Fewer"
 and "More" either side and the qualifier *"· density of well-rated spots"* in
-`text-tertiary`.
+`ink-fineprint`.
 
 Discrete, not a gradient: a continuous ramp promises a precision the banded
 fills do not have, and the first band draws nothing at all so the basemap stays

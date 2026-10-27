@@ -96,9 +96,9 @@
   ],
   "lastChange": {
     "by": "Daniel",
-    "at": "2026-09-20T02:30:00Z",
-    "via": "Cowork",
-    "note": "Sheets given an opaque presentation background; frames reshot. Header collision and the advisory token landed in the same pass."
+    "at": "2026-10-27T09:40:00Z",
+    "via": "Claude Code",
+    "note": "Rating ramp synced to the iOS 26 system colours the app draws (measured), legacy literal and -system tokens removed; layer toggle and fine-print tokens added; badge labels, closure badge and Closed badge brought in line with the code."
   },
   "layout": "files",
   "libraries": [],

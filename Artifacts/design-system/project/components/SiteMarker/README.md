@@ -5,13 +5,16 @@ Hand-written from `WAFishMap/Map/AnnotationViews.swift` (`SiteMarkerView`,
 
 A pin carries three signals at once: the balloon's colour is the rating, the
 glyph is the kind of spot (`sailboat.fill` launch, `figure.fishing` shore,
-`fish.fill` pier), and the treatment is the season's legal state — solid when
-open, pale with the colour moved to the glyph when a closure is plausible,
-faded to `pin-closed` when closed but still tappable.
+`fish.fill` pier), and the treatment is the season's legal state: plain when
+open, a small `exclamationmark.circle.fill` badge at the top right when a
+closure is plausible, faded to `pin-closed` when closed but still tappable.
+The balloon always carries the rating at full strength. Glyph ink is white
+unless white falls under 3:1 on that stop, so Good and Fair pins (and
+clusters) draw black.
 
 A cluster takes the colour of its best-rated member and draws a fixed step
-larger than a single pin. It is outlined only when every member carrying its
-colour is outlined.
+larger than a single pin. It carries the closure badge only when every member
+carrying its colour does.
 
 **Size.** Both draw scaled down from `MKMarkerAnnotationView`'s own size —
 `marker-pin` (0.8) and `marker-cluster` (0.95) — because at full size the

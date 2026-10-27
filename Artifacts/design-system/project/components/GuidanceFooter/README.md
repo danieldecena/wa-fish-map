@@ -4,7 +4,7 @@ Hand-written from `WAFishMap/SiteDetailSheet.swift` (`struct GuidanceFooter`).
 
 A heading, a shield-glyph link to the WDFW rules for that area, the area's own
 disclaimer, the fixed line *"Not for navigation or safety decisions."*, and a
-"Guidance updated" stamp in `text-tertiary`. `space-12` padding,
+"Guidance updated" stamp in `ink-fineprint`. `space-12` padding,
 `radius-advisory`, on `surface-advisory`.
 
 **Consumer supplies:** the area's fishery guide — its WDFW URL, disclaimer and

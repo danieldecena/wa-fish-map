@@ -41,6 +41,18 @@ signal gets noisy.
 `rating-unrated` is a normal state, not a failure. Inland launches match no
 marine area by design.
 
+Each stop is an Apple system colour (`Color.blue`, `.yellow`, `.orange`,
+`.red`, `.gray`), so the ramp has a dark-appearance value for free. The hex
+values in `tokens.json` are what iOS 26 resolves, confirmed against the
+lightness gaps `RampLightnessTests` measured on device; they are not the older
+iOS 17/18 values (`#ff3b30` and friends). Every adjacent pair clears ΔL* 12 in
+both appearances, and the test fails the build if a change closes that gap.
+`rating-unrated` and the system fills are Apple's published values, not
+measured here.
+
+Glyph ink on a pin is chosen per stop: white unless white falls under 3:1, so
+Prime and Slow carry a white glyph and Good and Fair a black one.
+
 ### The overlay hue
 
 `overlay-density` is the one genuinely custom colour in the system, and it is
@@ -62,9 +74,22 @@ advisory block used to be a flat yellow wash, which collided head-on with
 `rating-fair` — both appear on the same sheet, so a reader had no way to tell a
 caution from a rating. The shield glyph and the heading carry the caution now.
 
-`text-primary` / `text-secondary` / `text-tertiary` map to `label`,
-`secondaryLabel` and `tertiaryLabel`. Tertiary is for stamps and attribution
-only.
+`text-primary` / `text-secondary` map to `label` and `secondaryLabel`. Fine
+print (stamps, attribution, axis words) is `ink-fineprint`, which is also
+`secondaryLabel`: `tertiaryLabel` measured about 1.7:1 on white and once
+carried a season-risk reason, so size, not lightness, now separates fine print
+from supporting text. `text-tertiary` stays in the tokens only so older notes
+resolve.
+
+### Layer toggles
+
+The Rivers and Heat switches in the control bar draw a solid fill with a white
+label when on (`chrome-rivers-on`, `chrome-heat-on`) and a neutral
+`chrome-toggle-off` capsule under primary ink when off. Both on-fills are
+literals in both appearances because each has to carry white text: system
+teal does not, and the overlay's dark violet is too light. The system button
+toggle style drew a pale wash with tinted text, nearly unreadable in dark, so
+the app draws the fill itself and `ToggleTintContrastTests` measures it.
 
 ## Type
 
@@ -113,35 +138,34 @@ illustration.
   `"13 fishing spots, best rated Prime, season may be closed, verify with WDFW"`.
 - Colour is never the only carrier. A rating always ships with its word — Prime,
   Good, Fair, Slow, No data — in the badge and in the legend.
-- A closure-plausible spot is *outlined*, not merely recoloured: the balloon
-  goes pale and the rating colour moves to the glyph, so the state survives for
-  a colour-blind reader.
-- `rating-fair` (#ffc700) on white is about 1.7:1 — it is a fill and a dot
-  colour, never text on the page ground. `RatingBadge` draws the label in the
-  rating colour on a 20% wash of itself, which does not reach 4.5:1 for Fair; it
-  is carried from the source unchanged and is the one contrast pair to fix
-  first.
-- `text-tertiary` at 11px is below 4.5:1 in both themes. It is confined to
-  timestamps and attribution.
+- A closure-plausible spot keeps its full rating colour and gains a small
+  `exclamationmark.circle.fill` badge at the balloon's top right: a shape, so
+  the state survives for a colour-blind reader and colour does one job. (It used
+  to be a pale balloon with the colour moved to the glyph, which put Fair's
+  glyph at 1.51:1.)
+- `rating-fair` is a fill and a dot colour, never text. `RatingBadge` and
+  `ClosedBadge` draw their label in `text-primary` on a 20% wash of the colour,
+  with the stroke at full strength. The label used to be the rating colour,
+  which failed 4.5:1 in light for every state and reached 1.38:1 for Fair;
+  `RatingBadgeContrastTests` holds the measurements.
+- Prime and Slow are within half an L* of each other, so red and blue pins
+  differ by hue alone, with unrated gray between them. The word in the badge
+  and the legend is what separates them for a colour-blind reader.
 
 ## Known divergences in the source
 
-Three of these are live in `main@b9cdd9b` and worth resolving before anything
-new is built on the ramp:
+Synced from `main@05760bf` on 2026-10-27. The two app-side divergences listed
+here before are gone: the views draw `DS.Rating` (the literal ramp in
+`ColorRamp.swift` was removed, so there is one ramp), and `GuidanceFooter`
+fills with `DS.Surface.advisory`, not yellow.
 
-1. **Two rating ramps exist.** `DS.Rating` in `DesignSystem.swift` anchors on
-   Apple's system colours and gains dark-appearance variants; the views still
-   draw the literals in `ColorRamp.swift` via `FishingRating.color`. Both are
-   in `tokens.json` — `rating-*` is what renders, `rating-*-system` is what the
-   design intends. The migration is a find-and-replace, not a redesign.
-2. **A third palette is specified for the web demo** in `docs/web-demo-spec.md`:
-   prime `#E4572E`, good `#EE8C2B`, fair `#EFC050`, slow `#3D8BCD`, none
-   `#9AA8A7`. Warmer and lower-chroma than either app ramp. Not built yet, and
-   not carried into these tokens; if the demo ships with it, the app and the
-   demo will disagree on the product's most important signal.
-3. **`GuidanceFooter` still draws `.yellow.opacity(0.12)`** rather than
-   `DS.Surface.advisory`, so the yellow/Fair collision the token was created to
-   remove is still on screen.
+One remains, outside the app:
+
+1. **The web map draws the older iOS palette.** The published Washington
+   Fishing Map uses `#ff3b30`, `#ff9500`, `#ffcc00`, `#007aff` (and the matching
+   dark values), the iOS 17/18 system colours. The app on iOS 26 draws the
+   values in `tokens.json`. Same hues, slightly different stops. The palette in
+   `docs/web-demo-spec.md` (prime `#E4572E` and so on) was never built.
 
 ## Not synced
 

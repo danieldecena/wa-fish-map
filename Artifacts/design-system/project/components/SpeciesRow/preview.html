@@ -4,8 +4,8 @@
   h3 { font-size: 17px; line-height: 22px; font-weight: 600; margin: 0 0 10px; color: var(--text-primary, #000); }
   .card { background: var(--surface-species-row, rgba(116,116,128,0.08)); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
   .top { display: flex; align-items: center; gap: 8px; }
-  .badge { font-size: 12px; line-height: 16px; font-weight: 700; padding: 5px 10px; border-radius: 999px; border: 1px solid currentColor; color: var(--rating-good, #ff7300); background: color-mix(in srgb, var(--rating-good, #ff7300) 20%, transparent); }
-  .badge.fair { color: var(--rating-fair, #ffc700); background: color-mix(in srgb, var(--rating-fair, #ffc700) 20%, transparent); }
+  .badge { font-size: 12px; line-height: 16px; font-weight: 700; padding: 5px 10px; border-radius: 999px; --c: var(--rating-good, #ff8d28); border: 1px solid var(--c); color: var(--text-primary, #000); background: color-mix(in srgb, var(--c) 20%, transparent); }
+  .badge.fair { --c: var(--rating-fair, #ffcc00); }
   .name { font-size: 15px; line-height: 20px; font-weight: 600; color: var(--text-primary, #000); }
   .size { margin-left: auto; width: 56px; text-align: center; color: var(--text-secondary, rgba(60,60,67,0.6)); }
   .size span { font-size: 11px; line-height: 13px; display: block; }
