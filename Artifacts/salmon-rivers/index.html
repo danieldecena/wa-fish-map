@@ -140,7 +140,6 @@ a { color: var(--on-text); }
 .hl .line { stroke: var(--rc); stroke-width: 3.6px; }
 .hl .hit { stroke: transparent; stroke-width: 24px; pointer-events: stroke; cursor: pointer; }
 .hl.closed .line { opacity: 0.55; }
-.hl.sel .line { stroke-width: 5px; }
 /* Recent reports: every named river takes a tap (rivers-tap.js). Invisible and static in #vp; the eight report rivers' own hit paths sit above. */
 #rtap path { fill: none; stroke: transparent; stroke-width: 22px; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; pointer-events: stroke; cursor: pointer; }
 /* The river whose sheet is open: accent line on a halo casing. Not a rating colour; rivers without a report are never rated. */
@@ -171,6 +170,21 @@ a { color: var(--on-text); }
 .pin.spotpin .mark { fill: var(--brand-a); }
 .pin.spotpin:focus-visible .balloon { stroke: var(--on); }
 /* Piers and shore layer: WDFW sites as plain markers in ink on the sheet colour. No rating colour: their timing lives in Typical season. */
+/* Typical season and Spawning as layers over another mode: neutral ink shapes, never a rating colour, so they cannot be read as catch reports.
+   Square a boat launch, diamond a pier, circle shore access, triangle a salmon viewing site. Solid: in season (Prime or Good) or spawning (Peak or Active) in the month. */
+.omark { pointer-events: auto; cursor: pointer; outline: none; }
+.omark .d { fill: var(--sheet); stroke: var(--ink); stroke-width: 1.5; }
+.omark.on .d { fill: var(--ink); stroke: var(--sheet); stroke-width: 1.2; }
+.omark.ladder .d { stroke-dasharray: 2 1.5; }
+.omark .hit { fill: transparent; }
+.omark:focus-visible .d { stroke: var(--on); stroke-width: 2.5; }
+/* Recent reports: a better report draws a thicker river, as a second cue beside the colour and the word. */
+.hl[data-r="prime"] .line { stroke-width: 5px; }
+.hl[data-r="prime"] .casing { stroke-width: 8.5px; }
+.hl[data-r="good"] .line { stroke-width: 4.2px; }
+.hl[data-r="fair"] .line { stroke-width: 3.2px; }
+.hl[data-r="slow"] .line { stroke-width: 2.6px; }
+.hl.sel .line { stroke-width: 6px; }
 .amark { pointer-events: auto; cursor: pointer; outline: none; }
 .amark .d { fill: var(--sheet); stroke: var(--ink); stroke-width: 1.6; }
 .amark:focus-visible .d { stroke: var(--on); stroke-width: 2.5; }
@@ -188,6 +202,24 @@ a { color: var(--on-text); }
 .stag text { font: 600 11px/13px var(--sans); fill: var(--ink); }
 .stag:focus-visible rect { stroke: var(--on); stroke-width: 2; stroke-dasharray: none; }
 .months { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 2px; }
+.months .msp { display: none; }
+/* The month card in Recent reports: a summary, then a heat strip of what is happening each month, over the month buttons. */
+.smonth.dash .months, .heat { grid-template-columns: 58px repeat(12, minmax(0, 1fr)); }
+.smonth.dash .months .msp { display: block; }
+.heat { display: grid; gap: 3px 2px; align-items: center; }
+.heat .hk { font-size: 12px; line-height: 14px; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.heat .hc { height: 9px; border-radius: 3px; background: var(--fill-toggle); position: relative; overflow: hidden; }
+.heat .hc i { position: absolute; inset: 0; background: var(--on-text); }
+.heat .hc.sel { box-shadow: 0 0 0 1.5px var(--on); }
+.dsum { display: flex; flex-wrap: wrap; gap: 6px; }
+.dsum button { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 0; border-radius: 22px; background: var(--fill-toggle); color: var(--ink); font: 600 13px/18px var(--sans); cursor: pointer; }
+.dsum button[aria-pressed="true"] { box-shadow: inset 0 0 0 1.5px var(--on); }
+.dsum button b { font-variant-numeric: tabular-nums; }
+.dsum .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex: none; }
+.dsum .rk { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; }
+.dsum .rk + .rk { margin-left: 4px; }
+.dhead { font-size: 13px; line-height: 18px; color: var(--ink2); }
+.dhead b { color: var(--ink); }
 .months button { min-width: 0; min-height: 44px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--ink2); cursor: pointer; font: 600 12px/16px var(--sans); }
 .months button[aria-checked="true"] { background: var(--fill-toggle); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--on); }
 .months button.now:not([aria-checked="true"]) { color: var(--ink); }
@@ -354,6 +386,7 @@ html.touched .hints:not(:has(#hint:not([hidden]))) { display: none; }
 /* "Faded" is a modifier on any rating, so its swatch is the whole ramp faded, not one more colour. */
 .legend li.fade i { width: 18px; border-radius: 4px; background: linear-gradient(90deg, var(--prime), var(--good), var(--fair), var(--slow)); opacity: 0.45; box-shadow: inset 0 0 0 1px var(--pin-edge); }
 .legend li.old i { width: 10px; height: 10px; background: transparent; border: 1.5px dashed var(--ink2); }
+.legend li.thick i { width: 14px; height: 4px; border-radius: 2px; background: var(--ink2); }
 .legend li.cl i { box-shadow: inset 0 0 0 1px var(--pin-edge); }
 .legend li.dash i { width: 10px; height: 10px; background: transparent; border: 1.5px dashed var(--ink2); }
 .legend .fine { margin-top: 6px; font-size: 13px; line-height: 18px; color: var(--ink2); }
@@ -507,6 +540,10 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   /* With a sheet open on a phone the bar stays as it is (already one thin row); only its popovers and the ribbon step aside. */
   #app.sheet-open #sppanel, #app.sheet-open #mpop, #app.sheet-open #npop, #app.sheet-open #laypop, #app.sheet-open #keypop, #app.sheet-open #mepanel, #app.sheet-open #metip { display: none; }
   #app.sheet-open #spawn, #app.sheet-open #smonth { display: none; }
+  /* Phones: the summary scrolls sideways in one row, so the card stays short. */
+  .dsum { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .dsum button { flex: none; }
+  .smonth.dash .months, .heat { grid-template-columns: 46px repeat(12, minmax(0, 1fr)); }
 }
 .spawn[hidden] { display: none; }
 .laypop { left: auto; right: 0; width: min(300px, 100%); padding: 8px; }
@@ -572,7 +609,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
         <li style="--c:var(--fair)"><i></i>Fair</li>
         <li style="--c:var(--slow)"><i></i>Slow</li>
         <li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li>
-        <li class="old"><i></i>Dashed: report over a week old</li>
+        <li class="old"><i></i>Dashed: report over a week old</li><li class="thick"><i></i>Thicker river: better report</li>
         <li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>
       </ul>
       <ul id="layl" aria-label="Layers" hidden></ul>
@@ -581,6 +618,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     </div>
     <div class="glass pop laypop" id="laypop" role="group" aria-label="Map layers" hidden>
       <p class="lh">Show on the map</p>
+      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="typical"><span class="lt"><b>Typical season</b><span>Launches, piers and shore. Solid when in season this month.</span></span><span class="sw" aria-hidden="true"></span></button>
+      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="spawn"><span class="lt"><b>Spawning</b><span>Salmon viewing sites. Solid when fish are spawning.</span></span><span class="sw" aria-hidden="true"></span></button>
       <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="seasons"><span class="lt"><b>Seasons</b><span>Waters open in the chosen month. Outlines, not ratings.</span></span><span class="sw" aria-hidden="true"></span></button>
       <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="spots"><span class="lt"><b>Spot guides</b><span>Hand-written guides to one bank spot.</span></span><span class="sw" aria-hidden="true"></span></button>
       <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="access"><span class="lt"><b>Piers and shore</b><span>WDFW piers and shore access sites. No rating.</span></span><span class="sw" aria-hidden="true"></span></button>
@@ -589,7 +628,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     </div>
     <div class="glass spawn smonth" id="smonth" hidden>
       <div class="summary" id="sml" aria-live="polite"></div>
-      <div class="months" id="months" role="radiogroup" aria-label="Season month"></div>
+      <div class="heat" id="heat" aria-hidden="true" hidden></div>
+      <div class="months" id="months" role="radiogroup" aria-label="Month"><span class="msp"></span></div>
     </div>
     <div class="glass spawn" id="spawn" hidden>
       <div class="year" id="year" role="radiogroup" aria-label="Month"></div>
@@ -888,6 +928,36 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     o.g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAccess(o.t.id); } });
     return o;
   }
+  // Typical season and Spawning as layers: one neutral marker per site, built the first time it shows. A tap opens that mode on the site.
+  var OVL = {};
+  var OSHAPE = { launch: 'M-4.6 -4.6h9.2v9.2h-9.2z', pier: 'M0 -6L6 0 0 6 -6 0Z', access: null, spawn: 'M0 -6.2L5.8 4.6H-5.8Z' };
+  function ovlNode(kind, t) {
+    var key = kind + ':' + t.id;
+    if (OVL[key]) return OVL[key];
+    var g = el('g', { 'class': 'omark', tabindex: '0', role: 'button' }, over);
+    g.setAttribute(kind === 'spawn' ? 'data-ssite' : 'data-tsite', t.id);
+    el('circle', { 'class': 'hit', r: 11 }, g);
+    var d = kind === 'spawn' ? OSHAPE.spawn : OSHAPE[t.kind];
+    if (d) el('path', { 'class': 'd', d: d }, g); else el('circle', { 'class': 'd', r: 5 }, g);
+    if (kind === 'spawn' && t.kind === 'ladder') g.classList.add('ladder');
+    var lab = el('text', { 'class': 'lab' }, over);
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openOverlay(kind, t.id); } });
+    return (OVL[key] = { g: g, lab: lab });
+  }
+  function openOverlay(kind, id) {
+    if (kind === 'spawn') { var m = seasonMonth(); setMode('spawning'); setMonth(m); } else setMode('typical');
+    openSheet(id);
+  }
+  // Each site's state in the month, for the chosen species: cached, so panning does not recompute 600 sites.
+  var ovlKey = null, ovlState = {};
+  function overlayStates(m) {
+    var k = m + '|' + species;
+    if (k === ovlKey) return ovlState;
+    ovlKey = k; ovlState = { t: {}, s: {} };
+    if (HAS_TYPICAL) { initTypical(); TS.forEach(function (t) { var r = Season.siteView(prep, t.site, m, species).r; ovlState.t[t.id] = { on: r === 'prime' || r === 'good', word: r === 'unrated' ? 'No guidance' : Season.LABEL[r] }; }); }
+    if (HAS_SPAWN) { initSpawn(); SP.forEach(function (t) { var st = spawnState(t.site, m); ovlState.s[t.id] = { v: st.v, on: st.v >= 2, word: st.v === -1 ? 'Not listed' : st.word }; }); }
+    return ovlState;
+  }
   // Creel counts: one badge per surveyed report river (counts.js). Text only; the sheet it opens says the counts are not ratings.
   SPLACES.forEach(function (o) {
     if (o.halo) return;
@@ -1092,12 +1162,15 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       pn.g.classList.toggle('stale', stale);
       pn.g.setAttribute('aria-label', Reports.pinLabel(s, vw, species) + (stale ? (age === null ? ', report undated' : ', report ' + age + ' days old') : ''));
       var h = hlNodes[s.id];
-      if (h) { h.style.setProperty('--rc', colorVar(vw.r)); h.classList.toggle('closed', vw.release); h.classList.toggle('stale', stale); h.classList.toggle('sel', selected === s.id); }
+      if (h) { h.setAttribute('data-r', vw.r); h.style.setProperty('--rc', colorVar(vw.r)); h.classList.toggle('closed', vw.release); h.classList.toggle('stale', stale); h.classList.toggle('sel', selected === s.id); }
     });
   }
   function overlap(a, b) { return a[0] < b[0] + b[2] && a[0] + a[2] > b[0] && a[1] < b[1] + b[3] && a[1] + a[3] > b[1]; }
 
+  var dashKey = null;
   function render() {
+    var dk = view + '|' + species + '|' + LMONTH + '|' + layers.join();
+    if (dk !== dashKey) { dashKey = dk; syncSeasonUi(); }
     vp.setAttribute('transform', 'translate(' + v.tx + ' ' + v.ty + ') scale(' + v.s + ')');
     var typ = view === 'typical', spw = view === 'spawning';
     // Typical season and Spawning draw from the pin pool; Recent reports keeps its eight fixed pins.
@@ -1216,7 +1289,37 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       boxes.push(bx); tagged[o.s.id] = true; ti++;
     });
     // Piers and shore: a marker that would sit on a pin, label or another marker is left out, so dense shores thin out until you zoom in.
-    var accessOn = layers.indexOf('access') >= 0 && view !== 'typical';
+    // Typical season and Spawning layers: each steps aside in its own mode. In-season sites claim their place first; a marker that
+    // would sit on a pin, label or another marker is left out, so dense shores thin out until you zoom in. Words appear when zoomed.
+    var tOn = HAS_TYPICAL && layers.indexOf('typical') >= 0 && view !== 'typical', sOn = HAS_SPAWN && layers.indexOf('spawn') >= 0 && view !== 'spawning';
+    Object.keys(OVL).forEach(function (k) { OVL[k].g.style.display = 'none'; OVL[k].lab.style.display = 'none'; });
+    if (tOn || sOn) {
+      var om = seasonMonth(), os = overlayStates(om), olist = [];
+      if (tOn) TS.forEach(function (t) { olist.push({ kind: 't', t: t, st: os.t[t.id] }); });
+      if (sOn) SP.forEach(function (t) { if (os.s[t.id].v !== -2) olist.push({ kind: 'spawn', t: t, st: os.s[t.id] }); });
+      olist.sort(function (a, b) { return b.st.on - a.st.on; });
+      var olab = v.s >= s0 * 2.5;
+      olist.forEach(function (o) {
+        var x = o.t.xy[0] * v.s + v.tx, y = o.t.xy[1] * v.s + v.ty;
+        if (x < -10 || x > W + 10 || y < -10 || y > H + 10) return;
+        var bx = [x - 7, y - 7, 14, 14];
+        if (boxes.some(function (q) { return overlap(bx, q); })) return;
+        var n = ovlNode(o.kind, o.t), txt = o.t.name + ' \u00b7 ' + o.st.word;
+        n.g.classList.toggle('on', o.st.on);
+        n.g.setAttribute('aria-label', txt + (o.kind === 'spawn' ? ', salmon viewing site, typical spawning in ' : ', ' + Season.KIND_LABEL[o.t.kind].toLowerCase() + ', typical timing in ') + MONTH_NAMES[om - 1]);
+        n.g.style.display = '';
+        n.g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
+        boxes.push(bx);
+        if (!olab) return;
+        var lw = textW(txt), left = x + 10 + lw + 4 > W - 8, lb = [left ? x - 10 - (lw + 4) : x + 10, y - 7, lw + 4, 14];
+        if (boxes.some(function (q) { return overlap(lb, q); })) return;
+        n.lab.textContent = txt; n.lab.style.display = ''; n.lab.setAttribute('text-anchor', left ? 'end' : 'start');
+        n.lab.setAttribute('x', (left ? x - 10 : x + 10).toFixed(1)); n.lab.setAttribute('y', (y + 4).toFixed(1));
+        boxes.push(lb);
+      });
+    }
+    // The Typical season layer already draws every pier and shore site, so Piers and shore steps aside while it is on.
+    var accessOn = layers.indexOf('access') >= 0 && view !== 'typical' && !tOn;
     ACCESS.forEach(function (o) {
       if (o.g) { o.g.style.display = 'none'; o.lab.style.display = 'none'; }
       if (!accessOn) return;
@@ -1375,6 +1478,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var n = tgt && tgt.closest ? tgt.closest('[data-id],[data-cluster]') : null;
     var cnt = tgt && tgt.closest ? tgt.closest('[data-count]') : null;
     if (cnt) { openCounts(cnt.getAttribute('data-count')); return; }
+    var ov = tgt && tgt.closest ? tgt.closest('[data-tsite],[data-ssite]') : null;
+    if (ov) { if (ov.hasAttribute('data-ssite')) openOverlay('spawn', ov.getAttribute('data-ssite')); else openOverlay('t', ov.getAttribute('data-tsite')); return; }
     var acc = tgt && tgt.closest ? tgt.closest('[data-access]') : null;
     if (acc) { openAccess(acc.getAttribute('data-access')); return; }
     var sea = tgt && tgt.closest ? tgt.closest('[data-season]') : null;
@@ -1447,7 +1552,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   if (phoneMq.addEventListener) phoneMq.addEventListener('change', placeModes); else phoneMq.addListener(placeModes);
   /* ---- layers: drawn on top of whichever mode is showing; they never change a pin's colour ---- */
   var layers = [], laybtn = $('#laybtn'), laypop = $('#laypop');
-  var LAYER_KEY = { seasons: 'Dashed outline: a season open in the chosen month', spots: 'White pin: a spot guide', access: 'Diamond: a WDFW pier · circle: shore access', counts: 'Badge: fish kept last week (WDFW survey)' };
+  var LAYER_KEY = { typical: 'Square, diamond, circle: launch, pier, shore. Solid when in season (typical timing, not a report)', spawn: 'Triangle: salmon viewing site. Solid when spawning', seasons: 'Dashed outline: a season open in the chosen month', spots: 'White pin: a spot guide', access: 'Diamond: a WDFW pier · circle: shore access', counts: 'Badge: fish kept last week (WDFW survey)' };
   function syncLayUi() {
     $('#layl').innerHTML = layers.map(function (n) { return '<li>' + LAYER_KEY[n] + '</li>'; }).join('');
     $('#layl').hidden = !layers.length;
@@ -2145,12 +2250,63 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   function openSeasons(m) { var y = seasonYear(m); return FYS.filter(function (s) { return Layers.openIn(s, y, m); }); }
   function syncSeasonUi() {
     var on = layers.indexOf('seasons') >= 0;
-    $('#smonth').hidden = !on || view === 'spawning';
-    if (!on) return;
+    // Recent reports shows the card as a summary of the month whenever a layer it counts is on.
+    var dash = view === 'reports' && (on || layers.indexOf('typical') >= 0 || layers.indexOf('spawn') >= 0);
+    $('#smonth').hidden = !(on || dash) || view === 'spawning';
+    $('#smonth').classList.toggle('dash', dash);
+    $('#heat').hidden = !dash;
+    if (!on && !dash) return;
     var n = openSeasons(LMONTH).length;
+    if (dash) dashHtml(n); else
     $('#sml').innerHTML = '<b>' + n + '</b> ' + (n === 1 ? 'season' : 'seasons') + ' open in ' + esc(Layers.monthLabel(seasonYear(LMONTH), LMONTH));
     monthBtns.forEach(function (b, i) { var c = i + 1 === LMONTH; b.setAttribute('aria-checked', c ? 'true' : 'false'); b.tabIndex = c ? 0 : -1; });
   }
+  // Recent reports' month card. Report counts keep their rating colour and word; everything from the guidance is neutral and in words.
+  var RWORD = { prime: 'Excellent', good: 'Good', fair: 'Fair', slow: 'Slow' };
+  var heatKey = null, heatRows = null;
+  function heatData() {
+    var k = species + '|' + YEAR;
+    if (k === heatKey) return heatRows;
+    heatKey = k;
+    var rows = [{ k: 'Open', what: 'seasons open', v: [] }];
+    if (HAS_SPAWN) { initSpawn(); rows.push({ k: 'Spawn', what: 'spawning sites active', v: [] }); }
+    if (HAS_TYPICAL) { initTypical(); rows.push({ k: 'Prime', what: 'sites in prime season', v: [] }); }
+    for (var m = 1; m <= 12; m++) {
+      rows[0].v.push(openSeasons(m).length);
+      if (HAS_SPAWN) rows[1].v.push(SP.filter(function (t) { return spawnState(t.site, m).v >= 2; }).length);
+      if (HAS_TYPICAL) rows[rows.length - 1].v.push(TS.filter(function (t) { return Season.siteView(prep, t.site, m, species).r === 'prime'; }).length);
+    }
+    return (heatRows = rows);
+  }
+  function dashHtml(nSeasons) {
+    var mo = Layers.monthLabel(seasonYear(LMONTH), LMONTH), tally = { prime: 0, good: 0, fair: 0, slow: 0 };
+    SITES.forEach(function (q) { var r = viewOf(q).r; if (tally[r] !== undefined) tally[r]++; });
+    var rep = Object.keys(tally).filter(function (r) { return tally[r]; }).map(function (r) {
+      return '<span class="rk"><span class="dot" style="--c:var(--' + r + ')"></span><b>' + tally[r] + '</b> ' + RWORD[r] + '</span>';
+    }).join('');
+    var rows = heatData(), mi = LMONTH - 1, spN = HAS_SPAWN ? rows[1].v[mi] : 0, tN = HAS_TYPICAL ? rows[rows.length - 1].v[mi] : 0;
+    $('#sml').innerHTML = '<div class="dhead"><b>' + esc(mo) + '</b> at a glance' + (LMONTH === MONTH ? '' : ' · reports are this week') + '</div><div class="dsum">' +
+      '<button type="button" data-dash="reports" aria-label="Recent reports: ' + Object.keys(tally).filter(function (r) { return tally[r]; }).map(function (r) { return tally[r] + ' ' + RWORD[r]; }).join(', ') + '. Show the list">' + (rep || 'No rated reports') + '</button>' +
+      '<button type="button" data-dash="seasons" aria-pressed="' + (layers.indexOf('seasons') >= 0) + '"><b>' + nSeasons + '</b> ' + (nSeasons === 1 ? 'season' : 'seasons') + ' open</button>' +
+      (HAS_SPAWN ? '<button type="button" data-dash="spawn"><b>' + spN + '</b> spawning</button>' : '') +
+      (HAS_TYPICAL ? '<button type="button" data-dash="typical"><b>' + tN + '</b> prime-season sites</button>' : '') + '</div>';
+    $('#heat').innerHTML = rows.map(function (row) {
+      var max = Math.max.apply(null, row.v.concat([1]));
+      return '<span class="hk">' + row.k + '</span>' + row.v.map(function (n, i) {
+        return '<span class="hc' + (i === mi ? ' sel' : '') + '" title="' + MONTH_NAMES[i] + ': ' + n + ' ' + row.what + '">' + (n ? '<i style="opacity:' + (0.25 + 0.75 * n / max).toFixed(2) + '"></i>' : '') + '</span>';
+      }).join('');
+    }).join('');
+    monthBtns.forEach(function (b, i) { b.setAttribute('aria-label', MONTH_NAMES[i] + ': ' + rows.map(function (row) { return row.v[i] + ' ' + row.what; }).join(', ')); });
+  }
+  $('#sml').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('[data-dash]') : null;
+    if (!b) return;
+    var k = b.getAttribute('data-dash');
+    if (k === 'reports') openList();
+    else if (k === 'seasons') setLayers(Layers.toggle(layers, 'seasons'));
+    else if (k === 'spawn') { var m = LMONTH; setMode('spawning'); setMonth(m); }
+    else if (k === 'typical') setMode('typical');
+  });
   function setLMonth(m) {
     if (m === LMONTH) return;
     LMONTH = m; syncSeasonUi(); render();
@@ -2373,7 +2529,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     $('#legt').textContent = typ ? 'Typical timing, ' + Season.MONTHS[MONTH - 1] : 'Recent catch reports';
     $('#legl').innerHTML = typ
       ? '<li style="--c:var(--prime)"><i></i>Prime</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li style="--c:var(--slow)"><i></i>Slow</li><li style="--c:var(--unrated)"><i></i>No seasonal guidance</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: season often varies</li><li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>'
-      : '<li style="--c:var(--prime)"><i></i>Excellent</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li style="--c:var(--slow)"><i></i>Slow</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li><li class="old"><i></i>Dashed: report over a week old</li><li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>';
+      : '<li style="--c:var(--prime)"><i></i>Excellent</li><li style="--c:var(--good)"><i></i>Good</li><li style="--c:var(--fair)"><i></i>Fair</li><li style="--c:var(--slow)"><i></i>Slow</li><li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li><li class="old"><i></i>Dashed: report over a week old</li><li class="thick"><i></i>Thicker river: better report</li><li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>';
     $('#legf').textContent = typ ? TYPICAL_LINE + ' Confirm rules on WDFW.' : spw ? SPAWN_FINE : 'Catch reports, not season dates. Confirm rules on WDFW.';
     var n = typ ? TYPICAL_LINE : spw ? null : Reports.staleNotice(SITES, TODAY);
     $('#notice').textContent = n || ''; syncNotice();

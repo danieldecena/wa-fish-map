@@ -69,7 +69,7 @@ test('compact bar only for a mouse on a wide window; touch keeps 44 px', () => {
 test('piers and shore layer: plain markers, never a rating colour, and never drawn over Typical season', () => {
   const css = html.slice(html.indexOf('.amark {'), html.indexOf('\n', html.indexOf('.amark:focus-visible')));
   assert.doesNotMatch(css, /--(prime|good|fair|slow|unrated|rc)\b/);
-  assert.match(html, /var accessOn = layers\.indexOf\('access'\) >= 0 && view !== 'typical';/);
+  assert.match(html, /var accessOn = layers\.indexOf\('access'\) >= 0 && view !== 'typical' && !tOn;/);
   const fill = between('function fillAccess', 'function openAccess');
   assert.doesNotMatch(fill, /badge|Season\.siteView|colorVar/, 'the sheet carries no rating');
   assert.match(fill, /Not a catch report and not a rating/);
@@ -89,4 +89,23 @@ test('rivers with no fishing data fade; rivers with data are redrawn in river bl
   const build = between('var DATA_RIVERS = {};', 'var hlNodes = {};');
   assert.match(build, /RULES\.forRiver\(r\.name\)\.length/, 'a WDFW notice');
   assert.match(build, /SPLACES\.forEach/, 'a season place');
+});
+
+test('Typical season and Spawning layers: neutral shapes and words, never a rating colour, each stepping aside in its own mode', () => {
+  const css = html.slice(html.indexOf('.omark {'), html.indexOf('\n', html.indexOf('.omark:focus-visible')));
+  assert.doesNotMatch(css, /--(prime|good|fair|slow|unrated|rc)\b/);
+  const draw = between('var tOn = HAS_TYPICAL', 'var accessOn');
+  assert.match(draw, /view !== 'typical'/);
+  assert.match(draw, /view !== 'spawning'/);
+  assert.doesNotMatch(draw, /colorVar|--rc|glyphColor/);
+  const state = between('function overlayStates', '// Creel counts');
+  assert.match(state, /word:/, 'every marker carries its state in words');
+});
+
+test('month card: report counts keep their colour and word; the heat strip and guidance counts are neutral', () => {
+  const dash = between('function dashHtml', 'function setLMonth');
+  assert.match(dash, /RWORD\[r\]/, 'a report colour always has its word');
+  const heat = dash.slice(dash.indexOf('#heat'));
+  assert.doesNotMatch(heat, /--(prime|good|fair|slow)/);
+  assert.match(html, /\.heat \.hc i \{[^}]*background: var\(--on-text\)/);
 });
