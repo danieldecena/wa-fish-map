@@ -5,7 +5,7 @@
 - [ ] Live conditions sub-project: USGS flow inside the map's site sheets (NOAA tides are done for marine Typical-season sheets, from the bundle).
 - [ ] [you] Re-run `scripts/build_tides.py` monthly (next by 2026-11-25) and republish `tides-data.js`; marine site sheets say through which date it has (first bundle runs through 2026-12-09).
 - [x] Fishing Year build: `scripts/build_fishing_year.py` writes `Artifacts/fishing-year/data.js`; the map reads a byte copy at `salmon-rivers/seasons-data.js` (`test/season-places.test.js` fails until it is copied). Make the build write both, and add a `season-places.js` entry for any new season.
-- [x] Recover or recreate docs/research/2026-10-20-river-reports-and-rules.md (rules.js's WDFW sources, each opened 2026-10-20), scripts/build_sites.py (sites.js) and the rivers-tap.js generator; until then treat the three files as hand-maintained.
+- [x] Recover the river-rules note and generators — 1af89ed
 - [ ] Map deep links: `?mode=spawning` without `month` gets `&month=<current>` appended on boot (per the spec's write rule); `setMode` fires a transient link sync before the final one. Both self-correct; revisit only if they show up in history or tests.
 
 #### Design critique 2026-10-26
