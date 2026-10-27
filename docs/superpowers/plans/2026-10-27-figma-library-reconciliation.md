@@ -54,7 +54,9 @@ struct DesignTokenManifestTests {
         let resolved = UIColor(color).resolvedColor(with: UITraitCollection(userInterfaceStyle: style))
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         #expect(resolved.getRed(&r, green: &g, blue: &b, alpha: &a))
-        let c = { (v: CGFloat) in String(format: "%02x", Int((min(1, max(0, v)) * 255).rounded())) }
+        // An extended-sRGB component outside 0...1 cannot be written as sRGB hex; fail rather than clamp.
+        #expect([r, g, b].allSatisfy { (0...1).contains($0) }, "out of sRGB gamut: \(r), \(g), \(b)")
+        let c = { (v: CGFloat) in String(format: "%02x", Int((v * 255).rounded())) }
         return "#" + c(r) + c(g) + c(b)
     }
 
@@ -111,13 +113,17 @@ Note on `headline`: UIKit's `.headline` is already semibold, and `subheadline.we
 - [ ] **Step 2: Run it and capture the line**
 
 ```bash
-./scripts/run_sim.sh test -d "iPhone 18 Pro" -- -testPlan WAFishMapUnit -only-testing:WAFishMapTests/DesignTokenManifestTests > /tmp/ds-manifest.log 2>&1; rc=$?
-echo "rc=$rc"
+xcodebuild -scheme WAFishMap -testPlan WAFishMapUnit \
+  -only-testing:WAFishMapTests/DesignTokenManifestTests \
+  -destination 'platform=iOS Simulator,name=iPhone 18 Pro' \
+  -derivedDataPath DerivedData test > /tmp/ds-manifest.log 2>&1; rc=$?
+echo "rc=$rc"; grep -E '\*\* TEST (SUCCEEDED|FAILED) \*\*' /tmp/ds-manifest.log
+grep -q 'DSMANIFEST ' /tmp/ds-manifest.log || { echo "[x] no DSMANIFEST line in the log"; exit 1; }
 grep -o 'DSMANIFEST .*' /tmp/ds-manifest.log | head -1 | sed 's/^DSMANIFEST //' > docs/design/ds-manifest.json
 /opt/homebrew/bin/python3 -c "import json;d=json.load(open('docs/design/ds-manifest.json'));print(len(d['colors']),len(d['radii']),len(d['type']))"
 ```
 
-Expected: `rc=0`, and `11 3 11`. If `run_sim.sh` does not pass extra arguments through `--`, read its usage and pass `-testPlan`/`-only-testing` the way it documents; do not hardcode a device name in the script.
+Expected: `rc=0`, `** TEST SUCCEEDED **`, and `11 3 11`. `scripts/run_sim.sh` is not used here: it takes no test-plan or `-only-testing` flags. If no simulator named `iPhone 18 Pro` exists, use `xcrun simctl list devices available` and pick the newest iPhone by name. Do not run this while another session is driving the same simulator.
 
 - [ ] **Step 3: Check the manifest against numbers already proven**
 
@@ -132,6 +138,20 @@ for k,(l,d) in want.items(): print(k, c['rating.'+k]['light']==l, c['rating.'+k]
 ```
 
 Expected: eight `True`. Any `False` means the manifest is wrong (or the simulator runtime is not iOS 26); stop and find out which before going on.
+
+The type weights in the test are restated by hand (SwiftUI `Font` cannot be read back), so check them against the source:
+
+```bash
+/opt/homebrew/bin/python3 -c "
+import json, re
+src = open('WAFishMap/DesignSystem.swift').read()
+t = json.load(open('docs/design/ds-manifest.json'))['type']
+for role, ui, w in re.findall(r'static let (\w+) = Font\.(\w+)((?:\.weight\(\.\w+\)|\.bold\(\))?)', src):
+    want = 'bold' if 'bold()' in w else (re.search(r'\.weight\(\.(\w+)\)', w).group(1) if w else ('semibold' if ui == 'headline' else 'regular'))
+    print(role, want == t[role]['weight'], want, t[role]['weight'])"
+```
+
+Expected: every role printed with `True`. A `False` means `DS.TypeScale` changed and the test's `type` table was not updated; fix the table, not this check.
 
 - [ ] **Step 4: Commit**
 
@@ -176,7 +196,10 @@ for (const col of collections) {
       let val = v.valuesByMode[m.modeId];
       while (val && val.type === 'VARIABLE_ALIAS') {
         const target = await figma.variables.getVariableByIdAsync(val.id);
-        val = target.valuesByMode[Object.keys(target.valuesByMode)[0]];
+        const tcol = await figma.variables.getVariableCollectionByIdAsync(target.variableCollectionId);
+        const tmode = tcol.modes.length === 1 ? tcol.modes[0] : tcol.modes.find(x => x.name === m.name);
+        if (!tmode) throw new Error(`${v.name}: alias target ${target.name} has no mode named ${m.name}`);
+        val = target.valuesByMode[tmode.modeId];
       }
       values[m.name] = v.resolvedType === 'COLOR' ? toHex(val) : val;
     }
@@ -194,7 +217,7 @@ const components = page.findAll(n => n.type === 'COMPONENT_SET' || (n.type === '
 return { variables, textStyles, components };
 ```
 
-A note on aliases: the loop follows an alias into its target's first mode. If any alias points across collections with several modes, the export must instead pick the target mode matching this mode's name; check the result for that case before trusting it.
+A note on aliases: the loop follows an alias into the target collection's mode with the same name (or its only mode), and throws if there is none, rather than guessing.
 
 - [ ] **Step 4: Save and sanity-check**
 
@@ -218,7 +241,7 @@ git commit -m "Snapshot the Figma library's variables, text styles and component
 
 **Interfaces:**
 - Consumes: `ds-manifest.json` (Task 1), `figma-inventory.json` (Task 2).
-- Produces: `figma_ds_diff.diff(manifest, inventory, token_map, repo_root) -> list[dict]`, each dict `{"kind", "token", "code", "figma"}`; CLI `figma_ds_diff.py MANIFEST INVENTORY MAP` prints one line per drift and exits 1 if any, 0 if none. `kind` is one of `color`, `missing-variable`, `unmapped-variable`, `radius`, `type-size`, `type-weight`, `missing-style`, `description`.
+- Produces: `figma_ds_diff.diff(manifest, inventory, token_map, repo_root) -> list[dict]`, each dict `{"kind", "token", "code", "figma"}`; CLI `figma_ds_diff.py MANIFEST INVENTORY MAP` prints one line per drift and exits 1 if any, 0 if none; `unmapped-variable` rows print separately as "not covered by code tokens" and do not affect the exit status. `kind` is one of `color`, `type-mismatch`, `missing-variable`, `unmapped-variable`, `radius`, `type-size`, `type-weight`, `missing-style`, `description`.
 
 `figma-token-map.json` shape:
 
@@ -338,6 +361,17 @@ class DiffTests(unittest.TestCase):
         inv["components"][0]["description"] = "A badge."
         self.assertEqual(self.kinds(self.run_diff(inventory=inv)), ["description"])
 
+    def test_bare_swift_file_name_resolves(self):
+        inv = copy.deepcopy(INVENTORY)
+        inv["components"][0]["description"] = "RatingBadge in RatingBadge.swift"
+        self.assertEqual(self.run_diff(inventory=inv), [])
+
+    def test_color_mapped_to_a_number_reports_instead_of_crashing(self):
+        m = copy.deepcopy(MAP)
+        m["colors"]["rating.prime"] = "radius/chrome"
+        rows = self.run_diff(token_map=m)
+        self.assertIn("type-mismatch", self.kinds(rows))
+
     def test_icon_components_need_no_swift_path(self):
         inv = copy.deepcopy(INVENTORY)
         inv["components"].append({"id": "C2", "name": "Icon/fish.fill", "type": "COMPONENT", "description": ""})
@@ -376,7 +410,15 @@ import re
 import sys
 
 WEIGHTS = {"Regular": "regular", "Semi Bold": "semibold", "SemiBold": "semibold", "Bold": "bold"}
-SWIFT_PATH = re.compile(r"WAFishMap/[\w/]+\.swift")
+SWIFT_PATH = re.compile(r"[\w/]*\w+\.swift")
+
+
+def _swift_exists(repo_root, path):
+    """A full repo path, or a bare file name found anywhere under WAFishMap/."""
+    if os.path.exists(os.path.join(repo_root, path)):
+        return True
+    name = os.path.basename(path)
+    return any(name in files for _, _, files in os.walk(os.path.join(repo_root, "WAFishMap")))
 
 
 def _rgb(hex_str):
@@ -402,6 +444,9 @@ def diff(manifest, inventory, token_map, repo_root):
         if var is None:
             rows.append({"kind": "missing-variable", "token": token, "code": values, "figma": name})
             continue
+        if var["type"] != "COLOR":
+            rows.append({"kind": "type-mismatch", "token": token, "code": "COLOR", "figma": f"{name} is {var['type']}"})
+            continue
         for appearance, figma_mode in modes.items():
             got = var["values"].get(figma_mode)
             if got is None or not _close(values[appearance], got):
@@ -413,6 +458,9 @@ def diff(manifest, inventory, token_map, repo_root):
         var = by_name.get(name) if name else None
         if var is None:
             rows.append({"kind": "missing-variable", "token": token, "code": value, "figma": name})
+            continue
+        if var["type"] != "FLOAT":
+            rows.append({"kind": "type-mismatch", "token": token, "code": "FLOAT", "figma": f"{name} is {var['type']}"})
             continue
         got = next(iter(var["values"].values()))
         if abs(float(got) - float(value)) > 0.01:
@@ -437,7 +485,7 @@ def diff(manifest, inventory, token_map, repo_root):
         if comp["name"].startswith("Icon/"):
             continue
         paths = SWIFT_PATH.findall(comp.get("description") or "")
-        missing = [p for p in paths if not os.path.exists(os.path.join(repo_root, p))]
+        missing = [p for p in paths if not _swift_exists(repo_root, p)]
         if not paths or missing:
             rows.append({"kind": "description", "token": comp["name"],
                          "code": missing or "no Swift path", "figma": comp.get("description")})
@@ -448,10 +496,16 @@ def main(argv):
     manifest, inventory, token_map = (json.load(open(p)) for p in argv[1:4])
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     rows = diff(manifest, inventory, token_map, root)
-    for r in rows:
+    # A Figma variable with no DS token is not drift: it is a value the check
+    # cannot judge. List it apart so it is reviewed, never silently ignored.
+    drift = [r for r in rows if r["kind"] != "unmapped-variable"]
+    uncovered = [r for r in rows if r["kind"] == "unmapped-variable"]
+    for r in drift:
         print(f"[x] {r['kind']}: {r['token']}  code={r['code']}  figma={r['figma']}")
-    print(f"{len(rows)} drift" if rows else "[ok] no drift")
-    return 1 if rows else 0
+    for r in uncovered:
+        print(f"[--] not covered by code tokens: {r['token']}  figma={r['figma']}")
+    print(f"{len(drift)} drift, {len(uncovered)} not covered" if drift else f"[ok] no drift, {len(uncovered)} not covered")
+    return 1 if drift else 0
 
 
 if __name__ == "__main__":
@@ -464,7 +518,7 @@ if __name__ == "__main__":
 cd scripts && /opt/homebrew/bin/python3 -m unittest test_figma_ds_diff -v; echo rc=$?
 ```
 
-Expected: 13 tests, `OK`, rc=0.
+Expected: 15 tests, `OK`, rc=0.
 
 - [ ] **Step 5: Prove the detector fires on a real mutation**
 
@@ -472,7 +526,7 @@ Temporarily change `_close`'s tolerance from `1` to `-1` (every color now differ
 
 - [ ] **Step 6: Write the name map from the real inventory**
 
-Open `docs/design/figma-inventory.json`. For each of the 11 colors, 3 radii and 11 type roles in `ds-manifest.json`, find the Figma variable or text style that represents it and write the pair into `docs/design/figma-token-map.json` in the shape above. Use the real mode names from the inventory in `modes`. Leave a code token unmapped if Figma has nothing for it (it will report as `missing-variable` or `missing-style`, which is the finding). Put a Figma variable in `ignoreVariables` only if it represents something with no `DS` token on purpose (for example a map basemap fill used only on the Screens page), and say why in the commit message.
+Open `docs/design/figma-inventory.json`. For each of the 11 colors, 3 radii and 11 type roles in `ds-manifest.json`, find the Figma variable or text style that represents it and write the pair into `docs/design/figma-token-map.json` in the shape above. Use the real mode names from the inventory in `modes`. Leave a code token unmapped if Figma has nothing for it (it will report as `missing-variable` or `missing-style`, which is the finding). Leave `ignoreVariables` empty: a Figma variable with no `DS` token (glyph inks, label colors, the toggle's off fill, the Screens page's map fills) prints as "not covered by code tokens", does not fail the run, and is reviewed in Task 4.
 
 - [ ] **Step 7: Commit**
 
@@ -494,7 +548,7 @@ git commit -m "Diff the Figma library against the app's resolved tokens"
 /opt/homebrew/bin/python3 scripts/figma_ds_diff.py docs/design/ds-manifest.json docs/design/figma-inventory.json docs/design/figma-token-map.json > /tmp/drift.txt; rc=$?; echo rc=$rc; cat /tmp/drift.txt
 ```
 
-rc=0 means no drift: write the report saying so, with the counts compared, skip Task 5 and Task 6, and go to Task 7.
+rc=0 means no drift. Either way, the report lists every "not covered by code tokens" line with where that color comes from in the Swift views (grep the views for it); each is an **ask** row for Task 5 (add it to the manifest, or accept it as Figma-only). With no drift and no uncovered lines, write the report with the counts compared, skip Task 5 and Task 6, and go to Task 7.
 
 - [ ] **Step 2: Write the report**
 
