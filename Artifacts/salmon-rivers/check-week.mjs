@@ -78,18 +78,18 @@ for (const scheme of ['light', 'dark']) {
         check(lay.btn === 'Layers · 3' && lay.smonth && lay.legend === 3, `Layers ${w}px ${scheme}: three layers on, month slider shown, three legend lines (${lay.btn}, ${lay.legend})`);
       }
       if (name === 'Map' && w <= 390) {
-        const k = await page.evaluate(() => { const b = document.getElementById('legkey'), body = document.getElementById('legbody'); return { h: b.getBoundingClientRect().height, shown: getComputedStyle(b).display !== 'none', body: getComputedStyle(body).display !== 'none', exp: b.getAttribute('aria-expanded'), text: b.textContent, hint: getComputedStyle(document.getElementById('rhint')).display !== 'none' }; });
-        check(k.shown && k.text === 'Key' && k.h >= 44 && !k.body && k.exp === 'false', `Map ${w}px ${scheme}: legend is collapsed to a 44px Key button (${Math.round(k.h)}px, body shown ${k.body})`);
+        const k = await page.evaluate(() => { const b = document.getElementById('keybtn'); return { h: b.getBoundingClientRect().height, shown: getComputedStyle(b).display !== 'none', body: !document.getElementById('keypop').hidden, exp: b.getAttribute('aria-expanded'), text: b.textContent, hint: getComputedStyle(document.getElementById('rhint')).display !== 'none' }; });
+        check(k.shown && k.text === 'Key' && k.h >= 44 && !k.body && k.exp === 'false', `Map ${w}px ${scheme}: the key is closed behind a 44px Key button in the bar (${Math.round(k.h)}px, body shown ${k.body})`);
         const age = await page.evaluate(() => { const c = document.getElementById('agechip'), r = c.getBoundingClientRect(); return { shown: getComputedStyle(c).display !== 'none' && !c.hidden, text: c.textContent, h: Math.round(r.height), right: Math.round(r.right) }; });
         check(age.shown && /^Dashed pins: reports over a week old \(newest [A-Z][a-z]{2} \d{1,2}\)$/.test(age.text) && age.right <= w, `Map ${w}px ${scheme}: the stale-report line is visible on a phone and fits (${age.text})`);
         // The opening view leaves room for that line: it must not cover any pin or pin label.
         const cov = await page.evaluate(() => { const c = document.getElementById('agechip').getBoundingClientRect(); return [...document.querySelectorAll('#over .pin, #over text.lab:not(.city):not(.peak):not(.dam):not(.water):not(.region)')].filter(e => { const b = e.getBoundingClientRect(); return e.getClientRects().length && b.bottom > c.top && b.top < c.bottom && b.right > c.left && b.left < c.right; }).map(e => e.textContent || e.getAttribute('data-id')); });
         check(cov.length === 0, `Map ${w}px ${scheme}: the stale-report line covers no pin or pin label (${cov.join(', ')})`);
-        await page.click('#legkey');
-        const k2 =await page.evaluate(() => ({ body: getComputedStyle(document.getElementById('legbody')).display !== 'none', exp: document.getElementById('legkey').getAttribute('aria-expanded') }));
+        await page.click('#keybtn');
+        const k2 =await page.evaluate(() => ({ body: !document.getElementById('keypop').hidden, exp: document.getElementById('keybtn').getAttribute('aria-expanded') }));
         check(k2.body && k2.exp === 'true', `Map ${w}px ${scheme}: Key opens the legend`);
-        await page.click('#legkey');
-        check(await page.evaluate(() => getComputedStyle(document.getElementById('legbody')).display === 'none'), `Map ${w}px ${scheme}: Key closes it again`);
+        await page.click('#keybtn');
+        check(await page.evaluate(() => document.getElementById('keypop').hidden), `Map ${w}px ${scheme}: Key closes it again`);
         check(k.hint, `Map ${w}px ${scheme}: the "Tap any river" hint shows before any interaction`);
         await page.click('#zin');
         check(await page.evaluate(() => getComputedStyle(document.getElementById('rhint')).display === 'none'), `Map ${w}px ${scheme}: the hint hides after the first map interaction`);
@@ -97,7 +97,7 @@ for (const scheme of ['light', 'dark']) {
         check(await page.evaluate(() => getComputedStyle(document.getElementById('rhint')).display === 'none'), `Map ${w}px ${scheme}: the hint stays hidden for the session`);
       }
       if (name === 'Map' && w >= 1024) {
-        check(await page.evaluate(() => getComputedStyle(document.getElementById('legkey')).display === 'none' && getComputedStyle(document.getElementById('legbody')).display !== 'none'), `Map ${w}px: no Key button, the legend is open`);
+        check(await page.evaluate(() => { const b = document.getElementById('keybtn'); return getComputedStyle(b).display !== 'none' && getComputedStyle(b.querySelector('.kl')).width !== '1px' && document.getElementById('keypop').hidden; }), `Map ${w}px: the bar shows a labelled Key button and the key starts closed`);
       }
       if (args.shots) { await mkdir(args.shots, { recursive: true }); await page.screenshot({ path: path.join(args.shots, `${name.toLowerCase()}-${w}-${scheme}.png`), fullPage: true }); }
       await page.close();
@@ -143,13 +143,13 @@ for (const scheme of ['light', 'dark']) {
         check(errs.length === 0 && !/2026-13|NaN|Invalid/.test(shown), `${u}: an impossible ?today falls back without errors (${errs[0] || 'none'})`);
         await pb.close();
       }
-      // map: a Typical season marine site sheet shows Tides today; a freshwater one does not
+      // map: a Typical season marine site sheet shows Tides; a freshwater one does not
       const p3 = await ctx.newPage();
       await p3.goto(base + '/index.html?mode=typical&site=port-angeles-city-pier&today=' + today, { waitUntil: 'networkidle' });
-      const tt = await p3.$eval('#sbody', b => { const h = [...b.querySelectorAll('h3')].find(x => x.textContent === 'Tides today'); const sec = h && h.parentElement; return sec ? { text: sec.textContent, n: sec.querySelectorAll('.tideline span').length } : null; });
-      check(!!tt && tt.n >= 3 && /Port Angeles station, /.test(tt.text) && /NOAA predictions through [A-Z][a-z]{2} \d{1,2}, MLLW, local time\. Not observations\./.test(tt.text), `map: marine pier sheet shows Tides today with the nearest station and extremes (${tt && tt.text.slice(0, 80)})`);
+      const tt = await p3.$eval('#sbody', b => { const h = [...b.querySelectorAll('h3')].find(x => x.textContent === 'Tides'); const sec = h && h.parentElement; return sec ? { text: sec.textContent, n: sec.querySelectorAll('.tideline span').length } : null; });
+      check(!!tt && tt.n >= 3 && /Port Angeles station, /.test(tt.text) && /from NOAA’s tide constants for the station: heights above MLLW, Washington time\. Predictions, not observations\./.test(tt.text), `map: marine pier sheet shows Tides with the nearest station and extremes (${tt && tt.text.slice(0, 80)})`);
       await p3.goto(base + '/index.html?mode=typical&site=cow-lake&today=' + today, { waitUntil: 'networkidle' });
-      check(await p3.$eval('#sbody', b => b.textContent.length > 50 && ![...b.querySelectorAll('h3')].some(x => x.textContent === 'Tides today')), 'map: a freshwater site sheet has no Tides today');
+      check(await p3.$eval('#sbody', b => b.textContent.length > 50 && ![...b.querySelectorAll('h3')].some(x => x.textContent === 'Tides')), 'map: a freshwater site sheet has no Tides');
       await p3.close();
       await page.close();
     }
