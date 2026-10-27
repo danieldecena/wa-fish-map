@@ -43,3 +43,16 @@ test('controls keep 44 px targets, and the dropdown handles keyboard and focus',
   assert.match(html, /b\.setAttribute\('role', 'radio'\);/);
   assert.match(html, /b\.setAttribute\('aria-checked', name === species \? 'true' : 'false'\);/);
 });
+
+test('no page tab bar; a Layers button and menu in the map bar', () => {
+  assert.doesNotMatch(html, /class="apptabs"|--tabs-h|ONE_BAR|placeTabs|tabsBottom/);
+  assert.match(html, /<button type="button" class="listbtn" id="laybtn" aria-expanded="false" aria-controls="laypop">/);
+  assert.match(html, /id="laypop" role="group" aria-label="Map layers" hidden/);
+  ['seasons', 'spots', 'counts'].forEach(n => assert.match(html, new RegExp('role="switch" aria-checked="false" data-layer="' + n + '"')));
+  // Every other popover closes the Layers menu when it opens, and Escape closes it.
+  ['function toggleModes', 'function toggleSpecies', 'function toggleNotice', 'function toggleMe'].forEach(f => {
+    const body = between(f, '\n  }');
+    assert.match(body, /toggleLayers\(false\)/, f);
+  });
+  assert.match(html, /if \(!laypop\.hidden\) \{ toggleLayers\(false\); laybtn\.focus/);
+});

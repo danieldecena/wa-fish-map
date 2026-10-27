@@ -34,8 +34,6 @@
   --seg-ink: #1d1d1f;
   --seg-ink-soft: #636366;
   --seg-shadow: 0 1px 2px rgba(0,0,0,0.12);
-  /* The app tab bar floats over the top of the map: 6 + 44 + 6 px, under the safe area. */
-  --tabs-h: calc(56px + env(safe-area-inset-top, 0px));
   --lift: 0 6px 22px rgba(0,0,0,0.14);
   --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
   --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
@@ -231,7 +229,7 @@ a { color: var(--on-text); }
 .lede { margin: 0 0 10px; font-size: 12px; line-height: 16px; color: var(--ink2); }
 .modes button { flex: 1 1 auto; }
 /* App Kit SegmentedControl: a sunk track; the chosen segment is lifted on surface with a shadow. Each segment stays a 44 px target;
-   what you see is its ::before, inset 3 px top and bottom (the same build as the app tab bar). */
+   what you see is its ::before, inset 3 px top and bottom. */
 .seg.modes { flex: 0 0 auto; flex-wrap: nowrap; gap: 0; padding: 0 3px; border-radius: 10px; background: var(--seg-track); }
 .modes button { position: relative; z-index: 0; min-width: 0; padding: 0 6px; border-radius: 0; background: transparent; color: var(--seg-ink-soft); font-size: 14px; line-height: 20px; font-weight: 600; white-space: nowrap; }
 .modes button::before { content: ""; position: absolute; z-index: -1; inset: 3px 0; border-radius: 7px; }
@@ -435,64 +433,25 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 @media (max-width: 759px) {
   #app.sheet-open .bottom { visibility: hidden; }
   /* With a sheet open on a phone the bar stays as it is (already one thin row); only its popovers and the ribbon step aside. */
-  #app.sheet-open #sppanel, #app.sheet-open #mpop, #app.sheet-open #npop, #app.sheet-open #mepanel, #app.sheet-open #metip { display: none; }
+  #app.sheet-open #sppanel, #app.sheet-open #mpop, #app.sheet-open #npop, #app.sheet-open #laypop, #app.sheet-open #mepanel, #app.sheet-open #metip { display: none; }
   #app.sheet-open #spawn { display: none; }
 }
 .spawn[hidden] { display: none; }
-/* The app tab bar floats over the top of the map, which stays full bleed under its glass; the card and the inspector start below it. */
-nav.apptabs { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; }
-#chrome { padding-top: calc(var(--tabs-h) + 8px); }
-@media (min-width: 760px) {
-  #chrome { padding-top: calc(var(--tabs-h) + 12px); }
-  #sheet { top: calc(var(--tabs-h) + 12px); }
-}
-/* One bar: a wide window with a mouse puts the page tabs inside the map bar (placeTabs in the page script) and thins everything to a single
-   44px row. Phones and touch screens keep two rows and their 44px targets. This query is the same string as ONE_BAR in the page script. */
-@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
-  :root { --tabs-h: 0px; }
-  .barstack, #app.sheet-open .barstack { max-width: 1040px; }
-  #sheet { top: 68px; }
-  .bar { height: 44px; padding: 4px 8px; }
-  .pop { top: 50px; }
-  #bar nav.apptabs { position: static; flex: none; padding: 0 8px 0 0; margin-right: 2px; border-right: 1px solid var(--glass-line); }
-  #bar nav.apptabs::before { display: none; }
-  #bar .apptabs-track { max-width: none; height: 36px; margin: 0; }
-  #bar .apptabs a { flex: none; height: 36px; padding: 0 12px; font-size: 14px; line-height: 20px; }
-  .bar .listbtn, .bar .nbtn, .bar .seg button { min-height: 36px; }
-  .modebtn { display: inline-flex; }
-}
+.laypop { left: auto; right: 0; width: min(300px, 100%); padding: 8px; }
+.laypop .lh { margin: 2px 8px 4px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); }
+.layrow { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; font: inherit; }
+.layrow .lt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 14px; line-height: 18px; }
+.layrow .lt span { font-size: 12px; line-height: 16px; color: var(--ink2); }
+.layrow .sw { flex: none; position: relative; width: 42px; height: 26px; border-radius: 13px; background: var(--fill-toggle); }
+.layrow .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform 150ms ease-out; }
+.layrow[aria-checked="true"] .sw { background: var(--on); }
+.layrow[aria-checked="true"] .sw::after { transform: translateX(16px); }
+.laypop .fine { margin: 6px 8px 2px; font-size: 12px; line-height: 16px; color: var(--ink2); }
 @media (prefers-reduced-motion: reduce) {
   #sheet, #sheet.open, .zoom { transition: none; }
+  .layrow .sw::after { transition: none; }
 }
 </style>
-<!-- App tab bar (Map current): verbatim from merged/tabbar.html, built by mergebuild/build.py. -->
-<style>
-/* App tab bar: Map | Year | Spots | Counts. An App Kit SegmentedControl on a glass bar.
-   Self-contained; its tokens are App Kit values scoped to .apptabs and prefixed --tab-.
-   Glass is App Kit's web stand-in (rgba .55 + 16px blur); the labels sit on the opaque track,
-   so their contrast does not depend on the glass. Without backdrop-filter the glass goes to .92. */
-.apptabs{--tab-glass:rgba(255,255,255,.55);--tab-glass-solid:rgba(255,255,255,.92);--tab-hair:#D1D1D6;--tab-track:#E5E5EA;--tab-seg:#FFFFFF;--tab-seg-shadow:0 1px 2px rgba(0,0,0,.12);--tab-ink:#1D1D1F;--tab-ink-soft:#636366;--tab-accent:#007AFF;--tab-font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro",system-ui,sans-serif}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .apptabs{--tab-glass:rgba(44,44,46,.55);--tab-glass-solid:rgba(44,44,46,.92);--tab-hair:#38383A;--tab-track:#2C2C2E;--tab-seg:#636366;--tab-seg-shadow:0 1px 2px rgba(0,0,0,.5);--tab-ink:#F5F5F7;--tab-ink-soft:#98989D;--tab-accent:#0A84FF}}
-:root[data-theme=dark] .apptabs{--tab-glass:rgba(44,44,46,.55);--tab-glass-solid:rgba(44,44,46,.92);--tab-hair:#38383A;--tab-track:#2C2C2E;--tab-seg:#636366;--tab-seg-shadow:0 1px 2px rgba(0,0,0,.5);--tab-ink:#F5F5F7;--tab-ink-soft:#98989D;--tab-accent:#0A84FF}
-html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
-.apptabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:1000;box-sizing:border-box;padding:6px max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
-.apptabs::before{content:"";position:absolute;z-index:-1;left:0;right:0;bottom:0;top:calc(-1 * env(safe-area-inset-top,0px));background:var(--tab-glass);-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);box-shadow:0 .5px 0 var(--tab-hair)}
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.apptabs::before{background:var(--tab-glass-solid)}}
-/* Track: surface-sunk, radius-md, 3px inset. It is 44px tall so every link is a full 44px target;
-   the visible segment is the link's ::before, 38px tall after the 3px inset top and bottom. */
-.apptabs-track{display:flex;box-sizing:border-box;max-width:420px;height:44px;margin:0 auto;padding:0 3px;border-radius:10px;background:var(--tab-track)}
-.apptabs a{position:relative;z-index:0;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;height:44px;padding:0 4px;color:var(--tab-ink-soft);font:600 15px/20px var(--tab-font);text-decoration:none;white-space:nowrap;outline:none;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;transition:color 150ms ease-out,opacity 150ms ease-out}
-.apptabs a::before{content:"";position:absolute;z-index:-1;inset:3px 0;border-radius:7px;transition:background-color 150ms ease-out}
-.apptabs a[aria-current=page]{color:var(--tab-ink)}
-.apptabs a[aria-current=page]::before{background:var(--tab-seg);box-shadow:var(--tab-seg-shadow)}
-@media (hover:hover){.apptabs a:not([aria-current=page]):hover{color:var(--tab-ink)}}
-.apptabs a:not([aria-current=page]):active{opacity:.55}
-.apptabs a:focus-visible{z-index:1}
-.apptabs a:focus-visible::before{outline:2px solid var(--tab-accent);outline-offset:2px}
-@media (max-width:389px){.apptabs a{font-size:14px}}
-@media (prefers-reduced-motion:reduce){.apptabs a,.apptabs a::before{transition:none}}
-</style>
-<nav class="apptabs" aria-label="Washington Fishing Map"><div class="apptabs-track"><a href="week/index.html">Week</a><a href="index.html" aria-current="page">Map</a><a href="year/index.html">Year</a><a href="spots/index.html">Spots</a><a href="counts/index.html">Counts</a></div></nav>
 
 <div id="app">
   <div id="map" role="application" aria-label="Map of salmon rivers in southwest Washington. Drag to pan, pinch or use the buttons to zoom, select a river marker for details.">
@@ -515,6 +474,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
       <button type="button" class="listbtn" id="mebtn" aria-label="My location" aria-expanded="false" aria-controls="mepanel"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 14.5s4.5-4.2 4.5-8A4.5 4.5 0 0 0 3.5 6.5c0 3.8 4.5 8 4.5 8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="8" cy="6.5" r="1.6" fill="currentColor"/></svg><span class="lbl">Near me</span></button>
       <button type="button" class="nbtn" id="nbtn" aria-expanded="false" aria-controls="npop" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="12" r=".9" fill="currentColor"/></svg><span class="nd" id="nd"></span></button>
       <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
+      <button type="button" class="listbtn" id="laybtn" aria-expanded="false" aria-controls="laypop"><span id="laylbl">Layers</span><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
     <div class="glass agechip" id="agechip" role="status" hidden></div>
     <div class="glass pop mpop" id="mpop" hidden></div>
@@ -522,6 +482,13 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     <div class="glass pop sppanel mepanel" id="mepanel" role="group" aria-label="My location" hidden></div>
     <div class="glass pop metip" id="metip" role="status" hidden><span>Tap the map where you are. Esc cancels.</span><button type="button" class="listbtn" id="mecancel">Cancel</button></div>
     <div class="glass pop" id="npop" hidden><div class="notice" id="notice" role="status" hidden></div></div>
+    <div class="glass pop laypop" id="laypop" role="group" aria-label="Map layers" hidden>
+      <p class="lh">Show on the map</p>
+      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="seasons"><span class="lt"><b>Seasons</b><span>Waters open in the chosen month. Outlines, not ratings.</span></span><span class="sw" aria-hidden="true"></span></button>
+      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="spots"><span class="lt"><b>Spot guides</b><span>Hand-written guides to one bank spot.</span></span><span class="sw" aria-hidden="true"></span></button>
+      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="counts"><span class="lt"><b>Creel counts</b><span>Fish kept last week, from WDFW surveys.</span></span><span class="sw" aria-hidden="true"></span></button>
+      <p class="fine">Layers add to the mode you are in. They never change a pin colour.</p>
+    </div>
     <div class="glass spawn" id="spawn" hidden>
       <div class="year" id="year" role="radiogroup" aria-label="Month"></div>
       <div class="summary" id="summary" aria-live="polite"></div>
@@ -572,6 +539,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
 <script src="cluster.js"></script>
 <script src="sites.js"></script>
 <script src="links.js"></script>
+<script src="layers.js"></script>
 <script src="week/tides-data.js"></script>
 <script src="tides.js"></script>
 <script>
@@ -810,9 +778,6 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   var anim = null;
 
   function size() { var r = map.getBoundingClientRect(); W = r.width; H = r.height; }
-  // The app tab bar floats over the top of the map: nothing is fitted under it.
-  var tabsEl = document.querySelector('nav.apptabs');
-  function tabsBottom() { return tabsEl ? Math.max(0, tabsEl.getBoundingClientRect().bottom - map.getBoundingClientRect().top) : 0; }
   function pads() {
     var barB = $('#bar').getBoundingClientRect().bottom;
     var spw = $('#spawn'); if (!spw.hidden) barB = Math.max(barB, spw.getBoundingClientRect().bottom);
@@ -842,9 +807,8 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   }
   function limits() {
     // Reports mode may zoom out to the unpadded state; Typical mode opens on the whole state, so its floor fits the state inside the chrome.
-    // The reports floor fits the state in the map below the app tab bar, so zooming all the way out never tucks the north edge under it.
     var f = fitFor(D.bounds.state, { t: 0, b: 0, l: 0, r: 0 });
-    var home = view !== 'reports' ? homeFit().s : fitFor(D.bounds.state, { t: tabsBottom(), b: 0, l: 0, r: 0 }).s;
+    var home = view !== 'reports' ? homeFit().s : fitFor(D.bounds.state, { t: 0, b: 0, l: 0, r: 0 }).s;
     minS = home * 0.9; maxS = f.s * 90;
   }
   function setView(t) {
@@ -895,7 +859,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     var f = fitFor(b, p), bottom = p.b;
     if (wide) {
       var col = $('#bar').getBoundingClientRect().right + 12;
-      var c = fitFor(b, { t: tabsBottom() + 12, b: 12, l: col, r: p.r > 8 ? p.r : 68 });
+      var c = fitFor(b, { t: 12, b: 12, l: col, r: p.r > 8 ? p.r : 68 });
       if (c.s > f.s) { f = c; bottom = 12; }
     }
     f.ty = (H - bottom) - b[1][1] * f.s;
@@ -1195,7 +1159,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   function toggleNotice(open) {
     if (open && nbtn.hidden) open = false;
     if (!open && npop.contains(document.activeElement)) nbtn.focus({ preventScroll: true });
-    if (open) { toggleSpecies(false); toggleModes(false); if (!$('#mepanel').hidden) toggleMe(false); }
+    if (open) { toggleSpecies(false); toggleModes(false); toggleLayers(false); if (!$('#mepanel').hidden) toggleMe(false); }
     npop.hidden = !open;
     nbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
@@ -1213,21 +1177,12 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     if (!has) toggleNotice(false);
   }
   nbtn.addEventListener('click', function () { toggleNotice(npop.hidden); });
-  // One bar: with a mouse on a wide window the page tabs move into this bar (see the ONE_BAR block in the CSS). Anywhere else they stay above it.
-  var ONE_BAR = '(min-width: 1024px) and (hover: hover) and (pointer: fine)';
-  var oneMq = window.matchMedia(ONE_BAR), tabsHome = tabsEl ? { parent: tabsEl.parentNode, next: tabsEl.nextSibling } : null;
-  function placeTabs() {
-    if (!tabsEl) return;
-    if (oneMq.matches) $('#bar').insertBefore(tabsEl, $('#modebtn')); else tabsHome.parent.insertBefore(tabsEl, tabsHome.next);
-  }
-  placeTabs();
-  // Phones and the one-bar layout: the three mode buttons move into a popover opened from one menu button; the same buttons and handlers keep working.
-  var modesEl = $('#modes'), modebtn = $('#modebtn'), mpop = $('#mpop'), phoneMq = window.matchMedia('(max-width: 520px), ' + ONE_BAR);
+  // Phones: the three mode buttons move into a popover opened from one menu button; the same buttons and handlers keep working.
+  var modesEl = $('#modes'), modebtn = $('#modebtn'), mpop = $('#mpop'), phoneMq = window.matchMedia('(max-width: 520px)');
   function toggleModes(open) {
     if (open && !phoneMq.matches) open = false;
-    mpop.style.left = oneMq.matches ? modebtn.offsetLeft + 'px' : '';
     if (!open && mpop.contains(document.activeElement)) modebtn.focus({ preventScroll: true });
-    if (open) { toggleSpecies(false); toggleNotice(false); if (!$('#mepanel').hidden) toggleMe(false); }
+    if (open) { toggleSpecies(false); toggleNotice(false); toggleLayers(false); if (!$('#mepanel').hidden) toggleMe(false); }
     mpop.hidden = !open;
     modebtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) { var on = modesEl.querySelector('[aria-checked="true"]'); if (on) on.focus({ preventScroll: true }); }
@@ -1237,9 +1192,24 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   }
   modebtn.addEventListener('click', function () { toggleModes(mpop.hidden); });
   if (phoneMq.addEventListener) phoneMq.addEventListener('change', placeModes); else phoneMq.addListener(placeModes);
-  // Moving the tabs changes the bar's height, so ask the map to fit again once they have moved.
-  function retab() { placeTabs(); window.dispatchEvent(new Event('resize')); }
-  if (oneMq.addEventListener) oneMq.addEventListener('change', retab); else oneMq.addListener(retab);
+  /* ---- layers: drawn on top of whichever mode is showing; they never change a pin's colour ---- */
+  var layers = [], laybtn = $('#laybtn'), laypop = $('#laypop');
+  function syncLayUi() {
+    laypop.querySelectorAll('[data-layer]').forEach(function (b) { b.setAttribute('aria-checked', layers.indexOf(b.getAttribute('data-layer')) >= 0 ? 'true' : 'false'); });
+    $('#laylbl').textContent = layers.length ? 'Layers · ' + layers.length : 'Layers';
+  }
+  function setLayers(list) { layers = list; syncLayUi(); applyStyles(); render(); syncLink(); }
+  function toggleLayers(open) {
+    if (!open && laypop.contains(document.activeElement)) laybtn.focus({ preventScroll: true });
+    if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); if (!$('#mepanel').hidden) toggleMe(false); }
+    laypop.hidden = !open;
+    laybtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  laybtn.addEventListener('click', function () { toggleLayers(laypop.hidden); });
+  laypop.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('[data-layer]') : null;
+    if (b) setLayers(Layers.toggle(layers, b.getAttribute('data-layer')));
+  });
   placeModes();
   function syncModeLbl() { var on = modesEl.querySelector('[aria-checked="true"]'); if (on) $('#modelbl').textContent = on.textContent; }
   var CHEV = '<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" style="flex:none"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -1274,7 +1244,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   function toggleSpecies(open) {
     if (!open && sppanel.contains(document.activeElement)) spbtn.focus({ preventScroll: true });
     if (open && !$('#mepanel').hidden) toggleMe(false);
-    if (open) { toggleNotice(false); toggleModes(false); }
+    if (open) { toggleNotice(false); toggleModes(false); toggleLayers(false); }
     sppanel.hidden = !open;
     spbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) { var on = sppanel.querySelector('[aria-checked="true"]'); if (on) on.focus({ preventScroll: true }); }
@@ -1781,7 +1751,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     var ns = Math.max(v.s, s0 * (view === 'typical' ? 5 : view === 'spawning' ? 2.5 : 1.5));
     var barB = $('#bar').getBoundingClientRect().bottom;
     var tx, ty;
-    if (wide) { tx = (W - 392) / 2 - s.xy[0] * ns; ty = (tabsBottom() + H) / 2 + 20 - s.xy[1] * ns; }
+    if (wide) { tx = (W - 392) / 2 - s.xy[0] * ns; ty = H / 2 + 20 - s.xy[1] * ns; }
     else { tx = W / 2 - s.xy[0] * ns; ty = (barB + (H - Math.min(sh, H * 0.66))) / 2 + 24 - s.xy[1] * ns; }
     animateTo({ s: ns, tx: tx, ty: ty }, 320);
     syncLink();
@@ -1829,6 +1799,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     if (e.key !== 'Escape' || !sppanel.hidden) return;
     if (!mpop.hidden) { toggleModes(false); modebtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
     if (!npop.hidden) { toggleNotice(false); nbtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
+    if (!laypop.hidden) { toggleLayers(false); laybtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
     if (!mepanel.hidden) { toggleMe(false); mebtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
     if (meArmed) { armMe(false); e.stopImmediatePropagation(); }
   });
@@ -1882,7 +1853,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   }
   function toggleMe(open) {
     if (!open && mepanel.contains(document.activeElement)) mebtn.focus({ preventScroll: true });
-    if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); if (meArmed) armMe(false); buildMe(); }
+    if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); toggleLayers(false); if (meArmed) armMe(false); buildMe(); }
     mepanel.hidden = !open;
     mebtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) { var first = mepanel.querySelector('button'); if (first) first.focus({ preventScroll: true }); }
@@ -1968,7 +1939,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   }
 
   /* ---- URL state (links.js): what the page shows is what the address bar says ---- */
-  var LINK0 = (window.Links && window.Links.read) ? Links.read(location.search) : { mode: null, month: null, species: null, site: null, river: null, today: null };
+  var LINK0 = (window.Links && window.Links.read) ? Links.read(location.search) : { mode: null, month: null, species: null, site: null, river: null, today: null, layers: [] };
   function syncLink() {
     if (!window.Links || !LINK0) return;
     var rep = view === 'reports';
@@ -1978,7 +1949,8 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
       species: species,
       site: !rep && mode === 'detail' ? selected : null,
       river: rep ? (mode === 'detail' ? selected : riverSel) : null,
-      today: LINK0.today
+      today: LINK0.today,
+      layers: layers
     }, window.history, window.location);
   }
   function speciesKnown(name) {
@@ -2012,6 +1984,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   init();
   // Deep links (links.js): mode first, then month and species, then the sheet, so each step sees the state the one before it set.
   if (LINK0.mode && LINK0.mode !== 'reports') setMode(LINK0.mode);
+  if (LINK0.layers && LINK0.layers.length) setLayers(LINK0.layers);
   if (LINK0.month && view === 'spawning') setMonth(LINK0.month);
   if (LINK0.species && speciesKnown(LINK0.species)) pickSpecies(LINK0.species);
   if (view === 'reports' && LINK0.river) {

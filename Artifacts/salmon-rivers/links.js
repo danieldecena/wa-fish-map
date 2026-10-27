@@ -11,6 +11,9 @@
   var MODES = ['reports', 'typical', 'spawning'];
   /* Which keys mean anything in each mode. Typical season has no month control, so month is spawning-only. */
   var KEYS = { reports: ['species', 'river'], typical: ['species', 'site'], spawning: ['month', 'species', 'site'] };
+  /* Map layers (layers.js) work in every mode. The list is repeated here so links.js stays standalone; test/layers.test.js holds them equal. */
+  var LAYERS = ['seasons', 'spots', 'counts'];
+  function layerList(s) { var a = String(s || '').split(','); return LAYERS.filter(function (n) { return a.indexOf(n) >= 0; }); }
   var DATE = /^\d{4}-\d{2}-\d{2}$/;
   /* A real calendar date: the shape matches and the date survives a round trip (2026-02-30 and 2026-13-99 do not). */
   function realDate(s) {
@@ -33,7 +36,8 @@
       species: p.get('species') || null,
       site: p.get('site') || null,
       river: p.get('river') || null,
-      today: realDate(today) ? today : null
+      today: realDate(today) ? today : null,
+      layers: layerList(p.get('layers'))
     };
   }
   function toQuery(state) {
@@ -45,6 +49,8 @@
       var v = state[k];
       if (v !== null && v !== undefined && v !== '') p.set(k, String(v));
     });
+    var ls = layerList((state.layers || []).join(','));
+    if (ls.length) p.set('layers', ls.join(','));
     if (realDate(state.today)) p.set('today', state.today);
     var s = p.toString();
     return s ? '?' + s : '';
@@ -55,5 +61,5 @@
     history.replaceState(null, '', location.pathname + q + (location.hash || ''));
   }
 
-  return { MODES: MODES, KEYS: KEYS, realDate: realDate, read: read, toQuery: toQuery, write: write };
+  return { MODES: MODES, KEYS: KEYS, LAYERS: LAYERS, realDate: realDate, read: read, toQuery: toQuery, write: write };
 });

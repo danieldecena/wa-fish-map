@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const Links = require('../links.js');
 
 test('read: empty search gives all nulls', () => {
-  assert.deepEqual(Links.read(''), { mode: null, month: null, species: null, site: null, river: null, today: null });
+  assert.deepEqual(Links.read(''), { mode: null, month: null, species: null, site: null, river: null, today: null, layers: [] });
 });
 
 test('read: every key round-trips', () => {
@@ -74,4 +74,11 @@ test('toQuery: null or a non-object state is an empty query; an impossible today
   assert.equal(Links.toQuery(undefined), '');
   assert.equal(Links.toQuery({ mode: 'reports', today: '2026-13-99' }), '');
   assert.equal(Links.toQuery({ mode: 'reports', today: '2026-10-26' }), '?today=2026-10-26');
+});
+
+test('layers: read and written in every mode, canonical order', () => {
+  assert.deepEqual(Links.read('?layers=counts,seasons').layers, ['seasons', 'counts']);
+  assert.deepEqual(Links.read('?layers=bogus').layers, []);
+  assert.equal(Links.toQuery({ mode: 'reports', layers: ['counts', 'spots'] }), '?layers=spots%2Ccounts');
+  assert.equal(Links.toQuery({ mode: 'typical', layers: [] }), '?mode=typical');
 });
