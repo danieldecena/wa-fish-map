@@ -80,3 +80,13 @@ test('the page script parses (a stray quote in a string blanks the whole page)',
   assert.ok(m, 'control: the inline page script is found');
   assert.doesNotThrow(() => new Function(m[1]));
 });
+
+test('rivers with no fishing data fade; rivers with data are redrawn in river blue, never a rating colour', () => {
+  assert.match(html, /#vp > \.r \{ opacity: 0\.35; \}/);
+  const css = html.slice(html.indexOf('#rdata path {'), html.indexOf('\n', html.indexOf('#rdata path {')));
+  assert.match(css, /stroke: var\(--river\)/);
+  assert.doesNotMatch(css, /--(prime|good|fair|slow|unrated|rc)\b/);
+  const build = between('var DATA_RIVERS = {};', 'var hlNodes = {};');
+  assert.match(build, /RULES\.forRiver\(r\.name\)\.length/, 'a WDFW notice');
+  assert.match(build, /SPLACES\.forEach/, 'a season place');
+});

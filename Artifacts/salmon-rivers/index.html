@@ -126,6 +126,10 @@ a { color: var(--on-text); }
 #over { pointer-events: none; }
 .r { fill: none; stroke: var(--river); stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .r.o2 { stroke-width: 0.5px; opacity: 0.75; }
+/* Rivers with no fishing data fade back; rivers with a report, a WDFW notice, a season or a spot guide are redrawn at full strength in #rdata. */
+#vp > .r { opacity: 0.35; }
+#vp > .r.o2 { opacity: 0.25; }
+#rdata path { fill: none; stroke: var(--river); stroke-width: 1.9px; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; pointer-events: none; }
 .r.o3 { stroke-width: 0.7px; }
 .r.o4 { stroke-width: 1px; }
 .r.o5 { stroke-width: 1.4px; }
@@ -776,6 +780,16 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       SPLACES.push(o);
     });
   });
+  // Rivers with fishing data: a WDFW notice names them, a season sits on them, or a report river borrows their line. Drawn over the faded
+  // network in river blue. (The Green under the Kent spot guides is already here through its chum season.)
+  var DATA_RIVERS = {};
+  if (TAP) {
+    TAP.rivers.forEach(function (r) { if (RULES && RULES.forRiver(r.name).length) DATA_RIVERS[r.id] = true; });
+    SPLACES.forEach(function (o) { if (o.p.river && TAPBY[o.p.river]) DATA_RIVERS[o.p.river] = true; });
+    SITES.forEach(function (q) { if (q.tap && TAPBY[q.tap]) DATA_RIVERS[q.tap] = true; });
+    var rdata = el('g', { id: 'rdata' }, vp);
+    Object.keys(DATA_RIVERS).forEach(function (id) { el('path', { d: TAPBY[id].d }, rdata); });
+  }
   var hlNodes = {};
   SITES.forEach(function (s) {
     // geo.js draws the original eight; a later site borrows its tappable river's line (same viewport coordinates).
