@@ -56,3 +56,32 @@ OSM, not a broken query.
   confirms or contradicts 47.1998, -122.258. Not yet opened: the City of
   Sumner 2024 parks plan PDF (the likeliest source of a map), Pierce County
   and City of Puyallup pages.
+
+### City of Sumner parks plan, read 2026-10-26: named, not pinned
+
+Source: City of Sumner, "2024-2030 Parks, Trails & Open Space Plan Update",
+https://sumnerwa.gov/wp-content/uploads/2024/06/2024_ParksTrailPlan_webmain.pdf
+(PDF created 2024-06-18; the same text is in Exhibit N of the 2024-09 update).
+
+- Classification table: "NATURAL AREAS & GREENSPACES / In Sumner: Two-Rivers
+  Point, shoreline areas along rivers ... Low-impact activities are allowed
+  including walking, bird-watching and fishing (if appropriate)."
+- Inventory: "Two Rivers Point | Open Space Area | No change" (no size given).
+- Survey comment in Exhibit N (2023-04-25): "Does not always feel safe to park
+  at the trail access lot. Would be nice if there were amenities at the two
+  rivers point grassy area."
+- Trail map (page 17): no label reads Two Rivers Point. An "Existing
+  Trailhead" symbol sits at the south end of the Sumner Link Trail where the
+  White River meets the Puyallup, west of Knoblauch Heritage Park, beside a
+  small open-space parcel. With TrailLink's "south end of the trail at
+  Two-Rivers Point", that places it at the confluence, which fits our point.
+- WTA's Sumner Link Trail page gives trailhead coordinates 47.2007, -122.2531
+  (State Street dead end), about 0.45 km east of our point. WTA does not use
+  the name.
+
+Verdict: the place exists, is public, and allows fishing, and two sources
+together put it at the confluence. No single source names it with
+coordinates, and the build confirms only from OpenStreetMap, so `confirmed`
+stays false. The stop's note in `seasons.json` now says what the plan says
+(the earlier note credited the plan with "south end", which only TrailLink
+says).

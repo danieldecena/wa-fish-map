@@ -1200,7 +1200,7 @@
      "place_check": {
       "source": "OpenStreetMap",
       "confirmed": false,
-      "note": "Sumner's 2024 parks plan and TrailLink name Two-Rivers Point as the south end of the Sumner Link Trail. OpenStreetMap has no feature by that name (searched 2026-10-26, with Three Friends Fishing Hole Park found as a control); the nearest OSM feature is the Riverwalk Trail, 9 m away, and the point lies at the White and Puyallup confluence (11 m and 50 m from those lines in rivers.json).",
+      "note": "Sumner's 2024 parks plan lists Two Rivers Point as a natural open space area, and its trail map puts the Sumner Link Trail's south-end trailhead at the White and Puyallup confluence; TrailLink says the trail's south-end parking is at Two-Rivers Point. OpenStreetMap has no feature by that name (searched 2026-10-26, with Three Friends Fishing Hole Park found as a control); the nearest OSM feature is the Riverwalk Trail, 9 m away, and the point lies at the White and Puyallup confluence (11 m and 50 m from those lines in rivers.json).",
       "checked": "2026-10-26"
      }
     },
