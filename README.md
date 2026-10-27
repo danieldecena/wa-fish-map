@@ -82,16 +82,17 @@ not part of the app, and the app never reads them:
 
 - **Washington Fishing Map** (`Artifacts/salmon-rivers/`): recent SW Washington
   salmon reports, plus a Typical season mode that rates ~540 statewide sites
-  with a JS port of the app's own rating.
-- **Washington Fishing Year** (`Artifacts/fishing-year/`): a dated seasons
-  calendar and river guide, October 2026 to November 2027.
+  with a JS port of the app's own rating. Its Seasons layer, the former
+  Washington Fishing Year page (October 2026 to November 2027), is built from
+  `Artifacts/salmon-rivers/seasons/seasons.json`.
 - **SW Washington Creel Table** (`Artifacts/salmon-catch-table/`): WDFW weekly
   creel counts.
-- **Three Friends Fishing Hole** (`Artifacts/three-friends-fishing-hole/`): a
-  one-spot guide to a Green River bank access in Kent.
-- Older pages, kept with their published source: the design system, the App
-  Store listing and its interactive preview, and the "Inside WAFishMap"
-  explainer.
+- The WA Fish Map design system (`Artifacts/design-system/`) and the one-map
+  design canvas (`Artifacts/one-map-layers-design/`).
+- `Artifacts/archive/`: retired and older pages, kept with their published
+  source: the Washington Fishing Year and Three Friends Fishing Hole pages (now
+  layers of the map), the App Store listing and its interactive preview, and the
+  "Inside WAFishMap" explainer.
 
 Each folder's README covers how to refresh, test and publish it. Node tests:
 

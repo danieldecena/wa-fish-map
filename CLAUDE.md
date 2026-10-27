@@ -180,17 +180,17 @@ is minted and the old link goes stale. Read the live version before publishing
 
 | Folder | Page | Source of truth |
 |--------|------|-----------------|
-| `salmon-rivers/` | Washington Fishing Map: one map (Recent reports, Typical season, Spawning) with Seasons, Spot guides and Creel counts layers; the old Week, Year, Spots and Counts paths redirect into it (2026-10-26) | its README |
-| `fishing-year/` | Washington Fishing Year — seasons calendar, Oct 2026–Nov 2027; its data is copied byte for byte to `salmon-rivers/seasons-data.js` for the map's Seasons layer | `seasons.json` → its README; the build writes `data.js` and its copy `salmon-rivers/seasons-data.js` |
+| `salmon-rivers/` | Washington Fishing Map: one map (Recent reports, Typical season, Spawning) with Seasons, Spot guides and Creel counts layers; the old Week, Year, Spots and Counts paths redirect into it (2026-10-26) | its README; the Seasons layer's data is `seasons/seasons.json`, built by `scripts/build_fishing_year.py` into `seasons-data.js` |
 | `salmon-catch-table/` | SW Washington Creel Table — WDFW weekly counts | `~/database/salmon-rivers/salmon.db` → its README |
-| `three-friends-fishing-hole/` | Three Friends Fishing Hole — one Green River bank spot in Kent; its content now lives in `salmon-rivers/spots.js` as the map's Spot guides layer | `salmon-rivers/spots.js` (hand-written; dated rules go stale) |
 | `design-system/` | WA Fish Map design system (Design System type) | `project/` + `index.html`; the type's own files are not copied |
 | `one-map-layers-design/` | Washington Fishing Map: one map with layers (Design canvas, 2026-10-26): mockups for the one-map change, not the live map | `project/`; the type's own files are not copied |
-| `app-store-listing/`, `interactive-preview/`, `inside-wafishmap/` | Older marketing and explainer pages | `index.html` as published, captured 2026-10-20 |
+| `archive/` | Retired and older pages, kept as published: `fishing-year-page/` (Washington Fishing Year, now the map's Seasons layer; frozen, its `data.js` is not rebuilt), `three-friends-fishing-hole/` (now the map's Spot guides layer, `salmon-rivers/spots.js`), and the older `app-store-listing/`, `interactive-preview/`, `inside-wafishmap/` (captured 2026-10-20) | `index.html` as published; nothing here is edited |
 
-`fishing-year/` and `three-friends-fishing-hole/` no longer publish: they keep a
+In `archive/`, the two retired pages (`fishing-year-page/` and
+`three-friends-fishing-hole/`) no longer publish: their history is in a
 `published-in.json`, not an `artifact.json`, so the main map's binding is the
-only owner of its url.
+only owner of its url. The three older pages are still published at their own
+urls and keep their `artifact.json`.
 
 Every fish artifact on the account is in this table. A new one gets a folder
 with its `artifact.json` and source the day it is published.
@@ -216,7 +216,7 @@ say so in their header. Regenerate them; never hand-edit.
 |-------|-----|
 | Swift unit + UI (`WAFishMapTests`, `WAFishMapUITests`) | `./scripts/run_sim.sh test` (default plan); unit only: `-testPlan WAFishMapUnit` |
 | WeatherKit on hardware | `./scripts/verify_weatherkit_device.sh` |
-| Web pages (Node, no deps) | `node --test "Artifacts/salmon-rivers/test/*.test.js"`; page check `node Artifacts/salmon-rivers/check-week.mjs`; Fishing Year: `scripts/build_fishing_year.py --check`, then `node check.mjs` from inside `Artifacts/fishing-year/` (needs the Playwright MCP's `playwright-core`, or set `PLAYWRIGHT_CORE`) |
+| Web pages (Node, no deps) | `node --test "Artifacts/salmon-rivers/test/*.test.js"`; page check `node Artifacts/salmon-rivers/check-week.mjs`; Seasons data: `scripts/build_fishing_year.py --check` |
 | Data scripts (Python) | `/opt/homebrew/bin/python3 -m unittest discover -s scripts -p "test_*.py"` |
 
 Use `/opt/homebrew/bin/python3` for the scripts, as their READMEs do; bare

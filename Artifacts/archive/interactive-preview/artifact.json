@@ -3,7 +3,7 @@
   "title": "WA Fish Map, interactive preview",
   "identified": "2026-10-02, by /pointer-audit: live and owned by this account, not claimed by any owner file",
   "account": "danieldecena@icloud.com",
-  "what": "The guided demo that Artifacts/app-store-listing's 'Try It Here' section points at: a phone-frame stage with six real app captures, a month selector and a 'Tap the map for a site card' hint. Published back-to-back with app-store-listing on 2026-09-18 (consecutive epoch versions) but as its own separate url rather than a file inside it -- which is why app-store-listing's embedded demo link is dead. See app-store-listing/artifact.json for the fix this implies.",
+  "what": "The guided demo that Artifacts/archive/app-store-listing's 'Try It Here' section points at: a phone-frame stage with six real app captures, a month selector and a 'Tap the map for a site card' hint. Published back-to-back with app-store-listing on 2026-09-18 (consecutive epoch versions) but as its own separate url rather than a file inside it -- which is why app-store-listing's embedded demo link is dead. See app-store-listing/artifact.json for the fix this implies.",
   "note": "Refresh by PASSING THIS URL.",
   "currentVersion": "1789746962-62be",
   "source": "Source captured into this folder 2026-10-20 from the live version above; index.html is the page as published, with its six app captures inlined."

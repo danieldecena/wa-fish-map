@@ -11,8 +11,10 @@ vm.createContext(ctx);
 const FY = ctx.window.FY, TAP = ctx.window.RIVERTAP, PLACES = ctx.window.SEASON_PLACES;
 const Reports = require('../reports.js');
 
-test('seasons-data.js is a byte copy of the Fishing Year data it is generated as', () => {
-  assert.equal(fs.readFileSync(here('seasons-data.js'), 'utf8'), fs.readFileSync(path.join(__dirname, '..', '..', 'fishing-year', 'data.js'), 'utf8'));
+test('seasons-data.js was rebuilt from seasons/seasons.json (scripts/build_fishing_year.py)', () => {
+  const src = JSON.parse(fs.readFileSync(here('seasons/seasons.json'), 'utf8'));
+  const plain = v => JSON.parse(JSON.stringify(v));
+  ['updated', 'seasons', 'milestones', 'migration'].forEach(k => assert.deepEqual(plain(FY[k]), src[k], k + ' differs: rebuild seasons-data.js'));
 });
 
 test('every season has an entry, and no entry names an unknown season', () => {
