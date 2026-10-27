@@ -6,13 +6,13 @@
 
 - [ ] [you] Unlock the iPhone and run the pin device script
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
-- [ ] Confirm 1.0 shows in the public App Store
 - [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
 
 ## Completed
 
 ### 2026-10-27 — cleared from Tasks
 
+- [x] Confirm 1.0 shows in the public App Store -- live 01:22
 - [x] Look over the one-map page on a phone and a desktop -- browser pass 2026-10-27, see STATUS
 - [x] Run `node Artifacts/salmon-rivers/check-week.mjs` where Playwright is installed (the MacBook); it was cut to the one map on 2026-10-26 and has not run since.
 - [x] Live conditions sub-project: USGS flow inside the map's site sheets (NOAA tides are done for marine Typical-season sheets, from the bundle).

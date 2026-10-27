@@ -137,8 +137,8 @@
 
 ## Next Up
 
-- 1.0 (10) is released: Apple reads READY_FOR_SALE (2026-10-27 01:12). Confirm
-  the public listing appears (the iTunes lookup was still empty at release).
+- 1.0 is public in the App Store (apps.apple.com/us/app/wa-fish-map/id6807799974,
+  seen 2026-10-27 01:22). Next: refresh the screenshots and listing links.
 - Fishing Year: pink seasons once WDFW sets the 2027 odd-year rules (Apr 2027).
 - 1.0 (9) carries the pin VoiceOver fix and is with both TestFlight groups,
   `Internal` and `insideout`, beta review approved (read from Apple 2026-10-09).
@@ -147,6 +147,9 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-27 (1.0 public in the App Store)
+- Confirmed live at 01:22: the iTunes lookup by bundle id returns WA Fish Map 1.0, id 6807799974, released 08:12 UTC, and the store page answers 200. The same lookup with `country=us` still returned 0 at that moment while the lookup by id with `country=us` returned 1, so the empty result at release was cache lag, as the release entry read it.
 
 ### 2026-10-27 (1.0 (10) released; pin checks wait on an unlocked phone)
 - Released on Daniel's explicit "Release now" (asked in session, recommendation was to hold for the stale screenshots and dead listing links). Read first through `app-ship`'s key: exactly one iOS version pending, 1.0 build 10, release type MANUAL. `POST /v1/appStoreVersionReleaseRequests` returned a release-request object with the version id (a 2xx: the client raises on any error status), and the version read back READY_FOR_SALE at 01:12:16. The public iTunes lookup by bundle id returned 0 results right after; that is propagation lag until shown otherwise, not a failed release. `ship.py` has no release command; the scratch call reused its client.
