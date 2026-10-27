@@ -446,6 +446,21 @@ nav.apptabs { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; righ
   #chrome { padding-top: calc(var(--tabs-h) + 12px); }
   #sheet { top: calc(var(--tabs-h) + 12px); }
 }
+/* One bar: a wide window with a mouse puts the page tabs inside the map bar (placeTabs in the page script) and thins everything to a single
+   44px row. Phones and touch screens keep two rows and their 44px targets. This query is the same string as ONE_BAR in the page script. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  :root { --tabs-h: 0px; }
+  .barstack, #app.sheet-open .barstack { max-width: 1040px; }
+  #sheet { top: 68px; }
+  .bar { height: 44px; padding: 4px 8px; }
+  .pop { top: 50px; }
+  #bar nav.apptabs { position: static; flex: none; padding: 0 8px 0 0; margin-right: 2px; border-right: 1px solid var(--glass-line); }
+  #bar nav.apptabs::before { display: none; }
+  #bar .apptabs-track { max-width: none; height: 36px; margin: 0; }
+  #bar .apptabs a { flex: none; height: 36px; padding: 0 12px; font-size: 14px; line-height: 20px; }
+  .bar .listbtn, .bar .nbtn, .bar .seg button { min-height: 36px; }
+  .modebtn { display: inline-flex; }
+}
 @media (prefers-reduced-motion: reduce) {
   #sheet, #sheet.open, .zoom { transition: none; }
 }
@@ -1196,10 +1211,19 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     if (!has) toggleNotice(false);
   }
   nbtn.addEventListener('click', function () { toggleNotice(npop.hidden); });
-  // Phones: the three mode buttons move into a popover opened from one menu button; the same buttons and handlers keep working.
-  var modesEl = $('#modes'), modebtn = $('#modebtn'), mpop = $('#mpop'), phoneMq = window.matchMedia('(max-width: 520px)');
+  // One bar: with a mouse on a wide window the page tabs move into this bar (see the ONE_BAR block in the CSS). Anywhere else they stay above it.
+  var ONE_BAR = '(min-width: 1024px) and (hover: hover) and (pointer: fine)';
+  var oneMq = window.matchMedia(ONE_BAR), tabsHome = tabsEl ? { parent: tabsEl.parentNode, next: tabsEl.nextSibling } : null;
+  function placeTabs() {
+    if (!tabsEl) return;
+    if (oneMq.matches) $('#bar').insertBefore(tabsEl, $('#modebtn')); else tabsHome.parent.insertBefore(tabsEl, tabsHome.next);
+  }
+  placeTabs();
+  // Phones and the one-bar layout: the three mode buttons move into a popover opened from one menu button; the same buttons and handlers keep working.
+  var modesEl = $('#modes'), modebtn = $('#modebtn'), mpop = $('#mpop'), phoneMq = window.matchMedia('(max-width: 520px), ' + ONE_BAR);
   function toggleModes(open) {
     if (open && !phoneMq.matches) open = false;
+    mpop.style.left = oneMq.matches ? modebtn.offsetLeft + 'px' : '';
     if (!open && mpop.contains(document.activeElement)) modebtn.focus({ preventScroll: true });
     if (open) { toggleSpecies(false); toggleNotice(false); if (!$('#mepanel').hidden) toggleMe(false); }
     mpop.hidden = !open;
@@ -1211,6 +1235,9 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   }
   modebtn.addEventListener('click', function () { toggleModes(mpop.hidden); });
   if (phoneMq.addEventListener) phoneMq.addEventListener('change', placeModes); else phoneMq.addListener(placeModes);
+  // Moving the tabs changes the bar's height, so ask the map to fit again once they have moved.
+  function retab() { placeTabs(); window.dispatchEvent(new Event('resize')); }
+  if (oneMq.addEventListener) oneMq.addEventListener('change', retab); else oneMq.addListener(retab);
   placeModes();
   function syncModeLbl() { var on = modesEl.querySelector('[aria-checked="true"]'); if (on) $('#modelbl').textContent = on.textContent; }
   var CHEV = '<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" style="flex:none"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
