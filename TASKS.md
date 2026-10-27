@@ -9,7 +9,7 @@
 - [x] Harden `links.js` parsing: month `^\d{1,2}$`, `today` a real calendar date, `Links.toQuery(null)` returns ''.
 - [ ] Recover or recreate docs/research/2026-10-20-river-reports-and-rules.md (rules.js's WDFW sources, each opened 2026-10-20), scripts/build_sites.py (sites.js) and the rivers-tap.js generator; until then treat the three files as hand-maintained.
 - [x] Week tide table now shows today plus the next six days (`Week.next7`), not the Mon–Sun week.
-- [ ] The map's TODAY (`index.html`) still uses device time, not America/Los_Angeles, so map-sheet tides and the Seasons layer's tags can read the wrong day for a viewer outside Washington.
+- [x] The map's TODAY (`index.html`) now reads Washington's date (`Tides.laParts`), not the device's, so a viewer outside Washington sees the right day's tides, report ages and season tags. Tested with a simulated Tokyo device; published as version 31 on 2026-10-26.
 - [x] Week build robustness and tests: `FY.seasons || []` guard, future-dated reports are not fresh, unknown rating reads "No report", empty Spots row; boundary, tie-break, release-only and escaping tests.
 - [ ] Map deep links: `?mode=spawning` without `month` gets `&month=<current>` appended on boot (per the spec's write rule); `setMode` fires a transient link sync before the final one. Both self-correct; revisit only if they show up in history or tests.
 - [x] `check-week.mjs` hardening: static server 403 on escaping paths, directory serves index.html or 404, unknown `--flags` exit 2 with usage, `browser.close()` in try/finally.
