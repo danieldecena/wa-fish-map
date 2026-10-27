@@ -151,6 +151,11 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-26 (PR 55 close-out, one owner per page url)
+- PR 55's open check is done: `NoteScopeTests` and `WaterbodyResolverTests` ran on a Mac (11 tests in 2 suites, pass) on a spare simulator, not the booted one another session was using. The `wa-fish-map-pr55` worktree was clean and removed.
+- Decided: a folder whose page was folded into the main map keeps `published-in.json`, not `artifact.json` (PR 83). Fishing Year and Three Friends both still claimed the main url, so three files owned one url and the artifact register failed "url owned twice". The main map's binding is the only owner; the register (terminal-kit df69f22, version 9) now agrees on 85 bindings.
+- The one-map-with-layers Design canvas (79zGaaVT) is recorded in `Artifacts/one-map-layers-design/`. It is a mockup; nothing in it feeds the live map.
+
 ### 2026-10-26 (Week page, deep links, tides, thin bar)
 - Tides are bundled, not fetched. The published page runs in a claude.ai frame whose CSP `connect-src` allows only claude.ai origins, so the Week tab's live `fetch` to NOAA was blocked for viewers (it worked from the build container and a local Playwright page, which is why the spike passed). `scripts/build_tides.py` now fetches CO-OPS hilo predictions (MLLW, english, `lst_ldt`) for 26 stations and writes `Artifacts/salmon-rivers/week/tides-data.js` (45 days, 134 KB); `tides.js` reads it, the Week tab says through which date, and marine Typical-season sheets show "Tides today" from the nearest bundled station. The page makes no network request at all (a test greps `tides.js`, `week.js` and both pages for `fetch(`/`XMLHttpRequest`). Re-run the script at least monthly and republish `week/tides-data.js`.
 - The 26 tide station ids were verified against NOAA station metadata (`mdapi/.../stations/<id>.json`, listed under `type=tidepredictions`, state WA) on 2026-10-26:
