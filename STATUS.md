@@ -151,6 +151,11 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-26 (river sources recovered, not recreated)
+- The "lost" river-rules note and the `rivers-tap.js` / `sites.js` generators were never lost: they sit on the unmerged `origin/feat/one-app-2026-10-20` (commits a1fad96, 55d8fc0), whose page work reached `main` by another route. Restored as-is. Evidence: that branch's `rules.js` and `rivers-tap.js` are byte-identical to `main`'s; `build_rivers_tap.py` rebuilt `rivers-tap.js` byte for byte; `build_spawning_sites.py` rebuilt `sites.js` with identical data and only the header now naming the real script (it said `build_sites.py`, which never existed).
+- Decided: the three files are generated or sourced again, not hand-maintained. The README says how to rebuild them.
+- The Puget river reports pass was not repeated this session: the first pass ran the same day.
+
 ### 2026-10-26 (PR 55 close-out, one owner per page url)
 - PR 55's open check is done: `NoteScopeTests` and `WaterbodyResolverTests` ran on a Mac (11 tests in 2 suites, pass) on a spare simulator, not the booted one another session was using. The `wa-fish-map-pr55` worktree was clean and removed.
 - Decided: a folder whose page was folded into the main map keeps `published-in.json`, not `artifact.json` (PR 83). Fishing Year and Three Friends both still claimed the main url, so three files owned one url and the artifact register failed "url owned twice". The main map's binding is the only owner; the register (terminal-kit df69f22, version 9) now agrees on 85 bindings.
