@@ -146,6 +146,10 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-27 (Puget river reports re-checked: nothing new; PR 99 merged)
+- Re-checked the Puget river sources at 01:45, a day after the first pass. Confluence Fly Shop's newest report is still Oct 10 (Atom feed), Pacific Fly Fishers' still Oct 7, The Guide's Forecast covers no Puget river, and Avid Angler's newest Skagit entry is still 9/10 (its only newer entry is Yakima trout, 10/20). Avid Angler refuses automated fetches (403); it was read in Daniel's own Safari. No change to `reports.js`; the Skagit entry stands, dashed. Its Oct 10 report passes 21 days on Oct 31, which matters only for adding, not for keeping.
+- PR 99 merged at Daniel's instruction (merge commit `9265631`).
+
 ### 2026-10-27 (App Store screenshots: not retaken yet, and why)
 - A /goal run built 1.0 on the iPhone 18 Pro simulator and captured the live set's six frames (Tacoma, Boston Harbor sheet, Seattle, San Juans, Spokane, Hood Canal, a location fix per region, 1206x2622). None were kept. The plan card's date chip reads the device's real clock, so at 01:36 every map frame said "Oct 27, 1:36 AM" with a Night badge; and the `-uiTesting` sheet loads the offline fixture, which has no protected-area layer, so the Boston Harbor sheet showed "Protected-area check unavailable". Retake in daylight, and get the sheet frame from the live app (tap a pin) rather than the seam. Resize with `sips -z 2778 1284` for the 6.5" slot.
 - `scripts/run_sim.sh` stopped at its open-the-window step (Xcode 27 has no Simulator.app; `set -e` ended the run before the build). It now warns and carries on headless; the rebuilt app was confirmed on the device by its 01:35 binary.
