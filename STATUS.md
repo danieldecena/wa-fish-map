@@ -144,8 +144,7 @@
 
 - 1.0 (10): read Apple's verdict in App Store Connect (last read 2026-10-09).
   Approved → release by hand. Rejected → follow the 2026-10-09 workflow entry.
-- Fishing Year: pink seasons once WDFW sets the 2027 odd-year rules (Apr 2027);
-  confirm the Green River ramp and Two Rivers Point stops.
+- Fishing Year: pink seasons once WDFW sets the 2027 odd-year rules (Apr 2027).
 - 1.0 (9) carries the pin VoiceOver fix and is with both TestFlight groups,
   `Internal` and `insideout`, beta review approved (read from Apple 2026-10-09).
 
@@ -157,6 +156,14 @@ current counts rather than trusting a number written here.
 ### 2026-10-26 (river flow on site sheets is a link, not a fetch)
 - Decided (Daniel's pick): live river flow reaches the map as a link to the gauge's USGS page, not a fetch or a bundled snapshot. The claude.ai frame blocks requests outside claude.ai, a snapshot would go stale within hours, and a Claude-app browser route would reach only desktop-app viewers.
 - 99 launch and shore sites sit on a gauged river by the app's 150 m nearest-river distance (full-resolution lines, curated lake sites excluded; split rivers compete but only the run rivers.json marks gauged links); `build_rivers_tap.py` writes them as `siteRiver`. No saltwater site matched, and the curated-lake exclusion currently removes none, so it mirrors the app rather than changing today's output. Published as map version 33; checked in a local browser (Sedro-Woolley shows the Skagit gauge, a Hood Canal pier shows none, the Wynoochee river sheet unchanged).
+
+### 2026-10-26 (Two Rivers Point confirmed by Sumner's parks plan)
+
+- Decided: a stop OpenStreetMap lacks may be confirmed by a government plan that names and maps it (`place_check.plan`, label + https url); Daniel chose this over leaving the stop unconfirmed or editing OSM. Two Rivers Point is the first: Sumner's 2024 parks plan lists it as a natural area where fishing is allowed, its trail map puts the south-end trailhead at the White and Puyallup confluence, and TrailLink says the south-end parking is at Two-Rivers Point. The build refuses a plan without a label or with a non-https url (both checked). Sources: `docs/research/2026-10-26-fishing-year-stops.md`.
+
+### 2026-10-26 (Fishing Year stops checked against OpenStreetMap)
+- The Kent "Green River Boat Ramp" stop is an unnamed public concrete slipway in OSM (node 9727835924), 3 m from the point, so it is now confirmed and gets directions on the page. Two Rivers Point is not in OSM by any name; it sits at the White and Puyallup confluence, so it is plausible, but it stays "Location unconfirmed". Sources: `docs/research/2026-10-26-fishing-year-stops.md`.
+- Decided: a confirmed place may record the OSM id (`osm`, `node|way|relation/<n>`) instead of a name when the feature is unnamed. An id names one exact feature, which is stronger than a name match. Shown to work: the real data passes `--check`; a bare number in `osm` and a confirmed place with neither name nor id both fail it.
 
 ### 2026-10-26 (marker edge-tap test lands, and what it cannot prove)
 - The edge-tap test and its finding sat unmerged on `origin/test/marker-edge-tap-outside` (e750258, d3a8c57) while `main` still read "geometry only"; a fresh attempt today re-derived the same result. Landed that branch's test file as-is instead of a second version.

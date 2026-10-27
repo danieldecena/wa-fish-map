@@ -17,7 +17,7 @@
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [ ] [you] Release to the App Store after approval (manual release)
 - [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
-- [ ] Fishing Year: confirm 2 stops: Green River ramp, Two Rivers Point
+- [x] Fishing Year: confirm Two Rivers Point (city plan)
 
 ## Completed
 
