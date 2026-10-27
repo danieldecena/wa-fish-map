@@ -123,11 +123,6 @@
 
 ## Known broken
 
-- The 44pt marker tap target is asserted as geometry plus a simulator edge tap
-  (`MarkerEdgeTapUITests`). That test cannot isolate `hitRect`: the simulator
-  never consults it (see 2026-10-18, re-confirmed 2026-10-26), so it passes
-  with the rect deleted, too small, too large, or refusing every touch.
-  Hardware reach is not observed.
 - The App Store screenshots predate the 2026-10-14 design pass; refresh them
   at the next submission.
 
@@ -143,6 +138,9 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-27 (pin checks pass on the iPhone)
+- `scripts/verify_pins_device.sh` ran on Daniel's iPhone (unlocked, `passcodeRequired: false`) at 03:54: `MarkerEdgeTapUITests` passed (24.4 s) and `PinVoiceOverProbe` passed (14.5 s), `** TEST SUCCEEDED **`, xcodebuild exit 0, read from the log, not the wrapper. The 44pt tap target's Known broken line is removed: hardware, unlike the simulator, consults `hitRect`, and the edge tap landed there. Not done: the test was not run on device with `hitRect` broken, so it has been seen to pass on hardware, not seen to fail there.
 
 ### 2026-10-27 (VoiceOver probe off Known broken; Figma library icons)
 - `PinVoiceOverProbe` passed 3 of 3 with `-test-iterations 3` on the iPhone 18 Pro simulator against live data (xcodebuild rc=0, `** TEST SUCCEEDED **`; each run read 28 of our pin labels, e.g. "Edmonds Pier, Fishing pier, rated Fair"). With the two earlier single passes that is five in a row since the snapshot rewrite, so its Known broken line is removed. The pin device checks are still not run: the iPhone was wired, paired and in developer mode but locked (`passcodeRequired: true`) at 02:49.
