@@ -14,15 +14,25 @@ The flow is each gauge's historical range for the month (p10..p90 averaged from 
 daily percentiles in river_stats.json), never today's reading. The page links the
 gauge's live USGS page instead of fetching it.
 
+siteRiver maps a typical.js site id to the gauged entry it sits on, so the site
+sheet can link the same gauge. The rule is the app's waterbody rule
+(Fishery.waterbody): a curated lake facility keeps its lake, otherwise the nearest
+river-kind feature within River.waterbodyMatchMeters, measured on full-resolution
+lines. A site gets a gauge only when that nearest river is the gauged group.
+
 Usage: build_rivers_tap.py [--eps 0.12]
 """
-import json, math, os, sys
+import json, math, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RES = os.path.join(ROOT, 'WAFishMap', 'Resources')
 SRC = os.path.join(RES, 'rivers.json')
 STATS = os.path.join(RES, 'river_stats.json')
 OUT = os.path.join(ROOT, 'Artifacts', 'salmon-rivers', 'rivers-tap.js')
+TYPICAL = os.path.join(ROOT, 'Artifacts', 'salmon-rivers', 'typical.js')
+FISHERIES = os.path.join(RES, 'fisheries.json')
+RIVER_SWIFT = os.path.join(ROOT, 'WAFishMap', 'Models', 'River.swift')
+M_PER_DEG = 111320.0  # LonLat.metresPerDegree
 
 MIN_ORDER = 4
 MAX_BYTES = 450 * 1024
@@ -184,6 +194,7 @@ def build(eps):
     want = sorted(set(want) | {n for n in stats if n in by_name})
 
     entries, split, dropped, unflowed, anchored = [], [], [], [], []
+    gauged_feats = {}  # feature id -> entry id of the gauged group it belongs to
     for name in want:
         fs = by_name[name]
         fpts = [[px(lo, la) for part in parts(f) for lo, la in part] for f in fs]
@@ -229,6 +240,8 @@ def build(eps):
                 continue
             flow = None
             if k == flow_idx:
+                for i in g:
+                    gauged_feats[fs[i]['properties']['id']] = gid
                 flow = {'gauge': st['gauge'], 'gaugeName': st['gaugeName'],
                         'beginYear': st['beginYear'], 'endYear': st['endYear'],
                         'months': monthly(st['months'])}
@@ -241,10 +254,55 @@ def build(eps):
                 'd': d,
                 'flow': flow,
             })
-    return entries, split, dropped, unflowed, anchored, stats_missing
+    return entries, split, dropped, unflowed, anchored, stats_missing, gauged_feats
 
-def write(entries, path):
-    obj = {'proj': {'kx': KX, 'k': 100, 'lat0': LAT0, 'lon0': -125}, 'rivers': entries}
+def seg_m(lon, lat, a, b):
+    # LonLat.distanceMeters(from:toSegment:), equirectangular around the point
+    sc = math.cos(math.radians(lat))
+    ax, ay = (a[0] - lon) * sc * M_PER_DEG, (a[1] - lat) * M_PER_DEG
+    bx, by = (b[0] - lon) * sc * M_PER_DEG, (b[1] - lat) * M_PER_DEG
+    dx, dy = bx - ax, by - ay
+    l2 = dx * dx + dy * dy
+    if l2 == 0:
+        return math.hypot(ax, ay)
+    t = min(1, max(0, -(ax * dx + ay * dy) / l2))
+    return math.hypot(ax + t * dx, ay + t * dy)
+
+def site_rivers(gauged_feats):
+    """typical.js site id -> gauged entry id, by the app's waterbody rule."""
+    within = float(re.search(r'waterbodyMatchMeters: Double = ([\d.]+)', open(RIVER_SWIFT).read()).group(1))
+    txt = open(TYPICAL).read()
+    sites = json.loads(txt[txt.index('return {') + 7:txt.rindex('};') + 1])['sites']
+    lakes = {fac for facs in json.load(open(FISHERIES))['freshwater']['waterbodySites'].values() for fac in facs}
+    rivers = []
+    for f in json.load(open(SRC))['features']:
+        if f['properties']['kind'] != 'river':
+            continue
+        lines = parts(f)
+        pts = [p for line in lines for p in line]
+        box = (min(p[1] for p in pts), max(p[1] for p in pts), min(p[0] for p in pts), max(p[0] for p in pts))
+        rivers.append((f['properties']['id'], lines, box))
+    out = {}
+    for s in sites:
+        if s['name'] in lakes:
+            continue
+        lat, lon = s['lat'], s['lon']
+        dlat = within / M_PER_DEG
+        dlon = within / (M_PER_DEG * math.cos(math.radians(lat)))
+        best = None
+        for fid, lines, (la0, la1, lo0, lo1) in rivers:
+            if not (la0 - dlat <= lat <= la1 + dlat and lo0 - dlon <= lon <= lo1 + dlon):
+                continue
+            d = min(seg_m(lon, lat, line[i], line[i + 1]) for line in lines for i in range(len(line) - 1))
+            if d <= within and (best is None or d < best[1]):
+                best = (fid, d)
+        if best and best[0] in gauged_feats:
+            out[s['id']] = gauged_feats[best[0]]
+    return out
+
+def write(entries, site_river, path):
+    obj = {'proj': {'kx': KX, 'k': 100, 'lat0': LAT0, 'lon0': -125}, 'rivers': entries,
+           'siteRiver': site_river}
     txt = 'window.RIVERTAP = ' + json.dumps(obj, separators=(',', ':')) + ';\n'
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, 'w') as fh:
@@ -265,8 +323,9 @@ def main():
           % (KX, x, y))
 
     while True:
-        entries, split, dropped, unflowed, anchored, missing = build(eps)
-        size = write(entries, OUT)
+        entries, split, dropped, unflowed, anchored, missing, gauged_feats = build(eps)
+        site_river = site_rivers(gauged_feats)
+        size = write(entries, site_river, OUT)
         if size <= MAX_BYTES:
             break
         print('size %d > %d at eps %.3f, raising' % (size, MAX_BYTES, eps))
@@ -279,6 +338,7 @@ def main():
     print('eps:', eps)
     print('entries:', len(entries), ' names:', len({e['name'] for e in entries}),
           ' entries with flow:', len(flowed), ' names split:', len(split))
+    print('sites linked to a gauged river:', len(site_river))
     print('file:', OUT, size, 'bytes (%.1f KB)' % (size / 1024))
     byid = {e['id']: e for e in entries}
     for name, k, dkm in anchored:
