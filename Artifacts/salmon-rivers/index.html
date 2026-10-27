@@ -167,6 +167,13 @@ a { color: var(--on-text); }
 .pin.spotpin .balloon { fill: #fff; }
 .pin.spotpin .mark { fill: var(--brand-a); }
 .pin.spotpin:focus-visible .balloon { stroke: var(--on); }
+/* Creel counts layer: a text badge beside a surveyed river. Neutral glass, never coloured by the number. */
+.cbadge { pointer-events: auto; cursor: pointer; outline: none; }
+.cbadge rect { fill: var(--sheet); stroke: var(--glass-line); stroke-width: 1; }
+.cbadge text { font: 600 11px/13px var(--sans); fill: var(--ink); }
+.cbadge:focus-visible rect { stroke: var(--on); stroke-width: 2; }
+#layl { margin: 6px 0 0; padding: 6px 0 0; list-style: none; border-top: 1px solid var(--glass-line); font-size: 12px; line-height: 16px; color: var(--ink2); }
+#layl li + li { margin-top: 2px; }
 .cluster { pointer-events: auto; cursor: pointer; outline: none; }
 .cluster circle { fill: var(--rc); stroke: var(--pin-edge); stroke-width: 2; }
 .cluster text { fill: var(--gl, #fff); font: 700 11px/13px var(--sans); text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; }
@@ -521,6 +528,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
           <li class="old"><i></i>Dashed: report over a week old</li>
           <li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>
         </ul>
+        <ul id="layl" aria-label="Layers" hidden></ul>
         <div class="fine" id="legf">Catch reports, not season dates. Confirm rules on WDFW.</div>
         </div>
         <div class="hint" id="hint" hidden></div>
@@ -764,6 +772,16 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     g.style.display = 'none'; lab.style.display = 'none';
     g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSpot(s.id); } });
     return { s: s, xy: xy(s.lon, s.lat), ll: [s.lat, s.lon], g: g, lab: lab, w: 0 };
+  });
+  // Creel counts: one badge per surveyed report river (counts.js). Text only; the sheet it opens says the counts are not ratings.
+  var COUNTBADGES = typeof Counts === 'undefined' ? [] : SITES.filter(function (s) { return Layers.keptText(Counts.forWater(s.id)); }).map(function (s) {
+    var w = Counts.forWater(s.id), txt = Layers.keptText(w);
+    var g = el('g', { 'class': 'cbadge', 'data-count': s.id, tabindex: '0', role: 'button', 'aria-label': s.name + ', WDFW creel survey, ' + txt + ', week of ' + w.week }, over);
+    var r = el('rect', { rx: 8, y: -10, height: 20 }, g);
+    var t = el('text', { x: 8, y: 4 }, g); t.textContent = txt;
+    g.style.display = 'none';
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCounts(s.id); } });
+    return { s: s, g: g, r: r, t: t, w: 0 };
   });
   // Typical mode draws from a pool: only what is on screen has nodes, so hundreds or thousands of sites cost the same.
   var tPool = [];
@@ -1058,6 +1076,19 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       o.lab.setAttribute('x', (left ? x - 15 : x + 15).toFixed(1)); o.lab.setAttribute('y', (y - 19).toFixed(1));
       boxes.push(bx);
     });
+    // Count badges belong to the report rivers, so only Recent reports draws them. A badge that would cover a pin or label is left out.
+    var countsOn = layers.indexOf('counts') >= 0 && view === 'reports';
+    COUNTBADGES.forEach(function (b) {
+      var x = b.s.xy[0] * v.s + v.tx, y = b.s.xy[1] * v.s + v.ty;
+      b.g.style.display = 'none';
+      if (!countsOn || x < -60 || x > W + 60 || y < -40 || y > H + 40) return;
+      if (!b.w) { b.g.style.display = ''; b.w = b.t.getBBox().width + 16; b.r.setAttribute('width', b.w.toFixed(1)); b.g.style.display = 'none'; }
+      var left = x + 10 + b.w > W - 8, bx = [left ? x - 10 - b.w : x + 10, y + 2, b.w, 20];
+      if (b.s.id !== selected && boxes.some(function (q) { return overlap(bx, q); })) return;
+      b.g.style.display = '';
+      b.g.setAttribute('transform', 'translate(' + bx[0].toFixed(1) + ' ' + (y + 12).toFixed(1) + ')');
+      boxes.push(bx);
+    });
     if (me) {
       var mx = me.xy[0] * v.s + v.tx, my = me.xy[1] * v.s + v.ty;
       var onMap = mx > -20 && mx < W + 20 && my > -20 && my < H + 20;
@@ -1171,6 +1202,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     // "Tap the map" is armed: this tap sets the viewer's point, ahead of pins, clusters and rivers.
     if (meArmed) { var mr = map.getBoundingClientRect(); setMeFromScreen(cx - mr.left, cy - mr.top); return; }
     var n = tgt && tgt.closest ? tgt.closest('[data-id],[data-cluster]') : null;
+    var cnt = tgt && tgt.closest ? tgt.closest('[data-count]') : null;
+    if (cnt) { openCounts(cnt.getAttribute('data-count')); return; }
     var sp = tgt && tgt.closest ? tgt.closest('[data-spot]') : null;
     if (sp) { openSpot(sp.getAttribute('data-spot')); return; }
     if (n && n.getAttribute('data-cluster')) { zoomToCluster(n); return; }
@@ -1239,7 +1272,10 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   if (phoneMq.addEventListener) phoneMq.addEventListener('change', placeModes); else phoneMq.addListener(placeModes);
   /* ---- layers: drawn on top of whichever mode is showing; they never change a pin's colour ---- */
   var layers = [], laybtn = $('#laybtn'), laypop = $('#laypop');
+  var LAYER_KEY = { seasons: 'Dashed outline: a season open in the chosen month', spots: 'White pin: a spot guide', counts: 'Badge: fish kept last week (WDFW survey)' };
   function syncLayUi() {
+    $('#layl').innerHTML = layers.map(function (n) { return '<li>' + LAYER_KEY[n] + '</li>'; }).join('');
+    $('#layl').hidden = !layers.length;
     laypop.querySelectorAll('[data-layer]').forEach(function (b) { b.setAttribute('aria-checked', layers.indexOf(b.getAttribute('data-layer')) >= 0 ? 'true' : 'false'); });
     $('#laylbl').textContent = layers.length ? 'Layers · ' + layers.length : 'Layers';
   }
@@ -1842,6 +1878,12 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var ty = wide ? H / 2 + 20 - o.xy[1] * ns : (barB + (H - Math.min(sh, H * 0.66))) / 2 + 24 - o.xy[1] * ns;
     animateTo({ s: ns, tx: tx, ty: ty }, 320);
     syncLink();
+  }
+  // A count badge opens its river's sheet at the WDFW weekly creel section.
+  function openCounts(id) {
+    openSheet(id);
+    var sec = $('#sbody .creel');
+    if (sec) $('#sbody').scrollTop = sec.closest('section').offsetTop - 8;
   }
   function openList() {
     clearRiver();
