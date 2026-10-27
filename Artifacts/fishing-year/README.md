@@ -30,7 +30,7 @@ The build stops on bad data: an unknown `site_id`, a stop with both a `site_id`
 and coordinates, a manual stop without a `place_check` against OpenStreetMap, a
 river line more than 1.5 km off `rivers.json`, a season ending before it
 starts, or a missing value. Its report also lists stops still marked
-unconfirmed (as of 2026-10-20: Green River Boat Ramp, Two Rivers Point).
+unconfirmed (as of 2026-10-26: Two Rivers Point, which OpenStreetMap does not name). A confirmed place records the OSM name, or the OSM id (`osm`, for example `node/9727835924`) when the feature is unnamed.
 
 ## Publish
 

@@ -538,9 +538,11 @@
      "site_id": null,
      "place_check": {
       "source": "OpenStreetMap",
-      "confirmed": false,
-      "note": "Searched for a Green River boat ramp in Kent and found no page naming one; the OpenStreetMap lookup failed on 2026-10-18 and was not retried.",
-      "checked": "2026-10-18"
+      "confirmed": true,
+      "osm": "node/9727835924",
+      "meters": 3,
+      "note": "An unnamed public slipway in OpenStreetMap (leisure=slipway, surface=concrete, access=yes, fee=no) on Russell Road South, 3 m from this point. OSM gives it no name, so the stop's name is ours.",
+      "checked": "2026-10-26"
      }
     },
     {
@@ -1198,8 +1200,8 @@
      "place_check": {
       "source": "OpenStreetMap",
       "confirmed": false,
-      "note": "Sumner's 2024 parks plan and TrailLink name Two-Rivers Point as the south end of the Sumner Link Trail; its coordinates were not checked.",
-      "checked": "2026-10-18"
+      "note": "Sumner's 2024 parks plan and TrailLink name Two-Rivers Point as the south end of the Sumner Link Trail. OpenStreetMap has no feature by that name (searched 2026-10-26, with Three Friends Fishing Hole Park found as a control); the nearest OSM feature is the Riverwalk Trail, 9 m away, and the point lies at the White and Puyallup confluence (11 m and 50 m from those lines in rivers.json).",
+      "checked": "2026-10-26"
      }
     },
     {
