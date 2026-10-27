@@ -7,6 +7,7 @@
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
 - [ ] Retake the App Store screenshots in daylight
 - [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
+- [ ] Sync the design system page's rating colors with the code
 
 ## Completed
 

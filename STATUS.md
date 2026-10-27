@@ -146,6 +146,11 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-27 (Figma component library; design system page is stale on rating colors)
+- Built a Figma component library from `DesignSystem.swift` (link in CLAUDE.md). Screenshot of its review frame checked: every state renders, badges show the 0.2 wash with a full-color stroke. Two Figma quirks cost a pass each: SF Pro listed by `listAvailableFontsAsync` but drew at zero width (`hasMissingFont`), so the styles use Inter; and paint opacity on a variable-bound fill was ignored, so washes are a separate layer at node opacity.
+- Found: the published design system (Artifacts/design-system, synced 2026-09-20) lists the rating ramp as fixed literals (`rating-prime #f01c0d` "does not shift by appearance"), but `DS.Rating` has used `Color.red/orange/yellow/blue` since 2026-09-01, which do shift. It also predates the Rivers/Heat toggles and the Closed badge. Code is the source of truth; the page needs a sync (TASKS.md).
+- Code Connect refused on both student teams: "You need a Dev or Full seat on an Organization or Enterprise plan".
+
 ### 2026-10-27 (Puget river reports re-checked: nothing new; PR 99 merged)
 - Re-checked the Puget river sources at 01:45, a day after the first pass. Confluence Fly Shop's newest report is still Oct 10 (Atom feed), Pacific Fly Fishers' still Oct 7, The Guide's Forecast covers no Puget river, and Avid Angler's newest Skagit entry is still 9/10 (its only newer entry is Yakima trout, 10/20). Avid Angler refuses automated fetches (403); it was read in Daniel's own Safari. No change to `reports.js`; the Skagit entry stands, dashed. Its Oct 10 report passes 21 days on Oct 31, which matters only for adding, not for keeping.
 - PR 99 merged at Daniel's instruction (merge commit `9265631`).

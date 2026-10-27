@@ -200,6 +200,14 @@ Figma mockup file for the map (one-map layers, guide-pin grouping):
 <https://www.figma.com/design/K2rwx7sMdPn2m1oRbEtNcm>. It is a reference only,
 never the live page.
 
+Figma component library for the app (Infareds team, built 2026-10-27):
+<https://www.figma.com/design/ribqki97SaOhwvwyOsRIj2>. Light/dark color tokens
+and components (Rating Badge, Closed Badge, Site Marker, Site Cluster, Layer
+Toggle, Rating Legend, Glass Card, Guidance Footer), each description naming
+its Swift view and file. Values come from `DesignSystem.swift`, not the
+published design system page. Inter stands in for SF Pro and circles for SF
+Symbols. Code Connect is unavailable on the student plans.
+
 Rules that cross from the app into the pages:
 
 - `season.js` ports `FishingRating` from `Fishery.swift`, and
