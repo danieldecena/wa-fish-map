@@ -123,8 +123,11 @@
 
 ## Known broken
 
-- The 44pt marker tap target is asserted as geometry only. An edge tap on
-  hardware is the other half.
+- The 44pt marker tap target is asserted as geometry plus a simulator edge tap
+  (`MarkerEdgeTapUITests`). That test cannot isolate `hitRect`: the simulator
+  never consults it (see 2026-10-18, re-confirmed 2026-10-26), so it passes
+  with the rect deleted, too small, too large, or refusing every touch.
+  Hardware reach is not observed.
 - `PinVoiceOverProbe` fails every run (stale element index, see 2026-10-09), and
   it is in the default test plan.
 - App Store version 1.0 (10) was Waiting for Review under 5.2.5, resubmitted
@@ -141,8 +144,7 @@
 
 - 1.0 (10): read Apple's verdict in App Store Connect (last read 2026-10-09).
   Approved → release by hand. Rejected → follow the 2026-10-09 workflow entry.
-- Fishing Year: pink seasons once WDFW sets the 2027 odd-year rules (Apr 2027);
-  confirm the Green River ramp and Two Rivers Point stops.
+- Fishing Year: pink seasons once WDFW sets the 2027 odd-year rules (Apr 2027).
 - 1.0 (9) carries the pin VoiceOver fix and is with both TestFlight groups,
   `Internal` and `insideout`, beta review approved (read from Apple 2026-10-09).
 
@@ -150,6 +152,38 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-26 (monthly tide refresh retired)
+- Decided: the `[you]` task to re-run `build_tides.py` monthly is retired, not automated. The map stopped loading `tides-data.js` when it moved to computing tides in the page (`tide-predictor.js` over `tide-harmonics.js`, node corrections from the date), so it never runs out; checked in `index.html`, which loads only those two. `tides-data.js` stays as the engine's test oracle. README updated to match.
+
+### 2026-10-26 (map critique applied, version 34)
+- Seven findings from phone and desktop captures, all applied and measured in a browser (`docs/design/2026-10-26-map-critique.md`). The worst was a blank Key button on phones: a desktop rule after the phone block won on source order. A test now pins the order.
+- Decided: on phones the age line under the bar opens the stale-report notice and the bar drops its duplicate icon; Rivers becomes an icon. That keeps every control at 44 px with no scrolling from 360 px up.
+- Decided: layer symbols draw at 55 percent so the coloured report rivers lead; full strength on focus.
+
+### 2026-10-26 (river flow on site sheets is a link, not a fetch)
+- Decided (Daniel's pick): live river flow reaches the map as a link to the gauge's USGS page, not a fetch or a bundled snapshot. The claude.ai frame blocks requests outside claude.ai, a snapshot would go stale within hours, and a Claude-app browser route would reach only desktop-app viewers.
+- 99 launch and shore sites sit on a gauged river by the app's 150 m nearest-river distance (full-resolution lines, curated lake sites excluded; split rivers compete but only the run rivers.json marks gauged links); `build_rivers_tap.py` writes them as `siteRiver`. No saltwater site matched, and the curated-lake exclusion currently removes none, so it mirrors the app rather than changing today's output. Published as map version 33; checked in a local browser (Sedro-Woolley shows the Skagit gauge, a Hood Canal pier shows none, the Wynoochee river sheet unchanged).
+
+### 2026-10-26 (Two Rivers Point confirmed by Sumner's parks plan)
+
+- Decided: a stop OpenStreetMap lacks may be confirmed by a government plan that names and maps it (`place_check.plan`, label + https url); Daniel chose this over leaving the stop unconfirmed or editing OSM. Two Rivers Point is the first: Sumner's 2024 parks plan lists it as a natural area where fishing is allowed, its trail map puts the south-end trailhead at the White and Puyallup confluence, and TrailLink says the south-end parking is at Two-Rivers Point. The build refuses a plan without a label or with a non-https url (both checked). Sources: `docs/research/2026-10-26-fishing-year-stops.md`.
+
+### 2026-10-26 (Fishing Year stops checked against OpenStreetMap)
+- The Kent "Green River Boat Ramp" stop is an unnamed public concrete slipway in OSM (node 9727835924), 3 m from the point, so it is now confirmed and gets directions on the page. Two Rivers Point is not in OSM by any name; it sits at the White and Puyallup confluence, so it is plausible, but it stays "Location unconfirmed". Sources: `docs/research/2026-10-26-fishing-year-stops.md`.
+- Decided: a confirmed place may record the OSM id (`osm`, `node|way|relation/<n>`) instead of a name when the feature is unnamed. An id names one exact feature, which is stronger than a name match. Shown to work: the real data passes `--check`; a bare number in `osm` and a confirmed place with neither name nor id both fail it.
+
+### 2026-10-26 (marker edge-tap test lands, and what it cannot prove)
+- The edge-tap test and its finding sat unmerged on `origin/test/marker-edge-tap-outside` (e750258, d3a8c57) while `main` still read "geometry only"; a fresh attempt today re-derived the same result. Landed that branch's test file as-is instead of a second version.
+- Re-confirmed on the iOS 27.1 SDK simulator: with `SiteMarkerView.point(inside:with:)` returning `false` for every touch (compiled into the app, checked in the build log), a tap 0pt from the pin's centre still opened its sheet; a tap past the drawn 30pt frame did too, with the override returning `bounds.contains(point)`. MapKit selects by its own slop. So the planned control ("must go red with the rect removed") cannot be built in the Simulator.
+- The branch's 2026-10-18 finding, carried here since it never reached `main`: on the iOS 27.0 simulator, `minimumTapTarget` at 1pt, at 140pt, and `point(inside:)` returning `false` all left the measured reach and the test unchanged. A lone pin's reach is MapKit's own: out to 50pt either side and 54pt above its centre, 25pt below.
+- Decided: the test guards that a pin stays selectable from all four edges, not that `hitRect` makes it so. Whether hardware honours the rect is a device run, filed as a `[you]` task.
+- Full UI target on the same simulator: 18 tests, 2 skipped (device-only), 0 failures, xcodebuild rc=0. `PinVoiceOverProbe` passed this once; one green run does not retire its Known broken line.
+
+### 2026-10-26 (river sources recovered, not recreated)
+- The "lost" river-rules note and the `rivers-tap.js` / `sites.js` generators were never lost: they sit on the unmerged `origin/feat/one-app-2026-10-20` (commits a1fad96, 55d8fc0), whose page work reached `main` by another route. Restored as-is. Evidence: that branch's `rules.js` and `rivers-tap.js` are byte-identical to `main`'s; `build_rivers_tap.py` rebuilt `rivers-tap.js` byte for byte; `build_spawning_sites.py` rebuilt `sites.js` with identical data and only the header now naming the real script (it said `build_sites.py`, which never existed).
+- Decided: the three files are generated or sourced again, not hand-maintained. The README says how to rebuild them.
+- The Puget river reports pass was not repeated this session: the first pass ran the same day.
 
 ### 2026-10-26 (PR 55 close-out, one owner per page url)
 - PR 55's open check is done: `NoteScopeTests` and `WaterbodyResolverTests` ran on a Mac (11 tests in 2 suites, pass) on a spare simulator, not the booted one another session was using. The `wa-fish-map-pr55` worktree was clean and removed.

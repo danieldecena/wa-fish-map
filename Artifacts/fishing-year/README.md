@@ -22,7 +22,7 @@ Live: the URL in `artifact.json` (with the current and previous version ids).
 ```zsh
 # 1. edit seasons.json
 /opt/homebrew/bin/python3 scripts/build_fishing_year.py --check   # validate only
-/opt/homebrew/bin/python3 scripts/build_fishing_year.py           # write data.js
+/opt/homebrew/bin/python3 scripts/build_fishing_year.py           # write data.js and salmon-rivers/seasons-data.js
 cd Artifacts/fishing-year && node check.mjs                       # needs playwright-core + Chrome
 ```
 
@@ -30,7 +30,7 @@ The build stops on bad data: an unknown `site_id`, a stop with both a `site_id`
 and coordinates, a manual stop without a `place_check` against OpenStreetMap, a
 river line more than 1.5 km off `rivers.json`, a season ending before it
 starts, or a missing value. Its report also lists stops still marked
-unconfirmed (as of 2026-10-20: Green River Boat Ramp, Two Rivers Point).
+unconfirmed (none as of 2026-10-26). A confirmed place records the OSM name, or the OSM id (`osm`, for example `node/9727835924`) when the feature is unnamed. When OpenStreetMap lacks the place, a government plan that names and maps it can confirm it instead: `plan` with its `label` and https `url` (Two Rivers Point, from Sumner's 2024 parks plan, 2026-10-26).
 
 ## Publish
 

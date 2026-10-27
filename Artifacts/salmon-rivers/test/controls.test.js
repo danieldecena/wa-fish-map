@@ -24,7 +24,8 @@ test('one species dropdown serves both modes, and the old chip row is gone', () 
 
 test('Rivers sits in the one-row bar, and the (visually hidden) title names the mode', () => {
   const bar = between('<div class="glass bar" id="bar"', '<div class="glass pop mpop"');
-  assert.match(bar, /id="listbtn"[^>]*>Rivers<\/button>/);
+  // Phones show the list icon and keep the word for assistive technology.
+  assert.match(bar, /id="listbtn"[^>]*><svg class="ri"[^]*?<\/svg><span class="rl">Rivers<\/span><\/button>/);
   assert.match(bar, /<div class="sr"><div class="title" id="ttl">Salmon this month</, 'Recent reports is the default mode; the title stays for screen readers');
   assert.match(html, /\$\('#ttl'\)\.textContent = typ \? 'Typical season' : 'Salmon this month';/);
   assert.match(html, /\$\('#listbtn'\)\.hidden = view !== 'reports';/, 'Rivers belongs to Recent reports only');
@@ -55,6 +56,18 @@ test('no page tab bar; a Layers button and menu in the map bar', () => {
     assert.match(body, /toggleLayers\(false\)/, f);
   });
   assert.match(html, /if \(!laypop\.hidden\) \{ toggleLayers\(false\); laybtn\.focus/);
+});
+
+test('phone bar: the Key and Rivers icons are not hidden by a later desktop rule, and no control shrinks', () => {
+  const phone = html.indexOf('@media (max-width: 520px) {\n  .bar {');
+  assert.ok(phone > 0);
+  const hide = html.indexOf('#keybtn .ki, #listbtn .ri { display: none; }');
+  assert.ok(hide > 0 && hide < phone, 'the desktop hide rule sits above the phone block, which must win');
+  assert.equal(html.split('#keybtn .ki { display: none; }').length, 1, 'no second hide rule for the Key icon');
+  const block = html.slice(phone, html.indexOf('\n}\n', phone));
+  assert.match(block, /\.bar > \* \{ flex-shrink: 0; \}/);
+  assert.match(block, /#keybtn \.ki \{ display: block; \}/);
+  assert.match(block, /#listbtn \.ri \{ display: block; \}/);
 });
 
 test('compact bar only for a mouse on a wide window; touch keeps 44 px', () => {

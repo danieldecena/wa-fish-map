@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Write Artifacts/fishing-year/data.js from Artifacts/fishing-year/seasons.json.
 
+The same bytes go to Artifacts/salmon-rivers/seasons-data.js, the map's Seasons
+layer; its test/season-places.test.js fails if the two differ.
+
     build_fishing_year.py            build data.js, print the report
     build_fishing_year.py --check    build nothing, exit 1 on any error
 
@@ -14,7 +17,9 @@ Shared sources, so a fact lives in one place:
    access layer, written by build_web_data.py). It must not carry lat/lon too.
  * A stop with site_id null keeps its own lat/lon, because WDFW's layer does not
    list it. It must carry a place_check against OpenStreetMap: confirmed with the
-   OSM name and its distance (0 to 250 m), or confirmed false. The page shows
+   OSM name (or, for an unnamed feature, its "osm" type/id) and its distance
+   (0 to 250 m), or confirmed by an official plan that OSM lacks ("plan": a
+   government source's label and https url), or confirmed false. The page shows
    "Location unconfirmed" on the unconfirmed ones.
  * Each river's line is measured against WAFishMap/Resources/rivers.json. A point
    more than 1.5 km from the named river is an error. The mouth end can be
@@ -32,12 +37,14 @@ import argparse
 import datetime
 import json
 import math
+import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "Artifacts" / "fishing-year" / "seasons.json"
 OUT = ROOT / "Artifacts" / "fishing-year" / "data.js"
+MAP_COPY = ROOT / "Artifacts" / "salmon-rivers" / "seasons-data.js"
 SITES = ROOT / "site" / "data" / "sites.json"
 RIVERS = ROOT / "WAFishMap" / "Resources" / "rivers.json"
 
@@ -110,11 +117,17 @@ def main():
             errors.append(f"{where}: ends {s['end']} before it starts {s['start']}")
         if "pending" in s:
             if "source" in s:
-                errors.append(f"{where}: a season is either sourced or pending, not both")
+                errors.append(
+                    f"{where}: a season is either sourced or pending, not both"
+                )
             if not str(s["pending"]).strip():
-                errors.append(f"{where}: pending needs the reason the source is not out yet")
+                errors.append(
+                    f"{where}: pending needs the reason the source is not out yet"
+                )
         if "source" in s:
-            for n, x in enumerate(s["source"] if isinstance(s["source"], list) else [s["source"]]):
+            for n, x in enumerate(
+                s["source"] if isinstance(s["source"], list) else [s["source"]]
+            ):
                 check_source(x, f"{where} source {n}", errors)
     for m in src["milestones"]:
         day(m["date"], f"milestone {m.get('label')}", errors)
@@ -155,17 +168,35 @@ def main():
                 manual += 1
                 pc = st.get("place_check")
                 if not isinstance(pc, dict) or pc.get("source") != "OpenStreetMap":
-                    errors.append(f"{sw}: a stop outside WDFW's layer needs a place_check against OpenStreetMap")
+                    errors.append(
+                        f"{sw}: a stop outside WDFW's layer needs a place_check against OpenStreetMap"
+                    )
                 else:
                     day(pc.get("checked"), f"{sw} place_check checked", errors)
                     if not isinstance(pc.get("confirmed"), bool):
-                        errors.append(f"{sw}: place_check.confirmed must be true or false")
+                        errors.append(
+                            f"{sw}: place_check.confirmed must be true or false"
+                        )
                     elif pc["confirmed"] and not (
-                        str(pc.get("name", "")).strip()
-                        and isinstance(pc.get("meters"), int)
-                        and 0 <= pc["meters"] <= 250
+                        (
+                            (
+                                str(pc.get("name", "")).strip()
+                                or re.fullmatch(
+                                    r"(node|way|relation)/\d+", str(pc.get("osm", ""))
+                                )
+                            )
+                            and isinstance(pc.get("meters"), int)
+                            and 0 <= pc["meters"] <= 250
+                        )
+                        or (
+                            isinstance(pc.get("plan"), dict)
+                            and str(pc["plan"].get("label", "")).strip()
+                            and str(pc["plan"].get("url", "")).startswith("https://")
+                        )
                     ):
-                        errors.append(f"{sw}: a confirmed place needs the OSM name and meters 0 to 250")
+                        errors.append(
+                            f"{sw}: a confirmed place needs the OSM name or osm id and meters 0 to 250, or a plan with label and https url"
+                        )
                     elif not pc["confirmed"]:
                         unconfirmed.append(f"{where} stop {st['id']} {st['name']}")
                 if not (
@@ -190,7 +221,9 @@ def main():
             gaps = [min(seg_km(p, a, b) for a, b in segs) for p in r["line"]]
             skip = r.get("line_mouth_points", 0)
             if skip and not str(r.get("line_mouth_note", "")).strip():
-                errors.append(f"{where}: line_mouth_points needs a line_mouth_note saying why")
+                errors.append(
+                    f"{where}: line_mouth_points needs a line_mouth_note saying why"
+                )
             for n, g in enumerate(gaps[skip:], skip):
                 if g > LINE_WARN_KM:
                     errors.append(
@@ -214,7 +247,9 @@ def main():
         f"({manual} not in WDFW's access layer, own coordinates)"
     )
     unsourced = [s["id"] for s in src["seasons"] if "source" not in s]
-    print(f"seasons with a WDFW source: {len(src['seasons']) - len(unsourced)} of {len(src['seasons'])}")
+    print(
+        f"seasons with a WDFW source: {len(src['seasons']) - len(unsourced)} of {len(src['seasons'])}"
+    )
     for w in warnings:
         print("warning:", w)
     for n in notes:
@@ -235,12 +270,14 @@ def main():
         "migration": src["migration"],
         "rivers": rivers,
     }
-    OUT.write_text(
+    text = (
         "window.FY="
         + json.dumps(data, ensure_ascii=False, separators=(",", ":"))
         + ";\n"
     )
-    print("wrote", OUT.relative_to(ROOT), OUT.stat().st_size, "bytes")
+    for out in (OUT, MAP_COPY):
+        out.write_text(text)
+        print("wrote", out.relative_to(ROOT), out.stat().st_size, "bytes")
     return 0
 
 
