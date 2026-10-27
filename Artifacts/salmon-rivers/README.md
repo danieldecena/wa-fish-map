@@ -1,8 +1,8 @@
 # Washington Fishing Map (salmon-rivers page)
 
-The published page "Washington Fishing Map" (first published as "SW Washington Salmon Rivers"; the folder keeps the old name) is a five-tab site on one URL: **Week | Map | Year | Spots | Counts**, with the same tab bar on every page (`test/tabs.test.js`). It is not part of the iOS app.
+The published page "Washington Fishing Map" (first published as "SW Washington Salmon Rivers"; the folder keeps the old name) is one map on one URL. Until 2026-10-26 it was five tabs (Week | Map | Year | Spots | Counts); those four pages are now **layers** on the map, and their old paths redirect into it. It is not part of the iOS app.
 
-**Map** (`index.html`) has three modes behind one thin control bar (one 56 px row; on phones the mode switch is a menu and species a filter icon). On a window 1024 px or wider with a mouse (`hover: hover` and `pointer: fine`) the page tabs move into that bar and everything shrinks to one 44 px row with 36 px controls, the mode switch becomes the same dropdown as on phones, and the inspector opens below the bar; phones, touch screens and narrower windows keep two rows and 44 px targets:
+**Map** (`index.html`) has three modes behind one thin control bar (one 56 px row; on phones the mode switch is a menu and species a filter icon). On a window 1024 px or wider with a mouse (`hover: hover` and `pointer: fine`) the bar is one 44 px row with 36 px controls; phones and touch screens keep 44 px targets. The bar ends in **Layers**, which switches on any of three layers over any mode:
 
 - **Recent reports** (the default): eight southwest Washington salmon fisheries (Cowlitz, Lower Columbia, Lewis, Wind, Klickitat, Drano Lake, Kalama, Washougal) and, since 2026-10-26, the Skagit (a stale Fair rating from one shop report; see `docs/research/2026-10-26-puget-river-reports.md`), with a species dropdown, a ranked Rivers list and a detail sheet. Every other named river is tappable (`rivers-tap.js`) for its typical flow and WDFW notices (`rules.js`). It shows recent catch reports, not season dates, and routes people to WDFW to confirm rules.
 - **Typical season**: about 540 WDFW piers, boat launches and shore access sites, each coloured by the WA Fish Map app's own seasonal rating for the chosen species in the current month. Typical timing, not a catch report and not a claim that a fishery is open. Marine sites (those in a WDFW marine area) also show a compact "Tides today" section on the sheet: the nearest bundled tide station with its distance, and today's highs and lows as text. Freshwater sites show none, and tides never colour anything.
@@ -12,9 +12,15 @@ The modes never share a map view: switching swaps the pin set, the legend, the s
 
 **Deep links** (`links.js`): `?mode=reports|typical|spawning`, `month=1-12` (Spawning), `species=<exact name>`, `site=<id>` (Typical, Spawning), `river=<id>` (Recent reports) open that exact view, and the address bar follows what is on screen (`history.replaceState`, never `pushState`). `?today=YYYY-MM-DD` is read for testing and never written.
 
-**Week** (`week/index.html`, `week.js`, `tides.js`): open seasons (ending soonest first, an "ends soon" chip within 7 days), catch reports from the last 7 days with the map's own badges, WDFW rules published in the last 14 days, the next three dated items, a 7-day NOAA tide table for one of 26 bundled stations (picker; nearest to the map's saved point), and the spot guides. Nothing on it is a new rating: seasons, rules and tides are text and dates.
+**Layers** (`layers.js`; on in the URL as `layers=seasons,spots,counts`, off by default; they never change a pin colour, the legend's rating rows or the ranking):
 
-**Year** (`year/`) is the Washington Fishing Year page (source: `Artifacts/fishing-year/`), **Spots** (`spots/`) is Three Friends Fishing Hole (source: `Artifacts/three-friends-fishing-hole/`), **Counts** (`counts/`) is the SW Washington creel table. Each carries the shared tab bar.
+- **Seasons** (`seasons-data.js`, `season-places.js`): the Washington Fishing Year seasons (what Week and Year listed). A month slider under the bar (Spawning lends its ribbon month instead) picks the month; waters open that month get a dotted halo (rivers) or a dashed ring (named places), in ink, never a rating colour. In the current month a season ending within 7 days or opening within 14 gets a tag. Tapping one opens a season sheet: dates, where, note, source, and WDFW. Links: `month=`, `season=<id>`.
+- **Spot guides** (`spots.js`): Three Friends Fishing Hole (was Spots) as a white guide pin in Kent with its own sheet. Link: `spot=<id>`.
+- **Creel counts**: last week's fish kept (from `counts.js`) as a text badge beside each surveyed report river, Recent reports only; it opens the river's sheet at its creel section.
+
+Dropped with the old pages, on purpose: the multi-year creel table (Counts) and the 7-day tide table with its 26-station picker (Week). Marine site sheets keep "Tides today".
+
+`week/`, `year/`, `spots/` and `counts/` each hold one redirect page: Week and Year open the Seasons layer (`year/index.html#<season id>` opens that season), Spots opens the guide, Counts opens the counts layer.
 
 Live: https://claude.ai/artifact/9oA145toRsmFcDYurdJbey (binding and versions in `artifact.json`).
 
@@ -44,16 +50,16 @@ Live: https://claude.ai/artifact/9oA145toRsmFcDYurdJbey (binding and versions in
 | `test/species-vocab.test.js` | Every name in `reports.js` `SPECIES` is an exact species name from the app's `fisheries.json` (near-misses rejected, no duplicates), and the catch-report files never carry seasonal timing. |
 | `test/baseline-pins.json` | Pin colours per species filter from the page as first published; a Task 2 check that nothing changed visibly. |
 | `links.js` | Deep-link state for the map: `Links.read(search)`, `Links.toQuery(state)`, `Links.write(state, history, location)`. Pure; runs in the browser and in Node. |
-| `week.js` | `Week.build(FY, Reports, Rules, today)` composes the Week page from `year/data.js`, `reports.js` and `rules.js`; `Week.render(result, doc)` builds its DOM with text nodes only. |
-| `tides.js` | Tide helpers for the Week page and the map's marine site sheets, reading the bundle `window.TIDES`: `stationsOf`, `nearest`, `miles` (haversine), `days` (bundled extremes for a range; days after the bundle's end carry a "Beyond the bundled predictions" note), `render`, `mount` (synchronous; picker, saved choice, nearest-to-saved-point default, `?today`, next-extreme marking). A static list of the first 11 stations is the fallback for Node tests and a page whose bundle did not load. Makes no request. |
-| `week/tides-data.js` | NOAA CO-OPS high/low predictions (MLLW, feet, station local time) for 26 Washington stations, 45 days from the day it was built. Generated by `scripts/build_tides.py`. Do not hand-edit. Loaded by the Week page and the map. |
-| `week/index.html` | The Week page. |
+| `tides.js` | Tide helpers for the map's marine site sheets, reading the bundle `window.TIDES`: `stationsOf`, `nearest`, `miles` (haversine), `days` (bundled extremes for a range; days after the bundle's end carry a "Beyond the bundled predictions" note), `fmtExtreme`, `footnote`. A static list of the first 11 stations is the fallback for Node tests and a page whose bundle did not load. Makes no request. |
+| `tides-data.js` | NOAA CO-OPS high/low predictions (MLLW, feet, station local time) for 26 Washington stations, 45 days from the day it was built. Generated by `scripts/build_tides.py`. Do not hand-edit. |
+| `layers.js` | Layer names and the rules the layers draw by: `parse`, `toggle`, `keptText` (a count badge), `openIn` (season open in a calendar month), `tagFor` (ends within 7 days, opens within 14), `monthLabel`. Pure; runs in the browser and in Node. |
+| `seasons-data.js` | Byte copy of `Artifacts/fishing-year/data.js` (generated by `scripts/build_fishing_year.py`); `test/season-places.test.js` fails if they differ. Copy it again after rebuilding the Fishing Year. |
+| `season-places.js` | Hand-maintained: where each season goes on the map. Only places the season's own `where` text names, each with that phrase as evidence; vague text stays in the sheet. |
+| `spots.js` | Hand-written spot guides, verbatim from the old Spots page (`test/fixtures/spots-page.html`); the Kent point is sourced in `docs/research/2026-10-26-three-friends-location.md`. |
+| `week/`, `year/`, `spots/`, `counts/` | One redirect page each (see above); `test/redirects.test.js`. |
 | `rivers-tap.js`, `rules.js`, `sites.js` | Tappable river geometry with flow stats; WDFW emergency-rule notices (dated, linked, never colour anything); Spawning-mode viewing sites. Captured from the live page 2026-10-26 and not reproducible from this repo yet: `rules.js` cites `docs/research/2026-10-20-river-reports-and-rules.md` (missing), `sites.js` says it is generated by `build_sites.py` (missing) and `rivers-tap.js` has no generator. Treat all three as hand-maintained (see TASKS.md). |
-| `year/`, `spots/`, `counts/` | The Year, Spots and Counts tabs as published (each with the shared tab bar). |
-| `year/anchor.js` | Opens the Year row named by the URL hash (`year/index.html#<season id>`), which is how Week links into Year. Hand-maintained; `test/year-anchor.test.js` guards it. |
-| `check-week.mjs` | Playwright page check over the five pages: console errors, tab order/44 px/contrast, no horizontal scroll at 320/390/1024 in light and dark, Week sections and ends-soon chip, map deep links (including prototype-name ids), the tide table (7 filled rows, beyond-bundle rows past the end), "Tides today" on a marine site sheet and not a freshwater one, and that no request leaves the page. The static server refuses paths outside the folder (403); unknown `--flags` print usage and exit 2. Also checks the Counts filters (closed on phones) and sticky River column, the 2-column, non-wrapping tide grid at 1024, and the phone Key button and hint. `--shots <dir>` saves captures. |
-| `test/onebar.test.js` | The one-bar layout: the CSS query and the script constant are the same string, the 44 px bar and 36 px controls, the 44 px targets outside it untouched, and the script moving the one tab bar in and out of the map bar. |
-| `test/week.test.js`, `test/tides.test.js`, `test/links.test.js`, `test/tabs.test.js` | Unit tests for the Week page, tides, deep links, and the shared tab bar (identical on all five pages). `test/fixtures/noaa-seattle.json` is a saved NOAA response (used by `scripts/test_build_tides.py`). `test/tides.test.js` also checks that `tides-data.js` parses and covers 30+ days, and that no page code file (the map, Week, Year, Spots and Counts pages and the page scripts) contains `fetch(`, `XMLHttpRequest`, `sendBeacon`, `WebSocket`, `EventSource` or `import(` (checked 2026-10-26: none do, so the per-file allowlist is empty). |
+| `check-week.mjs` | Playwright page check of the map with and without its layers: console errors, no tab bar, 36/44 px bar targets, no horizontal scroll at 320/390/1024 in light and dark, the layers on (button label, slider, legend lines), map deep links, the four redirects, "Tides today" on a marine site sheet and not a freshwater one, and that no request leaves the page. Needs Playwright (not installed on the Mac mini). The static server refuses paths outside the folder (403); unknown `--flags` print usage and exit 2. `--shots <dir>` saves captures. |
+| `test/tides.test.js`, `test/links.test.js`, `test/layers.test.js`, `test/spots.test.js`, `test/season-places.test.js`, `test/redirects.test.js` | Unit tests for tides, deep links, the layer rules, the spot guide, the season places and the redirects. `test/fixtures/noaa-seattle.json` is a saved NOAA response (used by `scripts/test_build_tides.py`). `test/tides.test.js` also checks that `tides-data.js` parses and covers 30+ days, and that no page code file contains `fetch(`, `XMLHttpRequest`, `sendBeacon`, `WebSocket`, `EventSource` or `import(` (none do, so the per-file allowlist is empty). |
 | `baseline.html` | The page as first published, single file. The rollback source. |
 | `serve.js` | Local static server that wraps `index.html` the way the publisher does. |
 
@@ -70,14 +76,14 @@ No dependencies to install. Add `?today=2026-10-26` to the local URL to see how 
 ## Refresh tides
 
 ```bash
-python3 scripts/build_tides.py           # 45 days from today (America/Los_Angeles), rewrites week/tides-data.js
+python3 scripts/build_tides.py           # 45 days from today (America/Los_Angeles), rewrites tides-data.js
 python3 scripts/build_tides.py --check   # validate the existing file, no network
 python3 -m unittest discover -s scripts -p "test_build_tides.py"
 ```
 
 Eight of the 26 stations are NOAA subordinate stations (offset predictions that NOAA publishes as hilo predictions; shown like reference stations). "Tides today" on the map uses the nearest station and shows its distance; there is no distance cap (the farthest marine site is about 16 mi from its station).
 
-Re-run at least monthly and republish `week/tides-data.js`; the Week tab and the map sheets say which date the predictions run through. The script fetches CO-OPS hilo predictions (MLLW, english, `lst_ldt`) for each station in its `STATIONS` list and fails (non-zero, nothing written) on an HTTP error, a NOAA error object, an empty station or times that do not increase. To add a station, pick a Washington id from NOAA's `stations.json?type=tidepredictions`, check its metadata, and add it with NOAA's coordinates to 4 decimals and a short name.
+Re-run at least monthly and republish `tides-data.js`; the map sheets say which date the predictions run through. The script fetches CO-OPS hilo predictions (MLLW, english, `lst_ldt`) for each station in its `STATIONS` list and fails (non-zero, nothing written) on an HTTP error, a NOAA error object, an empty station or times that do not increase. To add a station, pick a Washington id from NOAA's `stations.json?type=tidepredictions`, check its metadata, and add it with NOAA's coordinates to 4 decimals and a short name.
 
 ## Refresh Typical season
 
@@ -132,17 +138,17 @@ Publishing replaces the live page. Read the live artifact first (it refuses a st
 ```
 Artifact  file_path=Artifacts/salmon-rivers/index.html
           url=https://claude.ai/artifact/9oA145toRsmFcDYurdJbey
-          files={ "week/index.html": "Artifacts/salmon-rivers/week/index.html", "week.js": "Artifacts/salmon-rivers/week.js", ... }
+          files={ "layers.js": "Artifacts/salmon-rivers/layers.js", "tides-data.js": "Artifacts/salmon-rivers/tides-data.js", ... }
 ```
 
 Record the new version id in `artifact.json`. To roll back, republish a previous version id. Never pass `force`.
 
 ## Rules that bind this page
 
-- Guidance, not regulation. The advisory, the WDFW link and the "not season dates" line stay on every sheet and on the list. The Week page's footer starts "Guidance, not regulation." and links WDFW emergency rules and regulations.
+- Guidance, not regulation. The advisory, the WDFW link and the "not season dates" line stay on every sheet and on the list. Season and spot sheets say "Guidance, not regulation." and link WDFW.
 - Rating is always also written as text; colour alone is not enough (orange and yellow fail this repo's colour-blind gate for deuteranopia). In Typical season every single pin carries its rating word beside it: the full label where it fits, else the word alone (`Season.SHORT`). `test/design.test.js` simulates deuteranopia and protanopia on the page's own tokens.
 - Text 4.5:1, pins 3:1, buttons at least 44 px, light and dark.
-- No network requests from the page. Tides are bundled NOAA predictions (`week/tides-data.js`), refreshed by `scripts/build_tides.py` at least monthly; the published page runs in a frame whose CSP only allows claude.ai connections, so a live NOAA fetch is blocked there. If the bundle is missing the Week section shows "Tide predictions unavailable right now" with a link to NOAA, and the map shows no tide section. Tide heights are never turned into a rating or a "good time to fish" word, and nothing is coloured by tide.
+- No network requests from the page. Tides are bundled NOAA predictions (`tides-data.js`), refreshed by `scripts/build_tides.py` at least monthly; the published page runs in a frame whose CSP only allows claude.ai connections, so a live NOAA fetch is blocked there. If the bundle is missing the map shows no tide section. Tide heights are never turned into a rating or a "good time to fish" word, and nothing is coloured by tide.
 - Typical season: the legend, the notice, every sheet and the footer say "Typical timing from WA Fish Map guidance, not a catch report and not a claim a fishery is open", keep the WDFW rules link and "Before you go", and never present season dates as authoritative. Colours are the same four tokens plus gray. Slow is blue; in Recent reports it appears only where the source itself says slow or poor (Kalama, with the phrase and a link recorded), never from a count. Species names are the app's exact names. Notes are shown exactly where the app shows them (area, county, statewide), never moved to a narrower or wider place.
 - Clusters never carry a rating they do not share. Typical season clusters are neutral (`--cluster`) with the count; colour is on single pins only. A Recent reports cluster is coloured only when every member has the same rating and release-only state.
 - `reports.js`, `counts.js`, `creel.js`, `geo.js` and `index.html` never contain seasonal timing fields (a test enforces it). Timing lives only in `typical.js` and is read only by `season.js`.

@@ -180,10 +180,10 @@ is minted and the old link goes stale. Read the live version before publishing
 
 | Folder | Page | Source of truth |
 |--------|------|-----------------|
-| `salmon-rivers/` | Washington Fishing Map — Map (Recent reports, Typical season, Spawning), Week, Year, Spots, Counts | its README |
-| `fishing-year/` | Washington Fishing Year — seasons calendar, Oct 2026–Nov 2027; published as the Year tab of the main page (`salmon-rivers/year/`) since 2026-10-26 | `seasons.json` → its README; the published copy lives in `salmon-rivers/year/` |
+| `salmon-rivers/` | Washington Fishing Map: one map (Recent reports, Typical season, Spawning) with Seasons, Spot guides and Creel counts layers; the old Week, Year, Spots and Counts paths redirect into it (2026-10-26) | its README |
+| `fishing-year/` | Washington Fishing Year — seasons calendar, Oct 2026–Nov 2027; its data is copied byte for byte to `salmon-rivers/seasons-data.js` for the map's Seasons layer | `seasons.json` → its README; copy `data.js` to `salmon-rivers/seasons-data.js` after a rebuild |
 | `salmon-catch-table/` | SW Washington Creel Table — WDFW weekly counts | `~/database/salmon-rivers/salmon.db` → its README |
-| `three-friends-fishing-hole/` | Three Friends Fishing Hole — one Green River bank spot in Kent; published as the Spots tab (`salmon-rivers/spots/`) since 2026-10-26 | `index.html` (hand-written; dated rules go stale); the published copy lives in `salmon-rivers/spots/` |
+| `three-friends-fishing-hole/` | Three Friends Fishing Hole — one Green River bank spot in Kent; its content now lives in `salmon-rivers/spots.js` as the map's Spot guides layer | `salmon-rivers/spots.js` (hand-written; dated rules go stale) |
 | `design-system/` | WA Fish Map design system (Design System type) | `project/` + `index.html`; the type's own files are not copied |
 | `app-store-listing/`, `interactive-preview/`, `inside-wafishmap/` | Older marketing and explainer pages | `index.html` as published, captured 2026-10-20 |
 
@@ -202,7 +202,7 @@ Rules that cross from the app into the pages:
 - Counts (creel) are never ratings, and catch-report colours never share a
   view with seasonal colours. Each page README lists its own rules.
 
-Generated files (`typical.js`, `creel.js`, `counts.js`, `data.js`, `geo.js`)
+Generated files (`typical.js`, `creel.js`, `counts.js`, `data.js`, `seasons-data.js`, `tides-data.js`, `geo.js`)
 say so in their header. Regenerate them; never hand-edit.
 
 ## Tests: four suites

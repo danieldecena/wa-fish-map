@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write Artifacts/salmon-rivers/week/tides-data.js from NOAA CO-OPS predictions.
+"""Write Artifacts/salmon-rivers/tides-data.js from NOAA CO-OPS predictions.
 
     build_tides.py [--days 45] [--start YYYY-MM-DD]
     build_tides.py --check            # validate the existing file, no network
@@ -34,7 +34,6 @@ OUT = (
     Path(__file__).resolve().parent.parent
     / "Artifacts"
     / "salmon-rivers"
-    / "week"
     / "tides-data.js"
 )
 BASE = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter"

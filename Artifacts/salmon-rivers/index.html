@@ -579,7 +579,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 <script src="season-places.js"></script>
 <script src="links.js"></script>
 <script src="layers.js"></script>
-<script src="week/tides-data.js"></script>
+<script src="tides-data.js"></script>
 <script src="tides.js"></script>
 <script>
 (function () {
@@ -1460,7 +1460,6 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function footHtml(extra) {
     return '<div class="foot"><div>Recent catch reports, not season dates. Not for navigation or safety decisions.</div>' +
       '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a>' +
-      '<a href="year/index.html">Washington Fishing Year: season calendar, river map and migration</a>' +
       (extra || '') + '</div>';
   }
   function fillList(keep) {
@@ -1534,7 +1533,6 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function typicalFootHtml() {
     return '<div class="foot"><div>' + TYPICAL_LINE + ' Not for navigation or safety decisions.</div>' +
       '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a>' +
-      '<a href="year/index.html">Washington Fishing Year: season calendar, river map and migration</a>' +
       '<div>Guidance last updated ' + esc(TypicalData.guideUpdated) + '. Site list generated ' + esc(TypicalData.generated) + ' from WDFW access and pier data.</div></div>';
   }
   function scopeText(site) {
