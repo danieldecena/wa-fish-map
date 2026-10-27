@@ -1,11 +1,12 @@
 ## Tasks
-- [ ] [you] Look over the one-map page on a phone and a desktop: Layers menu, Seasons slider and tags, the Kent guide pin, count badges. Built 2026-10-26 from docs/superpowers/plans/2026-10-26-one-map-layers.md.
+- [x] Look over the one-map page on a phone and a desktop -- browser pass 2026-10-27, see STATUS
+- [ ] Kent guide pin hidden under Codiga Park at opening zoom
 - [x] Run `node Artifacts/salmon-rivers/check-week.mjs` where Playwright is installed (the MacBook); it was cut to the one map on 2026-10-26 and has not run since.
 - [ ] Puget Sound river reports: repeat the sourcing pass (spec 2026-10-26-puget-river-reports) when new shop or guide reports appear; a river is added only with a report at most 21 days old (Skagit added 2026-10-26 on the Confluence Fly Shop's Oct 10 report; replace it when a fresher one appears). First pass: docs/research/2026-10-26-puget-river-reports.md.
 - [x] Live conditions sub-project: USGS flow inside the map's site sheets (NOAA tides are done for marine Typical-season sheets, from the bundle).
 - [x] Fishing Year build: `scripts/build_fishing_year.py` writes `Artifacts/fishing-year/data.js`; the map reads a byte copy at `salmon-rivers/seasons-data.js` (`test/season-places.test.js` fails until it is copied). Make the build write both, and add a `season-places.js` entry for any new season.
 - [x] Recover the river-rules note and generators — 1af89ed
-- [ ] Map deep links: `?mode=spawning` without `month` gets `&month=<current>` appended on boot (per the spec's write rule); `setMode` fires a transient link sync before the final one. Both self-correct; revisit only if they show up in history or tests.
+- [x] Map deep links: spawning month append and transient sync -- no history entry, see STATUS
 
 #### Design critique 2026-10-26
 
