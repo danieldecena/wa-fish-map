@@ -100,7 +100,7 @@ Do **not** declare tracking domains. WeatherKit is Apple’s framework; you are 
 
 ## Screenshots
 
-ASC holds 6 on the iPhone 6.5" slot (1284x2778): Tacoma, Boston Harbor sheet, Seattle, San Juans, Spokane, Hood Canal. The four live regional maps were captured 2026-09-16 on the simulator with `simctl location` set per region, then resized with `sips -z 2778 1284`. iPhone-only, so no iPad set is required.
+ASC holds 6 on the iPhone 6.5" slot (1284x2778): Tacoma, Boston Harbor sheet, Seattle, San Juans, Spokane, Hood Canal. A replacement set was captured 2026-10-27 at 09:00-09:10 in daylight on the iPhone 18 Pro simulator from build 084b492 against live data: five maps with `simctl location` set per region and a 50 s load wait (25 s caught Tacoma before its tiles), and the Boston Harbor sheet opened by tapping its pin, not the `-uiTesting` seam. Resized with `sips -z 2778 1284` into `screenshots/asc-6.5/`; not yet uploaded. iPhone-only, so no iPad set is required.
 
 ## Checklist
 
