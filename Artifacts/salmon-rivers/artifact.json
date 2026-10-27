@@ -8,7 +8,7 @@
   "currentVersion": "1793072238-da02",
   "previousVersion": "1793071696-018f",
   "note": "Refresh by PASSING THIS URL with file_path=Artifacts/salmon-rivers/index.html and files= any changed paths from `files` (files left out are kept on the live page). Read the live version first. Rollback: republish a previous version id. 2026-10-26: versions 16 (Week tab, deep links, tides, five-tab bar), 17 (thin control bar) and 18 (phone bar) were published from the week-page-and-deep-links branch; 1792491424-046f had been published outside the repo and was captured here first.",
-  "synced": "2026-10-26: live 1793072238-da02 (version 31: the map's today is Washington's date, not the viewer's device date) published from branch washington-today.",
+  "synced": "2026-10-26: live 1793081909-f6a8 (version 33: launch and shore site sheets on a gauged river show its typical flow and a Today's flow on USGS link; index.html and rivers-tap.js changed, seasons-data.js kept from version 32) published from branch site-sheet-gauge-link. Live geo.js differs from the repo's in the cowlitz and lewis highlight lines and three base layers; it was left as live has it.",
   "files": [
     "index.html",
     "cluster.js",
