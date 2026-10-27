@@ -100,7 +100,6 @@
   --lift: 0 6px 22px rgba(0,0,0,0.5);
   color-scheme: dark;
 }
-
 html { box-sizing: border-box; height: 100%; }
 *, *::before, *::after { box-sizing: inherit; }
 body {
@@ -188,7 +187,7 @@ a { color: var(--on-text); }
 .months button { min-width: 0; min-height: 44px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--ink2); cursor: pointer; font: 600 12px/16px var(--sans); }
 .months button[aria-checked="true"] { background: var(--fill-toggle); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--on); }
 .months button.now:not([aria-checked="true"]) { color: var(--ink); }
-#layl { margin: 6px 0 0; padding: 6px 0 0; list-style: none; border-top: 1px solid var(--glass-line); font-size: 12px; line-height: 16px; color: var(--ink2); }
+#layl { margin: 6px 0 0; padding: 6px 0 0; list-style: none; border-top: 1px solid var(--glass-line); font-size: 13px; line-height: 18px; color: var(--ink2); }
 #layl li + li { margin-top: 2px; }
 .cluster { pointer-events: auto; cursor: pointer; outline: none; }
 .cluster circle { fill: var(--rc); stroke: var(--pin-edge); stroke-width: 2; }
@@ -238,13 +237,13 @@ a { color: var(--on-text); }
 .hint { margin: 4px 0 0; font-size: 12px; line-height: 16px; color: var(--ink2); }
 .pop { position: absolute; top: 62px; left: 0; z-index: 5; width: min(420px, 100%); padding: 10px 12px; }
 .notice { margin: 0; font-size: 12px; line-height: 16px; }
-.nbtn { border: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 0 10px; min-height: 44px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; color: var(--ink); background: color-mix(in srgb, var(--good) 24%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--good) 55%, transparent); }
+.nbtn { border: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 0 10px; min-height: 44px; border-radius: 999px; font-size: 13px; line-height: 18px; font-weight: 600; white-space: nowrap; color: var(--ink); background: color-mix(in srgb, var(--good) 24%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--good) 55%, transparent); }
 .nbtn svg { width: 14px; height: 14px; flex: none; }
 .nbtn[aria-expanded="true"] { background: color-mix(in srgb, var(--good) 45%, transparent); }
 .seg { display: flex; flex-wrap: wrap; gap: 6px; }
 .seg button { border: 0; cursor: pointer; padding: 0 14px; min-height: 44px; border-radius: 999px; background: var(--fill-toggle); font-size: 12px; line-height: 16px; font-weight: 600; }
 .seg button[aria-checked="true"] { background: var(--on); color: #fff; }
-.listbtn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--glass-line); background: transparent; cursor: pointer; padding: 0 12px; min-height: 44px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; }
+.listbtn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--glass-line); background: transparent; cursor: pointer; padding: 0 12px; min-height: 44px; border-radius: 999px; font-size: 13px; line-height: 18px; font-weight: 600; white-space: nowrap; }
 .listbtn svg { flex: none; }
 #spbtn { flex: 0 1 auto; min-width: 72px; max-width: 160px; }
 .mpop .seg.modes, .modes { background: var(--seg-track); }
@@ -334,16 +333,16 @@ a { color: var(--on-text); }
 
 .bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
 .legend { padding: 10px 12px; max-width: 360px; flex: 1 1 auto; min-width: 0; }
-.legend .lt { font-size: 12px; line-height: 16px; font-weight: 600; margin-bottom: 6px; }
+.legend .lt { font-size: 13px; line-height: 18px; font-weight: 600; margin-bottom: 6px; }
 .legend ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; }
-.legend li { display: flex; align-items: center; gap: 3px; font-size: 12px; line-height: 16px; }
+.legend li { display: flex; align-items: center; gap: 3px; font-size: 13px; line-height: 18px; }
 .legend i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); display: block; }
 /* "Faded" is a modifier on any rating, so its swatch is the whole ramp faded, not one more colour. */
 .legend li.fade i { width: 18px; border-radius: 4px; background: linear-gradient(90deg, var(--prime), var(--good), var(--fair), var(--slow)); opacity: 0.45; box-shadow: inset 0 0 0 1px var(--pin-edge); }
 .legend li.old i { width: 10px; height: 10px; background: transparent; border: 1.5px dashed var(--ink2); }
 .legend li.cl i { box-shadow: inset 0 0 0 1px var(--pin-edge); }
 .legend li.dash i { width: 10px; height: 10px; background: transparent; border: 1.5px dashed var(--ink2); }
-.legend .fine { margin-top: 6px; font-size: 12px; line-height: 16px; color: var(--ink2); }
+.legend .fine { margin-top: 6px; font-size: 13px; line-height: 18px; color: var(--ink2); }
 /* Phones (390px and under): the legend collapses to a 44px "Key" button so it stops covering the map; the button toggles it open. */
 .legkey { display: none; }
 @media (max-width: 390px) {
@@ -385,7 +384,7 @@ html.touched #rhint { display: none; }
   background: var(--sheet);
 }
 .sbar .grab { position: absolute; top: 6px; left: 50%; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--fill-advisory); }
-.sbar .st { margin: 6px 0 0; font-size: 15px; line-height: 20px; font-weight: 600; }
+.sbar .st { margin: 6px 0 0; font-size: 17px; line-height: 22px; font-weight: 600; }
 .sbar button { margin-top: 6px; border: 0; background: transparent; color: var(--on-text); font-weight: 600; cursor: pointer; padding: 0 4px; min-height: 44px; }
 #sheet:focus { outline: none; }
 .sbody { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 18px max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 18px; }

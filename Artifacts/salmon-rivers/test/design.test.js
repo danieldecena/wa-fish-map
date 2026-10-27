@@ -171,6 +171,7 @@ test('--land and --state-line are neutral tokens in both themes: a very light ti
   assert.ok(Math.abs(Lstar(hex('#f2f2f7')) - Lstar(hex('#f2f2f7'))) < 1);
 });
 
+// The legend is Apple's Footnote style (13/18, HIG typography), one step up from 12 px so it reads outdoors.
 test('legend, footer and sheet fine print are at least 12 px; only text drawn on the map is smaller', () => {
   const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
   const small = [];
@@ -181,9 +182,9 @@ test('legend, footer and sheet fine print are at least 12 px; only text drawn on
   // Map labels, the count inside a cluster mark a creel-count badge and a season tag follow the design system's mapLabel and clusterCount roles (11 px);
   // the region name is a watermark.
   assert.deepEqual(small.sort(), ['.cbadge text 11px', '.cluster text 11px', '.lab 11px', '.lab.region 10px', '.stag text 11px']);
-  assert.match(css, /\.legend li \{[^}]*font-size: 12px/);
-  assert.match(css, /\.legend \.fine \{[^}]*font-size: 12px/);
-  assert.match(css, /\.legend \.lt \{[^}]*font-size: 12px/);
+  assert.match(css, /\.legend li \{[^}]*font-size: 13px/);
+  assert.match(css, /\.legend \.fine \{[^}]*font-size: 13px/);
+  assert.match(css, /\.legend \.lt \{[^}]*font-size: 13px/);
   assert.match(css, /\.foot \{[^}]*font-size: 12px/);
 });
 
