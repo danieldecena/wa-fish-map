@@ -68,7 +68,15 @@ for (const scheme of ['light', 'dark']) {
       check(errors.length === 0, `${name} ${w}px ${scheme}: no console errors (${errors.join(' | ').slice(0, 200)})`);
       const tabs = await page.$$eval('nav.apptabs a', as => as.map(a => ({ t: a.textContent, h: a.getBoundingClientRect().height, cur: a.getAttribute('aria-current') })));
       check(tabs.map(t => t.t).join('|') === 'Week|Map|Year|Spots|Counts', `${name} ${w}px: five tabs in order`);
-      check(tabs.every(t => t.h >= 44), `${name} ${w}px: tabs are 44px targets`);
+      // A mouse on a wide window folds the page tabs into the map bar as 36px segments; everything else keeps 44px targets.
+      const oneBar = name === 'Map' && w >= 1024;
+      check(tabs.every(t => t.h >= (oneBar ? 36 : 44)), `${name} ${w}px: tabs are ${oneBar ? 36 : 44}px targets`);
+      if (oneBar) {
+        const ob = await page.evaluate(() => { const bar = document.getElementById('bar').getBoundingClientRect(), nav = document.querySelector('nav.apptabs'); return { inBar: nav.parentElement.id === 'bar', barH: Math.round(bar.height), top: Math.round(bar.top), tabsInside: nav.getBoundingClientRect().bottom <= bar.bottom + 1, modes: document.getElementById('modes').parentElement.id, modebtn: getComputedStyle(document.getElementById('modebtn')).display !== 'none', scrolls: document.getElementById('bar').scrollWidth > document.getElementById('bar').clientWidth + 1 }; });
+        check(ob.inBar && ob.barH === 44 && ob.top <= 16 && ob.tabsInside, `Map ${w}px ${scheme}: one 44px bar holds the page tabs (in bar ${ob.inBar}, ${ob.barH}px, top ${ob.top}px)`);
+        check(ob.modes === 'mpop' && ob.modebtn, `Map ${w}px ${scheme}: the mode switch is the dropdown button (modes in ${ob.modes})`);
+        check(!ob.scrolls, `Map ${w}px ${scheme}: the one bar fits without scrolling`);
+      }
       check(tabs.filter(t => t.cur === 'page').map(t => t.t)[0] === name, `${name} ${w}px: own tab is current`);
       if (w === 390) {
         const c = await page.evaluate(() => {
