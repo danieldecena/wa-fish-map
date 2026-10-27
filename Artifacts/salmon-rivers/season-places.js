@@ -1,12 +1,16 @@
 // Artifacts/salmon-rivers/season-places.js
 /* Where each Washington Fishing Year season goes on the map's Seasons layer. Hand-maintained, like rules.js: when
    seasons-data.js gains or loses a season, test/season-places.test.js fails until this table matches.
-   A place is drawn only when the season's own `where` text names it, and `evidence` is that phrase. Vague text such as
+   A place is drawn when the season's own `where` text names it (`evidence` is that phrase), or when a WDFW rule names it
+   (`source`, a wdfw.wa.gov or lawfilesext.leg.wa.gov link; docs/research/2026-10-26-season-rivers.md). Vague text such as
    "some Puget Sound rivers" names no place, so it stays in the season's sheet and is never guessed onto the map.
    `river` is a report river id from reports.js or a river id from rivers-tap.js; `point` is [lon, lat]. */
 window.SEASON_PLACES = {
   'skagit-coho': [{ river: 'skagit', evidence: 'Skagit River' }],
-  'chum': [{ point: [-123.06, 47.42], label: 'Hood Canal', evidence: 'Hood Canal south of Ayock Point' }],
+  'chum': [
+    { point: [-123.06, 47.42], label: 'Hood Canal', evidence: 'Hood Canal south of Ayock Point' },
+    { river: 'green-river-2', source: { label: 'WDFW 2026-27 salmon seasons, WSR 26-13-052 (Green: chum within 3 adult coho and chum, to Dec 31)', url: 'https://lawfilesext.leg.wa.gov/law/wsr/2026/13/26-13-052.htm' } }
+  ],
   'steelhead': [{ point: [-124.38, 47.95], label: 'Olympic Peninsula rivers', evidence: 'Olympic Peninsula rivers' }],
   'perch': [{ point: [-122.26, 47.62], label: 'Lake Washington', evidence: 'Lake Washington' }],
   'spring-chinook': [{ river: 'columbia', evidence: 'Columbia' }, { river: 'cowlitz', evidence: 'Cowlitz' }, { river: 'lewis', evidence: 'Lewis' }],

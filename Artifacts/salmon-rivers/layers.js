@@ -6,7 +6,7 @@
   'use strict';
 
   /* Map layers drawn on top of any mode. Nothing here rates anything: seasons are dates, spots are text, counts are counts. */
-  var NAMES = ['seasons', 'spots', 'counts'];
+  var NAMES = ['seasons', 'spots', 'access', 'counts'];
 
   function canon(list) { return NAMES.filter(function (n) { return list.indexOf(n) >= 0; }); }
   function parse(str) { return canon(String(str || '').split(',')); }

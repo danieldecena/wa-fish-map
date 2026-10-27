@@ -12,7 +12,7 @@
   /* Which keys mean anything in each mode. Typical season has no month control, so month is spawning-only. */
   var KEYS = { reports: ['species', 'river'], typical: ['species', 'site'], spawning: ['month', 'species', 'site'] };
   /* Map layers (layers.js) work in every mode. The list is repeated here so links.js stays standalone; test/layers.test.js holds them equal. */
-  var LAYERS = ['seasons', 'spots', 'counts'];
+  var LAYERS = ['seasons', 'spots', 'access', 'counts'];
   function layerList(s) { var a = String(s || '').split(','); return LAYERS.filter(function (n) { return a.indexOf(n) >= 0; }); }
   var DATE = /^\d{4}-\d{2}-\d{2}$/;
   /* A real calendar date: the shape matches and the date survives a round trip (2026-02-30 and 2026-13-99 do not). */
@@ -39,7 +39,8 @@
       today: realDate(today) ? today : null,
       layers: layerList(p.get('layers')),
       spot: p.get('spot') || null,
-      season: p.get('season') || null
+      season: p.get('season') || null,
+      access: p.get('access') || null
     };
   }
   function toQuery(state) {
@@ -55,6 +56,7 @@
     if (ls.length) p.set('layers', ls.join(','));
     // A spot sheet is only reachable with its layer on, so the link carries it only then.
     if (ls.indexOf('spots') >= 0 && state.spot) p.set('spot', String(state.spot));
+    if (ls.indexOf('access') >= 0 && state.access) p.set('access', String(state.access));
     // The Seasons layer has its own month outside Spawning, and its sheet; both travel with the layer.
     if (ls.indexOf('seasons') >= 0) {
       if (mode !== 'spawning' && state.month >= 1 && state.month <= 12) p.set('month', String(state.month));
