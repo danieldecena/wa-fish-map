@@ -1,0 +1,529 @@
+{
+  "variables": [
+    {
+      "id": "VariableID:2:3",
+      "name": "rating/prime",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#ff3b30",
+        "Dark": "#ff453a"
+      },
+      "alphas": {
+        "Light": 1,
+        "Dark": 1
+      }
+    },
+    {
+      "id": "VariableID:2:4",
+      "name": "rating/good",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#ff9500",
+        "Dark": "#ff9f0a"
+      },
+      "alphas": {
+        "Light": 1,
+        "Dark": 1
+      }
+    },
+    {
+      "id": "VariableID:2:5",
+      "name": "rating/fair",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#ffcc00",
+        "Dark": "#ffd60a"
+      },
+      "alphas": {
+        "Light": 1,
+        "Dark": 1
+      }
+    },
+    {
+      "id": "VariableID:2:6",
+      "name": "rating/slow",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#007aff",
+        "Dark": "#0a84ff"
+      },
+      "alphas": {
+        "Light": 1,
+        "Dark": 1
+      }
+    },
+    {
+      "id": "VariableID:2:7",
+      "name": "rating/unrated",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#8e8e93",
+        "Dark": "#8e8e93"
+      },
+      "alphas": {
+        "Light": 1,
+        "Dark": 1
+      }
+    },
+    {
+      "id": "VariableID:2:8",
+      "name": "overlay/density",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#7a29b8",
+        "Dark": "#a86fd6"
+      },
+      "alphas": {
+        "Light": 1,
+        "Dark": 1
+      }
+    },
+    {
+      "id": "VariableID:2:9",
+      "name": "chrome/rivers-on",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#007c9e",
+        "Dark": "#007c9e"
+      },
+      "alphas": {
+        "Light": 1,
+        "Dark": 1
+      }
+    },
+    {
+      "id": "VariableID:2:10",
+      "name": "chrome/heat-on",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#7a29b8",
+        "Dark": "#7a29b8"
+      },
+      "alphas": {
+        "Light": 1,
+        "Dark": 1
+      }
+    },
+    {
+      "id": "VariableID:2:11",
+      "name": "accent",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#ae5133",
+        "Dark": "#e0885c"
+      },
+      "alphas": {
+        "Light": 1,
+        "Dark": 1
+      }
+    },
+    {
+      "id": "VariableID:2:12",
+      "name": "ink/primary",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#000000",
+        "Dark": "#ffffff"
+      },
+      "alphas": {
+        "Light": 1,
+        "Dark": 1
+      }
+    },
+    {
+      "id": "VariableID:2:13",
+      "name": "ink/secondary",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#3c3c43",
+        "Dark": "#ebebf5"
+      },
+      "alphas": {
+        "Light": 0.6000000238418579,
+        "Dark": 0.6000000238418579
+      }
+    },
+    {
+      "id": "VariableID:2:14",
+      "name": "ink/on-fill",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#ffffff",
+        "Dark": "#ffffff"
+      },
+      "alphas": {
+        "Light": 1,
+        "Dark": 1
+      }
+    },
+    {
+      "id": "VariableID:2:15",
+      "name": "ink/on-fair",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#000000",
+        "Dark": "#000000"
+      },
+      "alphas": {
+        "Light": 1,
+        "Dark": 1
+      }
+    },
+    {
+      "id": "VariableID:2:16",
+      "name": "surface/background",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#ffffff",
+        "Dark": "#000000"
+      },
+      "alphas": {
+        "Light": 1,
+        "Dark": 1
+      }
+    },
+    {
+      "id": "VariableID:2:17",
+      "name": "fill/secondary",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#787880",
+        "Dark": "#787880"
+      },
+      "alphas": {
+        "Light": 0.1599999964237213,
+        "Dark": 0.3199999928474426
+      }
+    },
+    {
+      "id": "VariableID:2:18",
+      "name": "fill/tertiary",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#767680",
+        "Dark": "#767680"
+      },
+      "alphas": {
+        "Light": 0.11999999731779099,
+        "Dark": 0.23999999463558197
+      }
+    },
+    {
+      "id": "VariableID:2:19",
+      "name": "fill/quaternary",
+      "collection": "Color",
+      "type": "COLOR",
+      "values": {
+        "Light": "#747480",
+        "Dark": "#767680"
+      },
+      "alphas": {
+        "Light": 0.07999999821186066,
+        "Dark": 0.18000000715255737
+      }
+    },
+    {
+      "id": "VariableID:2:21",
+      "name": "radius/chrome",
+      "collection": "Shape",
+      "type": "FLOAT",
+      "values": {
+        "Value": 14
+      }
+    },
+    {
+      "id": "VariableID:2:22",
+      "name": "radius/advisory",
+      "collection": "Shape",
+      "type": "FLOAT",
+      "values": {
+        "Value": 12
+      }
+    },
+    {
+      "id": "VariableID:2:23",
+      "name": "radius/row",
+      "collection": "Shape",
+      "type": "FLOAT",
+      "values": {
+        "Value": 10
+      }
+    },
+    {
+      "id": "VariableID:2:24",
+      "name": "radius/cell",
+      "collection": "Shape",
+      "type": "FLOAT",
+      "values": {
+        "Value": 2
+      }
+    },
+    {
+      "id": "VariableID:2:25",
+      "name": "radius/pill",
+      "collection": "Shape",
+      "type": "FLOAT",
+      "values": {
+        "Value": 999
+      }
+    },
+    {
+      "id": "VariableID:2:26",
+      "name": "space/3",
+      "collection": "Shape",
+      "type": "FLOAT",
+      "values": {
+        "Value": 3
+      }
+    },
+    {
+      "id": "VariableID:2:27",
+      "name": "space/5",
+      "collection": "Shape",
+      "type": "FLOAT",
+      "values": {
+        "Value": 5
+      }
+    },
+    {
+      "id": "VariableID:2:28",
+      "name": "space/8",
+      "collection": "Shape",
+      "type": "FLOAT",
+      "values": {
+        "Value": 8
+      }
+    },
+    {
+      "id": "VariableID:2:29",
+      "name": "space/10",
+      "collection": "Shape",
+      "type": "FLOAT",
+      "values": {
+        "Value": 10
+      }
+    },
+    {
+      "id": "VariableID:2:30",
+      "name": "space/12",
+      "collection": "Shape",
+      "type": "FLOAT",
+      "values": {
+        "Value": 12
+      }
+    },
+    {
+      "id": "VariableID:2:31",
+      "name": "size/tap-target",
+      "collection": "Shape",
+      "type": "FLOAT",
+      "values": {
+        "Value": 44
+      }
+    }
+  ],
+  "textStyles": [
+    {
+      "id": "S:cd81087e68ce8ce54567747e4100a8ed4c582613,",
+      "name": "Section title",
+      "family": "Inter",
+      "style": "Semi Bold",
+      "size": 17,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 22
+      }
+    },
+    {
+      "id": "S:a1eacf670376339be0fcb139d62fbe44216af22d,",
+      "name": "Item title",
+      "family": "Inter",
+      "style": "Semi Bold",
+      "size": 15,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 20
+      }
+    },
+    {
+      "id": "S:e2acfeedd5c71666a119d3c251df75e88106ea69,",
+      "name": "Supporting",
+      "family": "Inter",
+      "style": "Regular",
+      "size": 15,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 20
+      }
+    },
+    {
+      "id": "S:ecaeadae393d8caf7ef1575fbabf6c85249943dc,",
+      "name": "Meta",
+      "family": "Inter",
+      "style": "Regular",
+      "size": 12,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 16
+      }
+    },
+    {
+      "id": "S:6c031c3ae81c7a501ff332465bc52b46a7c456ee,",
+      "name": "Badge",
+      "family": "Inter",
+      "style": "Bold",
+      "size": 12,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 16
+      }
+    },
+    {
+      "id": "S:3f930f835976eaecd6200de32665e0b8ac6eea80,",
+      "name": "Control",
+      "family": "Inter",
+      "style": "Semi Bold",
+      "size": 11,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 13
+      }
+    },
+    {
+      "id": "S:2c51e31b8fc382d4bc8d7ed0ed338a0b35290c97,",
+      "name": "Legend",
+      "family": "Inter",
+      "style": "Regular",
+      "size": 11,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 13
+      }
+    },
+    {
+      "id": "S:cafcbc1dec699841d4d6c368538b106194ff8f54,",
+      "name": "Cluster count",
+      "family": "Inter",
+      "style": "Bold",
+      "size": 11,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 13
+      }
+    }
+  ],
+  "components": [
+    {
+      "id": "3:20",
+      "name": "Rating Badge",
+      "type": "COMPONENT_SET",
+      "description": "SwiftUI: RatingBadge(rating:) in WAFishMap/SiteDetailSheet.swift:5. Capsule, rating color at 0.2 with a 1pt rating-color stroke; label always primary ink, never the rating color. nil rating = &quot;No data&quot; (DS.Rating.unrated). VoiceOver: &quot;Rated X&quot; / &quot;No seasonal guidance&quot;."
+    },
+    {
+      "id": "3:21",
+      "name": "Closed Badge",
+      "type": "COMPONENT",
+      "description": "SwiftUI: ClosedBadge in WAFishMap/SiteDetailSheet.swift:46. Label &quot;Closed&quot; with SF Symbol xmark.octagon.fill (circle placeholder here), caption semibold, gray at 0.2 with a 1pt gray stroke."
+    },
+    {
+      "id": "3:84",
+      "name": "Site Marker",
+      "type": "COMPONENT_SET",
+      "description": "SwiftUI/UIKit: SiteMarkerView in WAFishMap/Map/AnnotationViews.swift:60 (MKMarkerAnnotationView). Balloon tint = rating color, gray when unrated. Glyph white unless white is under 3:1 contrast (Fair yellow gets black). Kind sets the glyph: launch sailboat.fill, shore figure.fishing, pier fish.fill (circle placeholder here). &quot;Season may be closed&quot; = closurePlausible badge, 14x14, +3 trailing / -3 top. Closed site = alpha 0.55. Scale 0.8 of MapKit default; hit area 44pt (MarkerMetrics.minimumTapTarget)."
+    },
+    {
+      "id": "3:100",
+      "name": "Site Cluster",
+      "type": "COMPONENT_SET",
+      "description": "UIKit: SiteClusterView in WAFishMap/Map/AnnotationViews.swift:213 (MKClusterAnnotation). Tint = best (max) rating among members, gray if none rated. Glyph text = member count (DS.TypeScale.clusterCount). Scale 0.95, one step above a pin. Closure badge only if every member at the best rating is closurePlausible."
+    },
+    {
+      "id": "4:14",
+      "name": "Layer Toggle",
+      "type": "COMPONENT_SET",
+      "description": "SwiftUI: Toggle with LayerToggleStyle(onFill:) in WAFishMap/DesignSystem.swift:217; Rivers and Heat in FishingMapView.swift (~481, ~487). On: white label on the onFill capsule (DS.Chrome.riversOn / heatOn). Off: primary label on tertiarySystemFill. Adds the .isSelected trait when on. Icons: water.waves; flame / flame.fill (circle placeholder here)."
+    },
+    {
+      "id": "4:15",
+      "name": "Rating Legend",
+      "type": "COMPONENT",
+      "description": "SwiftUI: RatingLegend in WAFishMap/FishingMapView.swift:594. 8x8 dots, 3pt dot-to-label, 10pt between entries, labels DS.TypeScale.legend in secondary. Order Prime, Good, Fair, Slow, No data."
+    },
+    {
+      "id": "4:31",
+      "name": "Glass Card",
+      "type": "COMPONENT",
+      "description": "SwiftUI: GlassCard ViewModifier in WAFishMap/FishingMapView.swift:559 (no inputs). iOS 26+: .glassEffect(.regular, in: .rect(cornerRadius: 14)); earlier: .ultraThinMaterial in RoundedRectangle(14). Used by the top plan bar (padding 12/6, 10pt item spacing, 6pt row spacing, max width 560 on regular) and the status bar (max width 460). The blur here approximates Liquid Glass; Figma cannot render the real material."
+    },
+    {
+      "id": "4:33",
+      "name": "Guidance Footer",
+      "type": "COMPONENT",
+      "description": "SwiftUI: GuidanceFooter(guide:) in WAFishMap/SiteDetailSheet.swift:183. Background DS.Surface.advisory (secondarySystemFill), radius DS.Surface.advisoryRadius (12), padding 12, spacing 8. WDFW link (exclamationmark.shield icon in the app) and disclaimer are optional; the safety line always shows. VoiceOver ids: wdfwLink, guidanceDisclaimer. The disclaimer text here is sample copy; the app reads it from fisheries.json."
+    },
+    {
+      "id": "6:105",
+      "name": "Icon/sailboat.fill",
+      "type": "COMPONENT",
+      "description": "Boat launch pin glyph. A vector stand-in for the SF Symbol of the same name, which this file cannot draw; the symbol name is the contract."
+    },
+    {
+      "id": "6:112",
+      "name": "Icon/figure.fishing",
+      "type": "COMPONENT",
+      "description": "Shore access pin glyph. A vector stand-in for the SF Symbol of the same name, which this file cannot draw; the symbol name is the contract."
+    },
+    {
+      "id": "6:115",
+      "name": "Icon/fish.fill",
+      "type": "COMPONENT",
+      "description": "Fishing pier pin glyph. A vector stand-in for the SF Symbol of the same name, which this file cannot draw; the symbol name is the contract."
+    },
+    {
+      "id": "6:118",
+      "name": "Icon/exclamationmark.circle.fill",
+      "type": "COMPONENT",
+      "description": "Season may be closed: the corner badge on a pin (SiteMarkerView.applyClosureBadge). A vector stand-in for the SF Symbol of the same name, which this file cannot draw; the symbol name is the contract."
+    },
+    {
+      "id": "6:121",
+      "name": "Icon/xmark.octagon.fill",
+      "type": "COMPONENT",
+      "description": "Closed badge glyph (ClosedBadge, SiteDetailSheet.swift). A vector stand-in for the SF Symbol of the same name, which this file cannot draw; the symbol name is the contract."
+    },
+    {
+      "id": "6:124",
+      "name": "Icon/water.waves",
+      "type": "COMPONENT",
+      "description": "Rivers layer toggle icon. A vector stand-in for the SF Symbol of the same name, which this file cannot draw; the symbol name is the contract."
+    },
+    {
+      "id": "6:127",
+      "name": "Icon/flame.fill",
+      "type": "COMPONENT",
+      "description": "Heat layer toggle icon, on. A vector stand-in for the SF Symbol of the same name, which this file cannot draw; the symbol name is the contract."
+    },
+    {
+      "id": "6:130",
+      "name": "Icon/flame",
+      "type": "COMPONENT",
+      "description": "Heat layer toggle icon, off. A vector stand-in for the SF Symbol of the same name, which this file cannot draw; the symbol name is the contract."
+    }
+  ]
+}
