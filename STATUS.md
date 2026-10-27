@@ -146,6 +146,10 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-27 (App Store screenshots: not retaken yet, and why)
+- A /goal run built 1.0 on the iPhone 18 Pro simulator and captured the live set's six frames (Tacoma, Boston Harbor sheet, Seattle, San Juans, Spokane, Hood Canal, a location fix per region, 1206x2622). None were kept. The plan card's date chip reads the device's real clock, so at 01:36 every map frame said "Oct 27, 1:36 AM" with a Night badge; and the `-uiTesting` sheet loads the offline fixture, which has no protected-area layer, so the Boston Harbor sheet showed "Protected-area check unavailable". Retake in daylight, and get the sheet frame from the live app (tap a pin) rather than the seam. Resize with `sips -z 2778 1284` for the 6.5" slot.
+- `scripts/run_sim.sh` stopped at its open-the-window step (Xcode 27 has no Simulator.app; `set -e` ended the run before the build). It now warns and carries on headless; the rebuilt app was confirmed on the device by its 01:35 binary.
+
 ### 2026-10-27 (old marketing page links fixed; version 10)
 - `Artifacts/app-store-listing` republished as 1793090014-02d2 in a /goal run: Privacy and Support now go to the github.io pages App Store Connect uses (both answered 200), "Try It Here" is a plain link to the interactive preview artifact (an iframe of another claude.ai artifact was never going to load, and the probe for `demo/index.html` always failed), and the TestFlight "Flight" button and "In App Review" text became the public App Store link and "released Oct 27, 2026". Live read back equals the source plus one publisher wrapper.
 
