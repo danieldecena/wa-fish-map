@@ -401,6 +401,10 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 .row .nm { font-size: 15px; line-height: 20px; font-weight: 600; }
 .tideline { margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 14px; line-height: 20px; font-variant-numeric: tabular-nums; }
 .tideline span { white-space: nowrap; }
+.tidenow { margin: 0 0 6px; font-size: 15px; line-height: 20px; font-variant-numeric: tabular-nums; }
+.tcurve { display: block; width: 100%; height: 56px; margin: 0 0 6px; }
+.tcurve path { fill: none; stroke: var(--on-text); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.tcurve .tnow { stroke: var(--ink2); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
 .miss { margin: 0 0 8px; font-size: 13px; line-height: 18px; color: var(--ink2); }
 .row .dt { font-size: 12px; line-height: 16px; color: var(--ink2); }
 .row .ch { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
@@ -591,7 +595,8 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 <script src="season-places.js"></script>
 <script src="links.js"></script>
 <script src="layers.js"></script>
-<script src="tides-data.js"></script>
+<script src="tide-predictor.js"></script>
+<script src="tide-harmonics.js"></script>
 <script src="tides.js"></script>
 <script>
 (function () {
@@ -1593,18 +1598,37 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     if (sc[0] === 'county') return 'Freshwater guidance for ' + sc[1] + ' County';
     return 'Statewide freshwater guidance';
   }
-  /* "Tides today" on marine sites only (site.area is a WDFW marine area): nearest bundled station and today's highs and lows. Text only, never a rating. */
+  /* "Tides" on marine sites and tidal spot guides: computed in the page from NOAA's constants for the nearest station (tides.js engine),
+     so no date runs out. Level now and its direction, today's highs and lows, and the day as a curve. Text and a neutral line, never a rating. */
+  var TE = typeof Tides !== 'undefined' && Tides.engine ? Tides.engine(window.TIDE_HARMONICS, window.TidePredictor) : null;
+  function tideNow() {
+    // ?today shows that day at noon; otherwise this moment.
+    return TODAY === todayISO() ? new Date() : new Date(Tides.laMidnight(TODAY).getTime() + 12 * 3600000);
+  }
+  function tideCurve(pts, nowAt) {
+    var W = 320, H = 56, lo = Infinity, hi = -Infinity;
+    pts.forEach(function (q) { lo = Math.min(lo, q.v); hi = Math.max(hi, q.v); });
+    var t0 = pts[0].at.getTime(), span = pts[pts.length - 1].at.getTime() - t0, rng = (hi - lo) || 1;
+    var X = function (t) { return ((t - t0) / span * W).toFixed(1); }, Y = function (v) { return (H - 4 - (v - lo) / rng * (H - 8)).toFixed(1); };
+    var line = pts.map(function (q, k) { return (k ? 'L' : 'M') + X(q.at.getTime()) + ' ' + Y(q.v); }).join('');
+    var mark = nowAt && nowAt.getTime() >= t0 && nowAt.getTime() <= t0 + span ? '<line class="tnow" x1="' + X(nowAt.getTime()) + '" x2="' + X(nowAt.getTime()) + '" y1="0" y2="' + H + '"/>' : '';
+    return '<svg class="tcurve" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true"><path d="' + line + '"/>' + mark + '</svg>';
+  }
   function tidesHtml(site, t) {
-    var b = window.TIDES;
-    if (!site.area || !b || typeof Tides === 'undefined') return '';
-    var st = Tides.nearest(t.ll[0], t.ll[1], Tides.stationsOf(b));
-    var ds = st && Tides.days(st, { days: [TODAY] }, b);
-    if (!ds) return '';
+    if (!(site.area || site.tide) || !TE) return '';
+    var st = Tides.nearest(t.ll[0], t.ll[1], TE.stations);
+    var today = st && TE.day(st.id, TODAY);
+    if (!today) return '';
     var mi = Tides.miles(t.ll[0], t.ll[1], st), away = mi < 0.5 ? 'under 1 mi away' : Math.round(mi) + ' mi away';
-    var body = ds[0].note ? '<p class="miss">' + esc(ds[0].note) + '</p>' : ds[0].extremes.length ?
-      '<p class="tideline">' + ds[0].extremes.map(function (e) { return '<span>' + esc(Tides.fmtExtreme(e)) + '</span>'; }).join('') + '</p>' : '';
-    return '<section><h3>Tides today</h3><p class="miss">' + esc(st.name) + ' station, ' + away + '</p>' + body +
-      '<p class="miss">' + esc(Tides.footnote(b)) + '</p></section>';
+    var when = tideNow(), n = TE.now(st.id, when);
+    var next = today.concat(TE.day(st.id, Tides.laParts(new Date(Tides.laMidnight(TODAY).getTime() + 30 * 3600000)).date))
+      .filter(function (e) { return e.at > when; })[0];
+    var nowLine = '<p class="tidenow"><b>' + n.v.toFixed(1) + ' ft and ' + (n.rising ? 'rising' : 'falling') + '</b>' +
+      (next ? ' · next ' + (next.type === 'H' ? 'high' : 'low') + ' ' + esc(Tides.fmtTime(next.t)) + ', ' + next.v.toFixed(1) + ' ft' : '') + '</p>';
+    return '<section><h3>Tides</h3><p class="miss">' + esc(st.name) + ' station, ' + away + '</p>' + nowLine +
+      tideCurve(TE.curve(st.id, TODAY), TODAY === todayISO() ? when : null) +
+      '<p class="tideline">' + today.map(function (e) { return '<span>' + esc(Tides.fmtExtreme(e)) + '</span>'; }).join('') + '</p>' +
+      '<p class="miss">Computed in this page from NOAA’s tide constants for the station: heights above MLLW, Washington time. Predictions, not observations.</p></section>';
   }
   function fillTypical(id) {
     var t = TBY.get(id), site = t.site, month = Season.MONTHS[MONTH - 1];
@@ -1982,6 +2006,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var dir = 'https://maps.apple.com/?ll=' + s.lat + ',' + s.lon + '&q=' + encodeURIComponent(s.name);
     $('#sbody').innerHTML = '<div class="head"><p>' + esc(s.sub) + '</p><p>' + esc(s.intro) + '</p>' + distHtml(o.ll) + '<p>Updated ' + esc(Reports.formatDay(s.updated)) + '</p></div>' +
       '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
+      tidesHtml({ tide: s.tide }, o) +
       (s.closure ? '<section class="advisory">' + shield + '<div><h3>' + esc(s.closure.title) + '</h3><p>' + esc(s.closure.text) + '</p></div></section>' : '') +
       '<section><h3>When the fish are in</h3><div class="creel"><table class="ctab"><caption class="sr">Typical run timing at ' + esc(s.name) + '</caption><thead>' + head + '</thead><tbody>' + body + '</tbody></table>' +
       '<p class="cnote">' + esc(s.timing.note) + '</p></div></section>' +
