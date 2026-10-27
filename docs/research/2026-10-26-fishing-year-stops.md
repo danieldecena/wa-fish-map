@@ -38,3 +38,21 @@ OSM, not a broken query.
 - Verdict: plausible but not confirmable from OSM, so `confirmed` stays false
   and the page keeps "Location unconfirmed". Confirming it needs a source that
   names the place with coordinates, or an OSM feature of that name.
+
+### Follow-up web search, 2026-10-26 (later the same day): still unconfirmed
+
+- TrailLink, https://www.traillink.com/trail/sumner-link-trail/ , known only
+  from search-result text (the page and its PDFs returned HTTP 403, so no page
+  date): "Parking is available at the south end of the trail at Two-Rivers
+  Point and at the 24th Street Bridge near the north end of the trail." It
+  calls the place trail parking, not river access, and gives no coordinates.
+- The City of Sumner trails page, https://www.sumnerwa.gov/trails , does not
+  mention Two Rivers Point.
+- TrailLink also says the trail is closed from north of the 24th Street
+  Bridge to south of Daffodil Bend, Spring 2025 to Fall 2027 (White River
+  Restoration Project). It does not say whether the Two-Rivers Point lot is
+  inside that closure.
+- No source found gives coordinates, an address or a map pin, so nothing
+  confirms or contradicts 47.1998, -122.258. Not yet opened: the City of
+  Sumner 2024 parks plan PDF (the likeliest source of a map), Pierce County
+  and City of Puyallup pages.
