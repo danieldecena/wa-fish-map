@@ -123,8 +123,11 @@
 
 ## Known broken
 
-- The 44pt marker tap target is asserted as geometry only. An edge tap on
-  hardware is the other half.
+- The 44pt marker tap target is asserted as geometry plus a simulator edge tap
+  (`MarkerEdgeTapUITests`). That test cannot isolate `hitRect`: the simulator
+  never consults it (see 2026-10-18, re-confirmed 2026-10-26), so it passes
+  with the rect deleted, too small, too large, or refusing every touch.
+  Hardware reach is not observed.
 - `PinVoiceOverProbe` fails every run (stale element index, see 2026-10-09), and
   it is in the default test plan.
 - App Store version 1.0 (10) was Waiting for Review under 5.2.5, resubmitted
@@ -157,6 +160,13 @@ current counts rather than trusting a number written here.
 ### 2026-10-26 (Fishing Year stops checked against OpenStreetMap)
 - The Kent "Green River Boat Ramp" stop is an unnamed public concrete slipway in OSM (node 9727835924), 3 m from the point, so it is now confirmed and gets directions on the page. Two Rivers Point is not in OSM by any name; it sits at the White and Puyallup confluence, so it is plausible, but it stays "Location unconfirmed". Sources: `docs/research/2026-10-26-fishing-year-stops.md`.
 - Decided: a confirmed place may record the OSM id (`osm`, `node|way|relation/<n>`) instead of a name when the feature is unnamed. An id names one exact feature, which is stronger than a name match. Shown to work: the real data passes `--check`; a bare number in `osm` and a confirmed place with neither name nor id both fail it.
+
+### 2026-10-26 (marker edge-tap test lands, and what it cannot prove)
+- The edge-tap test and its finding sat unmerged on `origin/test/marker-edge-tap-outside` (e750258, d3a8c57) while `main` still read "geometry only"; a fresh attempt today re-derived the same result. Landed that branch's test file as-is instead of a second version.
+- Re-confirmed on the iOS 27.1 SDK simulator: with `SiteMarkerView.point(inside:with:)` returning `false` for every touch (compiled into the app, checked in the build log), a tap 0pt from the pin's centre still opened its sheet; a tap past the drawn 30pt frame did too, with the override returning `bounds.contains(point)`. MapKit selects by its own slop. So the planned control ("must go red with the rect removed") cannot be built in the Simulator.
+- The branch's 2026-10-18 finding, carried here since it never reached `main`: on the iOS 27.0 simulator, `minimumTapTarget` at 1pt, at 140pt, and `point(inside:)` returning `false` all left the measured reach and the test unchanged. A lone pin's reach is MapKit's own: out to 50pt either side and 54pt above its centre, 25pt below.
+- Decided: the test guards that a pin stays selectable from all four edges, not that `hitRect` makes it so. Whether hardware honours the rect is a device run, filed as a `[you]` task.
+- Full UI target on the same simulator: 18 tests, 2 skipped (device-only), 0 failures, xcodebuild rc=0. `PinVoiceOverProbe` passed this once; one green run does not retire its Known broken line.
 
 ### 2026-10-26 (river sources recovered, not recreated)
 - The "lost" river-rules note and the `rivers-tap.js` / `sites.js` generators were never lost: they sit on the unmerged `origin/feat/one-app-2026-10-20` (commits a1fad96, 55d8fc0), whose page work reached `main` by another route. Restored as-is. Evidence: that branch's `rules.js` and `rivers-tap.js` are byte-identical to `main`'s; `build_rivers_tap.py` rebuilt `rivers-tap.js` byte for byte; `build_spawning_sites.py` rebuilt `sites.js` with identical data and only the header now naming the real script (it said `build_sites.py`, which never existed).

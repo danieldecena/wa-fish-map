@@ -10,7 +10,8 @@
 
 #### Design critique 2026-10-26
 
-- [ ] Edge-tap UI test for the 44pt marker target
+- [x] Edge-tap UI test for the 44pt marker target
+- [ ] [you] Run the marker edge-tap test on the iPhone
 - [ ] [you] Check the attached recording shows the far-date state
 - [ ] [you] Reply to Apple only if build 10 is rejected
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
