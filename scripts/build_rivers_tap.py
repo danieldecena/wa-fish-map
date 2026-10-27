@@ -14,11 +14,13 @@ The flow is each gauge's historical range for the month (p10..p90 averaged from 
 daily percentiles in river_stats.json), never today's reading. The page links the
 gauge's live USGS page instead of fetching it.
 
-siteRiver maps a typical.js site id to the gauged entry it sits on, so the site
-sheet can link the same gauge. The rule is the app's waterbody rule
+siteRiver maps a typical.js freshwater site id to the gauged entry it sits on, so
+the site sheet can link the same gauge. The distance rule is the app's
 (Fishery.waterbody): a curated lake facility keeps its lake, otherwise the nearest
 river-kind feature within River.waterbodyMatchMeters, measured on full-resolution
-lines. A site gets a gauge only when that nearest river is the gauged group.
+lines. Unlike a waterbody, split rivers compete too (an unrelated Green River must
+not borrow the Kent gauge), and a site gets a gauge only when that nearest feature
+owns it (River.ownsNameGauge: whole river, or the split run rivers.json marks gauged).
 
 Usage: build_rivers_tap.py [--eps 0.12]
 """
@@ -274,17 +276,23 @@ def site_rivers(gauged_feats):
     txt = open(TYPICAL).read()
     sites = json.loads(txt[txt.index('return {') + 7:txt.rindex('};') + 1])['sites']
     lakes = {fac for facs in json.load(open(FISHERIES))['freshwater']['waterbodySites'].values() for fac in facs}
+    missing = lakes - {s['name'] for s in sites}
+    assert not missing, ('curated lake facilities named no typical.js site', sorted(missing))
     rivers = []
     for f in json.load(open(SRC))['features']:
-        if f['properties']['kind'] != 'river':
+        pr = f['properties']
+        if pr['kind'] != 'river':
             continue
+        split = pr['id'] != pr['name']
+        assert not split or bool(pr.get('gauged')) == (pr['id'] in gauged_feats), \
+            ('gauged split run disagrees with rivers.json', pr['id'])
         lines = parts(f)
         pts = [p for line in lines for p in line]
         box = (min(p[1] for p in pts), max(p[1] for p in pts), min(p[0] for p in pts), max(p[0] for p in pts))
         rivers.append((f['properties']['id'], lines, box))
     out = {}
     for s in sites:
-        if s['name'] in lakes:
+        if s['area'] or s['name'] in lakes:
             continue
         lat, lon = s['lat'], s['lon']
         dlat = within / M_PER_DEG
