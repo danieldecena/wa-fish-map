@@ -692,7 +692,9 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
 
   var RANK = Reports.RANK, LABEL = Reports.LABEL;
 
+  // Washington's date, not the device's: tides, report ages and season tags are all about Washington days.
   function todayISO() {
+    if (typeof Tides !== 'undefined' && Tides.laParts) return Tides.laParts(new Date()).date;
     var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
   }

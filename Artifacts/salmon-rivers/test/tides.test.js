@@ -145,3 +145,22 @@ test('tides-data.js: parses, covers at least 30 days, every station has every da
   assert.deepEqual(Object.keys(T.predictions).sort(), [...seen].sort());
   Tides.STATIONS.forEach(s => assert.ok(seen.has(s.id), 'bundle keeps ' + s.name));
 });
+
+/* The map's TODAY is Washington's date, not the viewer's. A device in Tokyo at 20:30 Pacific on Oct 26 already reads Oct 27,
+   which would move the map-sheet tides and the Seasons layer's tags a day ahead. */
+test('index.html: todayISO reads the date in Washington, whatever timezone the device is in', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const fn = /function todayISO\(\) \{[\s\S]*?\n  \}/.exec(html);
+  assert.ok(fn, 'index.html defines todayISO');
+  const at = Date.parse('2026-10-27T03:30:00Z'), shift = 9 * 3600000;
+  class TokyoDate extends Date {
+    constructor(...a) { super(...(a.length ? a : [at])); }
+    getFullYear() { return new Date(this.getTime() + shift).getUTCFullYear(); }
+    getMonth() { return new Date(this.getTime() + shift).getUTCMonth(); }
+    getDate() { return new Date(this.getTime() + shift).getUTCDate(); }
+  }
+  assert.equal(new TokyoDate().getDate(), 27, 'control: the fake device reads Oct 27');
+  const ctx = { Date: TokyoDate, Tides, Intl };
+  vm.runInNewContext(fn[0] + '; this.out = todayISO();', ctx);
+  assert.equal(ctx.out, '2026-10-26');
+});
