@@ -118,7 +118,9 @@ A river beyond the original eight (spec: `docs/superpowers/specs/2026-10-26-puge
 - `src: { label, url }` (https) on every species report: a named shop, guide, guide service or agency, never a social-media post;
 - a dated report at most 14 days old on the `added` day;
 - `slow` only with the source's `phrase`;
-- a pin inside Washington and a `tap` that exists.
+- a pin inside the state map's bounds (a bounding box test) and a `tap` that exists.
+
+The report must be true of the whole river the line draws: a new site colours the entire tappable river, mouth to headwaters, so a report about one reach is not added.
 
 Rate from the source's own words: hot, excellent → `prime`; good, very good, solid → `good`; fair, some fish, spotty → `fair`; slow, poor, tough → `slow`. A report about rules, flows, trout, forecasts or effort with no catch read gives no rating, and a river WDFW has closed for the species gets none. Each pass is recorded in `docs/research/` first.
 

@@ -1455,8 +1455,9 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     var dir = 'https://maps.apple.com/?ll=' + s.ll[0] + ',' + s.ll[1] + '&q=' + encodeURIComponent(s.name);
     var GF = 'https://www.theguidesforecast.com/free/coho-run-heats-up/287017/';
     extraSrc = extraSrc.filter(function (e) { return e.url !== GF; });
-    var src = '<a href="' + GF + '" target="_blank" rel="noopener">The Guide’s Forecast, Oct 17</a>' +
-      '<a href="https://www.theguidesforecast.com/sw-washington-fishing-reports/" target="_blank" rel="noopener">SW Washington reports, Oct 15</a>' +
+    // The two Guide's Forecast links are Columbia-tributary sources: only the original eight cite them.
+    var src = (s.added ? '' : '<a href="' + GF + '" target="_blank" rel="noopener">The Guide’s Forecast, Oct 17</a>' +
+      '<a href="https://www.theguidesforecast.com/sw-washington-fishing-reports/" target="_blank" rel="noopener">SW Washington reports, Oct 15</a>') +
       (s.extra === 'nws' ? '<a href="https://nwsportsmanmag.com/sw-wa-buoy-10-lower-columbia-hanford-reach-report-10-13-2026/" target="_blank" rel="noopener">NW Sportsman, Oct 13</a>' : '') +
       extraSrc.map(function (e) { return '<a href="' + esc(e.url) + '" target="_blank" rel="noopener">' + esc(e.label) + '</a>'; }).join('');
     $('#sbody').innerHTML =
@@ -1464,6 +1465,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
       '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
       '<section><h3>What’s biting</h3>' + (missing ? '<p class="miss">' + esc(missing) + '</p>' : '') + '<div class="rows">' + rows + '</div></section>' +
       creelHtml(id) +
+      (s.tap && TAPBY[s.tap] ? noticesHtml(TAPBY[s.tap].name) : '') +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Rules change in season and differ by river and species. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
       footHtml('<div class="src">' + src + '</div>');
     $('#sbody').scrollTop = 0;
@@ -1494,6 +1496,15 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
     riverLL(id).forEach(function (q) { var m = milesTo(q); if (m < best) best = m; });
     return best;
   }
+  // WDFW's own notices that name a river, newest first. Shared by the river sheet and by a report site drawn from a tappable river.
+  function noticesHtml(riverName) {
+    var notes = RULES ? RULES.forRiver(riverName).slice().sort(function (a, b) { return a.published < b.published ? 1 : -1; }) : [];
+    return notes.length ? '<section><h3>WDFW notices</h3><p class="miss">WDFW’s own notices that name this river, by the date WDFW posted them. They do not rate or colour the river. Confirm the current rule on WDFW before you fish.</p><div class="notes">' +
+      notes.map(function (n) {
+        return '<div class="row"><span class="chip">Posted ' + esc(Reports.formatDay(n.published)) + '</span><p>' + esc(n.d) + '</p>' +
+          '<a href="' + esc(n.url) + '" target="_blank" rel="noopener">Read the rule on WDFW</a></div>';
+      }).join('') + '</div></section>' : '';
+  }
   function fillRiver(id) {
     var r = TAPBY[id], mo = MONTH_NAMES[MONTH - 1];
     $('#stitle').textContent = r.name;
@@ -1503,12 +1514,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
       ' Rivers are coloured only when a dated catch report exists.</p>' +
       (me ? '<p class="dist">' + esc(miLong(riverMiles(id))) + ', to the nearest point on the river</p>' : '') +
       (part ? '<button type="button" class="listbtn" data-open="' + esc(part.id) + '">Open the ' + esc(part.name) + ' report</button>' : '') + '</div>';
-    var notes = RULES ? RULES.forRiver(r.name).slice().sort(function (a, b) { return a.published < b.published ? 1 : -1; }) : [];
-    var notesHtml = notes.length ? '<section><h3>WDFW notices</h3><p class="miss">WDFW’s own notices that name this river, by the date WDFW posted them. They do not rate or colour the river. Confirm the current rule on WDFW before you fish.</p><div class="notes">' +
-      notes.map(function (n) {
-        return '<div class="row"><span class="chip">Posted ' + esc(Reports.formatDay(n.published)) + '</span><p>' + esc(n.d) + '</p>' +
-          '<a href="' + esc(n.url) + '" target="_blank" rel="noopener">Read the rule on WDFW</a></div>';
-      }).join('') + '</div></section>' : '';
+    var notesHtml = noticesHtml(r.name);
     var f = r.flow, q = f && f.months ? f.months[String(MONTH)] : null;
     var flowHtml = q
       ? '<section><h3>Typical flow in ' + mo + '</h3><div class="flow"><div class="big">Usually ' + fmtCfs(q[1]) + '–' + fmtCfs(q[3]) + ' cfs; median ' + fmtCfs(q[2]) + ' cfs</div>' +

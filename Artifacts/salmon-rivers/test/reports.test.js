@@ -232,6 +232,12 @@ const loadGlobal = (file, name) => { const w = {}; new Function('window', fs.rea
 const GEO = loadGlobal('geo.js', 'GEO');
 const TAP = loadGlobal('rivers-tap.js', 'RIVERTAP');
 const TAP_IDS = new Set(TAP.rivers.map(r => r.id));
+
+test('rivers-tap.js and geo.js share one projection', () => {
+  // index.html draws a tappable river's path in geo.js viewport coordinates; no generator keeps the two files in step.
+  assert.deepEqual(TAP.proj, GEO.proj);
+});
+
 const ENTRY_DAYS = 14;
 const dayNo = iso => Date.parse(iso + 'T00:00:00Z') / 86400000;
 function newSiteProblems(s) {
