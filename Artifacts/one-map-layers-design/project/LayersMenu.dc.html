@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Layers menu</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 320px; height: 330px; box-sizing: border-box; padding: 10px; background: #1c1c1e; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; color: #ffffff;">
+  <div role="group" aria-label="Map layers" style="box-sizing: border-box; padding: 8px; display: flex; flex-direction: column; gap: 2px; background: rgba(44,44,46,0.92); border: 1px solid rgba(235,235,245,0.18); border-radius: 14px; box-shadow: 0 6px 22px rgba(0,0,0,0.5);">
+    <p style="margin: 2px 8px 4px; font-size: 12px; line-height: 16px; font-weight: 600; color: rgba(235,235,245,0.74);">Show on the map</p>
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+      <button type="button" role="switch" aria-checked="{{r.on}}" onClick="{{r.toggle}}" style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px; border: 0; border-radius: 8px; background: transparent; color: #ffffff; text-align: left; font: inherit; cursor: pointer;">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: 14px; line-height: 18px;"><b>{{r.name}}</b><span style="font-size: 12px; line-height: 16px; color: rgba(235,235,245,0.74);">{{r.desc}}</span></span>
+        <span aria-hidden="true" style="{{r.track}}"><span style="{{r.knob}}"></span></span>
+      </button>
+    </sc-for>
+    <p style="margin: 6px 8px 2px; font-size: 12px; line-height: 16px; color: rgba(235,235,245,0.74);">Layers add to the mode you are in. They never change a pin colour.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":320,"height":330}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { on: { seasons: true, spots: false, counts: true } }; }
+  renderVals() {
+    var self = this, on = this.state.on;
+    var rows = [
+      ['seasons', 'Seasons', 'Waters open in the chosen month. Outlines, not ratings.'],
+      ['spots', 'Spot guides', 'Hand-written guides to one bank spot.'],
+      ['counts', 'Creel counts', 'Fish kept last week, from WDFW surveys.']
+    ].map(function (r) {
+      var o = !!on[r[0]];
+      return {
+        name: r[1], desc: r[2], on: o ? 'true' : 'false',
+        toggle: function () { var n = Object.assign({}, self.state.on); n[r[0]] = !o; self.setState({ on: n }); },
+        track: 'flex: none; position: relative; width: 42px; height: 26px; border-radius: 13px; background: ' + (o ? '#4fc3dc' : 'rgba(118,118,128,0.26)') + ';',
+        knob: 'position: absolute; top: 2px; left: ' + (o ? 18 : 2) + 'px; width: 22px; height: 22px; border-radius: 50%; background: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.25);'
+      };
+    });
+    return { rows: rows };
+  }
+}
+</script>
+</body>
+</html>

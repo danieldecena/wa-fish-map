@@ -1,0 +1,9 @@
+{
+  "url": "https://claude.ai/artifact/79zGaaVTt3zuugwNhVhWcc",
+  "title": "Washington Fishing Map: one map with layers",
+  "identified": "2026-10-26, attached by Daniel to a session; created 2026-10-26 18:45 PT and claimed by no owner file until then",
+  "account": "danieldecena@icloud.com",
+  "what": "Design canvas (Design type, contract 0.2.47) mocking up the one-map-with-layers change from docs/superpowers/specs/2026-10-26-one-map-layers-design.md: five artboards (desktop with Seasons and Creel counts on, phone with three layers on, the Layers menu as a working toggle list, the Skagit coho season sheet, the Three Friends Fishing Hole spot sheet). Uses the WA Fish Map design system (VA1Zg6mdxPkiukUD6bxDuc, version 1792362268-e369). A mockup only: the live map is salmon-rivers/, and nothing here feeds it.",
+  "currentVersion": "1793072975-dad2",
+  "source": "Captured 2026-10-26 from the live version above: project/canvas.json, the five project/*.dc.html artboards and project/ds/wa-fish-map/tokens.json. The Design type's own files (index.html, SKILL.md, artifact-type/) and the uploaded map image (/_blob/c45ea2687407c99bdce88aabdaf0b6c2) are not copied. Refresh by PASSING THIS URL with root=this folder; edit project/ files only, and send canvas.json only when the layout changes."
+}
