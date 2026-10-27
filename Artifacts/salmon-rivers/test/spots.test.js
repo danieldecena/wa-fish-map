@@ -38,3 +38,14 @@ test('three friends: every line of guidance the Spots page showed is carried ove
   texts.forEach(t => assert.ok(page.includes(t), 'not on the old page: ' + t));
   s.sources.forEach(x => assert.ok(old.includes('href="' + x.url + '"'), 'source link not on the old page: ' + x.url));
 });
+
+test('every spot sits in Washington, and its point is recorded with its source', () => {
+  const notes = ['2026-10-26-three-friends-location.md', '2026-10-26-puget-spot-guides.md']
+    .map(f => fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'research', f), 'utf8')).join('\n');
+  SPOTS.forEach(s => {
+    assert.ok(s.lat > 45.5 && s.lat < 49 && s.lon > -124.9 && s.lon < -116.9, s.id + ' outside Washington');
+    assert.ok(notes.includes(s.lat.toFixed(4) + ', ' + s.lon.toFixed(4)), s.id + ': point not in a research note');
+    // Nothing sourced supports a Prime grade at a spot we have not fished; the one hand-written guide that uses it is Three Friends.
+    if (s.id !== 'three-friends') s.timing.rows.forEach(r => assert.ok(!r.cells.includes('Prime'), s.id + ': Prime needs a spot report'));
+  });
+});
