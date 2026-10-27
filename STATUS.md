@@ -156,6 +156,7 @@ current counts rather than trusting a number written here.
 ### 2026-10-27 (page check serves the live wrapper; month names fit at 360)
 - The page check's screenshots showed the "Tap the map where you are" banner and the species panel open on load. Live never does: the publisher wraps the page in a doctype and `[hidden]{display:none!important}`, and the local server served the bare file, so `.metip`/`.sppanel` display rules beat `[hidden]` only locally. Ruled out first: PR 84's brace fix (the pre-fix page showed the same). `check-week.mjs` now prepends the wrapper copied from live 1793083287-e7f9, to `index.html` only, as the publisher does.
 - On phones under 390 px the month names in the month card touched ("May"/"Jun" overlapped 1.8 px at 360, 0.4 at 375), breaking the 360 px fit promise. Fixed keeping 12 px text (`design.test.js` floor): 40 px label column, -0.03em tracking, 8 px card sides. The check now runs at 360 and asserts a 1 px gap; it failed on the old page and passes on the new. 320 px still crowds, below the promise.
+- Published as map version 36 (1793084530-99d6) from main after PR 93; live index.html read back equals the repo file plus the wrapper. Seen in the desktop capture, not fixed: the Fox Island Fishing Pier label sits partly under a neighbouring spot pin.
 
 ### 2026-10-26 (monthly tide refresh retired)
 - Decided: the `[you]` task to re-run `build_tides.py` monthly is retired, not automated. The map stopped loading `tides-data.js` when it moved to computing tides in the page (`tide-predictor.js` over `tide-harmonics.js`, node corrections from the date), so it never runs out; checked in `index.html`, which loads only those two. `tides-data.js` stays as the engine's test oracle. README updated to match.
@@ -352,77 +353,3 @@ current counts rather than trusting a number written here.
   has `submit-beta` at 18:13 and Apple now reads beta review APPROVED, external
   in beta testing, groups `Internal` and `insideout`. It was run from another
   session, which recorded it as Daniel's; the line above was true when read.
-
-### 2026-10-09 (pin spoken text saved for build 9; the probe still fails)
-
-- Decided: the pin and cluster label change from 2026-10-07 is saved and goes out
-  in the next TestFlight build. Observed today on the iPhone 18 Pro simulator,
-  iOS 27.0: the app builds, the unit plan ran 331 tests in 53 suites with none
-  failing, and `PinSpokenTextUITests` ran 1 test and passed, printing
-  `Boston Harbor, Boat launch, rated Good`. Not done: that test was not run
-  against the old label and value split, so it has not been seen to fail.
-- Found: the rewritten `PinVoiceOverProbe` fails 3 runs of 3 at its first
-  `describe(pins())`, line 27, with "No matches found for Element at index 26".
-  `allElementsBoundByIndex` resolves each element when `.label` is read, and the
-  map has redrawn by then. It stops before `isOurs` or the zoom loop run, so
-  nothing past that line is shown to work, and the cluster label has no on-screen
-  coverage. Saved as it stands because the version before it could not pass
-  either (it read `value`, which MapKit never exposes). It is in the default
-  test plan, so a full default run goes red on it.
-
-### 2026-10-07 (test plans linked: explicit default, unit plan second)
-
-- Decided: the scheme lists two explicit plans, `WAFishMap` (default, both bundles)
-  and `WAFishMapUnit`. Linking only the unit plan beside the automatic one emptied
-  the automatic plan: the default run failed with "There are no test bundles
-  available to test", while the untouched scheme listed 341 tests on the same
-  simulator. That failure is the red the comparison was watched going.
-- Observed (Xcode 27.0, `-enumerate-tests`): default plan = the pre-change set
-  exactly, 331 unit + 10 UI; unit plan = the 331 alone. The unit plan then ran:
-  331 tests in 53 suites passed.
-- Not done: the Xcode Cloud workflow still only builds. Adding a Test action that
-  uses `WAFishMapUnit` is a step in Xcode or App Store Connect; the API route
-  needs the issuer id this Mac does not have.
-
-### 2026-10-06 (colour-blind pass on the ramp: no ring, gate added)
-
-- Decided: no ring channel. Measured with `WAFishMapTests/CVDSeparationTests.swift`
-  (exact, resolved tokens, Machado 2009 severity 1.0, linear RGB, iPhone 18 Pro) and
-  looked at in all four simulated frames (`scripts/cvd_check.py` regenerates
-  them beside the pinned frames in `docs/design/ramp-check/`; not committed). Slow is safe. Criterion: a pair fails when dL* < 12 AND dE76 < 30.
-- Numbers (dL* / dE76), light then dark:
-  - deuteranopia: fair->good 12.71/18.8, 14.01/21.9; good->prime 11.11/19.5, 11.14/21.1
-  - protanopia: fair->good 17.51/24.7, 18.99/28.8; good->prime 18.14/39.6, 17.79/40.4
-- good->prime fails the colour test under deuteranopia in both appearances. It is
-  carried by glyph ink (black on Good, white on Prime), asserted on the real views.
-  fair->good passes but is the weakest pair and has no second channel: 0.7 L* above
-  the floor in light deuteranopia, and in the dark frames the pins read as two
-  yellows (Fair vivid, Good muted). If that ever matters, the ring goes on Fair, not
-  Prime (the old "option C on Prime" note predates the ink observation); Good is ~85%
-  of the map in season, so ringing it would ring everything.
-- The gate fails the build when a token move leaves a pair neither separated by
-  simulated colour nor by ink. It was watched failing first: the first version
-  failed on good->prime until the ink channel was asserted; with the deuteranopia
-  matrix swapped for identity, three control assertions went red.
-- Plan's calibration claim corrected: pure red/green keeps a real lightness gap
-  under a correct simulation, so it does not fail the dL*/dE criterion. The known-bad
-  control is a green built to match red's simulated green channel (dL* 0.3, dE76 7.9).
-- Simulated frames are approximate (P3 screenshots read as sRGB); the Swift numbers
-  are the exact ones.
-- Stale line fixed: "11pt dot above 150km" died with the dot renderer in `868aa35`.
-- Runbook note: after the mutated run finished, `xcodebuild` stayed alive with the
-  results final; killed by PID (matches the 2026-09-16 hang).
-
-### 2026-09-21 (App Review rejection 5.2.5, WeatherKit attribution)
-
-- Found: 1.0 (6) rejected under 5.2.5. Apple's message: the reviewer could not confirm WeatherKit attribution (Apple Weather mark + legal source link) and wants a physical-device screen recording showing where WeatherKit is used, in App Review notes, for every future submission.
-- Decided: harden the attribution and ship a new build rather than reply-only. The old mark was 12pt, `.tertiary`, with only a chevron as the legal link. Now 20pt full contrast plus a labelled "Other data sources" link (`8339996`); the device UI test asserts both.
-- Observed on iPhone 16 Pro: the device UI test failed with the legal-link id deliberately broken (live WSW 4 mph reading on screen, mark assertion passing), then passed unmodified in 7.7s.
-- Uploaded from `562604b` via exportArchive; ASC refused 1 and 7 (`previousBundleVersion: 7`, so a 7 exists that this log did not create) and accepted **build 8**.
-- Found: `1ced71d` (NDBC throwing URL) left `WAFishMapTests` uncompilable, so the unit suite had not run since. Fixed in `8339996`; 275 tests pass.
-
-### 2026-09-21 (Workflow Audit & URL Safety)
-
-- **CI Restored:** Configured Xcode Cloud (`ci_scripts/ci_post_clone.sh`) to replace the disabled GitHub Actions runners. Enforces the strict iOS 26 SDK requirement seamlessly using Apple Developer compute.
-- **Testing Fixed:** `scripts/run_sim.sh` now correctly accepts a `test` argument, aligning with the `README.md` instructions and restoring command-line UI testing.
-- **Safety:** Replaced force-unwrapped static URLs in `NDBCLoader` with throwing `invalidURL` constructions to prevent silent upstream parsing crashes.
