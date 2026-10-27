@@ -181,7 +181,7 @@ is minted and the old link goes stale. Read the live version before publishing
 | Folder | Page | Source of truth |
 |--------|------|-----------------|
 | `salmon-rivers/` | Washington Fishing Map: one map (Recent reports, Typical season, Spawning) with Seasons, Spot guides and Creel counts layers; the old Week, Year, Spots and Counts paths redirect into it (2026-10-26) | its README |
-| `fishing-year/` | Washington Fishing Year — seasons calendar, Oct 2026–Nov 2027; its data is copied byte for byte to `salmon-rivers/seasons-data.js` for the map's Seasons layer | `seasons.json` → its README; copy `data.js` to `salmon-rivers/seasons-data.js` after a rebuild |
+| `fishing-year/` | Washington Fishing Year — seasons calendar, Oct 2026–Nov 2027; its data is copied byte for byte to `salmon-rivers/seasons-data.js` for the map's Seasons layer | `seasons.json` → its README; the build writes `data.js` and its copy `salmon-rivers/seasons-data.js` |
 | `salmon-catch-table/` | SW Washington Creel Table — WDFW weekly counts | `~/database/salmon-rivers/salmon.db` → its README |
 | `three-friends-fishing-hole/` | Three Friends Fishing Hole — one Green River bank spot in Kent; its content now lives in `salmon-rivers/spots.js` as the map's Spot guides layer | `salmon-rivers/spots.js` (hand-written; dated rules go stale) |
 | `design-system/` | WA Fish Map design system (Design System type) | `project/` + `index.html`; the type's own files are not copied |
