@@ -66,11 +66,28 @@ coloured rivers compete with about 150 solid black layer glyphs.
   below the bar.
 - Fix: pad the fit's top by the bar's height.
 
-### 7. Smaller items
-- The Layers button's text reads "Layers · 22" to a screen reader (the hidden
-  label "Layers · 2" plus the visible count "2").
-- A selected site's label can sit under a neighbouring pin (`site-390-light.png`,
-  "Sedro-Woolley · Good").
+### 7. A selected site's label can sit under a neighbouring pin
+- Seen in: `site-390-light.png`, "Sedro-Woolley · Good". Pins and labels share one
+  layer in creation order, so a neighbour drawn later covers the selected label.
+- Withdrawn on checking: the Layers button does not read "Layers · 22" to a screen
+  reader. The visible count is `aria-hidden`, so the name is "Layers · 2" once.
+
+## Applied (same day, map version 34)
+
+All seven, measured in a browser after the change:
+1. Key icon shows on phones (16x16 at 390). The desktop hide rule now sits above the
+   phone block; a test fails if a later rule hides it again.
+2. Every bar control is at least 44 px at 320, 360, 375 and 390 px; the bar no longer
+   scrolls from 360 up (320 scrolls 32 px; Spawning at 360 scrolls 4 px). Rivers is an
+   icon on phones, the age line under the bar opens the notice so the bar drops its
+   duplicate icon, and 370 px and under use tighter spacing.
+3. Phones centre the state (Typical at 390: y 279 to 520).
+4. On phones the Reports month card opens folded to its counts (bottom at y 248, was
+   297); a Months button shows the chart.
+5. Layer symbols draw at 55 percent, behind the coloured rivers; full strength on focus.
+6. Typical and Spawning reserve 30 px above the state for pins (desktop: land top 98,
+   bar bottom 56).
+7. The selected pin and its label move to the top of the layer.
 
 ## What works and should stay
 
