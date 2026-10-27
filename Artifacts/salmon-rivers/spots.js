@@ -40,6 +40,7 @@ window.SPOTS = [
   },
   {
     id: 'waterman-point-pier',
+    tide: true,
     name: 'Waterman Point Pier',
     sub: 'Puget Sound (Sinclair Inlet) · Port Orchard · Public pier',
     lat: 47.5731, lon: -122.5812,
@@ -72,6 +73,7 @@ window.SPOTS = [
   },
   {
     id: 'fox-island-pier',
+    tide: true,
     name: 'Fox Island Fishing Pier',
     sub: 'Puget Sound (Hale Passage) · Fox Island · Public pier',
     lat: 47.2287, lon: -122.5905,
@@ -104,6 +106,7 @@ window.SPOTS = [
   },
   {
     id: 'browns-point',
+    tide: true,
     name: 'Browns Point Lighthouse Park',
     sub: 'Puget Sound (Dalco Passage) · Tacoma · Shore access',
     lat: 47.3059, lon: -122.4443,
@@ -138,6 +141,7 @@ window.SPOTS = [
   },
   {
     id: 'tolmie',
+    tide: true,
     name: 'Tolmie State Park',
     sub: 'Puget Sound (Nisqually Reach) · Olympia · Shore access',
     lat: 47.1204, lon: -122.7758,
@@ -169,6 +173,7 @@ window.SPOTS = [
   },
   {
     id: 'codiga-park',
+    tide: true,
     name: 'Codiga Park',
     sub: 'Green (Duwamish) River · Tukwila · River bank',
     lat: 47.4906, lon: -122.2701,

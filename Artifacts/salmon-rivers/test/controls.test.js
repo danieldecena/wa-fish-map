@@ -74,3 +74,9 @@ test('piers and shore layer: plain markers, never a rating colour, and never dra
   assert.doesNotMatch(fill, /badge|Season\.siteView|colorVar/, 'the sheet carries no rating');
   assert.match(fill, /Not a catch report and not a rating/);
 });
+
+test('the page script parses (a stray quote in a string blanks the whole page)', () => {
+  const m = html.match(/<script>\n([\s\S]*?)<\/script>/);
+  assert.ok(m, 'control: the inline page script is found');
+  assert.doesNotThrow(() => new Function(m[1]));
+});
