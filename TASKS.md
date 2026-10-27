@@ -1,24 +1,31 @@
 ## Tasks
-- [ ] [you] Look over the one-map page on a phone and a desktop: Layers menu, Seasons slider and tags, the Kent guide pin, count badges. Built 2026-10-26 from docs/superpowers/plans/2026-10-26-one-map-layers.md.
-- [x] Run `node Artifacts/salmon-rivers/check-week.mjs` where Playwright is installed (the MacBook); it was cut to the one map on 2026-10-26 and has not run since.
 - [ ] Puget Sound river reports: repeat the sourcing pass (spec 2026-10-26-puget-river-reports) when new shop or guide reports appear; a river is added only with a report at most 21 days old (Skagit added 2026-10-26 on the Confluence Fly Shop's Oct 10 report; replace it when a fresher one appears). First pass: docs/research/2026-10-26-puget-river-reports.md.
-- [x] Live conditions sub-project: USGS flow inside the map's site sheets (NOAA tides are done for marine Typical-season sheets, from the bundle).
-- [x] Fishing Year build: `scripts/build_fishing_year.py` writes `Artifacts/fishing-year/data.js`; the map reads a byte copy at `salmon-rivers/seasons-data.js` (`test/season-places.test.js` fails until it is copied). Make the build write both, and add a `season-places.js` entry for any new season.
-- [x] Recover the river-rules note and generators — 1af89ed
-- [ ] Map deep links: `?mode=spawning` without `month` gets `&month=<current>` appended on boot (per the spec's write rule); `setMode` fires a transient link sync before the final one. Both self-correct; revisit only if they show up in history or tests.
 
 #### Design critique 2026-10-26
 
-- [x] Edge-tap UI test for the 44pt marker target
-- [ ] [you] Run the marker edge-tap test on the iPhone
-- [x] [you] Check the attached recording shows the far-date state -- moot, 1.0 (10) approved
-- [x] [you] Reply to Apple only if build 10 is rejected -- approved, no reply
+- [ ] [you] Unlock the iPhone and run the pin device script
 - [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
-- [ ] [you] Release to the App Store after approval (manual release)
+- [ ] Retake the App Store screenshots in daylight
 - [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
-- [x] Fishing Year: confirm Two Rivers Point (city plan)
 
 ## Completed
+
+### 2026-10-27 — cleared from Tasks
+
+- [x] Fix dead links on the old marketing page -- 84d8c6e
+- [x] Kent guide pin hidden under Codiga Park at opening zoom -- map v37
+- [x] Confirm 1.0 shows in the public App Store -- live 01:22
+- [x] Look over the one-map page on a phone and a desktop -- browser pass 2026-10-27, see STATUS
+- [x] Run `node Artifacts/salmon-rivers/check-week.mjs` where Playwright is installed (the MacBook); it was cut to the one map on 2026-10-26 and has not run since.
+- [x] Live conditions sub-project: USGS flow inside the map's site sheets (NOAA tides are done for marine Typical-season sheets, from the bundle).
+- [x] Fishing Year build: `scripts/build_fishing_year.py` writes `Artifacts/fishing-year/data.js`; the map reads a byte copy at `salmon-rivers/seasons-data.js` (`test/season-places.test.js` fails until it is copied). Make the build write both, and add a `season-places.js` entry for any new season.
+- [x] Recover the river-rules note and generators — 1af89ed
+- [x] Map deep links: spawning month append and transient sync -- no history entry, see STATUS
+- [x] Edge-tap UI test for the 44pt marker target
+- [x] [you] Check the attached recording shows the far-date state -- moot, 1.0 (10) approved
+- [x] [you] Reply to Apple only if build 10 is rejected -- approved, no reply
+- [x] Release 1.0 (10) to the App Store -- READY_FOR_SALE 2026-10-27
+- [x] Fishing Year: confirm Two Rivers Point (city plan)
 
 ### 2026-10-27 — Artifacts folder organized
 

@@ -132,13 +132,11 @@
   it is in the default test plan.
 - The App Store screenshots predate the 2026-10-14 design pass; refresh them
   at the next submission.
-- `Artifacts/app-store-listing` has dead demo, privacy and support links (see
-  its `artifact.json`); fixing it means republishing, which wants Daniel's OK.
 
 ## Next Up
 
-- 1.0 (10) is approved and waits on a manual release (Pending Developer
-  Release, read from Apple 2026-10-27). Releasing makes it public: Daniel's call.
+- 1.0 is public in the App Store (apps.apple.com/us/app/wa-fish-map/id6807799974,
+  seen 2026-10-27 01:22). Next: refresh the App Store screenshots.
 - Fishing Year: pink seasons once WDFW sets the 2027 odd-year rules (Apr 2027).
 - 1.0 (9) carries the pin VoiceOver fix and is with both TestFlight groups,
   `Internal` and `insideout`, beta review approved (read from Apple 2026-10-09).
@@ -147,6 +145,34 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-27 (App Store screenshots: not retaken yet, and why)
+- A /goal run built 1.0 on the iPhone 18 Pro simulator and captured the live set's six frames (Tacoma, Boston Harbor sheet, Seattle, San Juans, Spokane, Hood Canal, a location fix per region, 1206x2622). None were kept. The plan card's date chip reads the device's real clock, so at 01:36 every map frame said "Oct 27, 1:36 AM" with a Night badge; and the `-uiTesting` sheet loads the offline fixture, which has no protected-area layer, so the Boston Harbor sheet showed "Protected-area check unavailable". Retake in daylight, and get the sheet frame from the live app (tap a pin) rather than the seam. Resize with `sips -z 2778 1284` for the 6.5" slot.
+- `scripts/run_sim.sh` stopped at its open-the-window step (Xcode 27 has no Simulator.app; `set -e` ended the run before the build). It now warns and carries on headless; the rebuilt app was confirmed on the device by its 01:35 binary.
+
+### 2026-10-27 (old marketing page links fixed; version 10)
+- `Artifacts/app-store-listing` republished as 1793090014-02d2 in a /goal run: Privacy and Support now go to the github.io pages App Store Connect uses (both answered 200), "Try It Here" is a plain link to the interactive preview artifact (an iframe of another claude.ai artifact was never going to load, and the probe for `demo/index.html` always failed), and the TestFlight "Flight" button and "In App Review" text became the public App Store link and "released Oct 27, 2026". Live read back equals the source plus one publisher wrapper.
+
+### 2026-10-27 (overlapping guide pins grouped; map version 37)
+- Guide pins closer than 30 px now draw as one pin with a count ("2 spot guides"); a tap opens a sheet listing them plus "Zoom in here", which fits them at 2x to 8x. It follows the Figma mockup's content but uses the page's sheet, not a popover, so it matches every other tap on the map. Guide pins moved to their own `#guides` layer above `#over`, so marks built later cannot cover them.
+- New page check (guides, 390 and 1280 px) failed 4 on the old page (Kent under Codiga Park at both widths, and Fox Island under Browns Point on the phone) and passes on the new: 173 checks, 198 Node tests. Published as map version 37 (1793089848-ed42) on Daniel's go; the live page read back equals `index.html` plus the publisher's wrapper.
+
+### 2026-10-27 (1.0 public in the App Store)
+- Confirmed live at 01:22: the iTunes lookup by bundle id returns WA Fish Map 1.0, id 6807799974, released 08:12 UTC, and the store page answers 200. The same lookup with `country=us` still returned 0 at that moment while the lookup by id with `country=us` returned 1, so the empty result at release was cache lag, as the release entry read it.
+
+### 2026-10-27 (1.0 (10) released; pin checks wait on an unlocked phone)
+- Released on Daniel's explicit "Release now" (asked in session, recommendation was to hold for the stale screenshots and dead listing links). Read first through `app-ship`'s key: exactly one iOS version pending, 1.0 build 10, release type MANUAL. `POST /v1/appStoreVersionReleaseRequests` returned a release-request object with the version id (a 2xx: the client raises on any error status), and the version read back READY_FOR_SALE at 01:12:16. The public iTunes lookup by bundle id returned 0 results right after; that is propagation lag until shown otherwise, not a failed release. `ship.py` has no release command; the scratch call reused its client.
+- Device pin checks not run: the iPhone was paired, developer mode on, but locked (`passcodeRequired: true`) and its Wi-Fi tunnel came and went. `scripts/verify_pins_device.sh` now does the run in one command. Device signing is proven: `build-for-testing` for `generic/platform=iOS` succeeded and the app is signed for team 877MLS29T9 with WeatherKit. Its pass detector was checked on the other session's real passing simulator log (accepted) and a copy with one test turned to failed (refused); its unlocked branch has not run.
+- A `build-for-testing` aimed at the locked phone by id sat with a 245-byte log; aim at `generic/platform=iOS` to build, and let the test run name the phone.
+- `PinVoiceOverProbe` passed once on the iPhone 18 Pro simulator in another session (00:59). Known broken still says it fails every run; one pass does not overturn an intermittent failure, and a repeat run was refused here because three simulators were booted.
+
+### 2026-10-27 (one-map page looked over in a browser; link quirks closed)
+- The one-map look-over was done by machine, not by hand: `check-week.mjs --today 2026-10-27` passed 163 checks at 320, 360, 390 and 1024 px, light and dark (Layers menu, month slider, three legend lines, 44 px targets, no horizontal scroll, the four old-page redirects). A scratch click-through at 390 and 1280 px then opened the Layers menu, turned on Seasons, Spot guides and Creel counts (link carries them), found 8 "N kept" count badges and 26 season shapes and tags, with no console errors. Screenshots showed the Skagit coho tag and the Kent guide pin drawn. The phone summary chips run off the right edge by design (`.dsum` scrolls sideways). Not covered: how touch feels on a real phone.
+- Finding, not fixed: at the opening zoom the Kent guide pin (`three-friends`) is under the Codiga Park guide pin and the Duwamish spawning site. `elementFromPoint` at the pin's centre returns Codiga Park (390 px) or the Duwamish site (1280 px), and a real click there opened their sheets. Zooming toward Kent separates them (one wheel step on desktop, three on a phone), keyboard and VoiceOver reach the pin directly, and pin names are drawn apart from the pins, so they are not tappable. Separating or grouping overlapping guide pins is a design change to the live page, so it is a task, not an edit made here.
+- Deep-link quirks closed: `Links.write` only calls `replaceState`, and loading `?mode=spawning`, `?mode=spawning&species=Chum` and `?mode=typical` in Chromium left `history.length` unchanged from its value at first script run, including the run that appends `&month=10`. The first version of that check counted the browser's own about:blank entry and failed on the unrewritten typical link too, which is how it was caught as a broken check rather than a page bug.
+
+### 2026-10-27 (Artifacts organized; live pages stay one level down)
+- PR 95: the seasons source moved into `Artifacts/salmon-rivers/seasons/`; the build writes only `seasons-data.js` (byte-identical), and `test/season-places.test.js` now rebuilds the full expected data, rivers included (seen to fail on a stale stop). The retired Fishing Year and Three Friends pages went to `Artifacts/archive/`. The three still-published pages were first archived too, then moved back: `~/bin/artifact-refs.sh` (invariants 28 and 29) only finds `Artifacts/<slug>/artifact.json`, so a deeper binding drops out of the checks with no error.
 
 ### 2026-10-27 (1.0 (10) approved)
 - Read from the App Store Connect API with `app-ship`'s key, read-only: App Store version 1.0, build 10, `appStoreState` PENDING_DEVELOPER_RELEASE, release type MANUAL; review submission `4cef16a5` state COMPLETE, submitted 2026-10-10 02:28 UTC. So 5.2.5 is cleared: the "reply to Apple if rejected" and "check the recording shows the far-date state" tasks are closed, and the Known-broken review line is removed. Releasing is not done: it makes the app public and is Daniel's to trigger.
@@ -183,171 +209,3 @@ current counts rather than trusting a number written here.
 - Decided: the test guards that a pin stays selectable from all four edges, not that `hitRect` makes it so. Whether hardware honours the rect is a device run, filed as a `[you]` task.
 - Full UI target on the same simulator: 18 tests, 2 skipped (device-only), 0 failures, xcodebuild rc=0. `PinVoiceOverProbe` passed this once; one green run does not retire its Known broken line.
 
-### 2026-10-26 (river sources recovered, not recreated)
-- The "lost" river-rules note and the `rivers-tap.js` / `sites.js` generators were never lost: they sit on the unmerged `origin/feat/one-app-2026-10-20` (commits a1fad96, 55d8fc0), whose page work reached `main` by another route. Restored as-is. Evidence: that branch's `rules.js` and `rivers-tap.js` are byte-identical to `main`'s; `build_rivers_tap.py` rebuilt `rivers-tap.js` byte for byte; `build_spawning_sites.py` rebuilt `sites.js` with identical data and only the header now naming the real script (it said `build_sites.py`, which never existed).
-- Decided: the three files are generated or sourced again, not hand-maintained. The README says how to rebuild them.
-- The Puget river reports pass was not repeated this session: the first pass ran the same day.
-
-### 2026-10-26 (PR 55 close-out, one owner per page url)
-- PR 55's open check is done: `NoteScopeTests` and `WaterbodyResolverTests` ran on a Mac (11 tests in 2 suites, pass) on a spare simulator, not the booted one another session was using. The `wa-fish-map-pr55` worktree was clean and removed.
-- Decided: a folder whose page was folded into the main map keeps `published-in.json`, not `artifact.json` (PR 83). Fishing Year and Three Friends both still claimed the main url, so three files owned one url and the artifact register failed "url owned twice". The main map's binding is the only owner; the register (terminal-kit df69f22, version 9) now agrees on 85 bindings.
-- The one-map-with-layers Design canvas (79zGaaVT) is recorded in `Artifacts/one-map-layers-design/`. It is a mockup; nothing in it feeds the live map.
-
-### 2026-10-26 (Week page, deep links, tides, thin bar)
-- Tides are bundled, not fetched. The published page runs in a claude.ai frame whose CSP `connect-src` allows only claude.ai origins, so the Week tab's live `fetch` to NOAA was blocked for viewers (it worked from the build container and a local Playwright page, which is why the spike passed). `scripts/build_tides.py` now fetches CO-OPS hilo predictions (MLLW, english, `lst_ldt`) for 26 stations and writes `Artifacts/salmon-rivers/week/tides-data.js` (45 days, 134 KB); `tides.js` reads it, the Week tab says through which date, and marine Typical-season sheets show "Tides today" from the nearest bundled station. The page makes no network request at all (a test greps `tides.js`, `week.js` and both pages for `fetch(`/`XMLHttpRequest`). Re-run the script at least monthly and republish `week/tides-data.js`.
-- The 26 tide station ids were verified against NOAA station metadata (`mdapi/.../stations/<id>.json`, listed under `type=tidepredictions`, state WA) on 2026-10-26:
-
-      9447130 "Seattle" 47.60264 -122.3393
-      9446484 "Tacoma" 47.2667 -122.4133
-      9447659 "EVERETT" 47.98 -122.223
-      9444900 "Port Townsend" 48.11122 -122.759674
-      9449880 "Friday Harbor" 48.545277 -123.0125
-      9449424 "Cherry Point" 48.862717 -122.75858
-      9444090 "Port Angeles" 48.125 -123.44
-      9443090 "Neah Bay" 48.370724 -124.601585
-      9442396 "La Push, Quillayute River" 47.912838 -124.63574
-      9441102 "Westport" 46.90431 -124.10508
-      9440910 "Toke Point" 46.7075 -123.96694
-      9445478 "UNION, HOOD CANAL" 47.3583 -123.098
-      9445303 "Seabeck, Seabeck Bay" 47.6417 -122.828
-      9445133 "Bangor" 47.7483 -122.727
-      9446969 "OLYMPIA, BUD INLET, PUGET SOUND" 47.06 -122.903
-      9446281 "ALLYN" 47.3833 -122.823
-      9445958 "Bremerton" 47.5617 -122.623
-      9447427 "EDMONDS" 47.8133 -122.383
-      9445753 "Port Madison" 47.705 -122.525
-      9448794 "ANACORTES, FIDALGO ISLAND" 48.5183 -122.62
-      9449211 "BELLINGHAM" 48.745 -122.495
-      9447929 "Coupeville, Penn Cove, Whidbey Island" 48.2233 -122.69
-      9443361 "SEKIU, CLALLAM BAY" 48.2633 -124.297
-      9441187 "Aberdeen" 46.9683 -123.853
-      9440846 "BAY CENTER, PALIX RIVER, WILLAPA BAY" 46.6233 -123.945
-      9440581 "Cape Disappointment" 46.281 -124.0463
-
-  `build_tides.py` and `tides.js` use short names (Everett, La Push, Union) and NOAA's coordinates rounded to 4 decimals.
-- Typical season has no month control, so the `month` parameter applies to Spawning only.
-- The Year page has no season anchors, so Week links to the top of `../year/index.html`. Follow-up filed in TASKS.md.
-- Built in a local copy because the repo was unreachable, then applied here on top of a capture of live 1792491424-046f (the service's injected document skeleton stripped from index.html; geo.js kept as generated, the live copy differed only in number formatting). Four existing tests (controls x2, design spacing, typical deep-link guard) were rewritten for the thin bar and the links.js boot; each was watched failing on broken code.
-- The page's "No network requests from the page" rule has no exception (README).
-- The map's control card became one 56 px row on Daniel's request; on phones the mode switch is a menu and species a filter icon. Unselected mode labels measure 4.85:1 dark / 4.77:1 light.
-- Tests: 62 Node tests in 4 new files (`week`, `tides`, `links`, `tabs`); 196 Node tests in all (193 pass, 3 skipped without the local db); `check-week.mjs`: all checks passed, lowest tab-label contrast 4.77 (light) / 4.85 (dark).
-- The three standalone artifacts (Where Salmon Spawn, Washington Fishing Year, Three Friends Fishing Hole) were deleted 2026-10-26 after being merged into the main URL.
-
-### 2026-10-20 (project docs brought up to date)
-
-- Decided: CLAUDE.md, README and SETUP now cover the `Artifacts/` web pages,
-  their bindings, the Swift-to-JS rating coupling, the four test suites and the
-  six new data scripts, none of which they mentioned. CI is recorded as Xcode
-  Cloud only. Decision-log entries from 2026-09-20 and earlier moved to
-  `STATUS-ARCHIVE.md` (this file was 45 KB). `Artifacts/fishing-year` got a
-  README. `.playwright-mcp/` is gitignored. No app code or `fisheries.json`
-  change; the only data change is the Fishing Year sync below.
-- Every fish artifact on the account now has its source in `Artifacts/`:
-  Three Friends Fishing Hole added; published source captured for the design
-  system, App Store listing, interactive preview and Inside WAFishMap. Fishing
-  Year had been republished outside the repo (Green River timing note, Three
-  Friends stop note); those edits were copied into `seasons.json` and the
-  rebuilt `data.js` is byte-identical to the live one. The Washington Fishing
-  Map and Creel Table matched the repo already.
-- Not verified: the 1.0 (10) review state. Whoever next has App Store Connect
-  access reads it and replaces the line under Known broken.
-
-### 2026-10-18 (web pages: Washington Fishing Map, Fishing Year, creel)
-
-- Summary only; the commits and the page READMEs hold the detail. The salmon
-  rivers page became the Washington Fishing Map with a Typical season mode
-  (540 statewide sites rated by a JS port of `FishingRating`, pinned to the
-  Swift tests). WDFW creel counts reach map sites only through the reviewed
-  `scripts/creel_crosswalk.json`. Washington Fishing Year moved its data into
-  `seasons.json`, sourced against the 2026-27 pamphlet and emergency rules.
-  Skagit River and Puyallup River coho rows were added to `fisheries.json`
-  (PRs 54, 55; `docs/research/2026-10-18-*-coho.md`). Retro: `docs/NOTES.md`.
-
-### 2026-10-14
-
-- Decided: act on the 2026-10-14 design critique's three priorities (plan
-  `docs/superpowers/plans/2026-10-14-design-critique-priorities.md`, PR 51).
-  "What's biting" now leads the launch and pier sheets, below the
-  protected-area qualifier and above the WDFW footer. Fine print moved from
-  tertiary to `DS.Ink.fineprint` (secondaryLabel; measured on system and
-  secondary background: light 3.44 / 3.30, dark 6.36 / 5.95), floor 3.0:1
-  because secondaryLabel itself sits near 3.5:1. Closed chip rebuilt like
-  RatingBadge. Recentre touch area 44pt, drawing unchanged. Rivers and Heat are
-  real Toggles with a custom `LayerToggleStyle` (solid `DS.Chrome` fill and
-  white label when on): the system button toggle style was tried first and drew
-  a pale wash with tinted text, nearly unreadable in dark, so the fill is drawn
-  by hand to match what `ToggleTintContrastTests` measures. Species menu is a
-  pill; map chrome names its type roles. The App Store screenshots predate this
-  and are refreshed at the next submission.
-- Found: giving the toggles an accessibility identifier replaced the default
-  one (the label), which broke `RiversCrashProbe`'s lookup by "Rivers". The
-  probe now looks up `riversToggle`. Anything that finds chrome by label needs
-  the same check after an identifier is added.
-
-### 2026-10-09 (workflow: fixing an App Review rejection and shipping the fix)
-
-- Found: Apple's rejection screenshot (Download link on the rejected item in
-  App Review) showed the sheet in the "forecast doesn't reach that date" state
-  with no Apple Weather mark and no legal link. The attribution was only drawn
-  beside a real reading. Fixed in `e953b69`, shipped as 1.0 (10).
-- Decided: read the reviewer's own evidence before replying or rebuilding. The
-  text of a rejection is stock wording; the attached screenshot is what they saw.
-- The steps that worked, in order:
-  1. Download the screenshot from the rejected item, open it, and find the
-     state it shows. Grep the code for where that state renders.
-  2. Fix, then add a device test that puts that exact state on screen
-     (`-planDaysAhead 60` in `UITestSeam` for this one). WeatherKit does not
-     work in the Simulator, so only `scripts/verify_weatherkit_device.sh` or a
-     direct `xcodebuild test` on the iPhone can observe the mark.
-  3. Prove the new test fails on the old code: restore the previous file with
-     `git show <sha>^:<path>`, assert the diff is non-empty, run the test, watch
-     it go red, then `git checkout` the file back.
-  4. Save to history, then ship with the `testflight-shipper` agent
-     (`app-ship`: upload, wait, internal group). It refuses to upload if Apple
-     already lists the build number.
-  5. Outside testers are a separate, approved step:
-     `/opt/homebrew/bin/python3 ship.py submit-beta wafishmap --build N` (flag
-     is `--build`, not a bare number). Read `status` back; a dropped connection
-     on 2026-10-09 left it not submitted, and one retry went through.
-  6. On the App Store version page: remove the old build, Add Build, pick the
-     new one, click Save, then read the page back. Replying to Apple and
-     "Update Review" are Daniel's. Browser clicks that remove a build or press
-     Save were blocked by the auto-mode classifier in Safari, so these two
-     clicks are his by hand.
-- Gotcha: `verify_weatherkit_device.sh` counts any non-simulator device, so an
-  offline iPad makes it refuse with "more than one physical device". It was
-  bypassed with a direct `xcodebuild -destination platform=iOS,id=<iPhone UDID>`.
-- Gotcha: bare `python3` cannot run `ship.py` (needs 3.10+ syntax); use
-  `/opt/homebrew/bin/python3`.
-- Done 2026-10-09 7:28 PM: Daniel saved build 10 and resubmitted; Apple read
-  back 1.0 (10) Waiting for Review. A Waiting-for-Review submission has no
-  reply box, so the reply to Apple's Sep 24 message cannot be sent unless the
-  submission is cancelled; the fix goes in the App Review Notes instead (saved
-  and read back, 2421 chars, WeatherKit section now says the mark and link show
-  in every state). The attached .mp4 was not played, so whether it shows the
-  date-too-far state is unverified.
-
-### 2026-10-09 (1.0 (8) was rejected again on 09-24; build 9 is with internal testers)
-
-- Found: App Store version 1.0 (8) is Rejected and has been since 2026-09-24
-  06:18. This file said "Waiting for Review" for fifteen days because nothing
-  read the status back after the 09-21 resubmission. Read today from the
-  submission page (id `4cef16a5-876e-4b53-88de-c9c1997adcbd`): three messages,
-  Apple 09-21 00:18, Daniel 09-21 17:29, Apple 09-24 06:18; review date
-  September 24 on an iPhone 17 Pro Max; guideline 5.2.5 again. Apple's text:
-  "The issues we previously identified still need your attention", then the same
-  ask as before, a physical-device screen recording showing where WeatherKit is
-  used, sent as a reply and kept in the review notes. The version page does list
-  `WAFishMap-WeatherKit-attribution-review.mp4` as the review attachment, and
-  Apple attached its own `Screenshot-0924-061726.png`, not opened here. Not
-  known: why the recording did not satisfy the reviewer. No reply was sent and
-  nothing was resubmitted today.
-- Done: 1.0 (9) uploaded from `1437920` through `~/developer/app-ship` and read
-  back from Apple as VALID, in beta testing in the `Internal` group, not in
-  `insideout`, beta review not submitted. The upload was accepted on the 1.0
-  train. The submission page still shows build 8, Rejected, last updated by
-  Apple, so the upload changed nothing there.
-- Found, minutes later: build 9 is with outside testers too. `app-ship`'s run log
-  has `submit-beta` at 18:13 and Apple now reads beta review APPROVED, external
-  in beta testing, groups `Internal` and `insideout`. It was run from another
-  session, which recorded it as Daniel's; the line above was true when read.

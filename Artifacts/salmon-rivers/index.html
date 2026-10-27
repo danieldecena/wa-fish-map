@@ -123,7 +123,7 @@ a { color: var(--on-text); }
 #map { position: absolute; inset: 0; overflow: hidden; background: var(--ground); touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
 #map.drag { cursor: grabbing; }
 #map svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-#over { pointer-events: none; }
+#over, #guides { pointer-events: none; }
 .r { fill: none; stroke: var(--river); stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .r.o2 { stroke-width: 0.5px; opacity: 0.75; }
 /* Rivers with no fishing data fade back; rivers with a report, a WDFW notice, a season or a spot guide are redrawn at full strength in #rdata. */
@@ -169,6 +169,9 @@ a { color: var(--on-text); }
 .pin.spotpin .balloon { fill: #fff; }
 .pin.spotpin .mark { fill: var(--brand-a); }
 .pin.spotpin:focus-visible .balloon { stroke: var(--on); }
+/* Guide pins too close to tell apart: one pin with the count, which opens a list of them. */
+.spotgrp .n circle { fill: var(--brand-a); stroke: #fff; stroke-width: 1.5; }
+.spotgrp .n text { fill: #fff; font: 700 11px/13px var(--sans); text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; }
 /* Piers and shore layer: WDFW sites as plain markers in ink on the sheet colour. No rating colour: their timing lives in Typical season. */
 /* Typical season and Spawning as layers over another mode: neutral ink shapes, never a rating colour, so they cannot be read as catch reports.
    Square a boat launch, diamond a pier, circle shore access, triangle a salmon viewing site. Solid: in season (Prime or Good) or spawning (Peak or Active) in the month. */
@@ -599,6 +602,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   <div id="map" role="application" aria-label="Map of salmon rivers in southwest Washington. Drag to pan, pinch or use the buttons to zoom, select a river marker for details.">
     <svg id="base" aria-hidden="true"><g id="vp"></g></svg>
     <svg id="over"></svg>
+    <svg id="guides"></svg>
   </div>
 
   <div id="chrome">
@@ -875,6 +879,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
 
   /* ---- overlay: landmarks, pins, clusters ---- */
   var over = $('#over');
+  // Spot guides draw on their own layer above #over, so a mark #over builds later (a spawning site, a cluster) never covers a guide pin.
+  var guides = $('#guides');
   // Created before the landmarks and pins, so the "You" dot sits under every pin.
   var youG = el('g', { 'class': 'you', 'aria-hidden': 'true' }, over);
   el('circle', { 'class': 'ring', r: 8.5 }, youG);
@@ -931,17 +937,34 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   SITES.forEach(function (s) { pinNodes[s.id] = buildPin(s.id, s.name.replace(' River', '')); });
   // Spot guides: one pin per guide (spots.js), shown only while the layer is on. No data-id, so a tap never reaches the mode's own sheet.
   var SPOTLIST = (window.SPOTS || []).map(function (s) {
-    var g = el('g', { 'class': 'pin spotpin', 'data-spot': s.id, tabindex: '0', role: 'button', 'aria-label': s.name + ', spot guide' }, over);
+    var g = el('g', { 'class': 'pin spotpin', 'data-spot': s.id, tabindex: '0', role: 'button', 'aria-label': s.name + ', spot guide' }, guides);
     var sc = el('g', { 'class': 'pin-s' }, g);
     el('ellipse', { 'class': 'tipshadow', cx: 0, cy: 0, rx: 6, ry: 2.2 }, sc);
     el('circle', { r: 26, cy: -16, fill: 'transparent' }, sc);
     el('path', { 'class': 'balloon', d: 'M0 0L-6.5 -10.5A13 13 0 1 1 6.5 -10.5Z' }, sc);
     el('path', { 'class': 'mark', d: 'M-4.5 -27.5h9v10.5l-4.5 -2.9 -4.5 2.9z' }, sc);
-    var lab = el('text', { 'class': 'lab' }, over); lab.textContent = s.name;
+    var lab = el('text', { 'class': 'lab' }, guides); lab.textContent = s.name;
     g.style.display = 'none'; lab.style.display = 'none';
     g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSpot(s.id); } });
     return { s: s, xy: xy(s.lon, s.lat), ll: [s.lat, s.lon], g: g, lab: lab, w: 0 };
   });
+  // Guide pins closer than a pin's width (Kent and Codiga Park at the opening zoom) draw as one pin with the count; a tap lists them.
+  var spotGroupPool = [];
+  function getSpotGroup(i) {
+    if (spotGroupPool[i]) return spotGroupPool[i];
+    var g = el('g', { 'class': 'pin spotpin spotgrp', tabindex: '0', role: 'button' }, guides);
+    var sc = el('g', { 'class': 'pin-s' }, g);
+    el('ellipse', { 'class': 'tipshadow', cx: 0, cy: 0, rx: 6, ry: 2.2 }, sc);
+    el('circle', { r: 26, cy: -16, fill: 'transparent' }, sc);
+    el('path', { 'class': 'balloon', d: 'M0 0L-6.5 -10.5A13 13 0 1 1 6.5 -10.5Z' }, sc);
+    el('path', { 'class': 'mark', d: 'M-4.5 -27.5h9v10.5l-4.5 -2.9 -4.5 2.9z' }, sc);
+    var n = el('g', { 'class': 'n' }, sc);
+    el('circle', { cx: 11, cy: -29, r: 8 }, n);
+    var t = el('text', { x: 11, y: -29 }, n);
+    var lab = el('text', { 'class': 'lab' }, guides);
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSpotGroup(g.getAttribute('data-spotgroup').split(',')); } });
+    return (spotGroupPool[i] = { g: g, t: t, lab: lab });
+  }
   // Piers and shore layer: typical.js's piers (diamond) and shore access sites (circle), drawn in Recent reports and Spawning.
   // Typical season already draws them as rated pins, so the layer steps aside there. Nodes are built the first time the layer shows.
   var ACCESS = HAS_TYPICAL ? TypicalData.sites.filter(function (t) { return t.kind === 'pier' || t.kind === 'access'; }).map(function (t) {
@@ -1379,20 +1402,39 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       boxes.push(lb);
     });
     // Spot guides sit above the mode's pins in the label order: the guide pin and its name are drawn when the layer is on.
-    var spotsOn = layers.indexOf('spots') >= 0;
+    var spotsOn = layers.indexOf('spots') >= 0, spts = [];
     SPOTLIST.forEach(function (o) {
       var x = o.xy[0] * v.s + v.tx, y = o.xy[1] * v.s + v.ty;
-      var vis = spotsOn && x > -40 && x < W + 40 && y > -40 && y < H + 40;
-      o.g.style.display = vis ? '' : 'none'; o.lab.style.display = 'none';
-      if (!vis) return;
-      o.g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + (spotSel === o.s.id ? 0.98 : 0.8) + ')');
+      o.g.style.display = 'none'; o.lab.style.display = 'none';
+      if (spotsOn && x > -40 && x < W + 40 && y > -40 && y < H + 40) spts.push({ o: o, id: o.s.id, x: x, y: y });
+    });
+    spotGroupPool.forEach(function (c) { c.g.style.display = 'none'; c.lab.style.display = 'none'; });
+    var sgi = 0;
+    Cluster.group(spts, 30, spotSel).forEach(function (g) {
+      var x, y, node, lab, w, sel = false;
+      if (g.length === 1) {
+        var o = g[0].o;
+        x = g[0].x; y = g[0].y; node = o.g; lab = o.lab; sel = spotSel === o.s.id;
+        if (!o.w) { o.lab.style.display = ''; o.w = o.lab.getBBox().width; o.lab.style.display = 'none'; }
+        w = o.w;
+      } else {
+        x = 0; y = 0; g.forEach(function (m) { x += m.x; y += m.y; }); x /= g.length; y /= g.length;
+        var c = getSpotGroup(sgi++);
+        node = c.g; lab = c.lab;
+        c.t.textContent = g.length;
+        lab.textContent = g.length + ' spot guides';
+        w = textW(lab.textContent);
+        node.setAttribute('data-spotgroup', g.map(function (m) { return m.id; }).join(','));
+        node.setAttribute('aria-label', g.length + ' spot guides close together: ' + g.map(function (m) { return m.o.s.name; }).join(', '));
+      }
+      node.style.display = '';
+      node.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + (sel ? 0.98 : 0.8) + ')');
       boxes.push([x - 15, y - 36, 30, 38]);
-      if (!o.w) { o.lab.style.display = ''; o.w = o.lab.getBBox().width; o.lab.style.display = 'none'; }
-      var left = x + 15 + o.w + 4 > W - 8, bx = [left ? x - 15 - (o.w + 4) : x + 15, y - 30, o.w + 4, 14];
-      if (spotSel !== o.s.id && boxes.some(function (b) { return overlap(bx, b); })) return;
-      o.lab.style.display = '';
-      o.lab.setAttribute('text-anchor', left ? 'end' : 'start');
-      o.lab.setAttribute('x', (left ? x - 15 : x + 15).toFixed(1)); o.lab.setAttribute('y', (y - 19).toFixed(1));
+      var left = x + 15 + w + 4 > W - 8, bx = [left ? x - 15 - (w + 4) : x + 15, y - 30, w + 4, 14];
+      if (!sel && boxes.some(function (b) { return overlap(bx, b); })) return;
+      lab.style.display = '';
+      lab.setAttribute('text-anchor', left ? 'end' : 'start');
+      lab.setAttribute('x', (left ? x - 15 : x + 15).toFixed(1)); lab.setAttribute('y', (y - 19).toFixed(1));
       boxes.push(bx);
     });
     // Count badges belong to the report rivers, so only Recent reports draws them. A badge that would cover a pin or label is left out.
@@ -1525,6 +1567,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     if (sea) { openSeason(sea.getAttribute('data-season')); return; }
     var sp = tgt && tgt.closest ? tgt.closest('[data-spot]') : null;
     if (sp) { openSpot(sp.getAttribute('data-spot')); return; }
+    var sg = tgt && tgt.closest ? tgt.closest('[data-spotgroup]') : null;
+    if (sg) { openSpotGroup(sg.getAttribute('data-spotgroup').split(',')); return; }
     if (n && n.getAttribute('data-cluster')) { zoomToCluster(n); return; }
     if (n) { openSheet(n.getAttribute('data-id')); return; }
     var rv = view === 'reports' && tgt && tgt.closest ? tgt.closest('[data-river]') : null;
@@ -2262,6 +2306,31 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     animateTo({ s: ns, tx: tx, ty: ty }, 320);
     syncLink();
   }
+  // A group of overlapping guide pins: pick one from the list, or zoom until they come apart.
+  function openSpotGroup(ids) {
+    clearRiver();
+    selected = null; mode = 'spotgroup'; spotSel = null; seasonSel = null; accessSel = null;
+    var list = SPOTLIST.filter(function (q) { return ids.indexOf(q.s.id) >= 0; });
+    $('#stitle').textContent = list.length + ' spot guides here';
+    $('#sbody').innerHTML = '<p class="lede">They overlap at this zoom. Pick one, or zoom in.</p><div class="rows">' + list.map(function (q) {
+      return '<button type="button" class="row lrow" data-spot="' + esc(q.s.id) + '"><span class="rt"><span class="nm">' + esc(q.s.name) + '</span><span class="dt">' + esc(q.s.sub) + '</span></span></button>';
+    }).join('') + '</div><button type="button" class="row lrow" data-spotzoom="' + esc(ids.join(',')) + '"><span class="rt"><span class="nm">Zoom in here</span></span></button>';
+    $('#sbody').scrollTop = 0;
+    showSheet();
+    $('#listbtn').setAttribute('aria-expanded', 'false');
+    render();
+    syncLink();
+  }
+  function zoomToSpots(ids) {
+    var xs = [], ys = [];
+    SPOTLIST.forEach(function (q) { if (ids.indexOf(q.s.id) >= 0) { xs.push(q.xy[0]); ys.push(q.xy[1]); } });
+    var b = [[Math.min.apply(null, xs), Math.min.apply(null, ys)], [Math.max.apply(null, xs), Math.max.apply(null, ys)]];
+    var cx = (b[0][0] + b[1][0]) / 2, cy = (b[0][1] + b[1][1]) / 2, p = pads();
+    // Fit the guides with room for their pins: at least 2x, at most 8x, so two guides a street apart still come apart.
+    var fit = fitFor(b, { t: p.t + 60, b: p.b + 60, l: p.l + 60, r: p.r + 60 }).s;
+    var ns = Math.min(maxS, Math.max(v.s * 2, Math.min(fit, v.s * 8)));
+    animateTo({ s: ns, tx: (p.l + (W - p.l - p.r) / 2) - cx * ns, ty: (p.t + (H - p.t - p.b) / 2) - cy * ns }, 320);
+  }
   // A count badge opens its river's sheet at the WDFW weekly creel section.
   function openCounts(id) {
     openSheet(id);
@@ -2458,7 +2527,9 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     // "Typical timing here": the same site in Typical season, where its rating lives. Catch-report colours leave the view first.
     var ty = e.target.closest ? e.target.closest('[data-typical]') : null;
     if (ty) { var tid = ty.getAttribute('data-typical'); setMode('typical'); openSheet(tid); return; }
-    if (b && b.hasAttribute('data-season')) openSeason(b.getAttribute('data-season'));
+    if (b && b.hasAttribute('data-spotzoom')) { var zids = b.getAttribute('data-spotzoom').split(','); closeSheet(); zoomToSpots(zids); }
+    else if (b && b.hasAttribute('data-spot')) openSpot(b.getAttribute('data-spot'));
+    else if (b && b.hasAttribute('data-season')) openSeason(b.getAttribute('data-season'));
     else if (b) openSheet(b.getAttribute('data-id'));
   });
   $('#sbody').addEventListener('click', function (e) {

@@ -196,6 +196,10 @@ only owner of its url. A page that still publishes stays at
 Every fish artifact on the account is in this table. A new one gets a folder
 with its `artifact.json` and source the day it is published.
 
+Figma mockup file for the map (one-map layers, guide-pin grouping):
+<https://www.figma.com/design/K2rwx7sMdPn2m1oRbEtNcm>. It is a reference only,
+never the live page.
+
 Rules that cross from the app into the pages:
 
 - `season.js` ports `FishingRating` from `Fishery.swift`, and
@@ -217,7 +221,8 @@ say so in their header. Regenerate them; never hand-edit.
 |-------|-----|
 | Swift unit + UI (`WAFishMapTests`, `WAFishMapUITests`) | `./scripts/run_sim.sh test` (default plan); unit only: `-testPlan WAFishMapUnit` |
 | WeatherKit on hardware | `./scripts/verify_weatherkit_device.sh` |
-| Web pages (Node, no deps) | `node --test "Artifacts/salmon-rivers/test/*.test.js"`; page check `node Artifacts/salmon-rivers/check-week.mjs`; Seasons data: `scripts/build_fishing_year.py --check` |
+| Pin edge tap + VoiceOver on hardware | `./scripts/verify_pins_device.sh` (refuses a locked phone; to only build, target `generic/platform=iOS`, since a locked phone's id makes `build-for-testing` hang silently) |
+| Web pages (Node, no deps) | `node --test "Artifacts/salmon-rivers/test/*.test.js"`; page check `node Artifacts/salmon-rivers/check-week.mjs` (set `PLAYWRIGHT_CORE` to a `~/.npm/_npx/*/node_modules/playwright-core/index.mjs` whose Chromium build is in `~/Library/Caches/ms-playwright`; a mismatch fails with "Executable doesn't exist"); Seasons data: `scripts/build_fishing_year.py --check` |
 | Data scripts (Python) | `/opt/homebrew/bin/python3 -m unittest discover -s scripts -p "test_*.py"` |
 
 Use `/opt/homebrew/bin/python3` for the scripts, as their READMEs do; bare

@@ -127,7 +127,8 @@ fi
 
 # 'boot' errors when the device is already booted; that is the happy path here.
 xcrun simctl boot "$udid" 2>/dev/null || true
-open -a Simulator
+# Xcode 27 ships no Simulator.app, so the window is optional; the device boots without it.
+open -a Simulator 2>/dev/null || echo "[!]  no Simulator app to open; continuing headless"
 xcrun simctl bootstatus "$udid" -b >/dev/null
 echo "[ok] simulator $udid booted"
 
