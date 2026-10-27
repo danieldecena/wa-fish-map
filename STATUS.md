@@ -130,11 +130,6 @@
   Hardware reach is not observed.
 - `PinVoiceOverProbe` fails every run (stale element index, see 2026-10-09), and
   it is in the default test plan.
-- App Store version 1.0 (10) was Waiting for Review under 5.2.5, resubmitted
-  2026-10-09 7:28 PM (read from Apple). **Not re-read since** — check App
-  Store Connect before acting on this line. Daniel has not replied to Apple's
-  Sep 24 message in the thread; Apple also asks for a device screen
-  recording in the App Review Notes for future submissions.
 - The App Store screenshots predate the 2026-10-14 design pass; refresh them
   at the next submission.
 - `Artifacts/app-store-listing` has dead demo, privacy and support links (see
@@ -142,8 +137,8 @@
 
 ## Next Up
 
-- 1.0 (10): read Apple's verdict in App Store Connect (last read 2026-10-09).
-  Approved → release by hand. Rejected → follow the 2026-10-09 workflow entry.
+- 1.0 (10) is approved and waits on a manual release (Pending Developer
+  Release, read from Apple 2026-10-27). Releasing makes it public: Daniel's call.
 - Fishing Year: pink seasons once WDFW sets the 2027 odd-year rules (Apr 2027).
 - 1.0 (9) carries the pin VoiceOver fix and is with both TestFlight groups,
   `Internal` and `insideout`, beta review approved (read from Apple 2026-10-09).
@@ -152,6 +147,9 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-27 (1.0 (10) approved)
+- Read from the App Store Connect API with `app-ship`'s key, read-only: App Store version 1.0, build 10, `appStoreState` PENDING_DEVELOPER_RELEASE, release type MANUAL; review submission `4cef16a5` state COMPLETE, submitted 2026-10-10 02:28 UTC. So 5.2.5 is cleared: the "reply to Apple if rejected" and "check the recording shows the far-date state" tasks are closed, and the Known-broken review line is removed. Releasing is not done: it makes the app public and is Daniel's to trigger.
 
 ### 2026-10-27 (page check serves the live wrapper; month names fit at 360)
 - The page check's screenshots showed the "Tap the map where you are" banner and the species panel open on load. Live never does: the publisher wraps the page in a doctype and `[hidden]{display:none!important}`, and the local server served the bare file, so `.metip`/`.sppanel` display rules beat `[hidden]` only locally. Ruled out first: PR 84's brace fix (the pre-fix page showed the same). `check-week.mjs` now prepends the wrapper copied from live 1793083287-e7f9, to `index.html` only, as the publisher does.
