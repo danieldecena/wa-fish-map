@@ -1,0 +1,11 @@
+{
+  "publishedIn": "https://claude.ai/artifact/9oA145toRsmFcDYurdJbey",
+  "title": "Three Friends Fishing Hole",
+  "account": "danieldecena@icloud.com",
+  "identified": "2026-10-20, added to the repo when Daniel asked for every fish artifact in the app folder",
+  "what": "One-page guide to Three Friends Fishing Hole, a Green River bank spot in Kent by the S 212th St rule line: Chinook closure notice, coho/chum run-timing grid, best times, lower Green rules, sources. The same place is stop 1 on the Green in Artifacts/fishing-year/seasons.json.",
+  "currentVersion": "1792455444-2db2",
+  "note": "Retired as a page 2026-10-26. This folder publishes nothing: the guide now lives in Artifacts/salmon-rivers/spots.js, the main map's Spot guides layer, and the main map owns the refresh (Artifacts/salmon-rivers/artifact.json). The spots/ path on the main page only redirects. Dated rules from WDFW rule 26-155 and eRegulations as of Oct 19, 2026 go stale; edit spots.js.",
+  "deletedStandalone": "https://claude.ai/artifact/DcQfh568UWypjEnceLDtmz (deleted 2026-10-26 on Daniel's instruction after merging into the main page)",
+  "whyNotArtifactJson": "Renamed from artifact.json 2026-10-26: an artifact.json is a refresh owner, and three files claiming the main url made the artifact register fail ('url owned twice'). The main map's binding is the only owner."
+}

@@ -1,0 +1,12 @@
+{
+  "publishedIn": "https://claude.ai/artifact/9oA145toRsmFcDYurdJbey",
+  "title": "Washington Fishing Year",
+  "account": "danieldecena@icloud.com",
+  "what": "Calendar, river map and migration timing for the Seattle fishing year, Oct 2026 to Nov 2027. Dated seasons and rules are artifact-only guidance sourced from WDFW notices; the app never reads them.",
+  "currentVersion": "1792455540-4ddb",
+  "previousVersion": "1792387754-760c",
+  "note": "Retired as a page 2026-10-26. This folder publishes nothing: its data.js is copied byte for byte to Artifacts/salmon-rivers/seasons-data.js, the main map's Seasons layer, and the main map owns the refresh (Artifacts/salmon-rivers/artifact.json). The year/ path on the main page only redirects. Workflow: edit seasons.json, run scripts/build_fishing_year.py, copy data.js to salmon-rivers/seasons-data.js, then refresh the main map from its own binding.",
+  "synced": "2026-10-20: version 1792455540-4ddb (published outside the repo, Green River timing note and Three Friends stop note) was copied into seasons.json; the rebuilt data.js is byte-identical to the live one.",
+  "deletedStandalone": "https://claude.ai/artifact/UUDwR9AvgqUZCWscdj5JJF (deleted 2026-10-26 on Daniel's instruction after merging into the main page)",
+  "whyNotArtifactJson": "Renamed from artifact.json 2026-10-26: an artifact.json is a refresh owner, and three files claiming the main url made the artifact register fail ('url owned twice'). The main map's binding is the only owner."
+}
