@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const Links = require('../links.js');
 
 test('read: empty search gives all nulls', () => {
-  assert.deepEqual(Links.read(''), { mode: null, month: null, species: null, site: null, river: null, today: null, layers: [], spot: null, season: null });
+  assert.deepEqual(Links.read(''), { mode: null, month: null, species: null, site: null, river: null, today: null, layers: [], spot: null, season: null, access: null });
 });
 
 test('read: every key round-trips', () => {
@@ -95,4 +95,10 @@ test('seasons layer: month and season travel with the layer, in any mode', () =>
   assert.equal(Links.toQuery({ mode: 'reports', layers: [], month: 12, season: 'steelhead' }), '');
   assert.equal(Links.toQuery({ mode: 'spawning', layers: ['seasons'], month: 11 }), '?mode=spawning&month=11&layers=seasons');
   assert.equal(Links.read('?layers=seasons&season=chum').season, 'chum');
+});
+
+test('access: a pier or shore sheet travels with its layer', () => {
+  assert.equal(Links.toQuery({ mode: 'reports', layers: ['access'], access: 'port-angeles-city-pier' }), '?layers=access&access=port-angeles-city-pier');
+  assert.equal(Links.toQuery({ mode: 'reports', layers: [], access: 'port-angeles-city-pier' }), '');
+  assert.equal(Links.read('?layers=access&access=x').access, 'x');
 });

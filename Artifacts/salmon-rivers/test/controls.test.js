@@ -48,7 +48,7 @@ test('no page tab bar; a Layers button and menu in the map bar', () => {
   assert.doesNotMatch(html, /class="apptabs"|--tabs-h|ONE_BAR|placeTabs|tabsBottom/);
   assert.match(html, /<button type="button" class="listbtn" id="laybtn" aria-expanded="false" aria-controls="laypop">/);
   assert.match(html, /id="laypop" role="group" aria-label="Map layers" hidden/);
-  ['seasons', 'spots', 'counts'].forEach(n => assert.match(html, new RegExp('role="switch" aria-checked="false" data-layer="' + n + '"')));
+  ['seasons', 'spots', 'access', 'counts'].forEach(n => assert.match(html, new RegExp('role="switch" aria-checked="false" data-layer="' + n + '"')));
   // Every other popover closes the Layers menu when it opens, and Escape closes it.
   ['function toggleModes', 'function toggleSpecies', 'function toggleNotice', 'function toggleMe'].forEach(f => {
     const body = between(f, '\n  }');
@@ -64,4 +64,13 @@ test('compact bar only for a mouse on a wide window; touch keeps 44 px', () => {
   assert.match(block, /\.bar \{ height: 44px; padding: 4px 8px; \}/);
   assert.match(block, /\.bar \.listbtn, \.bar \.nbtn, \.bar \.seg button \{ min-height: 36px; \}/);
   assert.doesNotMatch(html.replace(block, ''), /min-height: 36px/, 'no 36 px control outside the mouse-only block');
+});
+
+test('piers and shore layer: plain markers, never a rating colour, and never drawn over Typical season', () => {
+  const css = html.slice(html.indexOf('.amark {'), html.indexOf('\n', html.indexOf('.amark:focus-visible')));
+  assert.doesNotMatch(css, /--(prime|good|fair|slow|unrated|rc)\b/);
+  assert.match(html, /var accessOn = layers\.indexOf\('access'\) >= 0 && view !== 'typical';/);
+  const fill = between('function fillAccess', 'function openAccess');
+  assert.doesNotMatch(fill, /badge|Season\.siteView|colorVar/, 'the sheet carries no rating');
+  assert.match(fill, /Not a catch report and not a rating/);
 });
