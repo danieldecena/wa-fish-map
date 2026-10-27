@@ -229,7 +229,7 @@ a { color: var(--on-text); }
   border-radius: 14px;
   box-shadow: var(--lift);
 }
-.barstack { position: relative; align-self: flex-start; width: 100%; max-width: 760px; display: flex; flex-direction: column; gap: 8px; }
+.barstack { position: relative; align-self: flex-start; width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 8px; }
 .bar { width: 100%; height: 56px; padding: 6px 8px; display: flex; flex-direction: row; align-items: center; gap: 6px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
 .bar::-webkit-scrollbar { display: none; }
 .bar > * { flex: none; }
@@ -287,6 +287,9 @@ a { color: var(--on-text); }
   #laybtn { padding: 0 10px; gap: 4px; }
   #laybtn .li { display: block; }
   #laybtn .lch { display: none; }
+  #keybtn { padding: 0; width: 44px; }
+  #keybtn .ki { display: block; }
+  #keybtn .kl { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   #laylbl { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   #laycount:not([hidden]) { display: inline; }
   .nbtn { padding: 0; width: 44px; justify-content: center; }
@@ -333,6 +336,13 @@ a { color: var(--on-text); }
 
 .bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
 .legend { padding: 10px 12px; max-width: 360px; flex: 1 1 auto; min-width: 0; }
+/* The key opens from the bar like the Layers menu. Only the short hints stay at the bottom, and only while one is showing. */
+.keypop { left: auto; right: 0; width: min(340px, 100%); }
+#keybtn .ki { display: none; }
+.hints { padding: 8px 12px; max-width: 360px; }
+.hints .hint { margin: 0; }
+.hints:not(:has(.hint:not([hidden]))) { display: none; }
+html.touched .hints:not(:has(#hint:not([hidden]))) { display: none; }
 .legend .lt { font-size: 13px; line-height: 18px; font-weight: 600; margin-bottom: 6px; }
 .legend ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; }
 .legend li { display: flex; align-items: center; gap: 3px; font-size: 13px; line-height: 18px; }
@@ -344,14 +354,6 @@ a { color: var(--on-text); }
 .legend li.dash i { width: 10px; height: 10px; background: transparent; border: 1.5px dashed var(--ink2); }
 .legend .fine { margin-top: 6px; font-size: 13px; line-height: 18px; color: var(--ink2); }
 /* Phones (390px and under): the legend collapses to a 44px "Key" button so it stops covering the map; the button toggles it open. */
-.legkey { display: none; }
-@media (max-width: 390px) {
-  .legend { flex: 0 1 auto; }
-  .legkey { display: block; min-height: 44px; margin: -10px -12px; padding: 0 16px; border: 0; border-radius: 14px; background: transparent; color: var(--ink); font: 600 14px/20px var(--sans); min-width: 64px; cursor: pointer; }
-  .legend.open .legkey { margin-bottom: 0; }
-  .legend:not(.open) #legbody { display: none; }
-  .legend.open #legbody { margin-top: 10px; }
-  .legend:not(.open) .hint:not([hidden]) { margin-top: 0; }
 }
 /* The "Tap any river" hint goes after the first map interaction (tap, drag, zoom), for the session. */
 html.touched #rhint { display: none; }
@@ -471,7 +473,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 @media (max-width: 759px) {
   #app.sheet-open .bottom { visibility: hidden; }
   /* With a sheet open on a phone the bar stays as it is (already one thin row); only its popovers and the ribbon step aside. */
-  #app.sheet-open #sppanel, #app.sheet-open #mpop, #app.sheet-open #npop, #app.sheet-open #laypop, #app.sheet-open #mepanel, #app.sheet-open #metip { display: none; }
+  #app.sheet-open #sppanel, #app.sheet-open #mpop, #app.sheet-open #npop, #app.sheet-open #laypop, #app.sheet-open #keypop, #app.sheet-open #mepanel, #app.sheet-open #metip { display: none; }
   #app.sheet-open #spawn, #app.sheet-open #smonth { display: none; }
 }
 .spawn[hidden] { display: none; }
@@ -521,6 +523,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       <button type="button" class="nbtn" id="nbtn" aria-expanded="false" aria-controls="npop" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="12" r=".9" fill="currentColor"/></svg><span class="nd" id="nd"></span></button>
       <button type="button" class="listbtn" id="listbtn" aria-expanded="false" aria-controls="sheet">Rivers</button>
       <button type="button" class="listbtn" id="laybtn" aria-expanded="false" aria-controls="laypop"><svg class="li" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 2 14.5 5.5 8 9 1.5 5.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M1.5 8.5 8 12l6.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span id="laylbl">Layers</span><span class="lc" id="laycount" aria-hidden="true" hidden></span><svg class="lch" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button type="button" class="listbtn" id="keybtn" aria-expanded="false" aria-controls="keypop" aria-label="Map key"><svg class="ki" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7.2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="4.9" r=".9" fill="currentColor"/></svg><span class="kl">Key</span></button>
     </div>
     <div class="glass agechip" id="agechip" role="status" hidden></div>
     <div class="glass pop mpop" id="mpop" hidden></div>
@@ -528,6 +531,22 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     <div class="glass pop sppanel mepanel" id="mepanel" role="group" aria-label="My location" hidden></div>
     <div class="glass pop metip" id="metip" role="status" hidden><span>Tap the map where you are. Esc cancels.</span><button type="button" class="listbtn" id="mecancel">Cancel</button></div>
     <div class="glass pop" id="npop" hidden><div class="notice" id="notice" role="status" hidden></div></div>
+    <div class="glass pop legend keypop" id="keypop" role="group" aria-label="Map key" hidden>
+      <div id="legbody">
+      <div class="lt" id="legt">Recent catch reports</div>
+      <ul id="legl">
+        <li style="--c:var(--prime)"><i></i>Excellent</li>
+        <li style="--c:var(--good)"><i></i>Good</li>
+        <li style="--c:var(--fair)"><i></i>Fair</li>
+        <li style="--c:var(--slow)"><i></i>Slow</li>
+        <li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li>
+        <li class="old"><i></i>Dashed: report over a week old</li>
+        <li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>
+      </ul>
+      <ul id="layl" aria-label="Layers" hidden></ul>
+      <div class="fine" id="legf">Catch reports, not season dates. Confirm rules on WDFW.</div>
+      </div>
+    </div>
     <div class="glass pop laypop" id="laypop" role="group" aria-label="Map layers" hidden>
       <p class="lh">Show on the map</p>
       <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="seasons"><span class="lt"><b>Seasons</b><span>Waters open in the chosen month. Outlines, not ratings.</span></span><span class="sw" aria-hidden="true"></span></button>
@@ -547,22 +566,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     </div>
 
     <div class="bottom" id="bottom">
-      <div class="glass legend" id="legend">
-        <button type="button" class="legkey" id="legkey" aria-expanded="false" aria-controls="legbody">Key</button>
-        <div id="legbody">
-        <div class="lt" id="legt">Recent catch reports</div>
-        <ul id="legl">
-          <li style="--c:var(--prime)"><i></i>Excellent</li>
-          <li style="--c:var(--good)"><i></i>Good</li>
-          <li style="--c:var(--fair)"><i></i>Fair</li>
-          <li style="--c:var(--slow)"><i></i>Slow</li>
-          <li class="fade" style="--c:var(--prime)"><i></i>Faded: release only</li>
-          <li class="old"><i></i>Dashed: report over a week old</li>
-          <li class="cl" style="--c:var(--cluster)"><i></i>Count: several sites</li>
-        </ul>
-        <ul id="layl" aria-label="Layers" hidden></ul>
-        <div class="fine" id="legf">Catch reports, not season dates. Confirm rules on WDFW.</div>
-        </div>
+      <div class="glass hints" id="hints">
         <div class="hint" id="hint" hidden></div>
         <div class="hint" id="rhint" hidden>Tap any river for its typical flow and WDFW notices.</div>
       </div>
@@ -913,7 +917,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     // The phone report-age line sits under the bar: keep the opening view clear of it so it never covers a pin label.
     var age = $('#agechip').getBoundingClientRect(); if (age.height) barB = Math.max(barB, age.bottom);
     barB += 10;
-    var legT = $('#legend').getBoundingClientRect().top;
+    var legT = $('#bottom').getBoundingClientRect().top;
     var wide = window.innerWidth >= 760;
     var sheetOpen = $('#sheet').classList.contains('open');
     return { t: barB, b: Math.max(24, H - legT + 10), l: 8, r: (wide && sheetOpen) ? 400 : 8 };
@@ -1258,12 +1262,6 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   if (hintSeen()) document.documentElement.classList.add('touched');
   map.addEventListener('wheel', touchMap, { passive: true });
   ['zin', 'zout', 'zfit'].forEach(function (id) { $('#' + id).addEventListener('click', touchMap); });
-  var legend = $('#legend'), legkey = $('#legkey');
-  legkey.addEventListener('click', function () {
-    var open = !legend.classList.contains('open');
-    legend.classList.toggle('open', open);
-    legkey.setAttribute('aria-expanded', String(open));
-  });
   map.addEventListener('pointerdown', function (e) {
     if (e.button !== undefined && e.button > 0) return;
     touchMap();
@@ -1372,7 +1370,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function toggleNotice(open) {
     if (open && nbtn.hidden) open = false;
     if (!open && npop.contains(document.activeElement)) nbtn.focus({ preventScroll: true });
-    if (open) { toggleSpecies(false); toggleModes(false); toggleLayers(false); if (!$('#mepanel').hidden) toggleMe(false); }
+    if (open) { toggleSpecies(false); toggleModes(false); toggleLayers(false); toggleKey(false); if (!$('#mepanel').hidden) toggleMe(false); }
     npop.hidden = !open;
     nbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
@@ -1395,7 +1393,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function toggleModes(open) {
     if (open && !phoneMq.matches) open = false;
     if (!open && mpop.contains(document.activeElement)) modebtn.focus({ preventScroll: true });
-    if (open) { toggleSpecies(false); toggleNotice(false); toggleLayers(false); if (!$('#mepanel').hidden) toggleMe(false); }
+    if (open) { toggleSpecies(false); toggleNotice(false); toggleLayers(false); toggleKey(false); if (!$('#mepanel').hidden) toggleMe(false); }
     mpop.hidden = !open;
     modebtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) { var on = modesEl.querySelector('[aria-checked="true"]'); if (on) on.focus({ preventScroll: true }); }
@@ -1418,11 +1416,20 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function setLayers(list) { layers = list; syncLayUi(); syncSeasonUi(); applyStyles(); render(); syncLink(); }
   function toggleLayers(open) {
     if (!open && laypop.contains(document.activeElement)) laybtn.focus({ preventScroll: true });
-    if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); if (!$('#mepanel').hidden) toggleMe(false); }
+    if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); if (typeof toggleKey === 'function') toggleKey(false); if (!$('#mepanel').hidden) toggleMe(false); }
     laypop.hidden = !open;
     laybtn.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
   laybtn.addEventListener('click', function () { toggleLayers(laypop.hidden); });
+  // The map key, opened from the bar. It holds the legend the modes and layers write to (#legt, #legl, #layl, #legf).
+  var keybtn = $('#keybtn'), keypop = $('#keypop');
+  function toggleKey(open) {
+    if (!open && keypop.contains(document.activeElement)) keybtn.focus({ preventScroll: true });
+    if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); toggleLayers(false); toggleKey(false); if (!$('#mepanel').hidden) toggleMe(false); }
+    keypop.hidden = !open;
+    keybtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  keybtn.addEventListener('click', function () { toggleKey(keypop.hidden); });
   laypop.addEventListener('click', function (e) {
     var b = e.target.closest ? e.target.closest('[data-layer]') : null;
     if (b) setLayers(Layers.toggle(layers, b.getAttribute('data-layer')));
@@ -1461,7 +1468,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function toggleSpecies(open) {
     if (!open && sppanel.contains(document.activeElement)) spbtn.focus({ preventScroll: true });
     if (open && !$('#mepanel').hidden) toggleMe(false);
-    if (open) { toggleNotice(false); toggleModes(false); toggleLayers(false); }
+    if (open) { toggleNotice(false); toggleModes(false); toggleLayers(false); toggleKey(false); }
     sppanel.hidden = !open;
     spbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) { var on = sppanel.querySelector('[aria-checked="true"]'); if (on) on.focus({ preventScroll: true }); }
@@ -2178,6 +2185,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     if (!mpop.hidden) { toggleModes(false); modebtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
     if (!npop.hidden) { toggleNotice(false); nbtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
     if (!laypop.hidden) { toggleLayers(false); laybtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
+    if (!keypop.hidden) { toggleKey(false); keybtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
     if (!mepanel.hidden) { toggleMe(false); mebtn.focus({ preventScroll: true }); e.stopImmediatePropagation(); return; }
     if (meArmed) { armMe(false); e.stopImmediatePropagation(); }
   });
@@ -2231,7 +2239,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   }
   function toggleMe(open) {
     if (!open && mepanel.contains(document.activeElement)) mebtn.focus({ preventScroll: true });
-    if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); toggleLayers(false); if (meArmed) armMe(false); buildMe(); }
+    if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); toggleLayers(false); toggleKey(false); if (meArmed) armMe(false); buildMe(); }
     mepanel.hidden = !open;
     mebtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) { var first = mepanel.querySelector('button'); if (first) first.focus({ preventScroll: true }); }
