@@ -10,7 +10,8 @@ entries sit `space-10` apart. Labels use the `legend` type role in
 **Consumer supplies:** nothing. It is a fixed key.
 
 The whole row is one accessibility element with a spoken label that also
-explains the two pin treatments colour cannot convey: *"An outlined pin means
-the season may be closed; a faded gray pin is closed."*
+explains the two pin treatments colour cannot convey: *"A pin with a small
+warning badge means the season may be closed, verify with WDFW; a faded pin is
+closed."*
 
 Shown only while the heat overlay is off — see `HeatLegend`.

@@ -5,6 +5,7 @@
   "account": "danieldecena@icloud.com",
   "what": "This app's published Design System (contract 0.2.47, namespace WAFishMap): tokens.json, README.md, map-language.md, and nine component folders (Cover, SiteMarker, SpeciesRow, RatingBadge, RatingLegend, HeatLegend, GlassCard, GuidanceFooter, DirectionsButton), plus Logos and Screens asset groups (six light/dark app captures). lastChange: 2026-09-20, Daniel via Cowork -- 'Sheets given an opaque presentation background; frames reshot. Header collision and the advisory token landed in the same pass.'",
   "note": "Distinct from the two other WA Fish Map artifacts in this folder (app-store-listing, interactive-preview) -- confirmed 2026-10-02 as three different things, not duplicates: this is the design system, the other two are a marketing page and its demo. Refresh by PASSING THIS URL.",
-  "currentVersion": "1792362268-e369",
-  "source": "Source captured into this folder 2026-10-20 from the live version above; index.html and project/ (README, tokens.json, design-system.json, map-language.md, nine component folders) are this design system's own files. The Design System type's files (SKILL.md, artifact-type/) and the uploaded Logos and Screens images are not copied. Refresh by passing this URL; edit project/ files, not the type's."
+  "currentVersion": "1793092916-2856",
+  "source": "Source captured into this folder 2026-10-20 from the live version above; index.html and project/ (README, tokens.json, design-system.json, map-language.md, nine component folders) are this design system's own files. The Design System type's files (SKILL.md, artifact-type/) and the uploaded Logos and Screens images are not copied. Refresh by passing this URL; edit project/ files, not the type's.",
+  "lastSync": "2026-10-27: rating ramp synced to the iOS 26 system colours DS.Rating resolves to (version 13). Repo project/ files were refreshed from live 1793092690-fd1b first, then edited."
 }

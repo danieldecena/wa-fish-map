@@ -1,12 +1,13 @@
 <!-- @dsCard group="Ratings" height=132 -->
 <style>
   .wrap { font-family: var(--font-sans, -apple-system, system-ui, sans-serif); padding: 24px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-  .badge { font-size: 12px; line-height: 16px; font-weight: 700; padding: 5px 10px; border-radius: 999px; border: 1px solid currentColor; }
-  .prime { color: var(--rating-prime, #f01c0d); background: color-mix(in srgb, var(--rating-prime, #f01c0d) 20%, transparent); }
-  .good { color: var(--rating-good, #ff7300); background: color-mix(in srgb, var(--rating-good, #ff7300) 20%, transparent); }
-  .fair { color: var(--rating-fair, #ffc700); background: color-mix(in srgb, var(--rating-fair, #ffc700) 20%, transparent); }
-  .slow { color: var(--rating-slow, #0073ff); background: color-mix(in srgb, var(--rating-slow, #0073ff) 20%, transparent); }
-  .none { color: var(--rating-unrated, #8e8e93); background: color-mix(in srgb, var(--rating-unrated, #8e8e93) 20%, transparent); }
+  .badge { font-size: 12px; line-height: 16px; font-weight: 700; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--c); color: var(--text-primary, #000); background: color-mix(in srgb, var(--c) 20%, transparent); }
+  .prime { --c: var(--rating-prime, #ff383c); }
+  .good { --c: var(--rating-good, #ff8d28); }
+  .fair { --c: var(--rating-fair, #ffcc00); }
+  .slow { --c: var(--rating-slow, #0088ff); }
+  .none { --c: var(--rating-unrated, #8e8e93); }
+  .closed { --c: var(--rating-unrated, #8e8e93); display: inline-flex; gap: 4px; align-items: center; font-weight: 600; padding: 3px 8px; }
   .note { width: 100%; font-size: 11px; line-height: 13px; color: var(--text-secondary, rgba(60,60,67,0.6)); margin-top: 6px; }
 </style>
 <div class="wrap">
@@ -15,5 +16,6 @@
   <span class="badge fair">Fair</span>
   <span class="badge slow">Slow</span>
   <span class="badge none">No data</span>
-  <p class="note">Static rendition of <code>RatingBadge</code>. The word is never dropped — colour alone never carries the rating.</p>
+  <span class="badge closed"><svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M5.2 1h5.6L15 5.2v5.6L10.8 15H5.2L1 10.8V5.2Z" fill="currentColor"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8" stroke="var(--surface-background, #fff)" stroke-width="1.5" stroke-linecap="round"/></svg>Closed</span>
+  <p class="note">Static rendition of <code>RatingBadge</code>. The word is never dropped — colour alone never carries the rating. The label is primary ink; the wash and stroke carry the colour. <code>ClosedBadge</code> is built the same way on gray.</p>
 </div>
