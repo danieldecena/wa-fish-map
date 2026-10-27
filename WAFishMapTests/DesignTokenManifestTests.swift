@@ -21,6 +21,13 @@ struct DesignTokenManifestTests {
         return "#" + c(r) + c(g) + c(b)
     }
 
+    static func alpha(_ color: Color, _ style: UIUserInterfaceStyle) -> Double {
+        let resolved = UIColor(color).resolvedColor(with: UITraitCollection(userInterfaceStyle: style))
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        #expect(resolved.getRed(&r, green: &g, blue: &b, alpha: &a))
+        return (Double(a) * 1000).rounded() / 1000
+    }
+
     static let colors: [(String, Color)] = [
         ("rating.slow", DS.Rating.slow), ("rating.fair", DS.Rating.fair),
         ("rating.good", DS.Rating.good), ("rating.prime", DS.Rating.prime),
@@ -47,9 +54,12 @@ struct DesignTokenManifestTests {
 
     @Test func printsManifest() throws {
         let large = UITraitCollection(preferredContentSizeCategory: .large)
-        var colorOut: [String: [String: String]] = [:]
+        var colorOut: [String: [String: Any]] = [:]
         for (name, color) in Self.colors {
-            colorOut[name] = ["light": Self.hex(color, .light), "dark": Self.hex(color, .dark)]
+            colorOut[name] = [
+                "light": Self.hex(color, .light), "dark": Self.hex(color, .dark),
+                "lightAlpha": Self.alpha(color, .light), "darkAlpha": Self.alpha(color, .dark),
+            ]
         }
         var typeOut: [String: [String: Any]] = [:]
         for (role, style, weight) in Self.type {
