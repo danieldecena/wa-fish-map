@@ -816,6 +816,8 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
   function pads() {
     var barB = $('#bar').getBoundingClientRect().bottom;
     var spw = $('#spawn'); if (!spw.hidden) barB = Math.max(barB, spw.getBoundingClientRect().bottom);
+    // The phone report-age line sits under the bar: keep the opening view clear of it so it never covers a pin label.
+    var age = $('#agechip').getBoundingClientRect(); if (age.height) barB = Math.max(barB, age.bottom);
     barB += 10;
     var legT = $('#legend').getBoundingClientRect().top;
     var wide = window.innerWidth >= 760;

@@ -117,7 +117,7 @@ Edit `SITES` in `reports.js`. Each species entry has `r` (`prime`, `good` or `fa
 A river beyond the original eight (spec: `docs/superpowers/specs/2026-10-26-puget-river-reports-design.md`) is one more `SITES` entry with three extra fields: `tap` (a river id in `rivers-tap.js`; its path is the highlighted line), `ll` (`[lat, lon]` of the pin, a named access point on that river) and `added` (the day the entry was added). For these entries, `test/reports.test.js` also requires:
 
 - `src: { label, url }` (https) on every species report: a named shop, guide, guide service or agency, never a social-media post;
-- a dated report at most 14 days old on the `added` day;
+- a dated report at most 21 days old on the `added` day (one older than 7 days shows as a dashed, stale rating from the first day);
 - `slow` only with the source's `phrase`;
 - a pin inside the state map's bounds (a bounding box test) and a `tap` that exists.
 

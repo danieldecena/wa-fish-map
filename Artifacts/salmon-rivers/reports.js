@@ -38,6 +38,10 @@
     { id: 'kalama', name: 'Kalama River', sub: 'Lower river near Kalama', hl: true,
       reports: { 'Coho Salmon': { r: 'slow', asOf: '2026-10-17', phrase: 'Fishing remains poor', d: 'Fishing is poor in low water. Four bank anglers kept one coho, and the weir is still in place. It is expected out this week.',
         src: { label: 'The Guide\u2019s Forecast, Oct 17', url: 'https://www.theguidesforecast.com/free/coho-run-heats-up/287017/' } } } },
+    /* Added 2026-10-26 (docs/research/2026-10-26-puget-river-reports.md): Fair is an editorial reading of "plenty of coho around ... a little dour at times"; the source is 16 days old, so it shows stale. */
+    { id: 'skagit', name: 'Skagit River', sub: 'Mouth to Marblemount Bridge', hl: true, tap: 'skagit-river', ll: [48.4902, -122.2209], added: '2026-10-26',
+      reports: { 'Coho Salmon': { r: 'fair', asOf: '2026-10-10', d: 'Plenty of coho are around the Skagit, though they have been a little dour at times in the current water conditions.',
+        src: { label: 'The Confluence Fly Shop, Oct 10', url: 'https://theconfluenceflyshop.com/blogs/fishing-reports/fly-fishing-report-october-2026' } } } },
     /* No rating: the Oct 17 Guide's Forecast calls Washougal fishing slow but names no species, and this page rates by exact species, so the word cannot be carried onto one. A gray No report pin; its sheet shows the WDFW creel figures. */
     { id: 'washougal', name: 'Washougal River', sub: 'Lower river near Camas', hl: true, reports: {} }
   ];

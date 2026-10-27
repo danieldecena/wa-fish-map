@@ -175,6 +175,9 @@ for (const scheme of ['light', 'dark']) {
         check(k.shown && k.text === 'Key' && k.h >= 44 && !k.body && k.exp === 'false', `Map ${w}px ${scheme}: legend is collapsed to a 44px Key button (${Math.round(k.h)}px, body shown ${k.body})`);
         const age = await page.evaluate(() => { const c = document.getElementById('agechip'), r = c.getBoundingClientRect(); return { shown: getComputedStyle(c).display !== 'none' && !c.hidden, text: c.textContent, h: Math.round(r.height), right: Math.round(r.right) }; });
         check(age.shown && /^Dashed pins: reports over a week old \(newest [A-Z][a-z]{2} \d{1,2}\)$/.test(age.text) && age.right <= w, `Map ${w}px ${scheme}: the stale-report line is visible on a phone and fits (${age.text})`);
+        // The opening view leaves room for that line: it must not cover any pin or pin label.
+        const cov = await page.evaluate(() => { const c = document.getElementById('agechip').getBoundingClientRect(); return [...document.querySelectorAll('#over .pin, #over text.lab:not(.city):not(.peak):not(.dam):not(.water):not(.region)')].filter(e => { const b = e.getBoundingClientRect(); return e.getClientRects().length && b.bottom > c.top && b.top < c.bottom && b.right > c.left && b.left < c.right; }).map(e => e.textContent || e.getAttribute('data-id')); });
+        check(cov.length === 0, `Map ${w}px ${scheme}: the stale-report line covers no pin or pin label (${cov.join(', ')})`);
         await page.click('#legkey');
         const k2 =await page.evaluate(() => ({ body: getComputedStyle(document.getElementById('legbody')).display !== 'none', exp: document.getElementById('legkey').getAttribute('aria-expanded') }));
         check(k2.body && k2.exp === 'true', `Map ${w}px ${scheme}: Key opens the legend`);

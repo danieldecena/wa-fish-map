@@ -105,9 +105,10 @@ test('staleNotice appears only when the newest report is older than 7 days', () 
 
 test('rankSites: retainable first, fresh before stale, then rating, then name', () => {
   const ids = f => R.rankSites(R.SITES, F[f], TODAY).map(e => e.site.id);
-  // Kalama (slow, fresh) ranks below the good rivers; Washougal has no report and goes last of the retainable sites.
-  assert.deepEqual(ids('all'), ['cowlitz', 'columbia', 'drano', 'klickitat', 'lewis', 'wind', 'kalama', 'washougal']);
-  assert.deepEqual(ids('chinook'), ['drano', 'klickitat', 'lewis', 'wind', 'kalama', 'washougal', 'cowlitz', 'columbia']);
+  // Kalama (slow, fresh) ranks below the good rivers; Skagit (fair, 8 days old on TODAY, so stale) comes after every fresh river;
+  // Washougal has no report and goes last of the retainable sites.
+  assert.deepEqual(ids('all'), ['cowlitz', 'columbia', 'drano', 'klickitat', 'lewis', 'wind', 'kalama', 'skagit', 'washougal']);
+  assert.deepEqual(ids('chinook'), ['drano', 'klickitat', 'lewis', 'wind', 'kalama', 'skagit', 'washougal', 'cowlitz', 'columbia']);
 });
 
 test('ratingWord carries the release-only caveat as text', () => {
@@ -137,7 +138,7 @@ test('report data: ids unique, species exact, ratings valid, dates real, no date
       assert.doesNotMatch(sp.d, /\b(Oct|Nov|Dec)\s+\d{1,2}\b/, `${s.id}/${name} prose still names a date`);
     }
   }
-  assert.equal(ids.size, 8);
+  assert.equal(ids.size, 9);
   for (const n of R.SPECIES) assert.ok(used.has(n), `${n} is in SPECIES but no river has a report for it`);
 });
 
@@ -238,7 +239,7 @@ test('rivers-tap.js and geo.js share one projection', () => {
   assert.deepEqual(TAP.proj, GEO.proj);
 });
 
-const ENTRY_DAYS = 14;
+const ENTRY_DAYS = 21;
 const dayNo = iso => Date.parse(iso + 'T00:00:00Z') / 86400000;
 function newSiteProblems(s) {
   const out = [];
@@ -273,7 +274,7 @@ test('new-site rules: a well-formed fixture passes, and each broken one fails fo
     [withSp({ src: undefined }), /src needs/],
     [withSp({ src: { label: 'x', url: 'http://x' } }), /src needs/],
     [withSp({ asOf: null }), /dated report/],
-    [withSp({ asOf: '2026-10-10' }), /15 days old/],
+    [withSp({ asOf: '2026-10-03' }), /22 days old/],
     [withSp({ asOf: '2026-10-26' }), /-1 days old/],
     [withSp({ r: 'slow' }), /slow needs/],
   ];
