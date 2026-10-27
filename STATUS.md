@@ -128,8 +128,6 @@
   never consults it (see 2026-10-18, re-confirmed 2026-10-26), so it passes
   with the rect deleted, too small, too large, or refusing every touch.
   Hardware reach is not observed.
-- `PinVoiceOverProbe` fails every run (stale element index, see 2026-10-09), and
-  it is in the default test plan.
 - The App Store screenshots predate the 2026-10-14 design pass; refresh them
   at the next submission.
 
@@ -145,6 +143,11 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-27 (VoiceOver probe off Known broken; Figma library icons)
+- `PinVoiceOverProbe` passed 3 of 3 with `-test-iterations 3` on the iPhone 18 Pro simulator against live data (xcodebuild rc=0, `** TEST SUCCEEDED **`; each run read 28 of our pin labels, e.g. "Edmonds Pier, Fishing pier, rated Fair"). With the two earlier single passes that is five in a row since the snapshot rewrite, so its Known broken line is removed. The pin device checks are still not run: the iPhone was wired, paired and in developer mode but locked (`passcodeRequired: true`) at 02:49.
+- Figma library: the placeholder circles became eight vector icon components (`Icon/sailboat.fill`, `figure.fishing`, `fish.fill`, `exclamationmark.circle.fill`, `xmark.octagon.fill`, `water.waves`, `flame.fill`, `flame`), 25 instances keeping each placeholder's color variable. Site Marker has a `Glyph` instance-swap property; shore and pier were swapped in on the review frame and drew. Also fixed against the code: Good pins and the Good cluster count drew white ink; the app draws dark on Good (white measures 2.31:1), so both now use `ink/on-fair`. Checked by screenshot of each component set and the review frame.
+- App Store screenshots not taken: still night (the plan card reads the real clock), and the app has no clock override; adding one would put the on-screen time out of step with the live tide and weather data.
 
 ### 2026-10-27 (web map on the app's colors; version 38)
 - Published the Washington Fishing Map as version 38 (1793093361-13fb) with the iOS 26 rating colors the app draws; live index.html read back equals the repo file plus the publisher's wrapper. Before publishing, live 1793089848-ed42 was compared with the repo and matched. `baseline.html` keeps the old colors on purpose: it is the first-published rollback copy.
