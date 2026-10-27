@@ -153,6 +153,11 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-26 (map critique applied, version 34)
+- Seven findings from phone and desktop captures, all applied and measured in a browser (`docs/design/2026-10-26-map-critique.md`). The worst was a blank Key button on phones: a desktop rule after the phone block won on source order. A test now pins the order.
+- Decided: on phones the age line under the bar opens the stale-report notice and the bar drops its duplicate icon; Rivers becomes an icon. That keeps every control at 44 px with no scrolling from 360 px up.
+- Decided: layer symbols draw at 55 percent so the coloured report rivers lead; full strength on focus.
+
 ### 2026-10-26 (river flow on site sheets is a link, not a fetch)
 - Decided (Daniel's pick): live river flow reaches the map as a link to the gauge's USGS page, not a fetch or a bundled snapshot. The claude.ai frame blocks requests outside claude.ai, a snapshot would go stale within hours, and a Claude-app browser route would reach only desktop-app viewers.
 - 99 launch and shore sites sit on a gauged river by the app's 150 m nearest-river distance (full-resolution lines, curated lake sites excluded; split rivers compete but only the run rivers.json marks gauged links); `build_rivers_tap.py` writes them as `siteRiver`. No saltwater site matched, and the curated-lake exclusion currently removes none, so it mirrors the app rather than changing today's output. Published as map version 33; checked in a local browser (Sedro-Woolley shows the Skagit gauge, a Hood Canal pier shows none, the Wynoochee river sheet unchanged).
