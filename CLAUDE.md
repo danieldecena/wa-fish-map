@@ -188,6 +188,10 @@ is minted and the old link goes stale. Read the live version before publishing
 | `one-map-layers-design/` | Washington Fishing Map: one map with layers (Design canvas, 2026-10-26): mockups for the one-map change, not the live map | `project/`; the type's own files are not copied |
 | `app-store-listing/`, `interactive-preview/`, `inside-wafishmap/` | Older marketing and explainer pages | `index.html` as published, captured 2026-10-20 |
 
+`fishing-year/` and `three-friends-fishing-hole/` no longer publish: they keep a
+`published-in.json`, not an `artifact.json`, so the main map's binding is the
+only owner of its url.
+
 Every fish artifact on the account is in this table. A new one gets a folder
 with its `artifact.json` and source the day it is published.
 
