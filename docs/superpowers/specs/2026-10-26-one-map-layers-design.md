@@ -83,8 +83,9 @@ map. Hand-maintained, like `rules.js`; it is not generated.
 ## 3. Creel counts layer (replaces Counts)
 
 - Each river in `counts.js` (newest week, already shown on Reports sheets) gets a
-  small count badge beside its label: total fish kept per rod that week, or
-  "no survey" when the week has none for that river.
+  small count badge beside its label: fish kept that week ("124 kept"), summed
+  from the "All sections combined" rows when the river has them, else from every row;
+  "0 kept" when the survey found no catch.
 - Badges are text on the neutral glass style, never coloured by the number.
 - Tapping a badge opens the river's existing sheet scrolled to its counts section.
 - Deep link `?layers=counts`.
