@@ -127,7 +127,9 @@
   (`MarkerEdgeTapUITests`). That test cannot isolate `hitRect`: the simulator
   never consults it (see 2026-10-18, re-confirmed 2026-10-26), so it passes
   with the rect deleted, too small, too large, or refusing every touch.
-  Hardware reach is not observed.
+  The same is now true on the iPhone (2026-10-27): it passed with
+  `point(inside:)` returning false. Whether MapKit consults the rect for a
+  real finger at all is not known.
 - The App Store screenshots predate the 2026-10-14 design pass; refresh them
   at the next submission.
 
@@ -143,6 +145,13 @@ Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-10-27 (pin device checks ran: VoiceOver observed, edge tap proven blind)
+- Daniel ran `sudo automationmodetool enable-automationmode-without-authentication`; `automationmodetool` then read "DOES NOT REQUIRE user authentication", and `scripts/verify_pins_device.sh` ran at 03:50 on the unlocked iPhone: both tests passed, xcodebuild exit 0. VoiceOver on hardware: 28 of 42 labels were ours, e.g. "Langley Marina (City Pier), 3 fishing spots, best rated Prime", "Edmonds Pier, Fishing pier, rated Fair", "Bosworth Lake, Boat launch, rated Good".
+- Control for the edge tap: `SiteMarkerView.point(inside:)` changed to return false, rebuilt (the log shows `Compiling AnnotationViews.swift`), run on the phone at 03:51: `MarkerEdgeTapUITests` still passed (24.0 s). So that test cannot detect the tap area on hardware either; XCUITest's synthesized tap selects the pin without the view's own hit test. A first control attempt at 03:50 never ran (the phone's tunnel dropped, `tunnelState=disconnected`). Source restored and `git diff --quiet` confirmed. The open question, not answered here: does MapKit use `point(inside:)` for a real finger? Only a hand test on the phone (tap just outside a pin's balloon, with and without the override) can say.
+
+### 2026-10-27 (pin device checks: phone unlocked, UI automation not enabled)
+- `scripts/verify_pins_device.sh` ran at 03:37 with the iPhone wired, paired, developer mode on and unlocked (`passcodeRequired: false` before and after). It built and launched the runner, then failed at 70 s before either test started: `WAFishMapUITests-Runner encountered an error (The test runner failed to initialize for UI testing. (Underlying Error: Timed out while enabling automation mode.))`, xcodebuild exit 65. Neither the edge tap nor the VoiceOver labels were observed. A second run at 03:41 failed the same way. The block is on the Mac, not the phone: `automationmodetool` reports "Automation Mode is disabled. This device requires user authentication to enable Automation Mode.", so each run raises a password request on the Mac that nobody answered. Fix (Daniel, in a real terminal; `!` has no TTY for sudo): `sudo automationmodetool enable-automationmode-without-authentication`, then confirm `automationmodetool` no longer says it requires authentication. Or watch the Mac and type the password when a run asks. Not yet confirmed that this alone unblocks a physical device; one forum report saw the timeout persist.
 
 ### 2026-10-27 (VoiceOver probe off Known broken; Figma library icons)
 - `PinVoiceOverProbe` passed 3 of 3 with `-test-iterations 3` on the iPhone 18 Pro simulator against live data (xcodebuild rc=0, `** TEST SUCCEEDED **`; each run read 28 of our pin labels, e.g. "Edmonds Pier, Fishing pier, rated Fair"). With the two earlier single passes that is five in a row since the snapshot rewrite, so its Known broken line is removed. The pin device checks are still not run: the iPhone was wired, paired and in developer mode but locked (`passcodeRequired: true`) at 02:49.
