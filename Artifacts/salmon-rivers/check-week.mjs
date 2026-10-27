@@ -78,7 +78,7 @@ for (const scheme of ['light', 'dark']) {
       const sx = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
       check(sx, `${name} ${w}px: no horizontal scroll`);
       if (name === 'Layers') {
-        const lay = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, smonth: !document.getElementById('smonth').hidden, spot: !!document.querySelector('#over .spotpin') && getComputedStyle(document.querySelector('#over .spotpin')).display !== 'none', legend: document.querySelectorAll('#layl li').length }));
+        const lay = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, smonth: !document.getElementById('smonth').hidden, spot: !!document.querySelector('#guides .spotpin') && getComputedStyle(document.querySelector('#guides .spotpin')).display !== 'none', legend: document.querySelectorAll('#layl li').length }));
         check(lay.btn === 'Layers · 3' && lay.smonth && lay.legend === 3, `Layers ${w}px ${scheme}: three layers on, month slider shown, three legend lines (${lay.btn}, ${lay.legend})`);
       }
       if (name === 'Map' && w <= 390) {
@@ -87,7 +87,7 @@ for (const scheme of ['light', 'dark']) {
         const age = await page.evaluate(() => { const c = document.getElementById('agechip'), r = c.getBoundingClientRect(); return { shown: getComputedStyle(c).display !== 'none' && !c.hidden, text: c.textContent, h: Math.round(r.height), right: Math.round(r.right) }; });
         check(age.shown && /^Dashed pins: reports over a week old \(newest [A-Z][a-z]{2} \d{1,2}\)$/.test(age.text) && age.right <= w, `Map ${w}px ${scheme}: the stale-report line is visible on a phone and fits (${age.text})`);
         // The opening view leaves room for that line: it must not cover any pin or pin label.
-        const cov = await page.evaluate(() => { const c = document.getElementById('agechip').getBoundingClientRect(); return [...document.querySelectorAll('#over .pin, #over text.lab:not(.city):not(.peak):not(.dam):not(.water):not(.region)')].filter(e => { const b = e.getBoundingClientRect(); return e.getClientRects().length && b.bottom > c.top && b.top < c.bottom && b.right > c.left && b.left < c.right; }).map(e => e.textContent || e.getAttribute('data-id')); });
+        const cov = await page.evaluate(() => { const c = document.getElementById('agechip').getBoundingClientRect(); return [...document.querySelectorAll('#over .pin, #guides .pin, #over text.lab:not(.city):not(.peak):not(.dam):not(.water):not(.region), #guides text.lab')].filter(e => { const b = e.getBoundingClientRect(); return e.getClientRects().length && b.bottom > c.top && b.top < c.bottom && b.right > c.left && b.left < c.right; }).map(e => e.textContent || e.getAttribute('data-id')); });
         check(cov.length === 0, `Map ${w}px ${scheme}: the stale-report line covers no pin or pin label (${cov.join(', ')})`);
         await page.click('#keybtn');
         const k2 =await page.evaluate(() => ({ body: !document.getElementById('keypop').hidden, exp: document.getElementById('keybtn').getAttribute('aria-expanded') }));
@@ -196,6 +196,39 @@ for (const [w, h] of [[390, 844], [1280, 800]]) {
   check(sh.title === 'Skagit River' && sh.notice, `map ${w}px fixture: its sheet shows the Skagit WDFW notice`);
   check(ferr.length === 0, `map ${w}px fixture: no page errors (${ferr.join(' | ').slice(0, 160)})`);
   await fctx.close();
+}
+// Guide pins: Kent (three-friends) and Codiga Park overlap at the opening zoom. Every guide must be the thing a tap at its pin reaches,
+// either its own pin or a group pin that lists it, and the group's "Zoom in here" must pull the two apart.
+for (const [w, h] of [[390, 844], [1280, 800]]) {
+  const gctx = await browser.newContext({ viewport: { width: w, height: h } });
+  const gp = await gctx.newPage(); const gerr = [];
+  gp.on('pageerror', e => gerr.push(String(e)));
+  await gp.goto(base + '/index.html?layers=seasons,spots,counts&today=' + today, { waitUntil: 'networkidle' });
+  const reach = () => gp.evaluate(() => [...document.querySelectorAll('.spotpin[data-spot]')].map(n => {
+    const id = n.getAttribute('data-spot'), grp = [...document.querySelectorAll('.spotpin[data-spotgroup]')].find(g => getComputedStyle(g).display !== 'none' && g.getAttribute('data-spotgroup').split(',').includes(id));
+    const via = getComputedStyle(n).display !== 'none' ? n : grp;
+    if (!via) return { id, ok: null };
+    const r = via.querySelector('.balloon').getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+    if (x < 0 || y < 0 || x > innerWidth || y > innerHeight) return { id, ok: null };
+    const hit = document.elementFromPoint(x, y), top = hit && hit.closest('[data-spot],[data-spotgroup],[data-id],[data-season],[data-ssite],[data-tsite],[data-access],[data-count],[data-cluster]');
+    return { id, ok: top === via, grouped: via === grp, hit: top ? top.outerHTML.slice(0, 60) : String(hit && hit.tagName) };
+  }));
+  const before = await reach(), kent = before.find(q => q.id === 'three-friends');
+  check(!!kent && kent.ok === true, `guides ${w}px: a tap at the Kent guide's pin reaches it at the opening zoom (${JSON.stringify(kent)})`);
+  check(before.every(q => q.ok !== false), `guides ${w}px: no guide pin is covered by another mark (${before.filter(q => q.ok === false).map(q => q.id + ' under ' + q.hit).join('; ')})`);
+  if (kent && kent.ok && kent.grouped) {
+    const at = await gp.evaluate(() => { const g = [...document.querySelectorAll('.spotpin[data-spotgroup]')].find(n => getComputedStyle(n).display !== 'none' && n.getAttribute('data-spotgroup').split(',').includes('three-friends')); const r = g.querySelector('.balloon').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+    await gp.mouse.click(at[0], at[1]);
+    await gp.waitForTimeout(400);
+    const ch = await gp.evaluate(() => ({ title: document.getElementById('stitle').textContent, rows: [...document.querySelectorAll('#sbody [data-spot]')].map(b => b.getAttribute('data-spot')), zoom: !!document.querySelector('#sbody [data-spotzoom]') }));
+    check(/^\d+ spot guides here$/.test(ch.title) && ch.rows.includes('three-friends') && ch.rows.includes('codiga-park') && ch.zoom, `guides ${w}px: the group pin opens a chooser listing Kent and Codiga Park, with Zoom in here (${JSON.stringify(ch)})`);
+    await gp.click('#sbody [data-spotzoom]');
+    await gp.waitForTimeout(800);
+    const after = await reach();
+    check(['three-friends', 'codiga-park'].every(id => { const q = after.find(a => a.id === id); return q && q.ok === true && !q.grouped; }), `guides ${w}px: after Zoom in here, Kent and Codiga Park are separate pins a tap reaches (${JSON.stringify(after.filter(q => ['three-friends', 'codiga-park'].includes(q.id)))})`);
+  }
+  check(gerr.length === 0, `guides ${w}px: no page errors (${gerr.join(' | ').slice(0, 160)})`);
+  await gctx.close();
 }
 } finally { await browser.close(); if (server) server.close(); }
 console.log(fails.length ? `\n${fails.length} FAILED` : '\nall checks passed');

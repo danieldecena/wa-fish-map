@@ -1,5 +1,4 @@
 ## Tasks
-- [ ] Kent guide pin hidden under Codiga Park at opening zoom
 - [ ] Puget Sound river reports: repeat the sourcing pass (spec 2026-10-26-puget-river-reports) when new shop or guide reports appear; a river is added only with a report at most 21 days old (Skagit added 2026-10-26 on the Confluence Fly Shop's Oct 10 report; replace it when a fresher one appears). First pass: docs/research/2026-10-26-puget-river-reports.md.
 
 #### Design critique 2026-10-26
@@ -12,6 +11,7 @@
 
 ### 2026-10-27 — cleared from Tasks
 
+- [x] Kent guide pin hidden under Codiga Park at opening zoom -- grouped, not yet published
 - [x] Confirm 1.0 shows in the public App Store -- live 01:22
 - [x] Look over the one-map page on a phone and a desktop -- browser pass 2026-10-27, see STATUS
 - [x] Run `node Artifacts/salmon-rivers/check-week.mjs` where Playwright is installed (the MacBook); it was cut to the one map on 2026-10-26 and has not run since.

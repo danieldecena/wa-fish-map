@@ -148,6 +148,10 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-27 (overlapping guide pins grouped, in source only)
+- Guide pins closer than 30 px now draw as one pin with a count ("2 spot guides"); a tap opens a sheet listing them plus "Zoom in here", which fits them at 2x to 8x. It follows the Figma mockup's content but uses the page's sheet, not a popover, so it matches every other tap on the map. Guide pins moved to their own `#guides` layer above `#over`, so marks built later cannot cover them.
+- New page check (guides, 390 and 1280 px) failed 4 on the old page (Kent under Codiga Park at both widths, and Fox Island under Browns Point on the phone) and passes on the new: 173 checks, 198 Node tests. Not yet republished to the live map.
+
 ### 2026-10-27 (1.0 public in the App Store)
 - Confirmed live at 01:22: the iTunes lookup by bundle id returns WA Fish Map 1.0, id 6807799974, released 08:12 UTC, and the store page answers 200. The same lookup with `country=us` still returned 0 at that moment while the lookup by id with `country=us` returned 1, so the empty result at release was cache lag, as the release entry read it.
 
