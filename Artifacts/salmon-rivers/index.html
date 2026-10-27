@@ -421,6 +421,34 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
 .ctab tbody th { font-weight: 400; }
 .ctab tr.grp th { padding-top: 10px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); text-align: left; }
 .creel .cnote { margin: 0; font-size: 12px; line-height: 16px; color: var(--ink2); }
+/* Sheet visuals: level bars for timing grades, count bars for creel, a month strip for seasons, and folded sources. Neutral ink, no rating colour. */
+.lvgrid { display: grid; gap: 8px 6px; align-items: end; background: var(--fill-row); border-radius: 10px; padding: 10px; }
+.lvh { font-size: 12px; line-height: 16px; color: var(--ink2); text-align: center; }
+.lvsp { font-size: 15px; line-height: 20px; font-weight: 600; align-self: center; }
+.lvc { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.lvb { display: flex; flex-direction: column-reverse; gap: 2px; width: 22px; }
+.lvb i { display: block; height: 7px; border-radius: 2px; background: var(--fill-toggle); }
+.lvb i.on { background: var(--on-text); }
+.lvb.off i { background: transparent; box-shadow: inset 0 0 0 1px var(--glass-line); }
+.lvw { font-size: 12px; line-height: 16px; color: var(--ink2); }
+.cbars { display: flex; flex-direction: column; gap: 10px; }
+.cgrp { font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); margin-top: 2px; }
+.cbn { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; line-height: 18px; font-weight: 600; }
+.cbn span { font-weight: 400; color: var(--ink2); font-size: 12px; }
+.cbt { display: flex; height: 10px; margin: 4px 0; border-radius: 5px; background: var(--fill-toggle); overflow: hidden; }
+.cbt i { display: block; height: 100%; }
+.cbt i.k { background: var(--on-text); }
+.cbt i.r { background: transparent; box-shadow: inset 0 0 0 1.5px var(--on-text); }
+.cbv { font-size: 12px; line-height: 16px; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.mstrip { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; }
+.mstrip .ms { display: grid; place-items: center; height: 30px; border-radius: 6px; background: var(--fill-row); color: var(--ink2); font-size: 12px; font-weight: 600; }
+.mstrip .ms.on { background: var(--on-text); color: var(--sheet); }
+.mstrip .ms.sel { box-shadow: inset 0 0 0 2px var(--ink); }
+details.srcs { border-top: 1px solid var(--glass-line); padding-top: 8px; font-size: 12px; line-height: 16px; color: var(--ink2); }
+details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; }
+.srclist { display: flex; flex-direction: column; gap: 6px; padding-bottom: 6px; }
+.srclist p { margin: 0; }
+.srclist a { color: var(--ink2); }
 .sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .advisory { background: var(--fill-advisory); border-radius: 12px; padding: 12px; display: flex; gap: 10px; }
 .advisory svg { flex: none; width: 20px; height: 20px; fill: none; stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; margin-top: 1px; }
@@ -1546,23 +1574,47 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
         : ', best first. Fresh reports rank above older ones.') + '</p><div class="rows">' + rows + '</div>' + footHtml();
     $('#sbody').scrollTop = 0;
   }
+  /* Sheets show data first. Source links and longer notes fold into one closed "Sources and notes" section at the end; the WDFW rules link
+     and the "Before you go" advisory stay in view. */
+  function srcFold(links, notes) {
+    var body = (notes || []).filter(Boolean).map(function (n) { return '<p>' + esc(n) + '</p>'; }).join('') +
+      (links || []).filter(function (x) { return x && x.url; }).map(function (x) { return '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.label) + '</a>'; }).join('');
+    return body ? '<details class="srcs"><summary>Sources and notes</summary><div class="srclist">' + body + '</div></details>' : '';
+  }
+  // Timing grades as level bars (Slow 1 to Prime 4), in neutral ink: the word stays under each bar, so colour never carries the grade.
+  var LEVEL = { Slow: 1, Fair: 2, Good: 3, Prime: 4 };
+  function levelGrid(cols, rows) {
+    var cells = rows.map(function (r) {
+      return '<div class="lvsp">' + esc(r.species) + '</div>' + r.cells.map(function (c, k) {
+        var n = LEVEL[c] || 0, bars = '';
+        for (var i = 1; i <= 4; i++) bars += '<i' + (i <= n ? ' class="on"' : '') + '></i>';
+        return '<div class="lvc"><span class="lvb' + (n ? '' : ' off') + '" role="img" aria-label="' + esc(r.species + ', ' + cols[k] + ': ' + c) + '">' + bars + '</span><span class="lvw">' + esc(c) + '</span></div>';
+      }).join('');
+    }).join('');
+    return '<div class="lvgrid" style="grid-template-columns: minmax(5.5em, 1.4fr) repeat(' + cols.length + ', minmax(0, 1fr))"><div></div>' +
+      cols.map(function (c) { return '<div class="lvh">' + esc(c) + '</div>'; }).join('') + cells + '</div>';
+  }
   // Dated WDFW creel counts, from counts.js. Display only: nothing here touches ratings, pins or ranking.
   function countCell(n) { return n === null ? '<span aria-hidden="true">\u2013</span><span class="sr">not reported</span>' : String(n); }
   function creelHtml(id) {
     var w = typeof Counts !== 'undefined' ? Counts.forWater(id) : null;
     if (!w || (!w.rows.length && !w.noCatch)) return '';
+    // Kept (solid) and released (outline) as bars on one scale for the river; a count WDFW did not report shows as a dash, never as zero.
+    var max = Math.max.apply(null, w.rows.map(function (r) { return (r.kept || 0) + (r.released || 0); }).concat([1]));
     var body = '', last = null;
     w.rows.forEach(function (r) {
-      if (r.section !== null && r.section !== last) body += '<tr class="grp"><th scope="colgroup" colspan="4">' + esc(r.section) + '</th></tr>';
+      if (r.section !== null && r.section !== last) body += '<div class="cgrp">' + esc(r.section) + '</div>';
       last = r.section;
-      body += '<tr><th scope="row">' + esc(r.species) + '</th><td>' + countCell(r.anglers) + '</td><td>' + countCell(r.kept) + '</td><td>' + countCell(r.released) + '</td></tr>';
+      var k = r.kept || 0, rl = r.released || 0;
+      body += '<div class="cbar"><div class="cbn">' + esc(r.species) + '<span>' + (r.anglers === null ? '' : r.anglers + ' anglers') + '</span></div>' +
+        '<div class="cbt" aria-hidden="true"><i class="k" style="width:' + (k / max * 100).toFixed(1) + '%"></i><i class="r" style="width:' + (rl / max * 100).toFixed(1) + '%"></i></div>' +
+        '<div class="cbv">' + countCell(r.kept) + ' kept · ' + countCell(r.released) + ' released</div></div>';
     });
     return '<section><h3>WDFW weekly creel</h3><div class="creel">' +
       '<div class="ctop"><span class="wk">Week of ' + esc(w.week) + '</span><span class="chip' + (Reports.freshness(w.weekEnd, TODAY) === 'fresh' ? '' : ' old') + '">' + esc(Reports.describeAge(w.weekEnd, TODAY)) + '</span></div>' +
-      (w.rows.length ? '<table class="ctab"><caption class="sr">WDFW creel counts for ' + esc(w.week) + '</caption><thead><tr><th scope="col">Species</th><th scope="col">Anglers</th><th scope="col">Kept</th><th scope="col">Released</th></tr></thead><tbody>' + body + '</tbody></table>' : '<p class="cnote">' + w.noCatch.anglers + (w.noCatch.anglers === 1 ? ' angler' : ' anglers') + ' had no catch in this week’s survey.</p>') +
-      (w.note ? '<p class="cnote">' + esc(w.note) + '</p>' : '') +
+      (w.rows.length ? '<div class="cbars">' + body + '</div>' : '<p class="cnote">' + w.noCatch.anglers + (w.noCatch.anglers === 1 ? ' angler' : ' anglers') + ' had no catch in this week’s survey.</p>') +
       '<p class="cnote">Counts from WDFW angler surveys. They are not ratings.</p>' +
-      '<a class="csrc" href="' + esc(w.source) + '" target="_blank" rel="noopener">WDFW creel report, ' + esc(w.week) + ' (PDF)</a>' +
+      srcFold([{ label: 'WDFW creel report, ' + w.week + ' (PDF)', url: w.source }], [w.note]) +
       '</div></section>';
   }
   // Typical season sheets only: recent WDFW angler-survey counts for a site, from creel.js. Display only:
@@ -1589,7 +1641,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     }).join('');
     return '<section><h3>Recent WDFW creel counts</h3><div class="creel">' + blocks +
       '<p class="cnote">' + CREEL_LINE + '</p>' +
-      links.map(function (l) { return '<a class="csrc" href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.label) + '</a>'; }).join('') +
+      srcFold(links) +
       '</div></section>';
   }
   function typicalFootHtml() {
@@ -1707,7 +1759,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       creelHtml(id) +
       (s.tap && TAPBY[s.tap] ? noticesHtml(TAPBY[s.tap].name) : '') +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Rules change in season and differ by river and species. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
-      footHtml('<div class="src">' + src + '</div>');
+      footHtml() + (src ? '<details class="srcs"><summary>Sources and notes</summary><div class="srclist">' + src + '</div></details>' : '');
     $('#sbody').scrollTop = 0;
   }
 
@@ -2002,8 +2054,6 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
   function fillSpot(id) {
     var o = SPOTLIST.filter(function (q) { return q.s.id === id; })[0], s = o.s;
     $('#stitle').textContent = s.name;
-    var head = '<tr><th scope="col">Species</th>' + s.timing.cols.map(function (c) { return '<th scope="col">' + esc(c) + '</th>'; }).join('') + '</tr>';
-    var body = s.timing.rows.map(function (r) { return '<tr><th scope="row">' + esc(r.species) + '</th>' + r.cells.map(function (c) { return '<td>' + esc(c) + '</td>'; }).join('') + '</tr>'; }).join('');
     var rows = function (list) {
       return '<div class="rows">' + list.map(function (r) {
         return '<div class="row"><div class="rt"><div class="nm">' + esc(r[0]) + '</div><div class="dt">' + esc(r[1]) + '</div></div>' + (r[2] ? '<div class="ch"><span class="chip">' + esc(r[2]) + '</span></div>' : '') + '</div>';
@@ -2015,13 +2065,13 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
       tidesHtml({ tide: s.tide }, o) +
       (s.closure ? '<section class="advisory">' + shield + '<div><h3>' + esc(s.closure.title) + '</h3><p>' + esc(s.closure.text) + '</p></div></section>' : '') +
-      '<section><h3>When the fish are in</h3><div class="creel"><table class="ctab"><caption class="sr">Typical run timing at ' + esc(s.name) + '</caption><thead>' + head + '</thead><tbody>' + body + '</tbody></table>' +
-      '<p class="cnote">' + esc(s.timing.note) + '</p></div></section>' +
+      '<section><h3>When the fish are in</h3>' + levelGrid(s.timing.cols, s.timing.rows) + '</section>' +
       '<section><h3>Best times to go</h3>' + rows(s.tips) + '</section>' +
       '<section><h3>' + esc(s.rulesTitle) + '</h3>' + rows(s.rules) + '</section>' +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Guidance, not regulation. These rules were checked on the date above and change by emergency rule. Confirm them on WDFW the morning you go.</p></div></section>' +
-      '<div class="foot"><div>A hand-written guide, not a catch report. Not for navigation or safety decisions.</div><div class="src">' +
-      s.sources.map(function (x) { return '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.label) + '</a>'; }).join('') + '</div></div>';
+      '<div class="foot"><div>A hand-written guide, not a catch report. Not for navigation or safety decisions.</div>' +
+      '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a></div>' +
+      srcFold(s.sources, [s.timing.note]);
     $('#sbody').scrollTop = 0;
   }
   function openSpot(id) {
@@ -2106,6 +2156,15 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     });
     $('#months').appendChild(b); monthBtns.push(b);
   });
+  // The next twelve months from this one, each shaded when the season is open in it; the chosen month is outlined.
+  function monthStrip(s) {
+    var cells = '', m0 = MONTH, sel = seasonMonth();
+    for (var i = 0; i < 12; i++) {
+      var m = (m0 - 1 + i) % 12 + 1, y = YEAR + Math.floor((m0 - 1 + i) / 12), on = Layers.openIn(s, y, m);
+      cells += '<span class="ms' + (on ? ' on' : '') + (m === sel ? ' sel' : '') + '" title="' + MONTH_NAMES[m - 1] + ' ' + y + (on ? ': open' : ': closed') + '">' + MONTH_NAMES[m - 1].charAt(0) + '</span>';
+    }
+    return '<div class="mstrip" role="img" aria-label="Open months over the next year: ' + esc(Reports.formatDay(s.start)) + ' to ' + esc(Reports.formatDay(s.end)) + '">' + cells + '</div>';
+  }
   function fillSeason(id) {
     var s = FYS.filter(function (x) { return x.id === id; })[0], m = seasonMonth(), tg = Layers.tagFor(s, TODAY);
     // The season's own source, then the WDFW rule behind any place the season's wording does not name.
@@ -2116,7 +2175,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
     var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
     $('#stitle').textContent = s.name;
     $('#sbody').innerHTML = '<div class="head"><p>' + esc(s.where) + '</p>' + (tg ? '<span class="chip">' + esc(cap(tg.text)) + '</span>' : '') + '</div>' +
-      '<section><h3>Dates</h3><div class="rows"><div class="row"><div class="rt"><div class="nm">Open</div><div class="dt">' + esc(Reports.formatDay(s.start)) + ' to ' + esc(Reports.formatDay(s.end)) + '</div></div></div></div></section>' +
+      '<section><h3>Open ' + esc(Reports.formatDay(s.start)) + ' to ' + esc(Reports.formatDay(s.end)) + '</h3>' + monthStrip(s) + '</section>' +
       (s.note ? '<section><h3>Note</h3><p class="miss">' + esc(s.note) + '</p></section>' : '') +
       (also.length ? '<section><h3>Also open here in ' + esc(MONTH_NAMES[m - 1]) + '</h3><div class="rows">' + also.map(function (x) {
         return '<button type="button" class="row lrow" data-season="' + esc(x.id) + '"><span class="rt"><span class="nm">' + esc(x.name) + '</span><span class="dt">' + esc(Reports.formatDay(x.start)) + ' to ' + esc(Reports.formatDay(x.end)) + '</span></span></button>';
@@ -2124,7 +2183,7 @@ h3 { margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; }
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Guidance, not regulation. Seasons change and can close with little notice. Confirm the rules on WDFW before you fish.</p></div></section>' +
       '<div class="foot"><div>Season dates from Washington Fishing Year, updated ' + esc(Reports.formatDay(window.FY.updated)) + '. Not for navigation or safety decisions.</div>' +
       '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a>' +
-      (src.length ? '<div class="src">' + src.map(function (x) { return x.url ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.label) + (x.checked ? ' (checked ' + esc(Reports.formatDay(x.checked)) + ')' : '') + '</a>' : '<span>' + esc(x.label) + '</span>'; }).join('') + '</div>' : '') + '</div>';
+      '</div>' + srcFold(src.map(function (x) { return { label: x.label + (x.checked ? ' (checked ' + Reports.formatDay(x.checked) + ')' : ''), url: x.url }; }));
     $('#sbody').scrollTop = 0;
   }
   function openSeason(id) {
