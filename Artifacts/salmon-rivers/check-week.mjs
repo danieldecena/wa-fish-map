@@ -28,6 +28,7 @@ const today = args.today || '2026-10-26';
 let base = args.base, server = null;
 if (!base) {
   // utf-8 is stated because the publisher's wrapper declares it on the live page; without it a "·" reads as "Â·" and text checks fail.
+  const WRAPPER = '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>\n';
   const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json', '.css': 'text/css', '.png': 'image/png' };
   server = createServer(async (req, res) => {
     try {
@@ -35,7 +36,10 @@ if (!base) {
       if (p !== here && !p.startsWith(here + path.sep)) { res.writeHead(403); res.end(); return; }
       if (existsSync(p) && statSync(p).isDirectory()) p = path.join(p, 'index.html');
       if (!existsSync(p) || statSync(p).isDirectory()) { res.writeHead(404); res.end(); return; }
-      res.writeHead(200, { 'content-type': types[path.extname(p)] || 'application/octet-stream' }); res.end(await readFile(p));
+      // The publisher wraps only the page itself (not week/ and the other files) in this skeleton, copied from live 1793083287-e7f9.
+      // Without it the page runs in quirks mode and [hidden] loses to a class's display, so .metip and .sppanel showed on load here and never live.
+      const body = p === path.join(here, 'index.html') ? Buffer.concat([Buffer.from(WRAPPER), await readFile(p)]) : await readFile(p);
+      res.writeHead(200, { 'content-type': types[path.extname(p)] || 'application/octet-stream' }); res.end(body);
     } catch { res.writeHead(400); res.end(); }
   }).listen(0, '127.0.0.1');
   if (!server.listening) await new Promise(r => server.once('listening', r));
@@ -47,7 +51,7 @@ const fails = [];
 const check = (ok, msg) => { if (!ok) fails.push(msg); console.log((ok ? 'ok   ' : 'FAIL ') + msg); };
 const browser = await chromium.launch();
 try {
-const sizes = [[320, 700], [390, 844], [1024, 768]];
+const sizes = [[320, 700], [360, 780], [390, 844], [1024, 768]];
 if (server) {
   // The local static server: no path may leave this folder, a directory serves its index.html, a missing directory is a 404.
   const raw = p => new Promise((ok, no) => { const r = httpRequest({ host: '127.0.0.1', port: server.address().port, path: p }, res => { res.resume(); ok(res.statusCode); }); r.on('error', no); r.end(); });
@@ -90,6 +94,13 @@ for (const scheme of ['light', 'dark']) {
         check(k2.body && k2.exp === 'true', `Map ${w}px ${scheme}: Key opens the legend`);
         await page.click('#keybtn');
         check(await page.evaluate(() => document.getElementById('keypop').hidden), `Map ${w}px ${scheme}: Key closes it again`);
+        if (w >= 360) {
+          // The page promises a fit from 360 px up; below that the bar scrolls and the month names are allowed to crowd.
+          await page.click('#mfold');
+          const ov = await page.evaluate(() => { const rs = [...document.querySelectorAll('#smonth .months button')].filter(b => b.getClientRects().length).map(b => { const g = document.createRange(); g.selectNodeContents(b); const q = g.getBoundingClientRect(); return [b.textContent.trim(), q.left, q.right]; }); return { n: rs.length, hits: rs.slice(1).filter((r, i) => rs[i][2] > r[1] - 1).map((r, i) => r[0]) }; });
+          check(ov.n === 12 && ov.hits.length === 0, `Map ${w}px ${scheme}: the twelve month names keep a 1px gap (${ov.n} shown; touching: ${ov.hits.join(', ')})`);
+          await page.click('#mfold');
+        }
         check(k.hint, `Map ${w}px ${scheme}: the "Tap any river" hint shows before any interaction`);
         await page.click('#zin');
         check(await page.evaluate(() => getComputedStyle(document.getElementById('rhint')).display === 'none'), `Map ${w}px ${scheme}: the hint hides after the first map interaction`);

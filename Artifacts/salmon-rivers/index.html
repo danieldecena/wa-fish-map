@@ -563,6 +563,13 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   .dsum button { flex: none; }
   .smonth.dash .months, .heat { grid-template-columns: 46px repeat(12, minmax(0, 1fr)); }
 }
+/* Under 390 px a month cell is 21-22 px and "May" ran into "Jun". Text stays 12 px (the fine-print floor); a 40 px label column ("Spawn" is 38),
+   tighter tracking and 8 px card sides keep at least a 1 px gap down to 360. */
+@media (max-width: 389px) {
+  .smonth.dash .months, .heat { grid-template-columns: 40px repeat(12, minmax(0, 1fr)); }
+  .smonth.dash .months button { letter-spacing: -0.03em; }
+  .smonth.spawn { padding-inline: 8px; }
+}
 .spawn[hidden] { display: none; }
 .laypop { left: auto; right: 0; width: min(300px, 100%); padding: 8px; }
 .laypop .lh { margin: 2px 8px 4px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); }
