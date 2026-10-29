@@ -79,8 +79,26 @@ for (const scheme of ['light', 'dark']) {
       const sx = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
       check(sx, `${name} ${w}px: no horizontal scroll`);
       if (name === 'Layers') {
-        const lay = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, smonth: !document.getElementById('smonth').hidden, spot: !!document.querySelector('#guides .spotpin') && getComputedStyle(document.querySelector('#guides .spotpin')).display !== 'none', legend: document.querySelectorAll('#layl li').length }));
+        const lay = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, smonth: !document.getElementById('smonth').hidden, spot: !!document.querySelector('#guides .spotpin') && getComputedStyle(document.querySelector('#guides .spotpin')).display !== 'none', legend: document.querySelectorAll('#layl li:not(.lkh)').length }));
         check(lay.btn === 'Layers · 3' && lay.smonth && lay.legend === 3, `Layers ${w}px ${scheme}: three layers on, month slider shown, three legend lines (${lay.btn}, ${lay.legend})`);
+      }
+      if (name === 'Map') {
+        // The month card carries no "at a glance" heading and no report tally chip; the three neutral chips stay.
+        const gl = await page.evaluate(() => { const c = document.getElementById('sml'); const b = [...c.querySelectorAll('.dsum button')].map(x => x.getAttribute('data-dash')); return { glance: /at a glance/.test(c.textContent), tally: !!c.querySelector('[data-dash="reports"], .rk'), chips: b }; });
+        check(!gl.glance && !gl.tally && gl.chips.includes('seasons') && gl.chips.includes('spawn') && gl.chips.includes('typical'), `Map ${w}px ${scheme}: the month card has no "at a glance" heading or report tally, and keeps seasons, spawning and prime-season chips (${gl.chips.join(', ')})`);
+      }
+      if (name === 'Map') {
+        // Heat circles and bars never use the rating ramp: red, orange and amber already mean Excellent, Good and Fair reports.
+        const hv = await page.evaluate(() => { const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue('--' + n).trim().toLowerCase(); const heat = [1, 2, 3].map(i => g('heat-' + i)), rate = ['prime', 'good', 'fair', 'slow'].map(g); return { heat, rate, clash: heat.filter(h => rate.includes(h)).length }; });
+        check(hv.heat.every(Boolean) && hv.rate.every(Boolean) && hv.clash === 0, `Map ${w}px ${scheme}: the heat ramp shares no colour with the rating ramp (heat ${hv.heat.join(' ')}; ratings ${hv.rate.join(' ')})`);
+        // Layers menu: All off clears every layer, All on restores them, and the Key titles its layer lines.
+        await page.click('#laybtn');
+        await page.click('#laypop [data-layers="none"]');
+        const off = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, key: document.querySelectorAll('#layl li:not(.lkh)').length, on: document.querySelectorAll('#laypop [data-layer][aria-checked=true]').length }));
+        await page.click('#laypop [data-layers="all"]');
+        const on = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, rows: document.querySelectorAll('#laypop [data-layer]').length, on: document.querySelectorAll('#laypop [data-layer][aria-checked=true]').length, head: (document.querySelector('#layl .lkh') || {}).textContent }));
+        check(off.btn === 'Layers' && off.key === 0 && off.on === 0 && on.on === on.rows && /Layers on the map/.test(on.head || ''), `Map ${w}px ${scheme}: All off clears every layer, All on restores them, the Key titles its layer lines (${off.btn}, ${on.btn}, ${on.head})`);
+        await page.click('#laybtn');
       }
       if (name === 'Map' && w >= 1024) {
         // With every layer on, the Depth chip shows at load; it must not sit on the hint box under the map.
@@ -88,7 +106,7 @@ for (const scheme of ['light', 'dark']) {
         check(!ov.skipped && !ov.hit, `Map ${w}px ${scheme}: the Depth chip and the hint box do not overlap (${ov.skipped ? 'one of them is not showing: the check proves nothing' : ov.hit ? 'overlap' : 'clear'})`);
       }
       if (name === 'Map') {
-        const dl = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, legend: document.querySelectorAll('#layl li').length, rows: document.querySelectorAll('#laypop [data-layer]').length, on: [...document.querySelectorAll('#laypop [data-layer][aria-checked=true]')].length }));
+        const dl = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, legend: document.querySelectorAll('#layl li:not(.lkh)').length, rows: document.querySelectorAll('#laypop [data-layer]').length, on: [...document.querySelectorAll('#laypop [data-layer][aria-checked=true]')].length }));
         check(dl.rows >= 8 && dl.on === dl.rows && dl.legend === dl.rows, `Map ${w}px ${scheme}: a bare link opens with every layer on (${dl.btn}, ${dl.on} of ${dl.rows} on, ${dl.legend} legend lines)`);
       }
       if (name === 'Map' && w <= 390) {
@@ -135,6 +153,14 @@ for (const scheme of ['light', 'dark']) {
       check(await page.$eval('#year button:nth-child(11)', b => b.getAttribute('aria-checked') === 'true').catch(() => false), 'deep link: November selected');
       await page.goto(base + '/index.html?mode=reports&river=cowlitz', { waitUntil: 'networkidle' });
       check(await page.$eval('#stitle', t => t.textContent.includes('Cowlitz')), 'deep link: Cowlitz report sheet');
+      const sh = await page.evaluate(() => {
+        const row = document.querySelector('#sbody .acts'), ic = [...document.querySelectorAll('#sbody .acts .ico')];
+        const tap = ic.map(b => { const r = b.getBoundingClientRect(), a = getComputedStyle(b, '::after'), t = parseFloat(a.top); return r.height + (t < 0 ? -t - parseFloat(a.bottom) : 0); });
+        const sv = getComputedStyle(ic[0].querySelector('svg'));
+        return { n: ic.length, labels: ic.map(b => b.textContent.trim()), minTap: Math.min(...tap), stroke: sv.strokeWidth, fill: sv.fill, rowH: row ? Math.round(row.getBoundingClientRect().height) : 0, creelKey: !!document.querySelector('#sbody .ckey'), dash: /(^|\s)[\u2013-]\s*kept/.test(document.getElementById('sbody').textContent) };
+      });
+      check(sh.n >= 2 && sh.labels[0] === 'Directions' && sh.minTap >= 44 && parseFloat(sh.stroke) <= 1.5 && sh.fill === 'none' && sh.rowH <= 40, `river sheet: one compact icon row, thin outline icons, 44px to tap (${sh.labels.join(' | ')}; tap ${Math.round(sh.minTap)}px, stroke ${sh.stroke}, fill ${sh.fill}, row ${sh.rowH}px)`);
+      check(sh.creelKey && !sh.dash, `river sheet: the creel bars carry a kept and released key, and no row reads as a bare dash before "kept" (key ${sh.creelKey}, dash ${sh.dash})`);
       // Sheets show no source links (2026-10-29): not the section, not the report or creel PDF links. The WDFW link and the notes stay.
       const cw = await page.evaluate(() => { const b = document.getElementById('sbody'); return { srcLinks: b.querySelectorAll('a[href*="theguidesforecast"], a[href*="nwsportsmanmag"], a[href$=".pdf"]').length, heading: /Sources and notes/.test(b.innerText), wdfw: b.querySelectorAll('a[href*="wdfw.wa.gov"]').length }; });
       check(cw.srcLinks === 0 && !cw.heading && cw.wdfw >= 1, `river sheet: no source links or "Sources and notes", the WDFW link stays (${cw.srcLinks} source links, heading ${cw.heading}, ${cw.wdfw} WDFW links)`);
@@ -242,6 +268,38 @@ for (const [w, h] of [[1024, 768], [1280, 800], [1440, 900], [390, 844]]) {
     check(!!fd && (!fd.scrolls || (fd.start && !fd.end)), `open ${w}px: summary chips past the card's edge fade there, and not at the row's end (${JSON.stringify(fd)})`);
   }
   await octx.close();
+}
+// The wide-screen sheet grows with the window (380px at narrow desktops, up to 520px) and the map keeps the tapped river clear of it.
+for (const [w, h, lo, hi] of [[1024, 768, 380, 380], [1440, 900, 480, 500], [1920, 1080, 520, 520]]) {
+  const wctx = await browser.newContext({ viewport: { width: w, height: h } });
+  const wp = await wctx.newPage();
+  await wp.goto(base + '/index.html?mode=reports&river=cowlitz&today=' + today, { waitUntil: 'networkidle' });
+  await wp.waitForTimeout(700);
+  const sw = await wp.evaluate(() => { const s = document.getElementById('sheet').getBoundingClientRect(); const pin = [...document.querySelectorAll('#over .pin[aria-label]')].find(p => /cowlitz/i.test(p.getAttribute('aria-label'))); const r = pin && pin.getBoundingClientRect(); return { w: Math.round(s.width), left: Math.round(s.left), pinX: r ? Math.round(r.left + r.width / 2) : null }; });
+  check(sw.w >= lo && sw.w <= hi && sw.pinX !== null && sw.pinX < sw.left, `sheet ${w}px: the side sheet is ${sw.w}px wide (expected ${lo} to ${hi}) and the tapped river's pin (x ${sw.pinX}) sits left of it (x ${sw.left})`);
+  await wctx.close();
+}
+// Fish names and the species list. A chip, the bar label and a sheet row show a short name when the exact one is long; the exact name stays in the
+// tooltip and the accessible name. The Typical sheet lists species one line each, Good and Prime open and the rest folded.
+{
+  const sctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const sp = await sctx.newPage();
+  await sp.goto(base + '/index.html?mode=typical&site=les-davis-pier&today=' + today, { waitUntil: 'networkidle' });
+  await sp.waitForTimeout(600);
+  const fn = await sp.evaluate(() => {
+    const chips = [...document.querySelectorAll('#sppanel button')], long = chips.filter(b => b.textContent.trim().length > 18);
+    const cut = chips.filter(b => b.title && b.getAttribute('aria-label') === b.title);
+    const sec = document.querySelector('#sbody details.sp') && document.querySelector('#sbody details.sp').closest('section');
+    const rows = [...document.querySelectorAll('#sbody details.sp')], vis = rows.filter(r => { const f = r.closest('details.moresp'); return !f || f.open; }), sum = vis.map(r => r.querySelector('summary').getBoundingClientRect().height);
+    const list = sec ? sec.querySelector('.rows') : null;
+    return { chips: chips.length, long: long.map(b => b.textContent.trim()), cut: cut.length, rows: rows.length, shown: vis.length, minSum: Math.min(...sum), fold: !!document.querySelector('#sbody details.moresp'), h: sec ? Math.round(sec.getBoundingClientRect().height) : 0 };
+  });
+  check(fn.chips > 10 && fn.long.length === 0 && fn.cut >= 3, `species chips: none shows a name over 18 characters, and each shortened one keeps its exact name in the tooltip and accessible name (${fn.chips} chips, long ${JSON.stringify(fn.long)}, shortened ${fn.cut})`);
+  await sp.click('#sbody details.moresp > summary');
+  const fo = await sp.evaluate(() => { const s = [...document.querySelectorAll('#sbody details.sp summary')].map(x => x.getBoundingClientRect().height); return { n: s.length, min: Math.min(...s) }; });
+  check(fo.n >= 6 && fo.min >= 44, `Typical sheet: with the fold open all ${fo.n} species lines are 44px or taller (smallest ${Math.round(fo.min)}px)`);
+  check(fn.rows >= 6 && fn.shown <= 3 && fn.fold && fn.minSum >= 44 && fn.h <= 360, `Typical sheet: ${fn.rows} species in one-line rows, only ${fn.shown} visible until the fold opens, each line 44px or taller, the section ${fn.h}px tall (limit 360)`);
+  await sctx.close();
 }
 // Month names on a phone whose fallback font is wider than SF Pro (Android, Windows; critique 2026-10-27 finding 3). This Mac has SF Pro, so the
 // check forces Verdana as --sans and first proves the font is wide enough that three letters could not fit a 22px cell: a check that passes

@@ -70,13 +70,19 @@ test('phone bar: the Key and Rivers icons are not hidden by a later desktop rule
   assert.match(block, /#listbtn \.ri \{ display: block; \}/);
 });
 
-test('compact bar only for a mouse on a wide window; touch keeps 44 px', () => {
+test('compact bar only for a mouse on a wide window; every control still reaches 44 px to click or tap', () => {
   const q = '@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {';
   const i = html.indexOf(q); assert.ok(i > 0);
   const block = html.slice(i, html.indexOf('\n}\n', i));
-  assert.match(block, /\.bar \{ height: 44px; padding: 4px 8px; \}/);
-  assert.match(block, /\.bar \.listbtn, \.bar \.nbtn, \.bar \.seg button \{ min-height: 36px; \}/);
-  assert.doesNotMatch(html.replace(block, ''), /min-height: 36px/, 'no 36 px control outside the mouse-only block');
+  assert.match(block, /\.bar \{ height: 38px; padding: 3px 6px; gap: 4px; \}/);
+  const h = /\.bar \.listbtn, \.bar \.nbtn, \.bar \.seg button \{ min-height: (\d+)px;/.exec(block);
+  assert.ok(h, 'the mouse-only block sets the control height');
+  // The drawn control is small; an invisible ::after adds its inset above and below, so the tappable height is the sum.
+  const x = /\.bar \.seg button::after \{ content: ""; position: absolute; inset: -(\d+)px -\d+px; \}/.exec(block);
+  assert.ok(x, 'the mouse-only block gives each bar control a hit-area extender');
+  assert.ok(+h[1] + 2 * +x[1] >= 44, `drawn ${h[1]}px plus 2 x ${x[1]}px extender is under 44px`);
+  // Control: the sum would fail for a control with no extender, so the assertion above can fail.
+  assert.ok(+h[1] < 44);
 });
 
 test('piers and shore layer: plain markers, never a rating colour, and never drawn over Typical season', () => {
@@ -115,9 +121,11 @@ test('Typical season and Spawning layers: neutral shapes and words, never a rati
   assert.match(state, /word:/, 'every marker carries its state in words');
 });
 
-test('month card: report counts keep their colour and word; the heat strip and guidance counts are neutral', () => {
+test('month card: no report tally and no rating colour; the chips, the heat strip and the guidance counts are neutral', () => {
   const dash = between('function dashHtml', 'function setLMonth');
-  assert.match(dash, /RWORD\[r\]/, 'a report colour always has its word');
+  assert.doesNotMatch(dash, /RWORD|tally|at a glance|data-dash="reports"/, 'the report tally and its heading were removed');
+  assert.doesNotMatch(dash, /--(prime|good|fair|slow)/, 'the month card draws no rating colour');
+  assert.match(dash, /data-dash="seasons"/, 'the neutral chips stay');
   const heat = dash.slice(dash.indexOf('#heat'));
   assert.doesNotMatch(heat, /--(prime|good|fair|slow)/);
   assert.match(html, /\.heat \.hc i \{[^}]*background: var\(--on-text\)/);
