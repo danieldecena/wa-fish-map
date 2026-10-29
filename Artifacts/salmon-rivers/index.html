@@ -1421,9 +1421,10 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
         n.g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
         boxes.push(bx);
         if (!olab) return;
-        var lw = textW(txt), left = x + 10 + lw + 4 > W - 8, lb = [left ? x - 10 - (lw + 4) : x + 10, y - 7, lw + 4, 14];
+        // The map label is the name alone: the rating word stays in the accessible name and in the sheet, and the marker shows in season (solid) or not (hollow).
+        var nm = o.t.name, lw = textW(nm), left = x + 10 + lw + 4 > W - 8, lb = [left ? x - 10 - (lw + 4) : x + 10, y - 7, lw + 4, 14];
         if (boxes.some(function (q) { return overlap(lb, q); })) return;
-        n.lab.textContent = txt; n.lab.style.display = ''; n.lab.setAttribute('text-anchor', left ? 'end' : 'start');
+        n.lab.textContent = nm; n.lab.style.display = ''; n.lab.setAttribute('text-anchor', left ? 'end' : 'start');
         n.lab.setAttribute('x', (left ? x - 10 : x + 10).toFixed(1)); n.lab.setAttribute('y', (y + 4).toFixed(1));
         boxes.push(lb);
       });
