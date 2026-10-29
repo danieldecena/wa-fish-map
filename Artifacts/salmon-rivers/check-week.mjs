@@ -330,6 +330,22 @@ for (const [w, h, lo, hi] of [[1024, 768, 380, 380], [1440, 900, 480, 500], [192
   }
   check(bad.length === 0, `pan limit: dragged hard right, left, down and up while zoomed in, the screen's edges stay within the state's border plus a small margin (${bad.join('; ') || 'all four held'})`);
   await pctx.close();
+// Layer-marker labels on the map are the name alone; the rating word stays in the marker's accessible name (and the sheet).
+{
+  const lctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const lp = await lctx.newPage();
+  await lp.goto(base + '/index.html?layers=typical,access,spots,seasons&today=' + today, { waitUntil: 'networkidle' });
+  await lp.waitForTimeout(600);
+  for (let i = 0; i < 4; i++) { await lp.click('#zin'); await lp.waitForTimeout(450); }
+  await lp.waitForTimeout(500);
+  const lb = await lp.evaluate(() => {
+    const out = [];
+    document.querySelectorAll('#over g.omark').forEach(g => { const l = g.nextElementSibling; if (!l || l.tagName !== 'text' || l.style.display === 'none' || !l.textContent.trim()) return; out.push({ vis: l.textContent, aria: g.getAttribute('aria-label') || '' }); });
+    return out;
+  });
+  const worded = lb.filter(x => /\u00b7/.test(x.vis)), lost = lb.filter(x => !/\u00b7/.test(x.aria));
+  check(lb.length >= 10 && worded.length === 0 && lost.length === 0, `map labels: ${lb.length} layer-marker labels show the name alone (${worded.length} still carry a rating word), and every marker keeps the word in its accessible name (${lost.length} lost it)`);
+  await lctx.close();
 }
 // Tapping a site in Typical season zooms to a neighbourhood (at most 3 times the state fit, it was 5), keeps its neighbours in frame and the pin left of the sheet.
 {
