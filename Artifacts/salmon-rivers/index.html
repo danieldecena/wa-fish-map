@@ -2334,12 +2334,12 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
         : ', best first. Fresh reports rank above older ones.') + '</p><div class="rows">' + rows + '</div>' + footHtml();
     $('#sbody').scrollTop = 0;
   }
-  /* Sheets show data first. Source links and longer notes fold into one closed "Sources and notes" section at the end; the WDFW rules link
-     and the "Before you go" advisory stay in view. */
+  /* Sheets show data first; longer notes fold into one closed section at the end, and the WDFW rules link and the "Before you go" advisory stay in view. */
+  /* Source links are not shown (2026-10-29): the sheet keeps the rule notices, the "Before you go" line and the WDFW link, and a closed "Notes"
+     section holds only the longer notes. The links argument is kept so each caller still names what it cites. */
   function srcFold(links, notes) {
-    var body = (notes || []).filter(Boolean).map(function (n) { return '<p>' + esc(n) + '</p>'; }).join('') +
-      (links || []).filter(function (x) { return x && x.url; }).map(function (x) { return '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.label) + '</a>'; }).join('');
-    return body ? '<details class="srcs"><summary>Sources and notes</summary><div class="srclist">' + body + '</div></details>' : '';
+    var body = (notes || []).filter(Boolean).map(function (n) { return '<p>' + esc(n) + '</p>'; }).join('');
+    return body ? '<details class="srcs"><summary>Notes</summary><div class="srclist">' + body + '</div></details>' : '';
   }
   // Timing grades as level bars (Slow 1 to Prime 4), in neutral ink: the word stays under each bar, so colour never carries the grade.
   var LEVEL = { Slow: 1, Fair: 2, Good: 3, Prime: 4 };
@@ -2496,22 +2496,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
         '<span class="chip' + (Reports.freshness(sp.asOf, TODAY) === 'fresh' ? '' : ' old') + '">' + esc(Reports.describeAge(sp.asOf, TODAY)) + '</span></div></div>';
     }).join('');
     var missing = Reports.missingNote(s, species) || (rows ? null : 'No catch report for this water. The WDFW creel figures below are counts, not a rating.');
-    var extraSrc = [];
-    Reports.reportRows(s).forEach(function (r) {
-      var q = r.sp.src;
-      if (q && extraSrc.every(function (e) { return e.url !== q.url; })) extraSrc.push(q);
-    });
-    var cw = typeof Counts !== 'undefined' ? Counts.forWater(id) : null;
-    if (cw && (cw.rows.length || cw.noCatch) && extraSrc.every(function (e) { return e.url !== cw.source; })) extraSrc.push({ label: 'WDFW creel report, ' + cw.week, url: cw.source });
     var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
     var dir = 'https://maps.apple.com/?ll=' + s.ll[0] + ',' + s.ll[1] + '&q=' + encodeURIComponent(s.name);
-    var GF = 'https://www.theguidesforecast.com/free/coho-run-heats-up/287017/';
-    extraSrc = extraSrc.filter(function (e) { return e.url !== GF; });
-    // The two Guide's Forecast links are Columbia-tributary sources: only the original eight cite them.
-    var src = (s.added ? '' : '<a href="' + GF + '" target="_blank" rel="noopener">The Guide’s Forecast, Oct 17</a>' +
-      '<a href="https://www.theguidesforecast.com/sw-washington-fishing-reports/" target="_blank" rel="noopener">SW Washington reports, Oct 15</a>') +
-      (s.extra === 'nws' ? '<a href="https://nwsportsmanmag.com/sw-wa-buoy-10-lower-columbia-hanford-reach-report-10-13-2026/" target="_blank" rel="noopener">NW Sportsman, Oct 13</a>' : '') +
-      extraSrc.map(function (e) { return '<a href="' + esc(e.url) + '" target="_blank" rel="noopener">' + esc(e.label) + '</a>'; }).join('');
     $('#sbody').innerHTML =
       head +
       '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
@@ -2519,7 +2505,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       creelHtml(id) +
       (s.tap && TAPBY[s.tap] ? noticesHtml(TAPBY[s.tap].name) : '') +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Rules change in season and differ by river and species. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
-      footHtml() + (src ? '<details class="srcs"><summary>Sources and notes</summary><div class="srclist">' + src + '</div></details>' : '');
+      footHtml();
     $('#sbody').scrollTop = 0;
   }
 

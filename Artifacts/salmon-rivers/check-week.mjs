@@ -135,6 +135,13 @@ for (const scheme of ['light', 'dark']) {
       check(await page.$eval('#year button:nth-child(11)', b => b.getAttribute('aria-checked') === 'true').catch(() => false), 'deep link: November selected');
       await page.goto(base + '/index.html?mode=reports&river=cowlitz', { waitUntil: 'networkidle' });
       check(await page.$eval('#stitle', t => t.textContent.includes('Cowlitz')), 'deep link: Cowlitz report sheet');
+      // Sheets show no source links (2026-10-29): not the section, not the report or creel PDF links. The WDFW link and the notes stay.
+      const cw = await page.evaluate(() => { const b = document.getElementById('sbody'); return { srcLinks: b.querySelectorAll('a[href*="theguidesforecast"], a[href*="nwsportsmanmag"], a[href$=".pdf"]').length, heading: /Sources and notes/.test(b.innerText), wdfw: b.querySelectorAll('a[href*="wdfw.wa.gov"]').length }; });
+      check(cw.srcLinks === 0 && !cw.heading && cw.wdfw >= 1, `river sheet: no source links or "Sources and notes", the WDFW link stays (${cw.srcLinks} source links, heading ${cw.heading}, ${cw.wdfw} WDFW links)`);
+      await page.goto(base + '/index.html?mode=reports&river=columbia', { waitUntil: 'networkidle' });
+      const cn = await page.evaluate(() => { const d = document.querySelector('#sbody details.srcs'); return { text: d ? d.textContent : '', links: d ? d.querySelectorAll('a').length : 0 }; });
+      check(/Notes/.test(cn.text) && /Sections that reported/.test(cn.text) && cn.links === 0, `river sheet: the Columbia creel note still shows, in a Notes section with no links (${cn.text.slice(0, 60).replace(/\s+/g, ' ')})`);
+      await page.goto(base + '/index.html?mode=reports&river=cowlitz', { waitUntil: 'networkidle' });
       await page.click('#sdone');
       check(await page.evaluate(() => location.search) === '', 'deep link: Done clears the query');
       await page.goto(base + '/index.html?mode=spawning&site=nonsense', { waitUntil: 'networkidle' });
