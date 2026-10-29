@@ -139,6 +139,11 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-29 (river rules published, version 44; open items closed)
+- Decided: PR 118 shipped the nine report rivers' rules as text with three rows left out before merge: Lower Columbia coho (a 3 versus 2 adult limit between the Sept 24 emergency rule and the Oct 5 pamphlet, and October rows assumed for the Puget Island to Bonneville reach) and the Wind River Chinook row below Highway 14 (inferred). The Cowlitz coho row was spot-checked against WDFW's pamphlet page and matches. Every other row is the agent's direct reading of WDFW pages on 2026-10-29, expires on its `through` date, and sits under the "Confirm on WDFW" line. Daniel asked to finish the list; he did not review the rows, so a read-through is still owed.
+- Closed: PR 117 (version 41 record) as superseded by 120; the "artifact alias" request was dropped by Daniel.
+- Still open: the motion PR (Figma-designed animation) and the depth-shading spike (open bathymetry, baked into files because the published page cannot fetch).
+
 ### 2026-10-29 (web design pass: sheets, bar, fish names; Figma now follows the web)
 - Decided: design edits happen on the real web page first; Figma is for motion, diagrams and the component library afterward. PR 119 (version 42) made the side sheets compact and consistent: one thin-line icon row (Directions, WDFW rules, Timing or Site info), a sheet that grows from 380 to 520 px, species listed one line each with a 12-month strip (Good and Prime shown, Fair and Slow folded), four long fish names shortened for display only (exact names stay in the tooltip, accessible name, data and filters, which the species-vocab rule requires), toolbar controls 28 px drawn and 44 px to click, and the month card's "at a glance" heading and report tally removed. My calls, not asked: heat circles and bars moved to violet because red, orange and amber already mean Excellent, Good and Fair reports and every layer is now on by default; Layers has All on and All off; creel bars carry a kept and released key.
 - Checked: 202 Node tests and 242 page checks; each new check was shown to fail on the page it targets. A commit once went in with a failing test because the commands were chained without stopping on the failure; the next commit fixed it and gates on the test exit status.
