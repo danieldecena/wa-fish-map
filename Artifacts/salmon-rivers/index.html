@@ -3866,4 +3866,6 @@ html:not(.touched):has(.hints .hint:not([hidden])) .depthchip, html:has(#hint:no
   #app.focus-water #base, #app.focus-water #over > :not(.infocus), #app.focus-water #guides > :not(.infocus) { filter: none; }
   #app.focus-water #heat { filter: blur(2.5px); }
 }
+/* On a phone the card takes about 40 percent of the screen while a river is in focus, so the whole river has room above it (it was 66 percent, which left a strip about 130px tall). */
+@media (max-width: 759px) { #app.focus-water #sheet { max-height: min(42vh, 360px); } }
 </style>

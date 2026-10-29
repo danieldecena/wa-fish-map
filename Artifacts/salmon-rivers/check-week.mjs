@@ -553,6 +553,7 @@ for (const [w, h] of [[390, 844], [1280, 800]]) {
     const a = await state(fp), g = await geom(fp);
     check(a.cls && a.title === 'Cowlitz River', `focus ${w}px: tapping the Cowlitz puts the app in water focus (${a.cls}, ${a.title})`);
     check(inside(g) && fills(g), `focus ${w}px: the whole river fits in the free map area and fills it (river ${JSON.stringify(g.river)}, free ${JSON.stringify(g.free)})`);
+    if (w < 760) { const sh = await fp.evaluate(() => document.getElementById('sheet').getBoundingClientRect().height / innerHeight); check(sh <= 0.44, `focus ${w}px: on a phone the card takes at most 44 percent of the screen while a river is in focus (${(sh * 100).toFixed(0)} percent), so the whole river has room above it`); }
     check(a.dimN > 0 && a.dimMax <= 0.35, `focus ${w}px: ${a.dimN} other markers and labels compute opacity at most .35 (${a.dimMax})`);
     check(a.sharpN > N && a.sharpMin === 1 && a.launches === N, `focus ${w}px: the river's pin, its ${a.launches} of ${N} launches and their labels compute opacity 1 (${a.sharpN} sharp, min ${a.sharpMin})`);
     check(/blur\(3\.5px\)/.test(a.baseFilter) && /blur\(2px\)/.test(a.dimFilter) && a.sharpFilter === 'none' && !a.rselInBase, `focus ${w}px: the base and the other markers are blurred, the river and its sites are not (${a.baseFilter}, ${a.dimFilter}, ${a.sharpFilter}, river in base ${a.rselInBase})`);
