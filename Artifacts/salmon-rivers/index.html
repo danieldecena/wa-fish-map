@@ -2854,7 +2854,9 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var s = siteOf(id);
     var wide = window.innerWidth >= 760;
     var sh = sheet.getBoundingClientRect().height || 0;
-    var ns = Math.max(v.s, s0 * (view === 'typical' ? 5 : view === 'spawning' ? 2.5 : 1.5));
+    // A neighbourhood, not the tightest view: 3 times the state fit in Typical season (it was 5), so a pier keeps its neighbours and the shore in frame.
+    // Never a zoom out. The close view is for the Depth layer.
+    var ns = Math.max(v.s, s0 * (view === 'typical' ? 3 : view === 'spawning' ? 2.5 : 1.5));
     var barB = $('#bar').getBoundingClientRect().bottom;
     var tx, ty;
     if (wide) { tx = (W - sheetInset()) / 2 - s.xy[0] * ns; ty = H / 2 + 20 - s.xy[1] * ns; }
