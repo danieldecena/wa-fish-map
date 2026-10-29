@@ -14,7 +14,7 @@
   /* Map layers (layers.js) work in every mode. The list is repeated here so links.js stays standalone; test/layers.test.js holds them equal. */
   var LAYERS = ['seasons', 'spots', 'access', 'counts', 'typical', 'spawn'];
   /* No `layers` in the link means the default set; `layers=none` means every layer off. */
-  var DEFAULT_LAYERS = ['typical', 'spawn'];
+  var DEFAULT_LAYERS = LAYERS.slice();
   function layerList(s) { var a = String(s || '').split(','); return LAYERS.filter(function (n) { return a.indexOf(n) >= 0; }); }
   var DATE = /^\d{4}-\d{2}-\d{2}$/;
   /* A real calendar date: the shape matches and the date survives a round trip (2026-02-30 and 2026-13-99 do not). */
