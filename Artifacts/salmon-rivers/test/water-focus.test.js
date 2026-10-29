@@ -14,7 +14,8 @@ test('water focus: the sharp layer sits between the blurred base and the markers
   assert.ok(order.every(i => i >= 0), 'all six layers exist');
   assert.deepEqual(order.slice().sort((a, b) => a - b), order, 'base, heat, scrim, focus, over, guides in paint order');
   // The selected river is drawn in the focus layer, not inside #base (a filter on #base would blur it too).
-  assert.match(html, /var fvp = \$\('#fvp'\);\s*var rsel = el\('g', \{ id: 'rsel' \}, fvp\);/);
+  assert.match(html, /var fvp = \$\('#fvp'\);[\s\S]*?var rsel = el\('g', \{ id: 'rsel' \}, fvp\);/);
+  assert.match(html, /var asel = el\('g', \{ id: 'asel' \}, fvp\);/, 'a marine area outline is drawn in the same sharp layer');
   assert.match(html, /fvp\.setAttribute\('transform', vp\.getAttribute\('transform'\)\);/, 'the focus layer follows the camera');
 });
 
@@ -41,13 +42,14 @@ test('water focus: how it starts, ends and where the camera goes', () => {
   const mod = between('/* ---- water focus', 'function openWaterSite');
   // The camera is stored once, on the first entry, and restored on leaving.
   assert.match(mod, /if \(first\) wf = \{ prev: \{ s: v\.s, tx: v\.tx, ty: v\.ty \}, need: false \};/);
+  assert.match(mod, /var changed = first \|\| wf\.id !== id \|\| wf\.kind !== kind;/, 'moving between a river and an area keeps the stored camera');
   assert.match(mod, /if \(restore\) animateTo\(\{ s: w\.prev\.s, tx: w\.prev\.tx, ty: w\.prev\.ty \}\);/);
   // 12 percent padding each side, never closer than 8 times the opening scale, never past the state floor.
-  assert.match(mod, /Math\.max\(minS, Math\.min\(Math\.min\(aw \/ \(w \* 1\.24\), ah \/ \(h \* 1\.24\)\), 8 \* s0\)\)/);
+  assert.match(mod, /var cap = wf\.kind === 'area' \? maxS : 8 \* s0;\s*var s = Math\.max\(minS, Math\.min\(Math\.min\(aw \/ \(w \* 1\.24\), ah \/ \(h \* 1\.24\)\), cap\)\);/);
   assert.match(mod, /if \(window\.innerWidth < 760\) p\.b = Math\.max\(p\.b, Math\.min\(sheet\.getBoundingClientRect\(\)\.height \|\| 0, H \* 0\.66\) \+ 8\);/, 'phones fit above the sheet');
   // Announced through a polite live region.
   assert.match(html, /<div class="sr" id="wfsay" role="status" aria-live="polite"><\/div>/);
-  assert.match(mod, /'Focused on ' \+ r\.name \+ ', ' \+ wf\.list\.length \+ \(wf\.list\.length === 1 \? ' access site' : ' access sites'\) \+ '\. Press Escape to leave\.'/);
+  assert.match(mod, /'Focused on ' \+ r\.name \+ ', ' \+ n \+ \(n === 1 \? ' access site' : ' access sites'\) \+ '\. Press Escape to leave\.'/);
   assert.match(mod, /say\('Left focus on ' \+ name \+ '\.'\);/);
   // Done, Escape and a tap on empty map all end in closeSheet, which leaves the focus and restores the camera.
   assert.match(between('function closeSheet() {', 'function currentRef'), /clearRiver\(\); leaveWater\(true\);/);
@@ -56,9 +58,10 @@ test('water focus: how it starts, ends and where the camera goes', () => {
   // Entering: a river tap, a report pin or list row (openSheet), a launch or shore site (openSheet in Typical season, openAccess).
   assert.match(between('function openRiver(id) {', 'var returnFocus'), /enterWater\(id, null\);/);
   assert.match(between('function openSheet(id) {', '/* ---- spot guide sheet'), /enterWater\(wid, view === 'reports' \? id : null/);
+  assert.match(between('function openSheet(id) {', '/* ---- spot guide sheet'), /enterWater\(aid, null, false, 'area'\)/);
   assert.match(between('function openAccess(id) {', '/* ---- Seasons layer'), /enterWater\(wid, /);
   // Opening anything that is not on the river ends the focus.
-  assert.match(html, /if \(!wid\) leaveWater\(false\); else enterWater\(wid, view === 'reports' \? id : null, true\);/);
+  assert.match(html, /if \(wid\) enterWater\(wid, view === 'reports' \? id : null, true\);\s*else if \(aid\) enterWater\(aid, null, true, 'area'\);\s*else leaveWater\(false\);/);
   assert.match(html, /function openList\(\) \{\s*clearRiver\(\); leaveWater\(true\);/);
 });
 
@@ -68,7 +71,7 @@ test('water focus: the card lists the access sites and a launch sheet offers the
   assert.match(acc, /data-wfsite="/);
   assert.match(acc, /Season\.KIND_LABEL\[t\.kind\] \+ word/, 'the kind label, as the app words it');
   assert.match(acc, /var typ = view === 'typical';[\s\S]*word = typ \?/, 'a rating word only where the page already shows one');
-  assert.match(between('function wfBackHtml(id) {', 'function say'), /Back to ' \+ esc\(TAPBY\[wf\.id\]\.name\)/);
+  assert.match(between('function wfBackHtml(id) {', 'function say'), /Back to ' \+ esc\(wfName\(wf\)\)/);
   // Both river cards carry the section; the launch sheets carry the button.
   assert.match(between('function fillRiver(id) {', 'Spawning: month ribbon'), /accessHtml\(id\)/);
   assert.match(between('function fillSheet(id) {', 'river sheet (Recent reports)'), /accessHtml\(wid\)/);
@@ -105,7 +108,7 @@ test('water focus adds no URL key and no request', () => {
   assert.deepEqual(Links.KEYS.reports, ['species', 'river']);
   assert.deepEqual(Links.KEYS.typical, ['species', 'site']);
   assert.equal(Links.read('?river=cowlitz').river, 'cowlitz');
-  assert.match(html, /river: rep \? \(wf \? \(wf\.rep \|\| wf\.id\) : mode === 'detail' \? selected : riverSel\) : null,/, 'a focus writes the river it is on');
+  assert.match(html, /river: rep \? \(wf && wf\.kind === 'river' \? \(wf\.rep \|\| wf\.id\) : mode === 'detail' \? selected : riverSel\) : null,/, 'a river focus writes the river it is on, an area focus writes none');
   const code = focusCss + between('/* ---- water focus', 'function openWaterSite');
   assert.doesNotMatch(code, /fetch\(|XMLHttpRequest|sendBeacon|WebSocket|EventSource|import\(/);
 });

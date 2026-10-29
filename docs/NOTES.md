@@ -31,6 +31,7 @@ Run: plan (`docs/superpowers/plans/2026-10-18-salmon-rivers-artifact.md`), desig
 - A colour that passes on white can fail on the map ground (`#f2f2f7`): check text colour against the surface it actually sits on.
 - Tokens used for text and for fills should be separate (`--on-text` versus `--on`), because dark mode needs a lighter text value than fill value.
 - Hiding information while a sheet is open (the legend, the banner) can remove the only disclaimer on screen.
+- A statement added between a one-line `if (...) x;` and the `else` on the next line steals the `else` (2026-10-29, marine focus: Typical pins fell into the Spawning label branch and `render` threw). Wrap the `if` in braces before inserting, and look at a Typical season pin with another pin in view, not only the focused ones.
 
 ## Subagent memory
 
