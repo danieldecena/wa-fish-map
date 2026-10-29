@@ -37,6 +37,9 @@
   --lift: 0 6px 22px rgba(0,0,0,0.14);
   --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
   --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  /* Motion: the names and numbers of the Motion collection in the WA Fish Map Figma file (docs/design/motion-spec.md). */
+  --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 280ms; --dur-camera: 400ms; --dur-pop: 160ms; --dur-layer: 240ms; --dur-pulse: 450ms;
+  --ease-out: cubic-bezier(.2,.8,.2,1); --ease-in: cubic-bezier(.4,0,1,1); --ease-inout: cubic-bezier(.65,0,.35,1);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -156,6 +159,8 @@ a { color: var(--on-text); }
 .pin .balloon { fill: var(--rc); stroke: var(--pin-edge); stroke-width: 1.5; }
 .pin .glyph path { fill: var(--gl, #fff); }
 .pin .tipshadow { fill: rgba(0,0,0,0.28); }
+/* The selection ring is invisible until a pin is selected and motion is allowed (see the no-preference block). */
+.pin .ring { fill: none; stroke: var(--on); stroke-width: 2px; vector-effect: non-scaling-stroke; opacity: 0; pointer-events: none; transform-box: fill-box; transform-origin: center; }
 /* Faded pins keep a full-strength edge and glyph so they stay findable on the light map; only the fill fades. */
 .pin.closed .balloon { fill-opacity: 0.45; }
 .pin.closed .glyph { opacity: 0.75; }
@@ -429,11 +434,10 @@ html.touched #rhint { display: none; }
   border-radius: 18px 18px 0 0;
   box-shadow: 0 -8px 30px rgba(0,0,0,0.18);
   transform: translateY(104%); visibility: hidden;
-  transition: transform 0.28s cubic-bezier(.2,.8,.2,1), visibility 0s 0.28s;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   z-index: 5;
 }
-#sheet.open { transform: none; visibility: visible; transition: transform 0.28s cubic-bezier(.2,.8,.2,1); }
+#sheet.open { transform: none; visibility: visible; }
 .sbar {
   position: relative; flex: none;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -577,7 +581,6 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   .sbar .st { margin-top: 0; }
   .sbar button { margin-top: 0; }
   .sbody { padding-right: 16px; padding-left: 16px; }
-  .zoom { transition: transform 0.28s cubic-bezier(.2,.8,.2,1); }
   #app.sheet-open .zoom { transform: translateX(calc(-1 * var(--sheetw) - 12px)); }
 }
 @media (max-width: 759px) {
@@ -615,7 +618,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
 .layrow .lt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 14px; line-height: 18px; }
 .layrow .lt span { font-size: 12px; line-height: 16px; color: var(--ink2); }
 .layrow .sw { flex: none; position: relative; width: 42px; height: 26px; border-radius: 13px; background: var(--fill-toggle); }
-.layrow .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform 150ms ease-out; }
+.layrow .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
 .layrow[aria-checked="true"] .sw { background: var(--on); }
 .layrow[aria-checked="true"] .sw::after { transform: translateX(16px); }
 .laypop .fine { margin: 6px 8px 2px; font-size: 12px; line-height: 16px; color: var(--ink2); }
@@ -628,6 +631,40 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   .bar .listbtn, .bar .nbtn, .bar .seg button { min-height: 28px; position: relative; font-size: 12px; line-height: 16px; padding: 0 9px; }
   .bar .listbtn::after, .bar .nbtn::after, .bar .seg button::after { content: ""; position: absolute; inset: -8px -1px; }
   .bar .seg.modes button { font-size: 12px; line-height: 16px; }
+}
+/* Motion. Everything that moves lives in this block, so a visitor who asked for reduced motion gets none of it. Names, numbers and the Figma frames: docs/design/motion-spec.md.
+   Transform and opacity only, except a disclosure's height and the switch's colour. The camera is the other half, in animateTo. */
+@media (prefers-reduced-motion: no-preference) {
+  :root { interpolate-size: allow-keywords; }
+  /* Sheet: 280 ms ease-out in; 200 ms ease-in out. The content rises 8 px a block on a 40 ms stagger (riseIn plays it on every open or swap). */
+  #sheet { transition: transform var(--dur-base) var(--ease-in), visibility 0s var(--dur-base); }
+  #sheet.open { transition: transform var(--dur-slow) var(--ease-out); }
+  .zoom { transition: transform var(--dur-slow) var(--ease-out); }
+  #sbody.rise > * { animation: rise var(--dur-base) var(--ease-out) backwards; animation-delay: calc(80ms + var(--i, 0) * 40ms); }
+  #sbody.rise > :nth-child(2) { --i: 1; } #sbody.rise > :nth-child(3) { --i: 2; } #sbody.rise > :nth-child(4) { --i: 3; } #sbody.rise > :nth-child(5) { --i: 4; } #sbody.rise > :nth-child(n+6) { --i: 5; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+  /* Popovers: open from the bar button as a transition (setPop sets --pop-ox to the button's centre); close on a copy, because [hidden] removes the real panel at once. */
+  .pop { transition: opacity var(--dur-pop) var(--ease-out), transform var(--dur-pop) var(--ease-out); transform-origin: var(--pop-ox, 0) 0; }
+  @starting-style { .pop { opacity: 0; transform: scale(.96); } }
+  .pop.ghost { transition: none; animation: pop-out var(--dur-fast) var(--ease-in) forwards; pointer-events: none; }
+  @keyframes pop-out { to { opacity: 0; transform: scale(.96); } }
+  /* Pin select: one ring pulse and a 2 px lift; deselecting settles faster. */
+  .pin .pin-s { transition: translate var(--dur-fast) var(--ease-in); }
+  .pin.sel .pin-s { translate: 0 -2px; transition: translate var(--dur-pop) var(--ease-out); }
+  .pin.sel .ring { animation: pin-ring var(--dur-pulse) var(--ease-out); }
+  @keyframes pin-ring { from { opacity: 0.6; scale: 0.6; } to { opacity: 0; scale: 1.8; } }
+  /* Disclosures: the content's height opens in 200 ms and closes in 120. Browsers without ::details-content or interpolate-size keep the instant toggle. */
+  details::details-content { height: 0; overflow: clip; transition: height var(--dur-fast) var(--ease-in), content-visibility var(--dur-fast) allow-discrete; }
+  details[open]::details-content { height: auto; overflow-clip-margin: 4px; transition: height var(--dur-base) var(--ease-out), content-visibility var(--dur-base) allow-discrete; }
+  details.how > summary::after { transition: transform var(--dur-base) var(--ease-out); }
+  /* Heat circles and Depth lines turning on. A circle scales from .8 and waits by its distance from the map centre (heatDelay); the contours, whose group already carries the map scale, only fade. */
+  #heat circle.hin { transform-box: fill-box; transform-origin: center; animation: layer-in var(--dur-layer) var(--ease-out) backwards; }
+  @keyframes layer-in { from { opacity: 0; transform: scale(.8); } }
+  #depthg { animation: layer-fade var(--dur-layer) var(--ease-out) backwards; }
+  @keyframes layer-fade { from { opacity: 0; } }
+  /* Layers switch: the knob slides and the track changes colour together. */
+  .layrow .sw { transition: background-color var(--dur-pop) var(--ease-out); }
+  .layrow .sw::after { transition: transform var(--dur-pop) var(--ease-out); }
 }
 @media (prefers-reduced-motion: reduce) {
   #sheet, #sheet.open, .zoom { transition: none; }
@@ -764,7 +801,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   var $ = function (s) { return document.querySelector(s); };
   function el(n, a, p) { var e = document.createElementNS(NS, n); if (a) for (var k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
   function xy(lon, lat) { return [(lon - D.proj.lon0) * D.proj.kx, (D.proj.lat0 - lat) * D.proj.k]; }
-  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var reduceMq = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  var reduce = reduceMq.matches;
 
   var BODY = 'M337.92 512.00C501.76 386.39 665.60 386.39 829.44 512.00C665.60 637.61 501.76 637.61 337.92 512.00ZM767.18 503.81C767.18 488.43 754.71 475.96 739.33 475.96C723.95 475.96 711.48 488.43 711.48 503.81C711.48 519.19 723.95 531.66 739.33 531.66C754.71 531.66 767.18 519.19 767.18 503.81Z';
   var TAIL = 'M456.70 512.00L194.56 389.12L194.56 634.88Z';
@@ -974,6 +1012,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     el('ellipse', { 'class': 'tipshadow', cx: 0, cy: 0, rx: 6, ry: 2.2 }, sc);
     el('circle', { r: 26, cy: -16, fill: 'transparent' }, sc);
     el('path', { 'class': 'balloon', d: 'M0 0L-6.5 -10.5A13 13 0 1 1 6.5 -10.5Z' }, sc);
+    el('circle', { 'class': 'ring', cx: 0, cy: -16, r: 13 }, sc);
     var gl = el('g', { 'class': 'glyph', transform: 'translate(0 -21.8) scale(.0225) translate(-512 -512)' }, sc);
     el('path', { d: BODY, 'fill-rule': 'evenodd' }, gl);
     el('path', { d: TAIL }, gl);
@@ -1174,15 +1213,22 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     v.s = t.s; v.tx = t.tx; v.ty = t.ty;
     render();
   }
-  function animateTo(t, ms) {
+  // Camera time grows with the trip: 280 ms for a nudge up to 520 ms for a long one (800 px of travel is the 400 ms of --dur-camera). A zoom of one octave counts as 100 px.
+  function camMs(a, t, w, h) {
+    var acx = (w / 2 - a.tx) / a.s, acy = (h / 2 - a.ty) / a.s, bcx = (w / 2 - t.tx) / t.s, bcy = (h / 2 - t.ty) / t.s;
+    var travel = Math.hypot(bcx - acx, bcy - acy) * Math.max(a.s, t.s) + 100 * Math.abs(Math.log(t.s / a.s) / Math.LN2);
+    return Math.min(520, Math.max(280, 280 + travel * 0.15));
+  }
+  function animateTo(t) {
     clampScale(t);
     clampView(t);
     if (reduce) { setView(t); return; }
-    var a = { s: v.s, tx: v.tx, ty: v.ty }, t0 = performance.now();
+    var a = { s: v.s, tx: v.tx, ty: v.ty }, t0 = performance.now(), ms = camMs(a, t, W, H);
     var token = {}; anim = token;
     (function step(now) {
       if (anim !== token) return;
-      var k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+      // Ease in and out (cubic), so the camera starts and lands softly.
+      var k = Math.min(1, (now - t0) / ms), e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
       var s = a.s * Math.pow(t.s / a.s, e);
       // interpolate the map-space center so the move stays smooth while zooming
       var acx = (W / 2 - a.tx) / a.s, acy = (H / 2 - a.ty) / a.s;
@@ -1209,7 +1255,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     p.t += 30; p.l = 8; p.r = 8; p.b = Math.max(p.b, 12);
     return fitFor(homeBounds(), p);
   }
-  function resetView() { animateTo(homeFit(), 350); }
+  function resetView() { animateTo(homeFit()); }
 
   /* ---- render ---- */
   function colorVar(r) { return 'var(--' + r + ')'; }
@@ -1303,6 +1349,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       if (g.length === 1) {
         var p = g[0], pn = pool ? getTPin(pi++) : pinNodes[p.s.id];
         var sc = p.s.id === selected ? 0.98 : 0.8;
+        pn.g.classList.toggle('sel', p.s.id === selected);
         if (pool) {
           pn.g.setAttribute('data-id', p.s.id);
           pn.g.style.setProperty('--rc', colorVar(p.vw.r));
@@ -1666,7 +1713,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       var fit = fitFor(b, { t: p.t + 30, b: p.b + 30, l: p.l + 30, r: p.r + 30 }).s;
       ns = Math.min(maxS, Math.max(v.s * 2, Math.min(fit, v.s * 8)));
     }
-    animateTo({ s: ns, tx: (p.l + (W - p.l - p.r) / 2) - cx * ns, ty: (p.t + (H - p.t - p.b) / 2) - cy * ns }, 320);
+    animateTo({ s: ns, tx: (p.l + (W - p.l - p.r) / 2) - cx * ns, ty: (p.t + (H - p.t - p.b) / 2) - cy * ns });
   }
 
   /* ---- controls ---- */
@@ -1676,11 +1723,31 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   var spbtn = $('#spbtn'), sppanel = $('#sppanel');
   // The stale or typical-season notice lives in a popover opened from a chip in the bar; #notice stays the text element the page writes to.
   var nbtn = $('#nbtn'), npop = $('#npop');
+  /* Every popover opens and closes here. Opening is the CSS transition on .pop, from the button's centre; closing plays on a copy of the panel (no ids, inert),
+     because [hidden] takes the real one out of the layout at once and every caller reads .hidden straight after. A visitor who asked for reduced motion gets no copy. */
+  function setPop(el, btn, open) {
+    if (open) {
+      el.hidden = false;
+      var r = btn.getBoundingClientRect(), p = el.getBoundingClientRect();
+      el.style.setProperty('--pop-ox', Math.max(0, Math.min(p.width, r.left + r.width / 2 - p.left)).toFixed(0) + 'px');
+      return;
+    }
+    if (el.hidden) return;
+    var ghost = reduceMq.matches ? null : el.cloneNode(true);
+    el.hidden = true;
+    if (!ghost) return;
+    ghost.removeAttribute('id');
+    [].forEach.call(ghost.querySelectorAll('[id]'), function (n) { n.removeAttribute('id'); });
+    ghost.classList.add('ghost'); ghost.setAttribute('aria-hidden', 'true'); ghost.setAttribute('inert', '');
+    el.parentNode.insertBefore(ghost, el.nextSibling);
+    var gone = function () { if (ghost.parentNode) ghost.parentNode.removeChild(ghost); };
+    ghost.addEventListener('animationend', gone); setTimeout(gone, 400);
+  }
   function toggleNotice(open) {
     if (open && nbtn.hidden) open = false;
     if (!open && npop.contains(document.activeElement)) (nbtn.offsetParent ? nbtn : $('#agechip')).focus({ preventScroll: true });
     if (open) { toggleSpecies(false); toggleModes(false); toggleLayers(false); toggleKey(false); if (!$('#mepanel').hidden) toggleMe(false); }
-    npop.hidden = !open;
+    setPop(npop, nbtn, open);
     nbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     $('#agechip').setAttribute('aria-expanded', open ? 'true' : 'false');
   }
@@ -1706,7 +1773,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     if (open && !phoneMq.matches) open = false;
     if (!open && mpop.contains(document.activeElement)) modebtn.focus({ preventScroll: true });
     if (open) { toggleSpecies(false); toggleNotice(false); toggleLayers(false); toggleKey(false); if (!$('#mepanel').hidden) toggleMe(false); }
-    mpop.hidden = !open;
+    setPop(mpop, modebtn, open);
     modebtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) { var on = modesEl.querySelector('[aria-checked="true"]'); if (on) on.focus({ preventScroll: true }); }
   }
@@ -1982,19 +2049,25 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     HEAT.cache[key] = r;
     return r;
   }
+  // Turning the layer on: a circle waits 30 ms per 50 px between it and the middle of the map, never more than 150 ms.
+  function heatDelay(x, y) { return Math.min(Math.hypot(x - W / 2, y - H / 2) / 50 * 30, 150).toFixed(0) + 'ms'; }
   function heatTick() {
     if (!HEAT) return;
     var svg = $('#heat'), on = layers.indexOf('heat') >= 0 && !!TE;
     // Zoomed out to the whole state the circles would pile into blobs, so they wait until the map is at Puget Sound scale or closer.
     if (on && W / v.s / D.proj.kx > 3.5) on = false;
     if (!on) { if (svg.firstChild) svg.innerHTML = ''; return; }
+    var entering = !svg.firstChild;
     var sites = heatSites(), n = 0, i, o, x, y, h, c;
     for (i = 0; i < sites.length; i++) {
       o = sites[i]; x = o.xy[0] * v.s + v.tx; y = o.xy[1] * v.s + v.ty;
       if (x < -50 || x > W + 50 || y < -50 || y > H + 50) continue;
       h = heatScore(o); if (!h) continue;
       c = svg.childNodes[n];
-      if (!c) { c = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); svg.appendChild(c); }
+      if (!c) {
+        c = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); svg.appendChild(c);
+        if (entering) { c.classList.add('hin'); c.style.animationDelay = heatDelay(x, y); }
+      }
       n++;
       c.setAttribute('cx', x.toFixed(1)); c.setAttribute('cy', y.toFixed(1));
       // Three steps, light to deep violet: weaker to stronger, relative. Never the rating ramp: red and orange already mean Excellent and Good reports.
@@ -2228,7 +2301,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   function toggleLayers(open) {
     if (!open && laypop.contains(document.activeElement)) laybtn.focus({ preventScroll: true });
     if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); if (typeof toggleKey === 'function') toggleKey(false); if (!$('#mepanel').hidden) toggleMe(false); }
-    laypop.hidden = !open;
+    setPop(laypop, laybtn, open);
     laybtn.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
   laybtn.addEventListener('click', function () { toggleLayers(laypop.hidden); });
@@ -2237,7 +2310,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   function toggleKey(open) {
     if (!open && keypop.contains(document.activeElement)) keybtn.focus({ preventScroll: true });
     if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); toggleLayers(false); toggleKey(false); if (!$('#mepanel').hidden) toggleMe(false); }
-    keypop.hidden = !open;
+    setPop(keypop, keybtn, open);
     keybtn.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
   keybtn.addEventListener('click', function () { toggleKey(keypop.hidden); });
@@ -2291,7 +2364,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     if (!open && sppanel.contains(document.activeElement)) spbtn.focus({ preventScroll: true });
     if (open && !$('#mepanel').hidden) toggleMe(false);
     if (open) { toggleNotice(false); toggleModes(false); toggleLayers(false); toggleKey(false); }
-    sppanel.hidden = !open;
+    setPop(sppanel, spbtn, open);
     spbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) { var on = sppanel.querySelector('[aria-checked="true"]'); if (on) on.focus({ preventScroll: true }); }
   }
@@ -2834,12 +2907,19 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       var barB = $('#bar').getBoundingClientRect().bottom, free = H - Math.min(sheet.getBoundingClientRect().height || 0, H * 0.66);
       if (py > free - 24 || py < barB + 12) dy = (barB + free) / 2 - py;
     }
-    if (dx || dy) animateTo({ s: v.s, tx: v.tx + dx, ty: v.ty + dy }, 320);
+    if (dx || dy) animateTo({ s: v.s, tx: v.tx + dx, ty: v.ty + dy });
   }
-  var returnFocus = null;
+  var returnFocus = null, riseT = 0;
+  // Each open or swap of the sheet lets its blocks rise once (CSS keyed on .rise); the class comes off again so a later re-render of the same sheet stays still.
+  function riseIn() {
+    var b = $('#sbody');
+    b.classList.remove('rise'); void b.offsetWidth; b.classList.add('rise');
+    clearTimeout(riseT); riseT = setTimeout(function () { b.classList.remove('rise'); }, 600);
+  }
   function showSheet() {
     if (!sheet.classList.contains('open')) returnFocus = document.activeElement;
     if (meArmed) armMe(false);
+    riseIn();
     sheet.classList.add('open'); sheet.setAttribute('aria-hidden', 'false');
     appEl.classList.add('sheet-open');
     sheet.focus({ preventScroll: true });
@@ -2859,7 +2939,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var tx, ty;
     if (wide) { tx = (W - sheetInset()) / 2 - s.xy[0] * ns; ty = H / 2 + 20 - s.xy[1] * ns; }
     else { tx = W / 2 - s.xy[0] * ns; ty = (barB + (H - Math.min(sh, H * 0.66))) / 2 + 24 - s.xy[1] * ns; }
-    animateTo({ s: ns, tx: tx, ty: ty }, 320);
+    animateTo({ s: ns, tx: tx, ty: ty });
     syncLink();
   }
   /* ---- spot guide sheet (Spot guides layer). Guidance, not regulation: dated, sourced, and it sends people to WDFW. ---- */
@@ -2900,7 +2980,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var barB = $('#bar').getBoundingClientRect().bottom, sh = sheet.getBoundingClientRect().height || 0;
     var tx = wide ? (W - sheetInset()) / 2 - o.xy[0] * ns : W / 2 - o.xy[0] * ns;
     var ty = wide ? H / 2 + 20 - o.xy[1] * ns : (barB + (H - Math.min(sh, H * 0.66))) / 2 + 24 - o.xy[1] * ns;
-    animateTo({ s: ns, tx: tx, ty: ty }, 320);
+    animateTo({ s: ns, tx: tx, ty: ty });
     syncLink();
   }
   // A group of overlapping guide pins: pick one from the list, or zoom until they come apart.
@@ -2926,7 +3006,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     // Fit the guides with room for their pins: at least 2x, at most 8x, so two guides a street apart still come apart.
     var fit = fitFor(b, { t: p.t + 60, b: p.b + 60, l: p.l + 60, r: p.r + 60 }).s;
     var ns = Math.min(maxS, Math.max(v.s * 2, Math.min(fit, v.s * 8)));
-    animateTo({ s: ns, tx: (p.l + (W - p.l - p.r) / 2) - cx * ns, ty: (p.t + (H - p.t - p.b) / 2) - cy * ns }, 320);
+    animateTo({ s: ns, tx: (p.l + (W - p.l - p.r) / 2) - cx * ns, ty: (p.t + (H - p.t - p.b) / 2) - cy * ns });
   }
   // A count badge opens its river's sheet at the WDFW weekly creel section.
   function openCounts(id) {
@@ -3105,7 +3185,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     $('#listbtn').setAttribute('aria-expanded', 'true');
     applyStyles(); render();
     // Wide screens: the list covers the right side, so refit the rivers into the space beside it and every pin in the list stays on the map.
-    if (window.innerWidth >= 760 && view === 'reports') animateTo(homeFit(), 320);
+    if (window.innerWidth >= 760 && view === 'reports') animateTo(homeFit());
     syncLink();
   }
   function closeSheet() {
@@ -3268,7 +3348,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   function toggleMe(open) {
     if (!open && mepanel.contains(document.activeElement)) mebtn.focus({ preventScroll: true });
     if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); toggleLayers(false); toggleKey(false); if (meArmed) armMe(false); buildMe(); }
-    mepanel.hidden = !open;
+    setPop(mepanel, mebtn, open);
     mebtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) { var first = mepanel.querySelector('button'); if (first) first.focus({ preventScroll: true }); }
   }
@@ -3348,7 +3428,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     applyStyles();
     limits();
     var f = homeFit(); s0 = f.s;
-    if (reduce) setView(f); else animateTo(f, 350);
+    if (reduce) setView(f); else animateTo(f);
     render();
     syncLink();
   }
