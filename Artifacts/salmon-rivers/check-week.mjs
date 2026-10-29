@@ -238,7 +238,7 @@ for (const scheme of ['light', 'dark']) for (const [w, h] of [[360, 780], [375, 
   const mp = await mctx.newPage();
   await mp.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
   await mp.addStyleTag({ content: ':root { --sans: Verdana, "DejaVu Sans", sans-serif !important; }' });
-  await mp.click('#mfold');
+  if (await mp.isVisible('#mfold')) await mp.click('#mfold');
   const m = await mp.evaluate(() => {
     const probe = document.createElement('span'); probe.textContent = 'May'; probe.style.cssText = 'position:absolute;visibility:hidden;font:600 12px/16px var(--sans)';
     document.body.appendChild(probe);
@@ -257,7 +257,7 @@ for (const scheme of ['light', 'dark']) for (const [w, h] of [[360, 780], [375, 
     const nctx = await browser.newContext({ viewport: { width: w, height: h } });
     const np = await nctx.newPage();
     await np.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
-    if (w < 760) await np.click('#mfold');
+    if (w < 760 && await np.isVisible('#mfold')) await np.click('#mfold');
     const first = await np.evaluate(() => { const b = document.querySelector('#smonth .months button'); const g = document.createRange(); g.selectNodeContents(b); return { shown: g.toString().length ? [...b.children].filter(c => getComputedStyle(c).display !== 'none').map(c => c.textContent).join('') : '', label: b.getAttribute('aria-label').split(':')[0] }; });
     check(first.shown === want && first.label === 'January', `months ${w}px: the first month button shows "${want}" and is named January (${first.shown}, ${first.label})`);
     await nctx.close();
