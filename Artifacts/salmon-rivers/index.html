@@ -709,6 +709,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
 <script src="depth-data.js"></script>
 <script src="rivers-tap.js"></script>
 <script src="rules.js"></script>
+<script src="river-rules.js"></script>
 <script src="reports.js"></script>
 <script src="counts.js"></script>
 <script src="creel.js"></script>
@@ -2482,6 +2483,17 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       typicalFootHtml();
     $('#sbody').scrollTop = 0;
   }
+  /* WDFW's rules for a report river as cards (the spot sheet's markup), from river-rules.js. A water with no rows still in force shows no section.
+     No source labels or links here: the sheet's own WDFW link and "Before you go" line carry the pointer. */
+  function riverRulesHtml(s) {
+    var rows = typeof RIVER_RULES !== 'undefined' ? RIVER_RULES.forWater(s.id, TODAY) : [];
+    if (!rows.length) return '';
+    var checked = rows.map(function (r) { return r.checked; }).sort().pop();
+    return '<section><h3>Rules for ' + esc(s.name) + '</h3><div class="rows">' + rows.map(function (r) {
+      return '<div class="row"><div class="rt"><div class="nm">' + esc(r.species) + '</div><div class="dt">' + esc((r.stretch ? r.stretch + ': ' : '') + r.text) + '</div></div>' +
+        (r.release ? '<div class="ch"><span class="chip">Release</span></div>' : '') + '</div>';
+    }).join('') + '</div><p class="miss">Checked ' + esc(Reports.formatDay(checked)) + '</p></section>';
+  }
   function fillSheet(id) {
     if (view === 'typical') { fillTypical(id); return; }
     if (view === 'spawning') { fillSpawn(id); return; }
@@ -2503,6 +2515,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
       '<section><h3>What’s biting</h3>' + (missing ? '<p class="miss">' + esc(missing) + '</p>' : '') + '<div class="rows">' + rows + '</div></section>' +
       creelHtml(id) +
+      riverRulesHtml(s) +
       (s.tap && TAPBY[s.tap] ? noticesHtml(TAPBY[s.tap].name) : '') +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Rules change in season and differ by river and species. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
       footHtml();
