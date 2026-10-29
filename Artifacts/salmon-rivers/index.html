@@ -3464,6 +3464,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
 </style>
 <style id="depth-css">
 .depthchip { position: absolute; left: 66px; bottom: 14px; z-index: 3; max-width: min(300px, calc(100% - 76px)); padding: 7px 12px; border-radius: 14px; font: 600 12px/16px var(--sans); color: var(--ink); cursor: pointer; text-align: left; border: 0; }
+/* The short hint box sits bottom left; while it shows, the chip rides above it instead of over it. */
+html:not(.touched):has(.hints .hint:not([hidden])) .depthchip, html:has(#hint:not([hidden])) .depthchip { bottom: 58px; }
 .depthchip b { font-size: 14px; line-height: 18px; font-weight: 700; }
 .depthchip small { font: 500 12px/16px var(--sans); color: var(--ink2); }
 .depthchip .sub { display: block; }

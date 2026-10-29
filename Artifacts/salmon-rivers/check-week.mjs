@@ -82,6 +82,11 @@ for (const scheme of ['light', 'dark']) {
         const lay = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, smonth: !document.getElementById('smonth').hidden, spot: !!document.querySelector('#guides .spotpin') && getComputedStyle(document.querySelector('#guides .spotpin')).display !== 'none', legend: document.querySelectorAll('#layl li').length }));
         check(lay.btn === 'Layers · 3' && lay.smonth && lay.legend === 3, `Layers ${w}px ${scheme}: three layers on, month slider shown, three legend lines (${lay.btn}, ${lay.legend})`);
       }
+      if (name === 'Map' && w >= 1024) {
+        // With every layer on, the Depth chip shows at load; it must not sit on the hint box under the map.
+        const ov = await page.evaluate(() => { const c = document.getElementById('depthchip'), h = document.querySelector('.hints'); if (!c || c.hidden || !h || getComputedStyle(h).display === 'none') return { skipped: true }; const a = c.getBoundingClientRect(), b = h.getBoundingClientRect(); return { skipped: false, hit: a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top }; });
+        check(!ov.skipped && !ov.hit, `Map ${w}px ${scheme}: the Depth chip and the hint box do not overlap (${ov.skipped ? 'one of them is not showing: the check proves nothing' : ov.hit ? 'overlap' : 'clear'})`);
+      }
       if (name === 'Map') {
         const dl = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, legend: document.querySelectorAll('#layl li').length, rows: document.querySelectorAll('#laypop [data-layer]').length, on: [...document.querySelectorAll('#laypop [data-layer][aria-checked=true]')].length }));
         check(dl.rows >= 8 && dl.on === dl.rows && dl.legend === dl.rows, `Map ${w}px ${scheme}: a bare link opens with every layer on (${dl.btn}, ${dl.on} of ${dl.rows} on, ${dl.legend} legend lines)`);
