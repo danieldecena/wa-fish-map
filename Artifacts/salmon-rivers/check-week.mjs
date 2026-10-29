@@ -369,6 +369,7 @@ for (const [w, h, lo, hi] of [[1024, 768, 380, 380], [1440, 900, 480, 500], [192
   await lctx.close();
 }
 // Tapping a site in Typical season zooms to a neighbourhood (at most 3 times the state fit, it was 5), keeps its neighbours in frame and the pin left of the sheet.
+// A freshwater lake here: a pier or launch inside a marine area fits the whole area instead (see "Marine area focus" below).
 {
   const zctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const zp = await zctx.newPage();
@@ -376,7 +377,7 @@ for (const [w, h, lo, hi] of [[1024, 768, 380, 380], [1440, 900, 480, 500], [192
   await zp.goto(base + '/index.html?mode=typical&today=' + today, { waitUntil: 'networkidle' });
   await zp.waitForTimeout(700);
   const home = await scaleOf();
-  await zp.goto(base + '/index.html?mode=typical&site=les-davis-pier&today=' + today, { waitUntil: 'networkidle' });
+  await zp.goto(base + '/index.html?mode=typical&site=lake-alice&today=' + today, { waitUntil: 'networkidle' });
   await zp.waitForTimeout(900);
   const zoomed = await scaleOf();
   const ratio = home && zoomed ? zoomed / home : null;
@@ -653,6 +654,179 @@ for (const [w, h] of [[390, 844], [1280, 800]]) {
     if (mode === 'reduce') check(ms.cls && ms.baseFilter === 'none' && ms.dimFilter === 'none' && tr.scrim === '0s' && tr.marker === '0s' && tr.base === '0s' && ms.dimMax <= 0.35 && ms.scrim === '1', `focus reduced motion: no blur, the dim changes at once (scrim ${tr.scrim}, marker ${tr.marker}, base ${tr.base}; dim ${ms.dimMax}; ${ms.baseFilter})`);
     if (mode === 'transparency') check(ms.cls && ms.baseFilter === 'none' && ms.dimFilter === 'none' && ms.dimMax <= 0.35 && /blur\(2\.5px\)/.test(tr.heat), `focus reduced transparency: dim only, no blur on the base or the markers (${ms.baseFilter}, ${ms.dimFilter}, dim ${ms.dimMax}, heat ${tr.heat})`);
     await mctx.close();
+  }
+  // Marine area focus: the same effect for a WDFW marine area (Marine Area 11, Tacoma - Vashon Island). Entered by tapping a pier or launch of the area on the map
+  // (its own sheet opens, the camera fits the whole area) or by tapping the water inside the outline (the sheet is the area's card). Laptop and phone.
+  const SITE11 = await (async () => { const pg = await browser.newPage(); await pg.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' }); const r = await pg.evaluate(() => TypicalData.sites.filter(s => s.area === '11').map(s => s.id)); await pg.close(); return r; })();
+  const N11 = SITE11.length;
+  const areaGeom = p => p.evaluate(() => {
+    const line = document.querySelector('#asel .line'), r = line ? line.getBoundingClientRect() : { left: 0, top: 0, right: 0, bottom: 0 }, s = document.getElementById('sheet').getBoundingClientRect();
+    const top = Math.max(document.getElementById('bar').getBoundingClientRect().bottom, document.getElementById('smonth').getBoundingClientRect().bottom);
+    const wide = innerWidth >= 760, free = { l: 0, t: top, r: wide ? s.left : innerWidth, b: wide ? innerHeight : s.top };
+    return { river: { l: r.left, t: r.top, r: r.right, b: r.bottom }, free, shown: !!line && getComputedStyle(document.getElementById('asel')).display !== 'none' };
+  });
+  const siteXY = (p, id) => p.evaluate(id => {
+    const t = /translate\(([-\d.e]+) ([-\d.e]+)\) scale\(([\d.e]+)\)/.exec(document.getElementById('vp').getAttribute('transform')), s = TypicalData.sites.find(q => q.id === id), P = GEO.proj;
+    return [(s.lon - P.lon0) * P.kx * +t[3] + +t[1], (P.lat0 - s.lat) * P.k * +t[3] + +t[2]];
+  }, id);
+  // Wheel-zoom on a site until its marker is drawn and a click on it lands on it; pan first if it is under the bar or off the screen.
+  const tapSite = async (p, id) => {
+    for (let i = 0; i < 16; i++) {
+      const hit = await p.evaluate(id => {
+        const g = document.querySelector('#over .omark[data-tsite="' + id + '"]');
+        if (!g || g.style.display === 'none') return null;
+        const r = g.querySelector('.d').getBoundingClientRect(), x = r.x + r.width / 2, y = r.y + r.height / 2, e = document.elementFromPoint(x, y);
+        return e && e.closest('[data-tsite="' + id + '"]') ? [x, y] : null;
+      }, id);
+      if (hit) { const pre = await scaleOf(p); await p.mouse.click(hit[0], hit[1]); await p.waitForTimeout(1500); return pre; }
+      let [x, y] = await siteXY(p, id);
+      const vw = p.viewportSize().width;
+      const free = await p.evaluate(() => ({ t: Math.max(document.getElementById('bar').getBoundingClientRect().bottom, document.getElementById('smonth').getBoundingClientRect().bottom) + 40, b: innerHeight - 140 }));
+      if (x < 30 || x > vw - 30 || y < free.t || y > free.b) {
+        const tx = vw * 0.4, ty = (free.t + free.b) / 2, sx = vw * 0.6, sy = free.b - 10;
+        await p.mouse.move(sx, sy); await p.mouse.down(); await p.mouse.move(sx + (tx - x) / 2, sy + (ty - y) / 2, { steps: 4 }); await p.mouse.move(sx + (tx - x), sy + (ty - y), { steps: 4 }); await p.mouse.up();
+        await p.waitForTimeout(200);
+        [x, y] = await siteXY(p, id);
+      }
+      await p.mouse.move(x, y); await p.mouse.wheel(0, -300); await p.waitForTimeout(350);
+    }
+    return 0;
+  };
+  // A point in an area's water that no pin, label or river takes, after zooming in on the area.
+  const tapWater = async (p, id) => {
+    const c = await p.evaluate(id => { const r = document.querySelector('#atap path[data-area="' + id + '"]').getBoundingClientRect(); return [(r.left + r.right) / 2, (r.top + r.bottom) / 2]; }, id);
+    await p.mouse.move(c[0], c[1]);
+    for (let i = 0; i < 6; i++) { await p.mouse.wheel(0, -300); await p.waitForTimeout(60); }
+    await p.waitForTimeout(500);
+    const pt = await p.evaluate(id => {
+      const bar = document.getElementById('smonth').getBoundingClientRect().bottom + 20, sh = document.getElementById('sheet').getBoundingClientRect();
+      const r = document.querySelector('#atap path[data-area="' + id + '"]').getBoundingClientRect();
+      const x0 = Math.max(r.left, 4), x1 = Math.min(r.right, innerWidth - 4), y0 = Math.max(r.top, bar), y1 = Math.min(r.bottom, innerHeight - 100), hits = [];
+      for (let y = y0; y < y1; y += 9) for (let x = x0; x < x1; x += 9) { const e = document.elementFromPoint(x, y); if (e && e.closest('[data-area="' + id + '"]')) hits.push([x, y]); }
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+      hits.sort((a, b) => Math.hypot(a[0] - cx, a[1] - cy) - Math.hypot(b[0] - cx, b[1] - cy));
+      return hits[0] || null;
+    }, id);
+    if (!pt) return 0;
+    const pre = await scaleOf(p);
+    await p.mouse.click(pt[0], pt[1]); await p.waitForTimeout(1500);
+    return pre;
+  };
+  const areaState = p => p.evaluate(() => ({
+    kind: document.getElementById('app').getAttribute('data-focus'), title: document.getElementById('stitle').textContent, say: document.getElementById('wfsay').textContent,
+    sharp11: [...document.querySelectorAll('#over .omark.infocus, #over .pin.infocus[data-id]')].filter(e => e.style.display !== 'none' && e.getClientRects().length).length
+  }));
+  for (const [w, h] of [[1280, 800], [390, 844]]) {
+    const actx = await browser.newContext({ viewport: { width: w, height: h }, colorScheme: 'light' });
+    const ap = await actx.newPage(); const aerr = [];
+    ap.on('pageerror', e => aerr.push(String(e)));
+    ap.on('console', m => { if (m.type() === 'error') aerr.push(m.text()); });
+    try {
+      await ap.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+      const idle = await ap.evaluate(() => ({ kind: document.getElementById('app').getAttribute('data-focus'), hit: document.querySelectorAll('#atap path').length, area11: !!document.querySelector('#atap path[data-area="11"]'), inBase: !!document.querySelector('#base #atap'), beforeRivers: !!document.getElementById('atap') && !!(document.getElementById('atap').compareDocumentPosition(document.getElementById('rtap')) & Node.DOCUMENT_POSITION_FOLLOWING) }));
+      check(idle.kind === null && idle.hit === 16 && idle.area11 && idle.inBase && idle.beforeRivers, `marine ${w}px: before a tap there is no focus, and 16 hit polygons sit in the base map under the rivers' own hit paths (${JSON.stringify(idle)})`);
+      // (a) a pier of the area
+      const sPre = await tapSite(ap, 'les-davis-pier');   // the scale just before the tap is what Escape must restore
+      const tapped = sPre > 0;
+      check(tapped, `marine ${w}px: Les Davis Pier can be tapped on the map`);
+      if (!tapped) throw new Error('there is no pier to tap, the rest of this size would only repeat the failure');
+      const a = await state(ap), k = await areaState(ap), g = await areaGeom(ap);
+      check(a.cls && k.kind === 'area' && k.title === 'Les Davis Pier', `marine ${w}px: tapping Les Davis Pier puts the app in area focus and keeps the pier's own sheet (${k.kind}; ${k.title})`);
+      check(/^Focused on Marine Area 11, Tacoma - Vashon Island, 8 piers and launches\. Press Escape to leave\.$/.test(k.say) && N11 === 8, `marine ${w}px: the live region says what happened (${k.say})`);
+      check(g.shown && inside(g) && fills(g), `marine ${w}px: the whole of Marine Area 11 fits in the free map area and fills it (outline ${JSON.stringify(g.river)}, free ${JSON.stringify(g.free)})`);
+      if (w < 760) { const sh = await ap.evaluate(() => document.getElementById('sheet').getBoundingClientRect().height / innerHeight); check(sh <= 0.44, `marine ${w}px: on a phone the card takes at most 44 percent of the screen (${(sh * 100).toFixed(0)} percent)`); }
+      check(a.dimN > 0 && a.dimMax <= 0.35, `marine ${w}px: ${a.dimN} other markers and labels compute opacity at most .35 (${a.dimMax})`);
+      check(k.sharp11 === N11 && a.sharpN > N11 && a.sharpMin === 1, `marine ${w}px: the area's ${k.sharp11} of ${N11} sites, their labels and pins compute opacity 1 (${a.sharpN} sharp, min ${a.sharpMin})`);
+      const sel = await ap.evaluate(() => { const p = document.querySelector('#over .pin.sel[data-id="les-davis-pier"]'); return p ? { cls: p.classList.contains('infocus'), op: +getComputedStyle(p).opacity } : null; });
+      check(sel && sel.cls && sel.op === 1, `marine ${w}px: the tapped pier's pin is sharp and marked as the selected one (${JSON.stringify(sel)})`);
+      check(/blur\(3\.5px\)/.test(a.baseFilter) && a.sharpFilter === 'none' && !(await ap.evaluate(() => !document.getElementById('asel') || !!document.getElementById('asel').closest('#base'))), `marine ${w}px: the base map is blurred and the outline is not (${a.baseFilter})`);
+      check(a.scrim === '1', `marine ${w}px: the wash is up (${a.scrim})`);
+      const site = await ap.evaluate(() => ({ back: (document.querySelector('#sbody [data-wfback]') || {}).textContent, h3: [...document.querySelectorAll('#sbody .wfacc h3')].map(e => e.textContent), n: document.querySelectorAll('#sbody .wfacc [data-wfsite]').length, self: [...document.querySelectorAll('#sbody .wfacc [data-wfsite] .nm')].some(e => e.textContent === 'Les Davis Pier') }));
+      check(site.back === 'Back to Marine Area 11' && site.h3.join() === 'In Marine Area 11' && site.n === N11 - 1 && !site.self, `marine ${w}px: the pier's sheet offers "Back to Marine Area 11" and lists the other ${site.n} of ${N11 - 1} sites, not itself (${site.h3.join()})`);
+      const rc = await ap.evaluate(() => document.querySelector('#over .pin[data-id="les-davis-pier"]').style.getPropertyValue('--rc'));
+      check(/^var\(--(prime|good|fair|slow|unrated)\)$/.test(rc), `marine ${w}px: the pin keeps its rating colour (${rc})`);
+      // Back to the area's card, then a site from the card.
+      await ap.click('#sbody [data-wfback]');
+      await ap.waitForTimeout(1000);
+      const card = await ap.evaluate(() => ({
+        title: document.getElementById('stitle').textContent, head: [...document.querySelectorAll('#sbody .head p')].map(e => e.textContent), h3: [...document.querySelectorAll('#sbody h3')].map(e => e.textContent),
+        n: document.querySelectorAll('#sbody [data-wfsite]').length, kinds: [...document.querySelectorAll('#sbody [data-wfsite] .dt')].map(e => e.textContent), rows: document.querySelectorAll('#sbody details.sp').length,
+        hrefs: [...document.querySelectorAll('#sbody a')].map(e => e.href), text: document.getElementById('sbody').textContent, tide: (document.querySelector('#sbody .tidenow') || {}).textContent, back: !!document.querySelector('#sbody [data-wfback]')
+      }));
+      check(card.title === 'Marine Area 11' && card.head[0] === 'Tacoma - Vashon Island' && /^\d+ pier/.test(card.head[1]) && /8 piers/.test(card.head[1]), `marine ${w}px: Back opens the area's card, "Marine Area 11" over its title and how many sites it holds (${card.head.join(' | ')})`);
+      check(card.n === N11 && card.h3.includes(`Piers and launches in this area (${N11})`) && card.kinds.every(x => /^(Pier|Boat launch|Shore access) · (Prime|Good|Fair|Slow|No guidance)$/.test(x)) && !card.back, `marine ${w}px: the card lists ${card.n} of ${N11} sites by kind and rating word (${card.kinds.slice(0, 3).join(', ')})`);
+      check(card.h3.includes('In season now') && card.rows >= 3 && card.h3.includes('Tides') && /ft and (rising|falling)/.test(card.tide || '') && card.h3.includes('Before you go'), `marine ${w}px: the card has In season now (${card.rows} species rows), Tides and Before you go (${card.h3.join(' | ')})`);
+      check(card.hrefs.length === 2 && card.hrefs.every(x => /^https:\/\/wdfw\.wa\.gov\//.test(x)) && !/220-311|WAC|boundar|source/i.test(card.text), `marine ${w}px: the card shows the WDFW rules link and no source label (${card.hrefs.join(' ')})`);
+      const first = await ap.evaluate(() => document.querySelector('#sbody [data-wfsite] .nm').textContent);
+      const tCard = await ap.evaluate(() => document.getElementById('vp').getAttribute('transform'));
+      await ap.click('#sbody [data-wfsite]');
+      await ap.waitForTimeout(800);
+      const b = await state(ap), kb = await areaState(ap), backBtn = await ap.evaluate(() => (document.querySelector('#sbody [data-wfback]') || {}).textContent);
+      check(b.cls && kb.kind === 'area' && kb.title === first && backBtn === 'Back to Marine Area 11', `marine ${w}px: a site opened from the card keeps the focus and shows "Back to Marine Area 11" (${kb.title}; ${backBtn})`);
+      check(await ap.evaluate(() => document.getElementById('vp').getAttribute('transform')) === tCard, `marine ${w}px: moving to a site does not move the camera`);
+      // Escape: the camera from before the first focus.
+      await ap.keyboard.press('Escape');
+      await ap.waitForTimeout(1000);
+      const d = await state(ap), s1 = await scaleOf(ap);
+      check(!d.cls && (await areaState(ap)).kind === null && d.marked === 0 && d.scrim === '0' && d.baseFilter === 'none' && Math.abs(s1 / sPre - 1) <= 0.02, `marine ${w}px: Escape ends the focus, clears the marks and the dim and restores the scale within 2% (${sPre.toFixed(3)} -> ${s1.toFixed(3)})`);
+      check(/^Left focus on Marine Area 11\.$/.test(d.say), `marine ${w}px: leaving is announced (${d.say})`);
+      // (b) the water of the area: its card opens, then Done, and a tap on empty map end it.
+      const preW = await tapWater(ap, '11');
+      const okW = preW > 0;
+      check(okW, `marine ${w}px: there is a point of open water in Marine Area 11 to tap`);
+      if (okW) {
+        const w1 = await state(ap), kw = await areaState(ap), gw = await areaGeom(ap);
+        check(w1.cls && kw.kind === 'area' && kw.title === 'Marine Area 11' && inside(gw) && fills(gw), `marine ${w}px: tapping the water opens the card and fits the area (${kw.kind}; ${kw.title})`);
+        const cw = await ap.evaluate(() => document.querySelectorAll('#sbody [data-wfsite]').length);
+        check(cw === N11 && w1.dimMax <= 0.35 && w1.sharpMin === 1, `marine ${w}px: the card lists exactly ${cw} of the ${N11} sites typical.js puts in area 11`);
+        await ap.click('#sdone');
+        await ap.waitForTimeout(1000);
+        const w2 = await state(ap), s2 = await scaleOf(ap);
+        check(!w2.cls && w2.marked === 0 && Math.abs(s2 / preW - 1) <= 0.02, `marine ${w}px: Done ends the focus and restores the scale (${s2.toFixed(3)} from ${preW.toFixed(3)})`);
+        // Re-enter by the water, then a tap on empty map (land, outside every outline) leaves and restores the camera held before that first focus.
+        const preW2 = await tapWater(ap, '11');
+        const empty = await ap.evaluate(() => {
+          const g = document.getElementById('sheet').getBoundingClientRect(), wide = innerWidth >= 760;
+          for (let y = innerHeight - 40; y > 200; y -= 17) for (let x = 20; x < (wide ? g.left : innerWidth) - 20; x += 23) {
+            if (!wide && y > g.top - 10) continue;
+            const el = document.elementFromPoint(x, y);
+            if (el && !el.closest('#chrome,#sheet,.zoom,#bottom,.hints,.depthchip,[data-river],[data-id],[data-cluster],[data-tsite],[data-ssite],[data-access],[data-season],[data-spot],[data-spotgroup],[data-count],[data-area]') && el.closest('#map')) return [x, y];
+          }
+          return null;
+        });
+        await ap.mouse.click(empty[0], empty[1]);
+        await ap.waitForTimeout(1000);
+        const w3 = await state(ap), s3 = await scaleOf(ap);
+        check(!!empty && preW2 > 0 && !w3.cls && w3.marked === 0 && Math.abs(s3 / preW2 - 1) <= 0.02, `marine ${w}px: a tap on empty map (land) ends the focus and restores the scale within 2% (${preW2.toFixed(3)} -> ${s3.toFixed(3)})`);
+      }
+      // (c) the deep link that already exists reaches the same focus.
+      await ap.goto(base + '/index.html?mode=typical&site=les-davis-pier&today=' + today, { waitUntil: 'networkidle' });
+      await ap.waitForTimeout(1300);
+      const dl = await areaState(ap), dg = await areaGeom(ap);
+      check(dl.kind === 'area' && dl.title === 'Les Davis Pier' && inside(dg) && /[?&]site=les-davis-pier(&|$)/.test(await ap.evaluate(() => location.search)) && !/river=/.test(await ap.evaluate(() => location.search)), `marine ${w}px: ?mode=typical&site=les-davis-pier opens in area focus, fits the area and keeps the link (${dl.kind})`);
+      // A freshwater site does not enter area focus; a river tap still enters river focus.
+      await ap.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+      const fresh = await ap.evaluate(() => { const used = new Set(Object.keys(RIVERTAP.siteRiver)); return TypicalData.sites.filter(s => s.area === null && s.county === 'King' && !used.has(s.id) && s.kind !== 'pier').map(s => s.id)[0]; });
+      const tf = (await tapSite(ap, fresh)) > 0;
+      const f1 = await areaState(ap), f2 = await ap.evaluate(() => document.getElementById('app').classList.contains('focus-water'));
+      check(tf && f1.kind === null && !f2 && f1.title.length > 0 && await ap.evaluate(() => document.getElementById('sheet').classList.contains('open')), `marine ${w}px: tapping a freshwater site (${fresh}) opens its sheet and does not enter area focus (${f1.kind}; ${f1.title})`);
+      await ap.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+      await tapRiver(ap, 'cowlitz-river');
+      const rv = await state(ap), rk = await areaState(ap);
+      check(rv.cls && rk.kind === 'river' && rv.title === 'Cowlitz River' && /^Focused on Cowlitz River, 5 access sites/.test(rv.say), `marine ${w}px: a river tap still enters river focus (${rk.kind}; ${rv.title})`);
+      check(aerr.length === 0, `marine ${w}px: no page errors (${aerr.join(' | ').slice(0, 160)})`);
+    } catch (e) { check(false, `marine ${w}px: the checks stopped on an error: ${String(e.message).split('\n')[0]}`); }
+    await actx.close();
+  }
+  // Reduced motion: the area's dim changes at once and there is no blur, like a river's.
+  {
+    const rctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
+    const rp = await rctx.newPage();
+    await rp.goto(base + '/index.html?mode=typical&site=les-davis-pier&today=' + today, { waitUntil: 'networkidle' });
+    await rp.waitForTimeout(900);
+    const rs = await state(rp), rk = await areaState(rp), rt = await rp.evaluate(() => ({ scrim: getComputedStyle(document.getElementById('wfscrim')).transitionDuration, marker: getComputedStyle(document.querySelector('#over > :not(.infocus)')).transitionDuration, base: getComputedStyle(document.getElementById('base')).transitionDuration }));
+    check(rk.kind === 'area' && rs.baseFilter === 'none' && rs.dimFilter === 'none' && rt.scrim === '0s' && rt.marker === '0s' && rt.base === '0s' && rs.dimMax <= 0.35 && rs.scrim === '1', `marine reduced motion: no blur, the dim changes at once (scrim ${rt.scrim}, marker ${rt.marker}, base ${rt.base}; dim ${rs.dimMax}; ${rs.baseFilter})`);
+    await rctx.close();
   }
 }
 // Motion (docs/design/motion-spec.md). With reduced motion emulated the sheet, the popovers and the disclosures change at once, and the computed styles say so;

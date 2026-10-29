@@ -782,6 +782,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
 <script src="counts.js"></script>
 <script src="creel.js"></script>
 <script src="typical.js"></script>
+<script src="marine-areas.js"></script>
 <script src="species-short.js"></script>
 <script src="season.js"></script>
 <script src="cluster.js"></script>
@@ -914,6 +915,16 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   Object.keys(D.base).forEach(function (o) {
     el('path', { 'class': 'r o' + o, d: D.base[o] }, vp);
   });
+  // Marine areas (marine-areas.js): one invisible hit polygon per outline, under the rivers' hit paths and every marker, so a tap on open water opens the area
+  // and a pin or a river still wins. Larger areas first, so where two outlines overlap the smaller one is on top. An area with no outline is simply not here.
+  var ABY = {};
+  if (HAS_TYPICAL && typeof MARINE_AREAS !== 'undefined' && MARINE_AREAS) {
+    var atap = el('g', { id: 'atap' }, vp);
+    var abox = function (a) { return (a.bbox[1][0] - a.bbox[0][0]) * (a.bbox[1][1] - a.bbox[0][1]); };
+    Object.keys(MARINE_AREAS).filter(function (id) { return TypicalData.areas[id] && MARINE_AREAS[id] && MARINE_AREAS[id].d; })
+      .sort(function (a, b) { return abox(MARINE_AREAS[b]) - abox(MARINE_AREAS[a]); })
+      .forEach(function (id) { ABY[id] = MARINE_AREAS[id]; el('path', { d: ABY[id].d, 'data-area': id }, atap); });
+  }
   // One invisible hit path per named river, built once. Larger rivers are drawn last so they win where a creek runs into them.
   var TAPBY = {};
   if (TAP) {
@@ -966,6 +977,10 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   });
   // The selected river lives in the focus layer (#focus), above the blurred base, so water focus keeps it sharp.
   var fvp = $('#fvp');
+  // The focused marine area's outline (fill, halo, line) sits under the river line in the same sharp layer.
+  var asel = el('g', { id: 'asel' }, fvp);
+  var aselFill = el('path', { 'class': 'fill', 'fill-rule': 'evenodd' }, asel), aselCase = el('path', { 'class': 'casing' }, asel), aselLine = el('path', { 'class': 'line' }, asel);
+  asel.style.display = 'none';
   var rsel = el('g', { id: 'rsel' }, fvp);
   var rselCase = el('path', { 'class': 'casing' }, rsel), rselLine = el('path', { 'class': 'line' }, rsel);
   rsel.style.display = 'none';
@@ -1166,7 +1181,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   var v = { s: 1, tx: 0, ty: 0 };
   var minS = 1, maxS = 100, s0 = 1;
   var anim = null;
-  var wf = null;   // water focus (see "water focus" below): { id, rep, ids, list, prev }
+  var wf = null;   // water focus (see "water focus" below): { kind: 'river' | 'area', id, rep, ids, list, prev }
 
   function size() { var r = map.getBoundingClientRect(); W = r.width; H = r.height; }
   // The sheet's width plus its 12px margin on wide screens (it is a CSS variable that grows with the window), 0 on phones.
@@ -1396,7 +1411,11 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
           pn.g.classList.toggle('ladder', spw && p.s.kind === 'ladder');
           pn.g.setAttribute('aria-label', spw ? spAria(p.s) : tAria(p.s));
           // Spawning, like Typical season: every single pin carries its status in words, the full label where it fits, else the word.
-          if (typ) pn.cands = [tLabel(p.s), tShort(p.s)];
+          if (typ) {
+            pn.cands = [tLabel(p.s), tShort(p.s)];
+            // In a marine area's focus its sites may drop the rating word before they drop the name: the name is what tells the pins apart.
+            if (wf && wf.kind === 'area' && wf.ids[p.s.id]) pn.cands = [tLabel(p.s), p.s.name, tShort(p.s)];
+          }
           else pn.cands = [spLabel(p.s), p.s.sc.v === -1 ? 'Not listed' : p.s.sc.word];
           shown.pins.push(pn.g);
         }
@@ -1427,7 +1446,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     // pin labels first, then landmarks by priority
     // The selected pin's label goes first and may sit over a neighbouring pin; a label that would run off the right edge flips to the left of its pin.
     var labelGroups = groups.filter(function (g) { return g.length === 1; });
-    labelGroups.sort(function (a, b) { return (b[0].s.id === selected) - (a[0].s.id === selected); });
+    // Then, in water focus, the focused sites' labels, so a neighbour that is about to be dimmed cannot take their room.
+    labelGroups.sort(function (a, b) { return ((b[0].s.id === selected) - (a[0].s.id === selected)) || ((!!wf && !!wf.ids[b[0].s.id]) - (!!wf && !!wf.ids[a[0].s.id])); });
     labelGroups.forEach(function (g) {
       var p = g[0], pn = p.node;
       var cands = pool ? pn.cands : [null];
@@ -1492,7 +1512,11 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     if (tOn || sOn || fOn) {
       var om = seasonMonth(), os = overlayStates(om), olist = [];
       if (tOn) TS.forEach(function (t) { olist.push({ kind: 't', t: t, st: os.t[t.id] }); });
-      else if (fOn) wf.list.forEach(function (t) { olist.push({ kind: 't', t: t, st: os.t[t.id] }); });
+      else if (fOn) wf.list.forEach(function (t) {
+        // A marine area's piers and shore sites are already drawn by the Piers and shore layer when it is on (it is, unless Typical season steps in).
+        if (wf.kind === 'area' && t.kind !== 'launch' && layers.indexOf('access') >= 0) return;
+        olist.push({ kind: 't', t: t, st: os.t[t.id] });
+      });
       if (sOn) SP.forEach(function (t) { if (os.s[t.id].v !== -2) olist.push({ kind: 'spawn', t: t, st: os.s[t.id] }); });
       var inFocus = function (o) { return !!wf && o.kind === 't' && !!wf.ids[o.t.id]; };
       olist.sort(function (a, b) { return (inFocus(b) - inFocus(a)) || (b.st.on - a.st.on); });
@@ -1747,6 +1771,9 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     if (n) { openSheet(n.getAttribute('data-id')); return; }
     var rv = view === 'reports' && tgt && tgt.closest ? tgt.closest('[data-river]') : null;
     if (rv) { openRiver(rv.getAttribute('data-river')); return; }
+    // Open water inside a marine area's outline (the hit polygons sit under every marker and river).
+    var ar = tgt && tgt.closest ? tgt.closest('[data-area]') : null;
+    if (ar) { openArea(ar.getAttribute('data-area')); return; }
     if ($('#sheet').classList.contains('open')) closeSheet();
   }
   function zoomToCluster(node) {
@@ -2404,7 +2431,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     toggleSpecies(false);
     applyStyles(); render();
     castRefresh();
-    if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList();
+    if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList(); else if (mode === 'area') fillArea(areaSel);
     syncLink();
   }
   // One species dropdown for both modes. Closing hands focus back to the button, and opening puts it on the chosen species, so the keyboard never loses its place.
@@ -2616,6 +2643,30 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       '<p class="tideline">' + today.map(function (e) { return '<span>' + esc(Tides.fmtExtreme(e)) + '</span>'; }).join('') + '</p>' +
       '<p class="miss">Computed in this page from NOAA’s tide constants for the station: heights above MLLW, Washington time. Predictions, not observations.</p></section>';
   }
+  // One line per species: name, a 12-month strip (dark = best, mid = good, outlined = this month), the rating. Tap a line for the months, the
+  // note and any "season varies" reason. Only Good and Prime show by default; Fair and Slow fold into one line, so a long guide stays short.
+  // neutral: the rating is a word in a plain chip, for a card opened in a view that must not show seasonal colours (Recent reports, Spawning).
+  function spRowHtml(r, neutral) {
+    var strip = '', m;
+    for (m = 1; m <= 12; m++) strip += '<i class="' + (r.best.indexOf(m) >= 0 ? 'b' : r.good.indexOf(m) >= 0 ? 'g' : '') + (m === MONTH ? ' now' : '') + '"></i>';
+    var sn = SpeciesShort.short(r.species), full = sn !== r.species;
+    return '<details class="sp' + (species === r.species ? ' sel' : '') + '"' + (species === r.species ? ' open' : '') + '><summary>' +
+      '<span class="spn"' + (full ? ' title="' + esc(r.species) + '"' : '') + '>' + esc(sn) + (r.verify ? '<span class="vary" title="Season varies, verify">varies</span>' : '') + '</span>' +
+      '<span class="mini" aria-hidden="true">' + strip + '</span>' +
+      (neutral ? '<span class="chip">' + Season.LABEL[r.r] + '</span>' : '<span class="badge" style="--c:var(--' + r.r + ')">' + Season.LABEL[r.r] + '</span>') + '</summary>' +
+      '<div class="spd">' + (full ? '<div class="dt"><b>' + esc(r.species) + '</b></div>' : '') +
+      '<div class="dt">Best: ' + esc(Season.monthsText(r.best)) + ' · Good: ' + esc(Season.monthsText(r.good)) + '</div>' +
+      (r.note ? '<div class="dt">' + esc(r.note) + '</div>' : '') +
+      (r.verify ? '<div class="sub2">Season varies, verify: ' + esc(r.verify) + '</div>' : '') +
+      (r.offYear ? '<span class="chip">Off year</span>' : '') + '</div></details>';
+  }
+  function timingBodyHtml(rows, neutral) {
+    var month = Season.MONTHS[MONTH - 1];
+    var strong = rows.filter(function (r) { return r.rating >= Season.GOOD; }), weak = rows.filter(function (r) { return r.rating < Season.GOOD; });
+    if (rows.length <= 4) { strong = rows; weak = []; }
+    var one = function (r) { return spRowHtml(r, neutral); };
+    return strong.map(one).join('') + (weak.length ? '<details class="how moresp"' + (weak.some(function (r) { return r.species === species; }) ? ' open' : '') + '><summary>' + weak.length + ' more, fair or slow in ' + month + '</summary><div class="rows">' + weak.map(one).join('') + '</div></details>' : '');
+  }
   function fillTypical(id) {
     var t = TBY.get(id), site = t.site, month = Season.MONTHS[MONTH - 1];
     var sv = Season.siteView(prep, site, MONTH, species);
@@ -2626,25 +2677,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       '<p>' + esc(scopeText(site)) + '</p>' + distHtml(t.ll) +
       '<span class="badge' + (sv.closure ? ' faded' : '') + '" style="--c:var(--' + sv.r + ')">' + esc(word) + (sv.closure ? ' · season often varies' : '') + '</span>' +
       (site.closed ? '<span class="chip">WDFW marks this pier closed</span>' : '') + '</div>';
-    // One line per species: name, a 12-month strip (dark = best, mid = good, outlined = this month), the rating. Tap a line for the months, the
-    // note and any "season varies" reason. Only Good and Prime show by default; Fair and Slow fold into one line, so a long guide stays short.
-    function spRow(r) {
-      var strip = '', m;
-      for (m = 1; m <= 12; m++) strip += '<i class="' + (r.best.indexOf(m) >= 0 ? 'b' : r.good.indexOf(m) >= 0 ? 'g' : '') + (m === MONTH ? ' now' : '') + '"></i>';
-      var sn = SpeciesShort.short(r.species), full = sn !== r.species;
-      return '<details class="sp' + (species === r.species ? ' sel' : '') + '"' + (species === r.species ? ' open' : '') + '><summary>' +
-        '<span class="spn"' + (full ? ' title="' + esc(r.species) + '"' : '') + '>' + esc(sn) + (r.verify ? '<span class="vary" title="Season varies, verify">varies</span>' : '') + '</span>' +
-        '<span class="mini" aria-hidden="true">' + strip + '</span>' +
-        '<span class="badge" style="--c:var(--' + r.r + ')">' + Season.LABEL[r.r] + '</span></summary>' +
-        '<div class="spd">' + (full ? '<div class="dt"><b>' + esc(r.species) + '</b></div>' : '') +
-        '<div class="dt">Best: ' + esc(Season.monthsText(r.best)) + ' · Good: ' + esc(Season.monthsText(r.good)) + '</div>' +
-        (r.note ? '<div class="dt">' + esc(r.note) + '</div>' : '') +
-        (r.verify ? '<div class="sub2">Season varies, verify: ' + esc(r.verify) + '</div>' : '') +
-        (r.offYear ? '<span class="chip">Off year</span>' : '') + '</div></details>';
-    }
-    var strong = rows.filter(function (r) { return r.rating >= Season.GOOD; }), weak = rows.filter(function (r) { return r.rating < Season.GOOD; });
-    if (rows.length <= 4) { strong = rows; weak = []; }
-    var body = strong.map(spRow).join('') + (weak.length ? '<details class="how moresp"' + (weak.some(function (r) { return r.species === species; }) ? ' open' : '') + '><summary>' + weak.length + ' more, fair or slow in ' + month + '</summary><div class="rows">' + weak.map(spRow).join('') + '</div></details>' : '');
+    var body = timingBodyHtml(rows);
     var miss = '';
     if (site.guide === null) miss = 'WA Fish Map has no seasonal guidance for this site.';
     else if (species !== null && !rows.some(function (r) { return r.species === species; })) miss = 'The guidance for this site does not list ' + species + '.';
@@ -2655,7 +2688,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       actsHtml(dir) +
       '<section><h3>Typical timing, ' + month + '</h3><p class="miss">' + TYPICAL_LINE + '</p>' + (miss ? '<p class="miss">' + esc(miss) + '</p>' : '') +
       (body ? '<div class="rows">' + body + '</div>' : '') + '</section>' +
-      tidesHtml(site, t) + heatHtml(id) + siteFlowHtml(id) + creelSiteHtml(id) +
+      tidesHtml(site, t) + heatHtml(id) + siteFlowHtml(id) + creelSiteHtml(id) + areaSitesHtml(id) +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Seasons, areas and limits change year to year and can close with little notice. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
       typicalFootHtml();
     $('#sbody').scrollTop = 0;
@@ -2953,7 +2986,9 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
      Tapping a river, or a launch or shore site that belongs to one (rivers-tap.js siteRiver), fits the whole river into the free map area and puts the
      map out of focus: the base map and the other markers are blurred and dimmed, while the river, the access sites on it and their labels stay sharp
      (CSS in #focus-css; render() marks the nodes with .infocus through focusPass). The river's card lists its access sites; a launch's sheet opened from
-     it offers "Back to <river>". Done, Escape or a tap on empty map ends it and the camera returns to where it was before the first focus. */
+     it offers "Back to <river>". Done, Escape or a tap on empty map ends it and the camera returns to where it was before the first focus.
+     A WDFW marine area (marine-areas.js) is the same focus with wf.kind 'area': tapping open water inside its outline, or a pier, launch or shore site
+     whose typical.js `area` is it, fits the whole area and opens its card (title, how many sites, what is in season, tides, the list of sites). */
   var WATER = null, TAPNAME = null;
   // Launches and shore sites on a river, by name. Only typical.js sites are linked, so without it a river simply has none.
   function waterSites(id) {
@@ -2970,6 +3005,30 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     }
     return WATER[id] || [];
   }
+  // The typical.js sites inside a marine area (pier, launch, shore access), by name. Sites with no area, or an area with no outline, are never here.
+  var AREASITES = null;
+  function areaSites(id) {
+    if (!AREASITES) {
+      AREASITES = {};
+      if (HAS_TYPICAL) {
+        initTypical();
+        TS.forEach(function (t) { if (t.site.area && ABY[t.site.area]) (AREASITES[t.site.area] = AREASITES[t.site.area] || []).push(t); });
+        Object.keys(AREASITES).forEach(function (k) { AREASITES[k].sort(function (a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; }); });
+      }
+    }
+    return AREASITES[id] || [];
+  }
+  // The marine area a Typical season site sits in, only if the area has an outline to focus on.
+  function areaOfSite(id) {
+    if (!HAS_TYPICAL) return null;
+    initTypical();
+    var t = TBY.get(id), a = t && t.site.area;
+    return a && Object.prototype.hasOwnProperty.call(ABY, a) ? a : null;
+  }
+  function areaName(id) { return 'Marine Area ' + id; }
+  function areaTitle(id) { return TypicalData.areas[id].title; }
+  // What the focus is on, for the live region and the Back button: "Cowlitz River", "Marine Area 11".
+  function wfName(w) { return w.kind === 'area' ? areaName(w.id) : TAPBY[w.id].name; }
   // The river a site sits on: a report site by its own river line (or the river of the same name), a Typical season site by siteRiver.
   function waterOfSite(id) {
     if (!TAP) return null;
@@ -2997,20 +3056,30 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   function accessHtml(id) {
     var list = waterSites(id);
     if (!list.length) return '';
+    return '<section class="wfacc"><h3>Access on this river (' + list.length + ')</h3><div class="rows">' + siteRowsHtml(list) + '</div></section>';
+  }
+  // One button per site: name and kind. skip: a site id left out (the sheet that is open).
+  function siteRowsHtml(list, skip) {
     var typ = view === 'typical';
-    return '<section class="wfacc"><h3>Access on this river (' + list.length + ')</h3><div class="rows">' + list.map(function (t) {
+    return list.filter(function (t) { return t.id !== skip; }).map(function (t) {
       // Typical season already shows each site's rating word on its pin; Recent reports shows none, so the card adds none there.
       var word = typ ? ' · ' + (t.vw.r === 'unrated' ? 'No guidance' : Season.LABEL[t.vw.r]) : '';
       return '<button type="button" class="row lrow" data-wfsite="' + esc(t.id) + '"><span class="rt"><span class="nm">' + esc(t.name) + '</span><span class="dt">' + esc(Season.KIND_LABEL[t.kind] + word) + '</span></span></button>';
-    }).join('') + '</div></section>';
+    }).join('');
+  }
+  // On a site's sheet while its marine area is in focus: the area's other sites.
+  function areaSitesHtml(id) {
+    if (!wf || wf.kind !== 'area' || !wf.ids[id] || wf.list.length < 2) return '';
+    return '<section class="wfacc"><h3>In ' + esc(areaName(wf.id)) + '</h3><div class="rows">' + siteRowsHtml(wf.list, id) + '</div></section>';
   }
   function wfBackHtml(id) {
     if (!wf || !wf.ids[id]) return '';
-    return '<div class="wfback"><button type="button" class="listbtn" data-wfback>Back to ' + esc(TAPBY[wf.id].name) + '</button></div>';
+    return '<div class="wfback"><button type="button" class="listbtn" data-wfback>Back to ' + esc(wfName(wf)) + '</button></div>';
   }
   function say(t) { $('#wfsay').textContent = t; }
-  // The river's drawn extent in map units, parsed once from its path.
-  function waterBox(id) {
+  // The river's drawn extent in map units, parsed once from its path; a marine area's is in marine-areas.js (what the camera can show of it).
+  function waterBox(id, kind) {
+    if (kind === 'area') return ABY[id].bbox;
     var r = TAPBY[id];
     if (!r.box) {
       var n = r.d.match(/-?\d+(?:\.\d+)?/g) || [], x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -3019,33 +3088,46 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     }
     return r.box;
   }
-  // The whole river in the free area: left of the sheet on wide windows, above it on phones, 12 percent of the river's own extent as padding,
+  // The whole river or area in the free area: left of the sheet on wide windows, above it on phones, 12 percent of its own extent as padding,
   // never closer than 8 times the opening scale (a creek would otherwise fill the screen) and never past the whole-state floor.
   function fitWater() {
     if (!wf) return;
-    var b = waterBox(wf.id), w = Math.max(1, b[1][0] - b[0][0]), h = Math.max(1, b[1][1] - b[0][1]), p = pads();
+    var b = waterBox(wf.id, wf.kind), w = Math.max(1, b[1][0] - b[0][0]), h = Math.max(1, b[1][1] - b[0][1]), p = pads();
     if (window.innerWidth < 760) p.b = Math.max(p.b, Math.min(sheet.getBoundingClientRect().height || 0, H * 0.66) + 8);
     var aw = Math.max(40, W - p.l - p.r), ah = Math.max(40, H - p.t - p.b);
-    var s = Math.max(minS, Math.min(Math.min(aw / (w * 1.24), ah / (h * 1.24)), 8 * s0));
+    // A marine area is never small enough to need the cap (the smallest spans about 19 by 27 map units), so it fills the free area.
+    var cap = wf.kind === 'area' ? maxS : 8 * s0;
+    var s = Math.max(minS, Math.min(Math.min(aw / (w * 1.24), ah / (h * 1.24)), cap));
     var cx = (b[0][0] + b[1][0]) / 2, cy = (b[0][1] + b[1][1]) / 2;
     animateTo({ s: s, tx: p.l + aw / 2 - cx * s, ty: p.t + ah / 2 - cy * s });
   }
   // Start or continue the focus. The camera is stored once, on the first entry; moving to another river or one of its launches keeps it.
   // defer: set the state only (the card is about to be built), the camera moves on the call that follows once the sheet is open.
-  function enterWater(id, rep, defer) {
-    var r = TAPBY[id];
+  function enterWater(id, rep, defer, kind) {
+    kind = kind || 'river';
+    var area = kind === 'area', r = area ? ABY[id] : TAPBY[id];
     if (!r) return;
     var first = !wf;
     if (first) wf = { prev: { s: v.s, tx: v.tx, ty: v.ty }, need: false };
-    var changed = first || wf.id !== id;
-    wf.id = id; wf.rep = rep || (changed ? null : wf.rep); wf.list = waterSites(id);
+    var changed = first || wf.id !== id || wf.kind !== kind;
+    wf.kind = kind; wf.id = id; wf.rep = rep || (changed ? null : wf.rep); wf.list = area ? areaSites(id) : waterSites(id);
     wf.ids = {}; wf.list.forEach(function (t) { wf.ids[t.id] = 1; });
     appEl.classList.add('focus-water');
-    rselCase.setAttribute('d', r.d); rselLine.setAttribute('d', r.d); rsel.style.display = '';
+    appEl.setAttribute('data-focus', kind);
+    if (area) {
+      aselFill.setAttribute('d', r.d); aselCase.setAttribute('d', r.d); aselLine.setAttribute('d', r.d); asel.style.display = '';
+      rsel.style.display = 'none';
+    } else {
+      rselCase.setAttribute('d', r.d); rselLine.setAttribute('d', r.d); rsel.style.display = '';
+      asel.style.display = 'none';
+    }
     syncFocusHl();
     if (changed) {
       wf.need = true;
-      say('Focused on ' + r.name + ', ' + wf.list.length + (wf.list.length === 1 ? ' access site' : ' access sites') + '. Press Escape to leave.');
+      var n = wf.list.length;
+      say(area
+        ? 'Focused on ' + areaName(id) + ', ' + areaTitle(id) + ', ' + (n === 0 ? 'no piers or launches' : n === 1 ? '1 pier or launch' : n + ' piers and launches') + '. Press Escape to leave.'
+        : 'Focused on ' + r.name + ', ' + n + (n === 1 ? ' access site' : ' access sites') + '. Press Escape to leave.');
     }
     if (!defer && wf.need) {
       wf.need = false;
@@ -3072,10 +3154,11 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   // restore: ease back to the camera from before the first focus.
   function leaveWater(restore) {
     if (!wf) return;
-    var w = wf, name = TAPBY[w.id].name;
+    var w = wf, name = wfName(w);
     wf = null;
     appEl.classList.remove('focus-water');
-    rsel.style.display = 'none';
+    appEl.removeAttribute('data-focus');
+    rsel.style.display = 'none'; asel.style.display = 'none';
     syncFocusHl();
     focusPass();
     say('Left focus on ' + name + '.');
@@ -3100,8 +3183,58 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   function backToWater() {
     if (!wf) return;
     var id = wf.id, rep = wf.rep;
-    if (view === 'reports' && rep) openSheet(rep); else openRiver(id);
+    if (wf.kind === 'area') openArea(id);
+    else if (view === 'reports' && rep) openSheet(rep); else openRiver(id);
     fitWater();
+  }
+  /* ---- marine area card: what the area is, what is in season in it now, its tides, and the piers, launches and shore sites inside it ---- */
+  var areaSel = null;
+  function unxy(x, y) { return [D.proj.lat0 - y / D.proj.k, D.proj.lon0 + x / D.proj.kx]; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+  function areaCountText(list) {
+    var n = { pier: 0, launch: 0, access: 0 };
+    list.forEach(function (t) { n[t.kind]++; });
+    var parts = [];
+    if (n.pier) parts.push(plural(n.pier, 'pier', 'piers'));
+    if (n.launch) parts.push(plural(n.launch, 'boat launch', 'boat launches'));
+    if (n.access) parts.push(plural(n.access, 'shore access site', 'shore access sites'));
+    return parts.length ? parts.join(', ') : 'No piers, launches or shore access sites on this map';
+  }
+  function fillArea(id) {
+    initTypical();
+    var a = ABY[id], list = areaSites(id), neutral = view !== 'typical', month = Season.MONTHS[MONTH - 1];
+    var gi = -1;
+    TypicalData.guides.forEach(function (g, i) { if (gi < 0 && g.scope === 'area:' + id) gi = i; });
+    var rows = gi < 0 ? [] : Season.siteRows(prep, { guide: gi }, MONTH);
+    var now = rows.filter(function (r) { return r.rating >= Season.FAIR; }), rest = rows.filter(function (r) { return r.rating < Season.FAIR; });
+    $('#stitle').textContent = areaName(id);
+    var head = '<div class="head"><p>' + esc(areaTitle(id)) + '</p><p>' + esc(areaCountText(list)) + '</p></div>';
+    var seasonal = '<section><h3>In season now</h3><p class="miss">' + TYPICAL_LINE + '</p>' +
+      (rows.length ? '' : '<p class="miss">WA Fish Map has no seasonal guidance for this area.</p>') +
+      (rows.length && !now.length ? '<p class="miss">Nothing in this area’s guidance is fair or better in ' + month + '.</p>' : '') +
+      (now.length ? '<div class="rows">' + timingBodyHtml(now, neutral) + '</div>' : '') +
+      (rest.length ? '<details class="how moresp"><summary>' + rest.length + ' not in season in ' + month + '</summary><div class="rows">' + rest.map(function (r) { return spRowHtml(r, neutral); }).join('') + '</div></details>' : '') +
+      '</section>';
+    var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
+    var acts = '<div class="acts"><a class="ico" href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">' + ICO.rules + '<span>WDFW rules</span></a></div>';
+    $('#sbody').innerHTML = head + acts + seasonal +
+      tidesHtml({ area: id }, { ll: unxy(a.centroid[0], a.centroid[1]) }) +
+      (list.length ? '<section class="wfacc"><h3>Piers and launches in this area (' + list.length + ')</h3><div class="rows">' + siteRowsHtml(list) + '</div></section>' : '') +
+      '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Seasons, areas and limits change year to year and can close with little notice. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
+      typicalFootHtml();
+    $('#sbody').scrollTop = 0;
+  }
+  function openArea(id) {
+    if (!Object.prototype.hasOwnProperty.call(ABY, id)) return;
+    clearRiver();
+    selected = null; mode = 'area'; areaSel = id; spotSel = null; seasonSel = null; accessSel = null;
+    fillArea(id);
+    showSheet();
+    $('#listbtn').setAttribute('aria-expanded', 'false');
+    applyStyles();
+    render();
+    enterWater(id, null, false, 'area');
+    syncLink();
   }
   function openRiver(id) {
     if (!Object.prototype.hasOwnProperty.call(TAPBY, id)) return;
@@ -3135,8 +3268,10 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   }
   function openSheet(id) {
     clearRiver();
-    var wid = waterOfSite(id);
-    if (!wid) leaveWater(false); else enterWater(wid, view === 'reports' ? id : null, true);
+    var wid = waterOfSite(id), aid = !wid && view === 'typical' ? areaOfSite(id) : null;
+    if (wid) enterWater(wid, view === 'reports' ? id : null, true);
+    else if (aid) enterWater(aid, null, true, 'area');
+    else leaveWater(false);
     selected = id; mode = 'detail'; spotSel = null; seasonSel = null; accessSel = null;
     fillSheet(id);
     showSheet();
@@ -3144,6 +3279,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     applyStyles();
     // On a river: the whole river comes into view instead of a close view of the pin (water focus).
     if (wid) { render(); enterWater(wid, view === 'reports' ? id : null); syncLink(); return; }
+    // In a marine area: the whole area comes into view the same way.
+    if (aid) { render(); enterWater(aid, null, false, 'area'); syncLink(); return; }
     var s = siteOf(id);
     var wide = window.innerWidth >= 760;
     var sh = sheet.getBoundingClientRect().height || 0;
@@ -3239,7 +3376,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     $('#sbody').innerHTML = wfBackHtml(id) + '<div class="head"><p>' + esc(Season.KIND_LABEL[t.kind]) + (t.county ? ' · ' + esc(t.county) + ' County' : '') + '</p>' +
       '<p>' + esc(scopeText(t)) + '</p>' + distHtml(o.ll) + (t.closed ? '<span class="chip">WDFW marks this pier closed</span>' : '') + '</div>' +
       actsHtml(dir, '<button type="button" class="ico" data-typical="' + esc(t.id) + '">' + ICO.timing + '<span>Typical timing</span></button>') +
-      tidesHtml(t, o) + heatHtml(t.id) + creelSiteHtml(t.id) +
+      tidesHtml(t, o) + heatHtml(t.id) + creelSiteHtml(t.id) + areaSitesHtml(t.id) +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Seasons, areas and limits change year to year and can close with little notice. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
       '<div class="foot"><div>A WDFW pier or shore access site. Not a catch report and not a rating. Not for navigation or safety decisions.</div>' +
       '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a></div>';
@@ -3248,15 +3385,18 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   function openAccess(id) {
     if (!accessOf(id)) return;
     clearRiver();
-    var wid = TAP && TAP.siteRiver && TAPBY[TAP.siteRiver[id]] ? TAP.siteRiver[id] : null;
-    if (!wid) leaveWater(false);
+    var wid = TAP && TAP.siteRiver && TAPBY[TAP.siteRiver[id]] ? TAP.siteRiver[id] : null, aid = !wid ? areaOfSite(id) : null;
+    if (!wid && !aid) leaveWater(false);
     selected = null; mode = 'access'; spotSel = null; seasonSel = null; accessSel = id;
-    if (wid && !(wf && wf.id === wid)) enterWater(wid, null, true);   // set before the sheet is built, so the sheet knows to offer "Back to"
+    // Set before the sheet is built, so the sheet knows to offer "Back to".
+    if (wid && !(wf && wf.kind === 'river' && wf.id === wid)) enterWater(wid, null, true);
+    else if (aid && !(wf && wf.kind === 'area' && wf.id === aid)) enterWater(aid, null, true, 'area');
     fillAccess(id);
     showSheet();
     $('#listbtn').setAttribute('aria-expanded', 'false');
     render();
     if (wid) enterWater(wid, wf && wf.id === wid ? wf.rep : null);
+    else if (aid) enterWater(aid, null, false, 'area');
     syncLink();
   }
   /* ---- Seasons layer: its own month (Spawning lends its ribbon month instead), and the season sheet ---- */
@@ -3587,7 +3727,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     if (!me) listSort = 'best';
     syncMeUi();
     render();
-    if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList(); else if (mode === 'river') fillRiver(riverSel); else if (mode === 'spot') fillSpot(spotSel); else if (mode === 'season') fillSeason(seasonSel); else if (mode === 'access') fillAccess(accessSel);
+    if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList(); else if (mode === 'river') fillRiver(riverSel); else if (mode === 'spot') fillSpot(spotSel); else if (mode === 'season') fillSeason(seasonSel); else if (mode === 'access') fillAccess(accessSel); else if (mode === 'area') fillArea(areaSel);
   }
   function setMeFromScreen(px, py) {
     var mx = (px - v.tx) / v.s, my = (py - v.ty) / v.s;
@@ -3665,7 +3805,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       month: view === 'spawning' ? SMONTH : layers.indexOf('seasons') >= 0 && LMONTH !== MONTH ? LMONTH : null,
       species: species,
       site: !rep && mode === 'detail' ? selected : null,
-      river: rep ? (wf ? (wf.rep || wf.id) : mode === 'detail' ? selected : riverSel) : null,
+      river: rep ? (wf && wf.kind === 'river' ? (wf.rep || wf.id) : mode === 'detail' ? selected : riverSel) : null,
       today: LINK0.today,
       layers: layers,
       spot: mode === 'spot' ? spotSel : null,
@@ -3839,9 +3979,16 @@ html:not(.touched):has(.hints .hint:not([hidden])) .depthchip, html:has(#hint:no
 <style id="focus-css">
 /* Water focus: a tapped river is fitted on screen and the rest of the map goes out of focus. The river, its access sites and their labels stay sharp:
    #rsel and a copy of a report river's line live in #focus (above the blurred #base, #heat and the scrim), and render() marks the sharp markers .infocus. */
-:root { --wf-scrim: rgba(28,28,30,.2); --wf-blur: 3.5px; --wf-mblur: 2px; --wf-dim: .3; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --wf-scrim: rgba(0,0,0,.42); } }
-:root[data-theme="dark"] { --wf-scrim: rgba(0,0,0,.42); }
+:root { --wf-scrim: rgba(28,28,30,.2); --wf-blur: 3.5px; --wf-mblur: 2px; --wf-dim: .3; --wf-area-line: var(--on-text); --wf-area-fill: rgba(0,124,158,.08); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --wf-scrim: rgba(0,0,0,.42); --wf-area-fill: rgba(64,196,222,.1); } }
+:root[data-theme="dark"] { --wf-scrim: rgba(0,0,0,.42); --wf-area-fill: rgba(64,196,222,.1); }
+/* A marine area: open water takes a tap (hit polygons under the rivers and markers, see ABY), and in focus its outline is a halo-cased accent line over a very faint fill. */
+#atap path { fill: transparent; fill-rule: evenodd; pointer-events: fill; }
+#map:not(.drag) #atap path { cursor: pointer; }
+#asel path { stroke-linejoin: round; vector-effect: non-scaling-stroke; pointer-events: none; }
+#asel .fill { fill: var(--wf-area-fill); fill-rule: evenodd; stroke: none; }
+#asel .casing { fill: none; stroke: var(--halo); stroke-width: 5px; opacity: .85; }
+#asel .line { fill: none; stroke: var(--wf-area-line); stroke-width: 2.2px; }
 #focus { pointer-events: none; }
 #wfscrim { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: var(--wf-scrim); }
 #app.focus-water #wfscrim { opacity: 1; }
