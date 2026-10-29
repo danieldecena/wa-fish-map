@@ -37,6 +37,15 @@
     {
       "id": "cowlitz",
       "species": "All salmon",
+      "stretch": "400 ft below the barrier dam to the hatchery intake",
+      "text": "Closed waters.",
+      "release": false,
+      "through": "2026-12-31",
+      "checked": "2026-10-29"
+    },
+    {
+      "id": "cowlitz",
+      "species": "All salmon",
       "stretch": null,
       "text": "Anglers 15 and older need the Columbia River Salmon and Steelhead Endorsement.",
       "release": false,
@@ -45,11 +54,47 @@
     },
     {
       "id": "columbia",
+      "species": "Coho Salmon",
+      "stretch": "Tongue Point line to the west end of Puget Island",
+      "text": "Through Oct 31: 6 salmon a day, up to 3 adults (coho 20 in or longer). Only hatchery coho, which have a clipped adipose fin, may be kept. (Set by WDFW's Sept 24 emergency rule.)",
+      "release": false,
+      "through": "2026-10-31",
+      "checked": "2026-10-29"
+    },
+    {
+      "id": "columbia",
+      "species": "Coho Salmon",
+      "stretch": "Puget Island line to Beacon Rock",
+      "text": "Through Oct 31: 6 salmon a day, up to 2 adults. Only hatchery coho may be kept.",
+      "release": false,
+      "through": "2026-10-31",
+      "checked": "2026-10-29"
+    },
+    {
+      "id": "columbia",
+      "species": "Coho Salmon",
+      "stretch": "Tongue Point line to Bonneville Dam, except the closed reach below",
+      "text": "Nov 1 to Dec 31: release all salmon other than hatchery coho.",
+      "release": false,
+      "through": "2026-12-31",
+      "checked": "2026-10-29"
+    },
+    {
+      "id": "columbia",
       "species": "Chinook Salmon",
       "stretch": "Tongue Point line to Bonneville Dam",
-      "text": "Through Oct 31: release all Chinook.",
+      "text": "Release all Chinook through Dec 31.",
       "release": true,
-      "through": "2026-10-31",
+      "through": "2026-12-31",
+      "checked": "2026-10-29"
+    },
+    {
+      "id": "columbia",
+      "species": "All salmon",
+      "stretch": "Beacon Rock to the Hamilton Island line",
+      "text": "Closed waters Nov 1 to Dec 31.",
+      "release": false,
+      "through": "2026-12-31",
       "checked": "2026-10-29"
     },
     {
@@ -82,28 +127,28 @@
     {
       "id": "lewis",
       "species": "Coho Salmon",
-      "stretch": "Mouth to the power lines below Merwin Dam",
-      "text": "Oct 1 to 31: 6 salmon a day, up to 3 adults (coho 20 in or longer). Only hatchery coho, which have a clipped adipose fin, may be kept.",
+      "stretch": "Mouth to Colvin Creek",
+      "text": "Oct 1 to Dec 31: 6 salmon a day, up to 3 adults, no more than 1 of them Chinook (coho 20 in or longer). Release all salmon other than Chinook and hatchery coho, which have a clipped adipose fin.",
       "release": false,
-      "through": "2026-10-31",
+      "through": "2026-12-31",
       "checked": "2026-10-29"
     },
     {
       "id": "lewis",
       "species": "Chinook Salmon",
-      "stretch": "Mouth to the power lines below Merwin Dam",
-      "text": "Oct 1 to 31: up to 3 adults a day, no more than 1 of them Chinook (Chinook 24 in or longer). Wild and hatchery Chinook may both be kept.",
+      "stretch": "Mouth to Colvin Creek",
+      "text": "Oct 1 to Dec 31: counts within the same adult limit, no more than 1 Chinook (Chinook 24 in or longer). Wild and hatchery Chinook may both be kept.",
       "release": false,
-      "through": "2026-10-31",
+      "through": "2026-12-31",
       "checked": "2026-10-29"
     },
     {
       "id": "lewis",
       "species": "All salmon",
-      "stretch": "Johnson Creek to the power lines below Merwin Dam",
-      "text": "Night closure and anti-snagging rule through Oct 31.",
+      "stretch": "Johnson Creek to Colvin Creek",
+      "text": "Night closure and anti-snagging rule through Nov 30.",
       "release": false,
-      "through": "2026-10-31",
+      "through": "2026-11-30",
       "checked": "2026-10-29"
     },
     {
@@ -136,7 +181,7 @@
     {
       "id": "wind",
       "species": "Coho Salmon",
-      "stretch": "Highway 14 bridge to Shipherd Falls",
+      "stretch": "Highway 14 bridge to 400 ft below the Shipherd Falls fish ladder",
       "text": "Through Oct 31: 6 salmon a day, up to 2 adults. Release wild coho.",
       "release": false,
       "through": "2026-10-31",
@@ -145,7 +190,7 @@
     {
       "id": "wind",
       "species": "Chinook Salmon",
-      "stretch": "Highway 14 bridge to Shipherd Falls",
+      "stretch": "Highway 14 bridge to 400 ft below the Shipherd Falls fish ladder",
       "text": "Through Oct 31: release wild Chinook, which have an unclipped adipose fin.",
       "release": true,
       "through": "2026-10-31",
@@ -154,10 +199,19 @@
     {
       "id": "wind",
       "species": "All salmon",
-      "stretch": "Mouth to Shipherd Falls",
+      "stretch": "Mouth to 400 ft below the Shipherd Falls fish ladder",
       "text": "Night closure for salmon and an anti-snagging rule through Oct 31.",
       "release": false,
       "through": "2026-10-31",
+      "checked": "2026-10-29"
+    },
+    {
+      "id": "wind",
+      "species": "All salmon",
+      "stretch": "400 ft below to 100 ft above the Shipherd Falls fish ladder",
+      "text": "Closed waters.",
+      "release": false,
+      "through": "2026-12-31",
       "checked": "2026-10-29"
     },
     {
@@ -171,18 +225,9 @@
     },
     {
       "id": "klickitat",
-      "species": "Coho Salmon",
+      "species": "All salmon",
       "stretch": "Mouth to Fisher Hill Bridge",
-      "text": "Aug 1 to Jan 31: 6 salmon a day, up to 2 adults (coho 20 in or longer).",
-      "release": false,
-      "through": "2027-01-31",
-      "checked": "2026-10-29"
-    },
-    {
-      "id": "klickitat",
-      "species": "Chinook Salmon",
-      "stretch": "Mouth to Fisher Hill Bridge",
-      "text": "Aug 1 to Jan 31: 6 salmon a day, up to 2 adults (Chinook 24 in or longer).",
+      "text": "Aug 1 to Jan 31: 6 salmon a day, up to 2 adults in total across coho and Chinook (coho 20 in or longer, Chinook 24 in or longer).",
       "release": false,
       "through": "2027-01-31",
       "checked": "2026-10-29"
@@ -216,20 +261,11 @@
     },
     {
       "id": "drano",
-      "species": "Coho Salmon",
+      "species": "All salmon",
       "stretch": null,
-      "text": "Aug 1 to Oct 31: 6 salmon a day, up to 1 adult (coho 20 in or longer).",
+      "text": "Aug 1 to Dec 31: 6 salmon a day, with no more than 1 adult in total, not 1 per species (coho 20 in or longer, Chinook 24 in or longer).",
       "release": false,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
-    },
-    {
-      "id": "drano",
-      "species": "Chinook Salmon",
-      "stretch": null,
-      "text": "Aug 1 to Oct 31: 6 salmon a day, up to 1 adult (Chinook 24 in or longer).",
-      "release": false,
-      "through": "2026-10-31",
+      "through": "2026-12-31",
       "checked": "2026-10-29"
     },
     {
@@ -245,9 +281,9 @@
       "id": "drano",
       "species": "All salmon",
       "stretch": null,
-      "text": "Night closure and anti-snagging rule through Oct 31.",
+      "text": "Night closure through Oct 31. Anti-snagging rule through Dec 31.",
       "release": false,
-      "through": "2026-10-31",
+      "through": "2026-12-31",
       "checked": "2026-10-29"
     },
     {
@@ -293,6 +329,15 @@
       "text": "Fly fishing only from Sept 1 to Oct 31. Barbed hooks are allowed.",
       "release": false,
       "through": "2026-10-31",
+      "checked": "2026-10-29"
+    },
+    {
+      "id": "kalama",
+      "species": "All salmon",
+      "stretch": "1,400 ft below to 1,000 ft above the Kalama Falls Hatchery fishway",
+      "text": "Closed waters.",
+      "release": false,
+      "through": "2026-12-31",
       "checked": "2026-10-29"
     },
     {
@@ -362,9 +407,9 @@
       "id": "washougal",
       "species": "All salmon",
       "stretch": "Mouth to the Salmon Falls bridge",
-      "text": "Night closure and anti-snagging rule through Oct 31.",
+      "text": "Night closure from the mouth to the County Line ramp (the pamphlet gives no end date). Anti-snagging rule through Oct 31.",
       "release": false,
-      "through": "2026-10-31",
+      "through": "2026-12-31",
       "checked": "2026-10-29"
     },
     {

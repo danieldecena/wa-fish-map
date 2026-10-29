@@ -79,3 +79,21 @@ Pamphlet (Oct 1 to 31): limit 2, release all salmon other than coho, night closu
 - The Lower Columbia emergency rule and the printed pamphlet disagree on adults for the Tongue Point to Puget Island reach (3 against 2). The emergency rule is later in effect and WDFW says emergency rules supersede the pamphlet, so the row uses 3. The pamphlet "Last Updated Oct 5" is later than the emergency rule's publication date, yet does not show it.
 - The Columbia emergency rule's Action line says coho retention runs to Oct 31 upstream of Puget Island, but its reach-by-reach text stops at Sept 30; the Oct rows for that reach come from the pamphlet.
 - Rows for the whole Lower Columbia assume the reaches between Puget Island and Bonneville Dam share one October rule; the pamphlet tables are identical for all of them.
+
+## Re-verification (2026-10-29, a second agent that read the pages itself)
+
+Result: 32 of 43 rows matched, 11 differed, none was superseded by an emergency rule (the only two touching these waters are the Sept 24 Lower Columbia rule and the Oct 15 Skagit/Cascade rule; nothing newer was listed). The differences were end dates that stopped at Oct 31 while the pamphlet rule runs on, a Wind River end point, one night-closure date, and limits written per species where WDFW states one combined limit. All were corrected in the same day's follow-up:
+
+- Columbia: Chinook release now runs to Dec 31; Lower Columbia coho rows restored from the Sept 24 emergency rule (Tongue Point to Puget Island, 3 adults through Oct 31) and the pamphlet (Puget Island to Beacon Rock, 2 adults through Oct 31), plus "Nov 1 to Dec 31: release all salmon other than hatchery coho" and the Beacon Rock to Hamilton Island closure Nov 1 to Dec 31.
+- Lewis: coho and Chinook run Oct 1 to Dec 31 from the mouth to Colvin Creek (not to the power lines); night closure and anti-snagging Johnson Creek to Colvin Creek run to Nov 30.
+- Wind: the open reach ends 400 ft below the Shipherd Falls fish ladder; closed waters 400 ft below to 100 ft above the ladder added.
+- Klickitat and Drano: one combined adult limit for all salmon instead of one per species; Drano open Aug 1 to Dec 31, night closure to Oct 31 but anti-snagging to Dec 31.
+- Washougal: the night closure at the mouth has no end date in the pamphlet.
+- Added closed stretches that were missing: Cowlitz 400 ft below the barrier dam to the hatchery intake; Kalama 1,400 ft below to 1,000 ft above the Kalama Falls Hatchery fishway.
+
+Still not written, and why:
+- Wind River Chinook, mouth to Highway 14 bridge, October: the table drops wild Chinook from the release list but WDFW does not say in writing that wild Chinook may be kept; the verifier advised phoning WDFW Southwest Region (360-696-6211) or leaving it out. Left out.
+- Lewis, Colvin Creek to the power lines: the table lists Oct 1 to 31 and Dec 16 to 31 with nothing for Nov 1 to Dec 15; left out rather than state a gap.
+- Not added: Cowlitz Two-Pole and the disabled-angler areas, Columbia boat-limit and jack reminders, Klickitat above Lyle Falls, Drano Two-Pole and steelhead, Skagit Cascade River and Gilligan Creek, Washougal West Fork closure, tributary closures. These are real rules; they were left to keep each sheet short, and the sheet still says to confirm on WDFW.
+- The definitions of "wild" and "anti-snagging" could not be found on the pamphlet's definitions page; the wording "clipped adipose fin" for hatchery is the pamphlet's, "unclipped" for wild is the agent's reading.
+
