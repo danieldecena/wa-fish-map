@@ -70,13 +70,19 @@ test('phone bar: the Key and Rivers icons are not hidden by a later desktop rule
   assert.match(block, /#listbtn \.ri \{ display: block; \}/);
 });
 
-test('compact bar only for a mouse on a wide window; touch keeps 44 px', () => {
+test('compact bar only for a mouse on a wide window; every control still reaches 44 px to click or tap', () => {
   const q = '@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {';
   const i = html.indexOf(q); assert.ok(i > 0);
   const block = html.slice(i, html.indexOf('\n}\n', i));
-  assert.match(block, /\.bar \{ height: 44px; padding: 4px 8px; \}/);
-  assert.match(block, /\.bar \.listbtn, \.bar \.nbtn, \.bar \.seg button \{ min-height: 36px; \}/);
-  assert.doesNotMatch(html.replace(block, ''), /min-height: 36px/, 'no 36 px control outside the mouse-only block');
+  assert.match(block, /\.bar \{ height: 38px; padding: 3px 6px; gap: 4px; \}/);
+  const h = /\.bar \.listbtn, \.bar \.nbtn, \.bar \.seg button \{ min-height: (\d+)px;/.exec(block);
+  assert.ok(h, 'the mouse-only block sets the control height');
+  // The drawn control is small; an invisible ::after adds its inset above and below, so the tappable height is the sum.
+  const x = /\.bar \.seg button::after \{ content: ""; position: absolute; inset: -(\d+)px -\d+px; \}/.exec(block);
+  assert.ok(x, 'the mouse-only block gives each bar control a hit-area extender');
+  assert.ok(+h[1] + 2 * +x[1] >= 44, `drawn ${h[1]}px plus 2 x ${x[1]}px extender is under 44px`);
+  // Control: the sum would fail for a control with no extender, so the assertion above can fail.
+  assert.ok(+h[1] < 44);
 });
 
 test('piers and shore layer: plain markers, never a rating colour, and never drawn over Typical season', () => {
