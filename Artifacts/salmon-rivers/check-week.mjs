@@ -330,6 +330,7 @@ for (const [w, h, lo, hi] of [[1024, 768, 380, 380], [1440, 900, 480, 500], [192
   }
   check(bad.length === 0, `pan limit: dragged hard right, left, down and up while zoomed in, the screen's edges stay within the state's border plus a small margin (${bad.join('; ') || 'all four held'})`);
   await pctx.close();
+}
 // Layer-marker labels on the map are the name alone; the rating word stays in the marker's accessible name (and the sheet).
 {
   const lctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
