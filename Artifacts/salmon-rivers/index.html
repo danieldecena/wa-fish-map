@@ -1145,12 +1145,16 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
     return { s: s, tx: p.l + aw / 2 - cx * s, ty: p.t + ah / 2 - cy * s };
   }
+  /* Panning stays inside Washington. Zoomed in on an axis, the screen's edges (not just its centre) may pass the state's border by a small margin
+     (2.5 percent of the state's longer side) and no further, so the map cannot be dragged into empty space. Zoomed out on an axis, where the whole
+     state is narrower than the screen, the view keeps the loose rule it had (the centre stays within 40 map units of the box), so the padded
+     opening fit around the cards and the sheet is not fought. */
   function clampView(t) {
-    var sb = D.bounds.state;
-    var cx = (W / 2 - t.tx) / t.s, cy = (H / 2 - t.ty) / t.s;
-    var m = 40;
-    cx = Math.min(Math.max(cx, sb[0][0] - m), sb[1][0] + m);
-    cy = Math.min(Math.max(cy, sb[0][1] - m), sb[1][1] + m);
+    var sb = D.bounds.state, m = Math.max(sb[1][0] - sb[0][0], sb[1][1] - sb[0][1]) * 0.025;
+    var cx = (W / 2 - t.tx) / t.s, cy = (H / 2 - t.ty) / t.s, hw = W / 2 / t.s, hh = H / 2 / t.s;
+    var x0 = sb[0][0] - m, x1 = sb[1][0] + m, y0 = sb[0][1] - m, y1 = sb[1][1] + m;
+    cx = x1 - x0 > 2 * hw ? Math.min(Math.max(cx, x0 + hw), x1 - hw) : Math.min(Math.max(cx, sb[0][0] - 40), sb[1][0] + 40);
+    cy = y1 - y0 > 2 * hh ? Math.min(Math.max(cy, y0 + hh), y1 - hh) : Math.min(Math.max(cy, sb[0][1] - 40), sb[1][1] + 40);
     t.tx = W / 2 - cx * t.s; t.ty = H / 2 - cy * t.s;
     return t;
   }
