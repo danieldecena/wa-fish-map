@@ -279,6 +279,21 @@ for (const [w, h, lo, hi] of [[1024, 768, 380, 380], [1440, 900, 480, 500], [192
   check(sw.w >= lo && sw.w <= hi && sw.pinX !== null && sw.pinX < sw.left, `sheet ${w}px: the side sheet is ${sw.w}px wide (expected ${lo} to ${hi}) and the tapped river's pin (x ${sw.pinX}) sits left of it (x ${sw.left})`);
   await wctx.close();
 }
+// Tapping a site in Typical season zooms to a neighbourhood (at most 3 times the state fit, it was 5), keeps its neighbours in frame and the pin left of the sheet.
+{
+  const zctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const zp = await zctx.newPage();
+  const scaleOf = () => zp.evaluate(() => { const m = /scale\(([\d.]+)\)/.exec(document.getElementById('vp').getAttribute('transform') || ''); return m ? +m[1] : null; });
+  await zp.goto(base + '/index.html?mode=typical&today=' + today, { waitUntil: 'networkidle' });
+  await zp.waitForTimeout(700);
+  const home = await scaleOf();
+  await zp.goto(base + '/index.html?mode=typical&site=les-davis-pier&today=' + today, { waitUntil: 'networkidle' });
+  await zp.waitForTimeout(900);
+  const zoomed = await scaleOf();
+  const ratio = home && zoomed ? zoomed / home : null;
+  check(ratio !== null && ratio >= 1.4 && ratio <= 3.05, `Typical site tap: the zoom is ${ratio === null ? 'unreadable' : ratio.toFixed(2)} times the state fit (neighbourhood: 1.4 to 3.05; the old tight view was 5)`);
+  await zctx.close();
+}
 // Fish names and the species list. A chip, the bar label and a sheet row show a short name when the exact one is long; the exact name stays in the
 // tooltip and the accessible name. The Typical sheet lists species one line each, Good and Prime open and the rest folded.
 {
