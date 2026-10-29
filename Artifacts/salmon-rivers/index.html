@@ -2758,7 +2758,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var rep = view === 'reports';
     Links.write({
       mode: view,
-      month: view === 'spawning' ? SMONTH : layers.indexOf('seasons') >= 0 ? LMONTH : null,
+      month: view === 'spawning' ? SMONTH : layers.indexOf('seasons') >= 0 && LMONTH !== MONTH ? LMONTH : null,
       species: species,
       site: !rep && mode === 'detail' ? selected : null,
       river: rep ? (mode === 'detail' ? selected : riverSel) : null,

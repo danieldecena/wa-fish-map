@@ -81,6 +81,10 @@ for (const scheme of ['light', 'dark']) {
         const lay = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, smonth: !document.getElementById('smonth').hidden, spot: !!document.querySelector('#guides .spotpin') && getComputedStyle(document.querySelector('#guides .spotpin')).display !== 'none', legend: document.querySelectorAll('#layl li').length }));
         check(lay.btn === 'Layers · 3' && lay.smonth && lay.legend === 3, `Layers ${w}px ${scheme}: three layers on, month slider shown, three legend lines (${lay.btn}, ${lay.legend})`);
       }
+      if (name === 'Map') {
+        const dl = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, legend: document.querySelectorAll('#layl li').length, on: [...document.querySelectorAll('#laypop [data-layer][aria-checked=true]')].length }));
+        check(dl.on === 6 && dl.legend === 6, `Map ${w}px ${scheme}: a bare link opens with all six layers on (${dl.btn}, ${dl.on} on, ${dl.legend} legend lines)`);
+      }
       if (name === 'Map' && w <= 390) {
         const k = await page.evaluate(() => { const b = document.getElementById('keybtn'); return { h: b.getBoundingClientRect().height, shown: getComputedStyle(b).display !== 'none', body: !document.getElementById('keypop').hidden, exp: b.getAttribute('aria-expanded'), text: b.textContent, hint: getComputedStyle(document.getElementById('rhint')).display !== 'none' }; });
         check(k.shown && k.text === 'Key' && k.h >= 44 && !k.body && k.exp === 'false', `Map ${w}px ${scheme}: the key is closed behind a 44px Key button in the bar (${Math.round(k.h)}px, body shown ${k.body})`);
@@ -96,10 +100,12 @@ for (const scheme of ['light', 'dark']) {
         check(await page.evaluate(() => document.getElementById('keypop').hidden), `Map ${w}px ${scheme}: Key closes it again`);
         if (w >= 360) {
           // The page promises a fit from 360 px up; below that the bar scrolls and the month names are allowed to crowd.
-          await page.click('#mfold');
+          // With every layer on (the default) the card is already open and has no fold button.
+          const folded = await page.isVisible('#mfold');
+          if (folded) await page.click('#mfold');
           const ov = await page.evaluate(() => { const rs = [...document.querySelectorAll('#smonth .months button')].filter(b => b.getClientRects().length).map(b => { const g = document.createRange(); g.selectNodeContents(b); const q = g.getBoundingClientRect(); return [b.textContent.trim(), q.left, q.right]; }); return { n: rs.length, hits: rs.slice(1).filter((r, i) => rs[i][2] > r[1] - 1).map((r, i) => r[0]) }; });
           check(ov.n === 12 && ov.hits.length === 0, `Map ${w}px ${scheme}: the twelve month names keep a 1px gap (${ov.n} shown; touching: ${ov.hits.join(', ')})`);
-          await page.click('#mfold');
+          if (folded) await page.click('#mfold');
         }
         check(k.hint, `Map ${w}px ${scheme}: the "Tap any river" hint shows before any interaction`);
         await page.click('#zin');
