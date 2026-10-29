@@ -1,0 +1,38 @@
+{
+  "colors": {
+    "rating.prime": "rating/prime",
+    "rating.good": "rating/good",
+    "rating.fair": "rating/fair",
+    "rating.slow": "rating/slow",
+    "rating.unrated": "rating/unrated",
+    "overlay.density": "overlay/density",
+    "chrome.riversOn": "chrome/rivers-on",
+    "chrome.heatOn": "chrome/heat-on",
+    "ink.fineprint": "ink/secondary",
+    "surface.advisory": "fill/secondary",
+    "surface.speciesRow": "fill/quaternary"
+  },
+  "radii": {
+    "surface.chromeRadius": "radius/chrome",
+    "surface.advisoryRadius": "radius/advisory",
+    "surface.speciesRowRadius": "radius/row"
+  },
+  "type": {
+    "sectionTitle": "Section title",
+    "itemTitle": "Item title",
+    "supporting": "Supporting",
+    "meta": "Meta",
+    "badge": "Badge",
+    "control": "Control",
+    "legend": "Legend",
+    "clusterCount": "Cluster count",
+    "fineprint": "Fineprint",
+    "mapLabel": "Map label",
+    "tideValue": "Tide value"
+  },
+  "modes": {
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "ignoreVariables": []
+}

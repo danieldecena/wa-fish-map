@@ -205,8 +205,15 @@ Figma component library for the app (Infareds team, built 2026-10-27):
 and components (Rating Badge, Closed Badge, Site Marker, Site Cluster, Layer
 Toggle, Rating Legend, Glass Card, Guidance Footer), each description naming
 its Swift view and file. Values come from `DesignSystem.swift`, not the
-published design system page. Inter stands in for SF Pro and circles for SF
-Symbols. Code Connect is unavailable on the student plans.
+published design system page. Inter stands in for SF Pro, and vector icon
+components (`Icon/<symbol name>`) stand in for SF Symbols; Site Marker's pin
+icon is a `Glyph` swap. Code Connect is unavailable on the student plans (the
+add-mapping call is refused: it needs a Dev or Full seat on an Organization plan),
+so the link from design to code is each variable's iOS code syntax
+(`DS.Rating.prime`) and each description's Swift file and line. Drift is checked
+with `scripts/figma_ds_diff.py` against `docs/design/ds-manifest.json` (refresh it
+with `DesignTokenManifestTests`) and a fresh `docs/design/figma-inventory.json`;
+`docs/research/2026-10-27-figma-library-drift.md` records the 2026-10-29 run.
 
 Rules that cross from the app into the pages:
 

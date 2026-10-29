@@ -3,12 +3,15 @@
 
 #### Design critique 2026-10-26
 
-- [ ] [you] Unlock the iPhone and run the pin device script
-- [ ] [you] Observe pin VoiceOver labels on device (needs unlocked phone)
-- [ ] Retake the App Store screenshots in daylight
+- [x] Retake the App Store screenshots in daylight
+- [ ] [you] Upload docs/app-store/screenshots/asc-6.5 to the ASC 6.5" slot
 - [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
 
 ## Completed
+- [x] [you] Run the pin device script on the iPhone
+- [x] [you] Observe pin VoiceOver labels on device
+- [x] Settle whether PinVoiceOverProbe still fails -- ab1aea4
+- [x] Replace placeholder circles with real icons in the Figma library -- ab1aea4
 - [x] Web map: rating colors moved to the iOS 26 values — v38
 - [x] Sync the design system page's rating colors with the code — v13
 

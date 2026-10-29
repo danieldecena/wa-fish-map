@@ -204,6 +204,7 @@ a { color: var(--on-text); }
 .stag { pointer-events: auto; cursor: pointer; outline: none; }
 .stag rect { fill: var(--sheet); stroke: var(--ink); stroke-width: 1.2; stroke-dasharray: 3 2; }
 .stag text { font: 600 11px/13px var(--sans); fill: var(--ink); }
+.stag.plain rect { stroke-dasharray: none; stroke-opacity: .6; }
 .stag:focus-visible rect { stroke: var(--on); stroke-width: 2; stroke-dasharray: none; }
 .months { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 2px; }
 .months .msp { display: none; }
@@ -227,6 +228,7 @@ a { color: var(--on-text); }
 .months button { min-width: 0; min-height: 44px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--ink2); cursor: pointer; font: 600 12px/16px var(--sans); }
 .months button[aria-checked="true"] { background: var(--fill-toggle); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--on); }
 .months button.now:not([aria-checked="true"]) { color: var(--ink); }
+.months .m1 { display: none; }
 #layl { margin: 6px 0 0; padding: 6px 0 0; list-style: none; border-top: 1px solid var(--glass-line); font-size: 13px; line-height: 18px; color: var(--ink2); }
 #layl li + li { margin-top: 2px; }
 .cluster { pointer-events: auto; cursor: pointer; outline: none; }
@@ -564,6 +566,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   /* Phones: the summary scrolls sideways in one row, so the card stays short. */
   .dsum { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .dsum button { flex: none; }
+  /* More chips past the right edge: fade it, so the row reads as scrollable. */
+  .dsum.fadeend { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
   .smonth.dash .months, .heat { grid-template-columns: 46px repeat(12, minmax(0, 1fr)); }
 }
 /* Under 390 px a month cell is 21-22 px and "May" ran into "Jun". Text stays 12 px (the fine-print floor); a 40 px label column ("Spawn" is 38),
@@ -572,6 +576,12 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   .smonth.dash .months, .heat { grid-template-columns: 40px repeat(12, minmax(0, 1fr)); }
   .smonth.dash .months button { letter-spacing: -0.03em; }
   .smonth.spawn { padding-inline: 8px; }
+}
+/* Under 380 px a month cell is about 22px, too narrow for three letters in any font wider than SF Pro (Android, Windows): one letter each.
+   The button keeps its full aria-label, and the spelled-out name shows again from 380 px. */
+@media (max-width: 379px) {
+  .months .mf { display: none; }
+  .months .m1 { display: inline; }
 }
 .spawn[hidden] { display: none; }
 .laypop { left: auto; right: 0; width: min(300px, 100%); padding: 8px; }
@@ -1114,18 +1124,27 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   }
   function limits() {
     // Reports mode may zoom out to the unpadded state; Typical mode opens on the whole state, so its floor fits the state inside the chrome.
+    // On wide windows, never above the opening view: at 1280x800 the Reports home fit is smaller than the unpadded state fit, and a floor
+    // above it pushed the Columbia rivers off the bottom edge. Phones keep the state floor, which frames the reported rivers as designed.
     var f = fitFor(D.bounds.state, { t: 0, b: 0, l: 0, r: 0 });
-    var home = homeFit().s;
+    var home = view !== 'reports' ? homeFit().s : window.innerWidth >= 760 ? Math.min(f.s, homeFit().s) : f.s;
     minS = home * 0.9; maxS = f.s * 90;
   }
+  // Clamp the scale about the view's centre, so a clamped view stays where it was aimed instead of growing from its corner.
+  function clampScale(t) {
+    var s = Math.min(Math.max(t.s, minS), maxS);
+    if (s === t.s) return;
+    var cx = (W / 2 - t.tx) / t.s, cy = (H / 2 - t.ty) / t.s;
+    t.s = s; t.tx = W / 2 - cx * s; t.ty = H / 2 - cy * s;
+  }
   function setView(t) {
-    t.s = Math.min(Math.max(t.s, minS), maxS);
+    clampScale(t);
     clampView(t);
     v.s = t.s; v.tx = t.tx; v.ty = t.ty;
     render();
   }
   function animateTo(t, ms) {
-    t.s = Math.min(Math.max(t.s, minS), maxS);
+    clampScale(t);
     clampView(t);
     if (reduce) { setView(t); return; }
     var a = { s: v.s, tx: v.tx, ty: v.ty }, t0 = performance.now();
@@ -1327,6 +1346,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     stagPool.forEach(function (t) { t.g.style.display = 'none'; });
     SPLACES.forEach(function (o) {
       var on = seasOn && Layers.openIn(o.s, sy, sm);
+      o.tagged = false;
       if (o.halo) o.halo.style.display = on ? '' : 'none';
       var x = o.xy[0] * v.s + v.tx, y = o.xy[1] * v.s + v.ty, inView = x > -30 && x < W + 30 && y > -30 && y < H + 30;
       if (o.ring) {
@@ -1338,12 +1358,13 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       if (!tg) return;
       var t = getSTag(ti), txt = o.s.name + ' · ' + tg.text;
       t.t.textContent = txt; t.g.setAttribute('data-season', o.s.id); t.g.setAttribute('aria-label', txt + ', ' + o.label);
+      t.g.classList.remove('plain'); t.g.setAttribute('tabindex', '0'); t.g.removeAttribute('aria-hidden');
       t.g.style.display = '';
       var tw = textW(txt) + 16; t.r.setAttribute('width', tw.toFixed(1));
       var left = x + 16 + tw > W - 8, bx = [left ? x - 16 - tw : x + 16, y + 6, tw, 20];
       if (boxes.some(function (q) { return overlap(bx, q); })) { t.g.style.display = 'none'; return; }
       t.g.setAttribute('transform', 'translate(' + bx[0].toFixed(1) + ' ' + (y + 16).toFixed(1) + ')');
-      boxes.push(bx); tagged[o.s.id] = true; ti++;
+      boxes.push(bx); tagged[o.s.id] = true; o.tagged = true; ti++;
     });
     // Piers and shore: a marker that would sit on a pin, label or another marker is left out, so dense shores thin out until you zoom in.
     // Typical season and Spawning layers: each steps aside in its own mode. In-season sites claim their place first; a marker that
@@ -1404,9 +1425,9 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       if (spotsOn && x > -40 && x < W + 40 && y > -40 && y < H + 40) spts.push({ o: o, id: o.s.id, x: x, y: y });
     });
     spotGroupPool.forEach(function (c) { c.g.style.display = 'none'; c.lab.style.display = 'none'; });
-    var sgi = 0;
+    var sgi = 0, spotLabs = [];
     Cluster.group(spts, 30, spotSel).forEach(function (g) {
-      var x, y, node, lab, w, sel = false;
+      var x, y, node, lab, w, sel = false, grp = g.length > 1, sc = 0.8;
       if (g.length === 1) {
         var o = g[0].o;
         x = g[0].x; y = g[0].y; node = o.g; lab = o.lab; sel = spotSel === o.s.id;
@@ -1422,14 +1443,46 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
         node.setAttribute('data-spotgroup', g.map(function (m) { return m.id; }).join(','));
         node.setAttribute('aria-label', g.length + ' spot guides close together: ' + g.map(function (m) { return m.o.s.name; }).join(', '));
       }
+      if (sel) sc = 0.98;
       node.style.display = '';
-      node.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + (sel ? 0.98 : 0.8) + ')');
+      node.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + sc + ')');
       boxes.push([x - 15, y - 36, 30, 38]);
-      var left = x + 15 + w + 4 > W - 8, bx = [left ? x - 15 - (w + 4) : x + 15, y - 30, w + 4, 14];
-      if (!sel && boxes.some(function (b) { return overlap(bx, b); })) return;
-      lab.style.display = '';
-      lab.setAttribute('text-anchor', left ? 'end' : 'start');
-      lab.setAttribute('x', (left ? x - 15 : x + 15).toFixed(1)); lab.setAttribute('y', (y - 19).toFixed(1));
+      // A group's count badge sits right of the pin (centre 11, radius 8, drawn at the pin's scale): a label on that side starts 4px past it.
+      spotLabs.push({ x: x, y: y, w: w, lab: lab, sel: sel, gap: grp ? (11 + 8) * sc + 4 : 15 });
+    });
+    // Labels after every guide pin has claimed its box, so a label never lands on a pin placed after it (the 2-group beside the 3-group near Olympia).
+    spotLabs.forEach(function (q) {
+      var left = q.x + q.gap + q.w + 4 > W - 8, bx = [left ? q.x - 15 - (q.w + 4) : q.x + q.gap, q.y - 30, q.w + 4, 14];
+      // Blocked on the right: try the left of the pin before dropping the label.
+      if (!left && !q.sel && boxes.some(function (b) { return overlap(bx, b); })) {
+        var lx = [q.x - 15 - (q.w + 4), q.y - 30, q.w + 4, 14];
+        if (lx[0] >= 4 && !boxes.some(function (b) { return overlap(lx, b); })) { left = true; bx = lx; }
+      }
+      if (!q.sel && boxes.some(function (b) { return overlap(bx, b); })) return;
+      q.lab.style.display = '';
+      q.lab.setAttribute('text-anchor', left ? 'end' : 'start');
+      q.lab.setAttribute('x', (left ? q.x - 15 : q.x + q.gap).toFixed(1)); q.lab.setAttribute('y', (q.y - 19).toFixed(1));
+      boxes.push(bx);
+    });
+    // Every dashed ring that shows without a tag is named by its season, so no place mark is anonymous (Hood Canal drew a bare ring beside
+    // "Skagit coho · ends Oct 31"). These go last among the labels, after the tags and the guide pins have claimed their room, so a name never
+    // takes a tag's place or lands on a pin. It tries the right of the ring, then the left, and is left out when neither is clear.
+    // The ring already speaks for screen readers, so the name is decoration there.
+    SPLACES.forEach(function (o) {
+      if (!o.ring || o.ring.style.display === 'none' || o.tagged) return;
+      var x = o.xy[0] * v.s + v.tx, y = o.xy[1] * v.s + v.ty;
+      var txt = o.s.name, tw = textW(txt) + 16;
+      var rx = x + 16 + tw > W - 8 ? x - 16 - tw : x + 16, bx = [rx, y + 6, tw, 20];
+      if (bx[0] < 4 || boxes.some(function (q) { return overlap(bx, q); })) {
+        bx = [rx === x + 16 ? x - 16 - tw : x + 16, y + 6, tw, 20];
+        if (bx[0] < 4 || bx[0] + tw > W - 4 || boxes.some(function (q) { return overlap(bx, q); })) return;
+      }
+      var t = getSTag(ti++);
+      t.t.textContent = txt; t.r.setAttribute('width', tw.toFixed(1));
+      t.g.setAttribute('data-season', o.s.id); t.g.removeAttribute('aria-label');
+      t.g.classList.add('plain'); t.g.setAttribute('tabindex', '-1'); t.g.setAttribute('aria-hidden', 'true');
+      t.g.style.display = '';
+      t.g.setAttribute('transform', 'translate(' + bx[0].toFixed(1) + ' ' + (y + 16).toFixed(1) + ')');
       boxes.push(bx);
     });
     // Count badges belong to the report rivers, so only Recent reports draws them. A badge that would cover a pin or label is left out.
@@ -2922,6 +2975,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       '<button type="button" data-dash="seasons" aria-pressed="' + (layers.indexOf('seasons') >= 0) + '"><b>' + nSeasons + '</b> ' + (nSeasons === 1 ? 'season' : 'seasons') + ' open</button>' +
       (HAS_SPAWN ? '<button type="button" data-dash="spawn"><b>' + spN + '</b> spawning</button>' : '') +
       (HAS_TYPICAL ? '<button type="button" data-dash="typical"><b>' + tN + '</b> prime-season sites</button>' : '') + '</div>';
+    dsumEdge();
     $('#heat').innerHTML = rows.map(function (row) {
       var max = Math.max.apply(null, row.v.concat([1]));
       return '<span class="hk">' + row.k + '</span>' + row.v.map(function (n, i) {
@@ -2930,6 +2984,13 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     }).join('');
     monthBtns.forEach(function (b, i) { b.setAttribute('aria-label', MONTH_NAMES[i] + ': ' + rows.map(function (row) { return row.v[i] + ' ' + row.what; }).join(', ')); });
   }
+  function dsumEdge() {
+    var d = $('#sml .dsum');
+    if (d) d.classList.toggle('fadeend', d.scrollLeft + d.clientWidth < d.scrollWidth - 1);
+  }
+  $('#sml').addEventListener('scroll', dsumEdge, true);
+  // Also when the card is first shown or resized (it can be drawn while hidden, at zero width).
+  if (window.ResizeObserver) new ResizeObserver(dsumEdge).observe($('#sml')); else window.addEventListener('resize', dsumEdge);
   $('#sml').addEventListener('click', function (e) {
     var b = e.target.closest ? e.target.closest('[data-dash]') : null;
     if (!b) return;
@@ -2948,7 +3009,11 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   MONTH_NAMES.forEach(function (name, i) {
     var b = document.createElement('button');
     b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-label', name);
-    b.textContent = name.slice(0, 3);
+    // Two spellings: the three-letter name, and a one-letter one the narrow-phone CSS swaps in (a wider fallback font cannot fit "May" in a 22px cell).
+    var full = document.createElement('span'), one = document.createElement('span');
+    full.className = 'mf'; full.textContent = name.slice(0, 3);
+    one.className = 'm1'; one.textContent = name.charAt(0); one.setAttribute('aria-hidden', 'true');
+    b.appendChild(full); b.appendChild(one);
     if (i + 1 === MONTH) b.classList.add('now');
     b.addEventListener('click', function () { setLMonth(i + 1); });
     b.addEventListener('keydown', function (e) {
@@ -3261,7 +3326,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var rep = view === 'reports';
     Links.write({
       mode: view,
-      month: view === 'spawning' ? SMONTH : layers.indexOf('seasons') >= 0 ? LMONTH : null,
+      month: view === 'spawning' ? SMONTH : layers.indexOf('seasons') >= 0 && LMONTH !== MONTH ? LMONTH : null,
       species: species,
       site: !rep && mode === 'detail' ? selected : null,
       river: rep ? (mode === 'detail' ? selected : riverSel) : null,
