@@ -304,6 +304,26 @@ for (const [w, h, lo, hi] of [[1024, 768, 380, 380], [1440, 900, 480, 500], [192
   check(sw.w >= lo && sw.w <= hi && sw.pinX !== null && sw.pinX < sw.left, `sheet ${w}px: the side sheet is ${sw.w}px wide (expected ${lo} to ${hi}) and the tapped river's pin (x ${sw.pinX}) sits left of it (x ${sw.left})`);
   await wctx.close();
 }
+// The opening view fits where the fishing is. On a portrait phone Washington's wide box used to take a third of the screen; the view now opens on the west
+// side (Puget Sound, the coast, the Columbia), at least 1.5 times tighter than the whole-state fit, and zooming out still reaches the whole state.
+{
+  const fctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  const fp = await fctx.newPage();
+  await fp.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+  await fp.waitForTimeout(800);
+  const read = () => fp.evaluate(() => {
+    const m = /scale\(([\d.]+)\)/.exec(document.getElementById('vp').getAttribute('transform') || ''), sb = window.GEO.bounds.state, W = innerWidth, H = innerHeight;
+    const whole = Math.min(W / (sb[1][0] - sb[0][0]), H / (sb[1][1] - sb[0][1]));
+    return { s: m ? +m[1] : null, whole };
+  });
+  const open = await fp.evaluate(() => 0).then(read);
+  for (let i = 0; i < 6; i++) { await fp.click('#zout'); await fp.waitForTimeout(350); }
+  await fp.waitForTimeout(500);
+  const out = await read();
+  check(open.s !== null && open.s >= open.whole * 1.5, `phone opening view: ${open.s} is ${(open.s / open.whole).toFixed(2)} times the whole-state fit (at least 1.5 times; the old whole-state opening was about 1.0)`);
+  check(out.s !== null && out.s <= out.whole * 1.0 + 0.02, `phone zoom out: six zoom-outs reach the whole state (scale ${out.s} against the whole-state fit ${out.whole.toFixed(2)})`);
+  await fctx.close();
+}
 // Panning stays inside Washington: zoomed in and dragged hard in every direction, the screen's edges end within a small margin of the state's border.
 {
   const pctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
