@@ -503,6 +503,158 @@ for (const [w, h] of [[390, 844], [1280, 800]]) {
   check(gerr.length === 0, `guides ${w}px: no page errors (${gerr.join(' | ').slice(0, 160)})`);
   await gctx.close();
 }
+// Water focus: tapping a river fits it on screen, blurs and dims the rest, keeps the river and its access sites sharp, and Done, Escape or a tap on empty map
+// brings the camera back. Run at laptop and phone size; then the deep links, a touch phone, reduced motion and reduced transparency.
+{
+  const scaleOf = p => p.evaluate(() => +/scale\(([\d.]+)\)/.exec(document.getElementById('vp').getAttribute('transform'))[1]);
+  const tapRiver = async (p, id) => {
+    const pt = await p.evaluate(id => {
+      const path = document.querySelector('#rtap path[data-river="' + id + '"]'), m = path.getScreenCTM(), L = path.getTotalLength();
+      const bar = Math.max(document.getElementById('bar').getBoundingClientRect().bottom, document.getElementById('smonth').getBoundingClientRect().bottom);
+      for (let f = 0.5; f < 0.97; f += 0.03) { const q = path.getPointAtLength(L * f), x = m.a * q.x + m.e, y = m.d * q.y + m.f; if (x > 20 && x < innerWidth * 0.6 && y > bar + 20 && y < innerHeight - 220) return [x, y]; }
+      return null;
+    }, id);
+    await p.mouse.click(pt[0], pt[1]);
+    await p.waitForTimeout(1300);
+  };
+  // Where the river is and where the free map is, in client pixels: free = below the bar and month card, left of the sheet (wide) or above it (phone).
+  const geom = p => p.evaluate(() => {
+    const r = document.querySelector('#rsel .casing').getBoundingClientRect(), s = document.getElementById('sheet').getBoundingClientRect();
+    const top = Math.max(document.getElementById('bar').getBoundingClientRect().bottom, document.getElementById('smonth').getBoundingClientRect().bottom);
+    const wide = innerWidth >= 760, free = { l: 0, t: top, r: wide ? s.left : innerWidth, b: wide ? innerHeight : s.top };
+    return { river: { l: r.left, t: r.top, r: r.right, b: r.bottom }, free };
+  });
+  const inside = g => g.river.l >= g.free.l - 4 && g.river.r <= g.free.r + 4 && g.river.t >= g.free.t - 4 && g.river.b <= g.free.b + 4;
+  const fills = g => (g.river.r - g.river.l) >= 0.5 * (g.free.r - g.free.l) || (g.river.b - g.river.t) >= 0.5 * (g.free.b - g.free.t);
+  const state = p => p.evaluate(() => {
+    const vis = e => e.style.display !== 'none' && e.getClientRects().length, op = e => +getComputedStyle(e).opacity;
+    const dim = [...document.querySelectorAll('#over > :not(.infocus)')].filter(vis), sharp = [...document.querySelectorAll('#over > .infocus')].filter(vis);
+    return {
+      cls: document.getElementById('app').classList.contains('focus-water'),
+      dimN: dim.length, dimMax: Math.max(0, ...dim.map(op)), sharpN: sharp.length, sharpMin: Math.min(1, ...sharp.map(op)),
+      launches: [...document.querySelectorAll('#over .omark.infocus')].filter(vis).length,
+      baseFilter: getComputedStyle(document.getElementById('base')).filter, dimFilter: dim[0] ? getComputedStyle(dim[0]).filter : null, sharpFilter: sharp[0] ? getComputedStyle(sharp[0]).filter : null,
+      rselInBase: !!document.getElementById('rsel').closest('#base'), say: (document.getElementById('wfsay') || {}).textContent, title: document.getElementById('stitle').textContent,
+      scrim: getComputedStyle(document.getElementById('wfscrim') || document.body).opacity, marked: document.querySelectorAll('.infocus').length
+    };
+  });
+  for (const [w, h] of [[1280, 800], [390, 844]]) {
+    const fctx = await browser.newContext({ viewport: { width: w, height: h }, colorScheme: 'light' });
+    const fp = await fctx.newPage(); const ferr = [];
+    fp.on('pageerror', e => ferr.push(String(e)));
+    fp.on('console', m => { if (m.type() === 'error') ferr.push(m.text()); });
+    await fp.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+    const s0 = await scaleOf(fp);
+    const rc0 = await fp.evaluate(() => document.querySelector('#over .pin[data-id="cowlitz"]').style.getPropertyValue('--rc'));
+    const N = await fp.evaluate(() => Object.values(RIVERTAP.siteRiver).filter(r => r === 'cowlitz-river').length);
+    const idle = await state(fp);
+    check(!idle.cls && idle.marked === 0 && idle.baseFilter === 'none' && idle.scrim === '0', `focus ${w}px: before a tap nothing is focused, marked, blurred or dimmed (${idle.baseFilter}, scrim ${idle.scrim})`);
+    await tapRiver(fp, 'cowlitz-river');
+    const a = await state(fp), g = await geom(fp);
+    check(a.cls && a.title === 'Cowlitz River', `focus ${w}px: tapping the Cowlitz puts the app in water focus (${a.cls}, ${a.title})`);
+    check(inside(g) && fills(g), `focus ${w}px: the whole river fits in the free map area and fills it (river ${JSON.stringify(g.river)}, free ${JSON.stringify(g.free)})`);
+    if (w < 760) { const sh = await fp.evaluate(() => document.getElementById('sheet').getBoundingClientRect().height / innerHeight); check(sh <= 0.44, `focus ${w}px: on a phone the card takes at most 44 percent of the screen while a river is in focus (${(sh * 100).toFixed(0)} percent), so the whole river has room above it`); }
+    check(a.dimN > 0 && a.dimMax <= 0.35, `focus ${w}px: ${a.dimN} other markers and labels compute opacity at most .35 (${a.dimMax})`);
+    check(a.sharpN > N && a.sharpMin === 1 && a.launches === N, `focus ${w}px: the river's pin, its ${a.launches} of ${N} launches and their labels compute opacity 1 (${a.sharpN} sharp, min ${a.sharpMin})`);
+    check(/blur\(3\.5px\)/.test(a.baseFilter) && /blur\(2px\)/.test(a.dimFilter) && a.sharpFilter === 'none' && !a.rselInBase, `focus ${w}px: the base and the other markers are blurred, the river and its sites are not (${a.baseFilter}, ${a.dimFilter}, ${a.sharpFilter}, river in base ${a.rselInBase})`);
+    check(a.scrim === '1' && /^Focused on Cowlitz River, 5 access sites\. Press Escape to leave\.$/.test(a.say), `focus ${w}px: the wash is up and the live region says what happened (${a.scrim}; ${a.say})`);
+    check(await fp.evaluate(() => document.querySelector('#over .pin[data-id="cowlitz"]').style.getPropertyValue('--rc')) === rc0, `focus ${w}px: the rating colour is unchanged (${rc0})`);
+    const card = await fp.evaluate(() => ({ h3: (document.querySelector('#sbody .wfacc h3') || {}).textContent, n: document.querySelectorAll('#sbody [data-wfsite]').length, kinds: [...document.querySelectorAll('#sbody [data-wfsite] .dt')].map(e => e.textContent), head: (document.querySelector('#sbody .head') || {}).textContent, links: document.querySelectorAll('#sbody .wfacc a').length }));
+    check(card.n === N && card.h3 === `Access on this river (${N})` && card.kinds.every(k => /^(Boat launch|Shore access)$/.test(k)) && /Length 203 km \(126 mi\)/.test(card.head) && card.links === 0, `focus ${w}px: the card lists ${card.n} of ${N} access sites with their kind, no links, and the river's length (${card.h3}; ${card.kinds.join(', ')})`);
+    if (card.n === 0) { await fctx.close(); continue; }   // nothing to click: the rest of this size would only repeat the failure
+    // Moving to a launch keeps the focus and the camera, and the launch sheet offers the way back.
+    const sBefore = await scaleOf(fp), tBefore = await fp.evaluate(() => document.getElementById('vp').getAttribute('transform'));
+    const first = await fp.evaluate(() => document.querySelector('#sbody [data-wfsite] .nm').textContent);
+    await fp.click('#sbody [data-wfsite]');
+    await fp.waitForTimeout(700);
+    const b = await state(fp), back = await fp.evaluate(() => (document.querySelector('#sbody [data-wfback]') || {}).textContent);
+    check(b.cls && b.title === first && back === 'Back to Cowlitz River', `focus ${w}px: a launch opened from the card keeps the focus and shows "Back to Cowlitz River" (${b.title}; ${back})`);
+    check(await fp.evaluate(() => document.getElementById('vp').getAttribute('transform')) === tBefore, `focus ${w}px: moving to a launch does not move the camera`);
+    await fp.click('#sbody [data-wfback]');
+    await fp.waitForTimeout(1000);
+    const c = await state(fp), g2 = await geom(fp);
+    check(c.cls && c.title === 'Cowlitz River' && inside(g2), `focus ${w}px: Back returns to the river's card with the river still in view (${c.title})`);
+    // Escape: the camera returns to where it was before the first focus (not to where the launch step left it).
+    await fp.keyboard.press('Escape');
+    await fp.waitForTimeout(1000);
+    const d = await state(fp), s1 = await scaleOf(fp);
+    check(!d.cls && d.marked === 0 && d.scrim === '0' && d.baseFilter === 'none' && Math.abs(s1 / s0 - 1) <= 0.02, `focus ${w}px: Escape ends the focus, clears the marks and the dim, and restores the scale within 2% (${s0.toFixed(3)} -> ${s1.toFixed(3)})`);
+    check(/^Left focus on Cowlitz River\.$/.test(d.say) && !(await fp.evaluate(() => document.getElementById('sheet').classList.contains('open'))), `focus ${w}px: leaving is announced (${d.say})`);
+    // Done and a tap on empty map end it the same way.
+    await tapRiver(fp, 'cowlitz-river');
+    await fp.click('#sdone');
+    await fp.waitForTimeout(1000);
+    const e1 = await state(fp), s2 = await scaleOf(fp);
+    check(!e1.cls && e1.marked === 0 && Math.abs(s2 / s0 - 1) <= 0.02, `focus ${w}px: Done ends the focus and restores the scale (${s2.toFixed(3)})`);
+    await tapRiver(fp, 'cowlitz-river');
+    const empty = await fp.evaluate(() => {
+      const g = document.getElementById('sheet').getBoundingClientRect(), wide = innerWidth >= 760;
+      for (let y = innerHeight - 40; y > 160; y -= 17) for (let x = 20; x < (wide ? g.left : innerWidth) - 20; x += 23) {
+        if (!wide && y > g.top - 10) continue;
+        const el = document.elementFromPoint(x, y);
+        if (el && !el.closest('#chrome,#sheet,.zoom,#bottom,.hints,.depthchip,[data-river],[data-id],[data-cluster],[data-tsite],[data-ssite],[data-access],[data-season],[data-spot],[data-spotgroup],[data-count]') && el.closest('#map')) return [x, y];
+      }
+      return null;
+    });
+    await fp.mouse.click(empty[0], empty[1]);
+    await fp.waitForTimeout(1000);
+    const e2 = await state(fp), s3 = await scaleOf(fp);
+    check(empty && !e2.cls && e2.marked === 0 && Math.abs(s3 / s0 - 1) <= 0.02, `focus ${w}px: a tap on empty map ends the focus and restores the scale (${s3.toFixed(3)})`);
+    // Another river, with launches of its own, and one with none: the card says how many.
+    const bare = await fp.evaluate(() => { const used = new Set(Object.values(RIVERTAP.siteRiver)), r = RIVERTAP.rivers.find(r => !used.has(r.id) && !['cowlitz', 'columbia', 'lewis', 'wind', 'klickitat', 'kalama', 'skagit', 'washougal'].some(n => r.name.toLowerCase().startsWith(n))); return [r.id, r.name]; });
+    for (const [rid, nm] of [['skykomish-river', 'Skykomish River'], bare]) {
+      const n2 = await fp.evaluate(r => Object.values(RIVERTAP.siteRiver).filter(x => x === r).length, rid);
+      await fp.goto(base + '/index.html?river=' + rid + '&today=' + today, { waitUntil: 'networkidle' });
+      await fp.waitForTimeout(1200);
+      const o = await state(fp), og = await geom(fp), oc = await fp.evaluate(() => ({ n: document.querySelectorAll('#sbody [data-wfsite]').length, sec: !!document.querySelector('#sbody .wfacc'), h3: (document.querySelector('#sbody .wfacc h3') || {}).textContent }));
+      check(o.cls && o.title === nm && oc.n === n2 && (n2 === 0 ? !oc.sec : oc.h3 === `Access on this river (${n2})`) && inside(og), `focus ${w}px: ?river=${rid} opens in focus with ${n2} access sites listed and the river in view (${o.title}; ${oc.n})`);
+    }
+    // Deep link to a report river: in focus once the page has loaded, the river clear of the bar and the month card, the address bar still says river=cowlitz.
+    await fp.goto(base + '/index.html?river=cowlitz&today=' + today, { waitUntil: 'networkidle' });
+    await fp.waitForTimeout(1300);
+    const l = await state(fp), lg = await geom(fp);
+    check(l.cls && /^Focused on Cowlitz River, 5 access sites/.test(l.say) && inside(lg) && /[?&]river=cowlitz(&|$)/.test(await fp.evaluate(() => location.search)), `focus ${w}px: ?river=cowlitz enters focus, fits the river and keeps the link (${l.say})`);
+    // Typical season: a tap on a launch of the river focuses the river; the card there words each site's rating.
+    const lid = await fp.evaluate(() => Object.keys(RIVERTAP.siteRiver).find(k => RIVERTAP.siteRiver[k] === 'cowlitz-river'));
+    await fp.goto(base + '/index.html?mode=typical&site=' + lid + '&today=' + today, { waitUntil: 'networkidle' });
+    await fp.waitForTimeout(1300);
+    const t = await state(fp), tb = await fp.evaluate(() => (document.querySelector('#sbody [data-wfback]') || {}).textContent), tg = await geom(fp);
+    check(t.cls && tb === 'Back to Cowlitz River' && inside(tg), `focus ${w}px: a Typical season launch on the Cowlitz opens in focus with "Back to Cowlitz River" (${t.title}; ${tb})`);
+    await fp.click('#sbody [data-wfback]');
+    await fp.waitForTimeout(900);
+    const tr = await fp.evaluate(() => ({ title: document.getElementById('stitle').textContent, n: document.querySelectorAll('#sbody [data-wfsite]').length, dts: [...document.querySelectorAll('#sbody [data-wfsite] .dt')].map(e => e.textContent), cls: document.getElementById('app').classList.contains('focus-water'), rsel: getComputedStyle(document.getElementById('rsel')).display }));
+    check(tr.cls && tr.title === 'Cowlitz River' && tr.n === 5 && tr.dts.every(x => / · (Prime|Good|Fair|Slow|No guidance)$/.test(x)) && tr.rsel !== 'none', `focus ${w}px: in Typical season the river card words each site's rating and the river line shows (${tr.dts.join(' | ')})`);
+    check(ferr.length === 0, `focus ${w}px: no page errors (${ferr.join(' | ').slice(0, 160)})`);
+    await fctx.close();
+  }
+  // Dark: a darkening wash. Touch phone: two blurred layers and the markers only dimmed. Reduced motion: no blur, dim at once. Reduced transparency: dim only.
+  const dctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, colorScheme: 'dark' });
+  const dp = await dctx.newPage();
+  await dp.goto(base + '/index.html?river=cowlitz&today=' + today, { waitUntil: 'networkidle' });
+  await dp.waitForTimeout(900);
+  const dk = await dp.evaluate(() => getComputedStyle(document.getElementById('wfscrim') || document.body).backgroundColor);
+  check(/^rgba\(0, 0, 0, 0\.4\d*\)$/.test(dk), `focus dark: the wash is a darkening black (${dk})`);
+  await dctx.close();
+  const tctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  const tp = await tctx.newPage();
+  await tp.goto(base + '/index.html?river=cowlitz&today=' + today, { waitUntil: 'networkidle' });
+  await tp.waitForTimeout(1100);
+  const ts = await state(tp);
+  check(ts.cls && /blur\(3\.5px\)/.test(ts.baseFilter) && ts.dimFilter === 'none' && ts.dimMax <= 0.35 && ts.sharpMin === 1, `focus touch phone: the base is blurred and the markers are only dimmed (${ts.baseFilter}, ${ts.dimFilter}, ${ts.dimMax})`);
+  await tctx.close();
+  for (const mode of ['no-preference', 'reduce', 'transparency']) {
+    const mctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: mode === 'reduce' ? 'reduce' : 'no-preference' });
+    const mp = await mctx.newPage();
+    if (mode === 'transparency') await (await mctx.newCDPSession(mp)).send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-transparency', value: 'reduce' }] });
+    await mp.goto(base + '/index.html?river=cowlitz&today=' + today, { waitUntil: 'networkidle' });
+    await mp.waitForTimeout(900);
+    const ms = await state(mp), tr = await mp.evaluate(() => ({ scrim: getComputedStyle(document.getElementById('wfscrim') || document.body).transitionDuration, marker: getComputedStyle(document.querySelector('#over > :not(.infocus)')).transitionDuration, base: getComputedStyle(document.getElementById('base')).transitionDuration, heat: getComputedStyle(document.getElementById('heat')).filter }));
+    if (mode === 'no-preference') check(/blur\(3\.5px\)/.test(ms.baseFilter) && tr.scrim === '0.2s, 0.2s' && tr.base === '0.2s' && tr.marker === '0.2s, 0.2s', `focus no-preference: blur and dim ease in over 200 ms together (${ms.baseFilter}; scrim ${tr.scrim}, base ${tr.base}, marker ${tr.marker})`);
+    if (mode === 'reduce') check(ms.cls && ms.baseFilter === 'none' && ms.dimFilter === 'none' && tr.scrim === '0s' && tr.marker === '0s' && tr.base === '0s' && ms.dimMax <= 0.35 && ms.scrim === '1', `focus reduced motion: no blur, the dim changes at once (scrim ${tr.scrim}, marker ${tr.marker}, base ${tr.base}; dim ${ms.dimMax}; ${ms.baseFilter})`);
+    if (mode === 'transparency') check(ms.cls && ms.baseFilter === 'none' && ms.dimFilter === 'none' && ms.dimMax <= 0.35 && /blur\(2\.5px\)/.test(tr.heat), `focus reduced transparency: dim only, no blur on the base or the markers (${ms.baseFilter}, ${ms.dimFilter}, dim ${ms.dimMax}, heat ${tr.heat})`);
+    await mctx.close();
+  }
+}
 // Motion (docs/design/motion-spec.md). With reduced motion emulated the sheet, the popovers and the disclosures change at once, and the computed styles say so;
 // with no preference the same elements move. Each number is read from a rule, then the popover is watched: after two frames it is part-way through its fade.
 for (const motion of ['reduce', 'no-preference']) {

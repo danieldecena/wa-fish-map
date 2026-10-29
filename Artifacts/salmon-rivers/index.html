@@ -676,12 +676,15 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   <div id="map" role="application" aria-label="Map of salmon rivers in southwest Washington. Drag to pan, pinch or use the buttons to zoom, select a river marker for details.">
     <svg id="base" aria-hidden="true"><g id="vp"></g></svg>
     <svg id="heat" aria-hidden="true"></svg>
+    <div id="wfscrim" aria-hidden="true"></div>
+    <svg id="focus" aria-hidden="true"><g id="fvp"></g></svg>
     <svg id="over"></svg>
     <svg id="guides"></svg>
     <button type="button" class="glass depthchip" id="depthchip" aria-live="polite" aria-expanded="false" hidden></button>
     <div class="xhair" id="xhair" aria-hidden="true" hidden><i></i></div>
   </div>
 
+  <div class="sr" id="wfsay" role="status" aria-live="polite"></div>
   <div id="chrome">
     <div class="barstack" id="barstack">
     <div class="glass bar" id="bar" role="group" aria-label="Map controls">
@@ -961,7 +964,9 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     el('path', { 'class': 'hit', d: d }, g);
     hlNodes[s.id] = g;
   });
-  var rsel = el('g', { id: 'rsel' }, vp);
+  // The selected river lives in the focus layer (#focus), above the blurred base, so water focus keeps it sharp.
+  var fvp = $('#fvp');
+  var rsel = el('g', { id: 'rsel' }, fvp);
   var rselCase = el('path', { 'class': 'casing' }, rsel), rselLine = el('path', { 'class': 'line' }, rsel);
   rsel.style.display = 'none';
 
@@ -1161,6 +1166,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   var v = { s: 1, tx: 0, ty: 0 };
   var minS = 1, maxS = 100, s0 = 1;
   var anim = null;
+  var wf = null;   // water focus (see "water focus" below): { id, rep, ids, list, prev }
 
   function size() { var r = map.getBoundingClientRect(); W = r.width; H = r.height; }
   // The sheet's width plus its 12px margin on wide screens (it is a CSS variable that grows with the window), 0 on phones.
@@ -1192,6 +1198,9 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var sb = D.bounds.state, m = Math.max(sb[1][0] - sb[0][0], sb[1][1] - sb[0][1]) * 0.025;
     var cx = (W / 2 - t.tx) / t.s, cy = (H / 2 - t.ty) / t.s, hw = W / 2 / t.s, hh = H / 2 / t.s;
     var x0 = sb[0][0] - m, x1 = sb[1][0] + m, y0 = sb[0][1] - m, y1 = sb[1][1] + m;
+    // Water focus puts a river in the part of the map the sheet leaves free; the ground under the sheet may pass the border, or a river on the
+    // south or east edge (the Cowlitz, the Columbia) could not be lifted above a phone's sheet.
+    if (wf) { if (window.innerWidth >= 760) x1 += sheetInset() / t.s; else y1 += Math.min($('#sheet').offsetHeight, H * 0.66) / t.s; }
     cx = x1 - x0 > 2 * hw ? Math.min(Math.max(cx, x0 + hw), x1 - hw) : Math.min(Math.max(cx, sb[0][0] - 40), sb[1][0] + 40);
     cy = y1 - y0 > 2 * hh ? Math.min(Math.max(cy, y0 + hh), y1 - hh) : Math.min(Math.max(cy, sb[0][1] - 40), sb[1][1] + 40);
     t.tx = W / 2 - cx * t.s; t.ty = H / 2 - cy * t.s;
@@ -1345,6 +1354,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var dk = view + '|' + species + '|' + LMONTH + '|' + layers.join();
     if (dk !== dashKey) { dashKey = dk; syncSeasonUi(); }
     vp.setAttribute('transform', 'translate(' + v.tx + ' ' + v.ty + ') scale(' + v.s + ')');
+    fvp.setAttribute('transform', vp.getAttribute('transform'));
     depthTick();
     heatTick();
     var typ = view === 'typical', spw = view === 'spawning';
@@ -1477,27 +1487,35 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     // would sit on a pin, label or another marker is left out, so dense shores thin out until you zoom in. Words appear when zoomed.
     var tOn = HAS_TYPICAL && layers.indexOf('typical') >= 0 && view !== 'typical', sOn = HAS_SPAWN && layers.indexOf('spawn') >= 0 && view !== 'spawning';
     Object.keys(OVL).forEach(function (k) { OVL[k].g.style.display = 'none'; OVL[k].lab.style.display = 'none'; });
-    if (tOn || sOn) {
+    // The focused river's launches always draw (whatever layers are on), first, so no other marker or label pushes them out.
+    var fOn = !!wf && view !== 'typical' && wf.list.length > 0;
+    if (tOn || sOn || fOn) {
       var om = seasonMonth(), os = overlayStates(om), olist = [];
       if (tOn) TS.forEach(function (t) { olist.push({ kind: 't', t: t, st: os.t[t.id] }); });
+      else if (fOn) wf.list.forEach(function (t) { olist.push({ kind: 't', t: t, st: os.t[t.id] }); });
       if (sOn) SP.forEach(function (t) { if (os.s[t.id].v !== -2) olist.push({ kind: 'spawn', t: t, st: os.s[t.id] }); });
-      olist.sort(function (a, b) { return b.st.on - a.st.on; });
+      var inFocus = function (o) { return !!wf && o.kind === 't' && !!wf.ids[o.t.id]; };
+      olist.sort(function (a, b) { return (inFocus(b) - inFocus(a)) || (b.st.on - a.st.on); });
       var olab = v.s >= s0 * 2.5;
       olist.forEach(function (o) {
-        var x = o.t.xy[0] * v.s + v.tx, y = o.t.xy[1] * v.s + v.ty;
+        var x = o.t.xy[0] * v.s + v.tx, y = o.t.xy[1] * v.s + v.ty, inF = inFocus(o);
         if (x < -10 || x > W + 10 || y < -10 || y > H + 10) return;
         var bx = [x - 7, y - 7, 14, 14];
-        if (boxes.some(function (q) { return overlap(bx, q); })) return;
+        if (!inF && boxes.some(function (q) { return overlap(bx, q); })) return;
         var n = ovlNode(o.kind, o.t), txt = o.t.name + ' \u00b7 ' + o.st.word;
         n.g.classList.toggle('on', o.st.on);
         n.g.setAttribute('aria-label', txt + (o.kind === 'spawn' ? ', salmon viewing site, typical spawning in ' : ', ' + Season.KIND_LABEL[o.t.kind].toLowerCase() + ', typical timing in ') + MONTH_NAMES[om - 1]);
         n.g.style.display = '';
         n.g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
         boxes.push(bx);
-        if (!olab) return;
+        if (!olab && !inF) return;
         // The map label is the name alone: the rating word stays in the accessible name and in the sheet, and the marker shows in season (solid) or not (hollow).
         var nm = o.t.name, lw = textW(nm), left = x + 10 + lw + 4 > W - 8, lb = [left ? x - 10 - (lw + 4) : x + 10, y - 7, lw + 4, 14];
-        if (boxes.some(function (q) { return overlap(lb, q); })) return;
+        // A focused launch's marker is never dropped for a neighbour; its name keeps clear of other labels: right of the marker, else left, else left out.
+        if (inF && boxes.some(function (q) { return overlap(lb, q); })) {
+          left = !left; lb = [left ? x - 10 - (lw + 4) : x + 10, y - 7, lw + 4, 14];
+          if (lb[0] < 4 || lb[0] + lb[2] > W - 4 || boxes.some(function (q) { return overlap(lb, q); })) return;
+        } else if (!inF && boxes.some(function (q) { return overlap(lb, q); })) return;
         n.lab.textContent = nm; n.lab.style.display = ''; n.lab.setAttribute('text-anchor', left ? 'end' : 'start');
         n.lab.setAttribute('x', (left ? x - 10 : x + 10).toFixed(1)); n.lab.setAttribute('y', (y + 4).toFixed(1));
         boxes.push(lb);
@@ -1508,18 +1526,18 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     ACCESS.forEach(function (o) {
       if (o.g) { o.g.style.display = 'none'; o.lab.style.display = 'none'; }
       if (!accessOn) return;
-      var x = o.xy[0] * v.s + v.tx, y = o.xy[1] * v.s + v.ty, sel = accessSel === o.t.id;
+      var x = o.xy[0] * v.s + v.tx, y = o.xy[1] * v.s + v.ty, sel = accessSel === o.t.id, keep = sel || (!!wf && !!wf.ids[o.t.id]);
       if (x < -10 || x > W + 10 || y < -10 || y > H + 10) return;
       var bx = [x - 7, y - 7, 14, 14];
-      if (!sel && boxes.some(function (q) { return overlap(bx, q); })) return;
+      if (!keep && boxes.some(function (q) { return overlap(bx, q); })) return;
       accessNode(o);
       o.g.style.display = '';
       o.g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + (sel ? 1.3 : 1) + ')');
       boxes.push(bx);
-      if (v.s < s0 * 2.5 && !sel) return;
+      if (v.s < s0 * 2.5 && !keep) return;
       if (!o.w) { o.lab.style.display = ''; o.w = o.lab.getBBox().width; o.lab.style.display = 'none'; }
       var left = x + 10 + o.w + 4 > W - 8, lb = [left ? x - 10 - (o.w + 4) : x + 10, y - 7, o.w + 4, 14];
-      if (!sel && boxes.some(function (q) { return overlap(lb, q); })) return;
+      if (!keep && boxes.some(function (q) { return overlap(lb, q); })) return;
       o.lab.style.display = ''; o.lab.setAttribute('text-anchor', left ? 'end' : 'start');
       o.lab.setAttribute('x', (left ? x - 10 : x + 10).toFixed(1)); o.lab.setAttribute('y', (y + 4).toFixed(1));
       boxes.push(lb);
@@ -1628,6 +1646,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
         else { l.t.setAttribute('x', 7); l.t.setAttribute('y', 3.5); }
       }
     });
+    focusPass();
   }
 
   /* ---- gestures ---- */
@@ -1727,7 +1746,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     if (n && n.getAttribute('data-cluster')) { zoomToCluster(n); return; }
     if (n) { openSheet(n.getAttribute('data-id')); return; }
     var rv = view === 'reports' && tgt && tgt.closest ? tgt.closest('[data-river]') : null;
-    if (rv) { var mr2 = map.getBoundingClientRect(); openRiver(rv.getAttribute('data-river'), cx - mr2.left, cy - mr2.top); return; }
+    if (rv) { openRiver(rv.getAttribute('data-river')); return; }
     if ($('#sheet').classList.contains('open')) closeSheet();
   }
   function zoomToCluster(node) {
@@ -2632,7 +2651,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     else if (species === null) miss = 'All species averages this site’s three best species for ' + month + ', as the app does.';
     var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
     var dir = 'https://maps.apple.com/?ll=' + t.ll[0] + ',' + t.ll[1] + '&q=' + encodeURIComponent(t.name);
-    $('#sbody').innerHTML = head +
+    $('#sbody').innerHTML = wfBackHtml(id) + head +
       actsHtml(dir) +
       '<section><h3>Typical timing, ' + month + '</h3><p class="miss">' + TYPICAL_LINE + '</p>' + (miss ? '<p class="miss">' + esc(miss) + '</p>' : '') +
       (body ? '<div class="rows">' + body + '</div>' : '') + '</section>' +
@@ -2658,7 +2677,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var s = siteOf(id);
     var vw = viewOf(s);
     $('#stitle').textContent = s.name;
-    var head = '<div class="head"><p>' + esc(s.sub) + '</p>' + distHtml(s.ll) +
+    var wid = waterOfSite(id), wlen = wid ? lengthText(TAPBY[wid]) : '';
+    var head = '<div class="head"><p>' + esc(s.sub) + (wlen ? ' · Length ' + esc(wlen) : '') + '</p>' + distHtml(s.ll) +
       (vw.k ? '<span class="badge' + (vw.release ? ' faded' : '') + '" style="--c:var(--' + vw.r + ')">' + LABEL[vw.r] + ' · ' + esc(vw.k) + (vw.release ? ' · release only' : '') + '</span>' : '') + '</div>';
     var rows = Reports.reportRows(s).map(function (r) {
       var k = r.name, sp = r.sp;
@@ -2672,6 +2692,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       head +
       actsHtml(dir) +
       '<section><h3>What’s biting</h3>' + (missing ? '<p class="miss">' + esc(missing) + '</p>' : '') + '<div class="rows">' + rows + '</div></section>' +
+      (wid ? accessHtml(wid) : '') +
       creelHtml(id) +
       riverRulesHtml(s) +
       (s.tap && TAPBY[s.tap] ? noticesHtml(TAPBY[s.tap].name) : '') +
@@ -2733,8 +2754,9 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     $('#stitle').textContent = r.name;
     // The Columbia's report covers one reach (Lower Columbia River): say so rather than claim the river has no report anywhere.
     var part = SITES.filter(function (s) { return s.name !== r.name && s.name.indexOf(r.name) >= 0; })[0];
-    var head = '<div class="head"><p>' + (part ? 'No recent catch report for this river outside the ' + esc(part.name) + ' reach.' : 'No recent catch report for this river.') +
-      ' Rivers are coloured only when a dated catch report exists.</p>' +
+    var wlen = lengthText(r);
+    var head = '<div class="head">' + (wlen ? '<p>Length ' + esc(wlen) + '</p>' : '') + (view !== 'reports' ? '' : '<p>' + (part ? 'No recent catch report for this river outside the ' + esc(part.name) + ' reach.' : 'No recent catch report for this river.') +
+      ' Rivers are coloured only when a dated catch report exists.</p>') +
       (me ? '<p class="dist">' + esc(miLong(riverMiles(id))) + ', to the nearest point on the river</p>' : '') +
       (part ? '<button type="button" class="listbtn" data-open="' + esc(part.id) + '">Open the ' + esc(part.name) + ' report</button>' : '') + '</div>';
     var notesHtml = noticesHtml(r.name);
@@ -2743,7 +2765,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       ? flowSection(f, 'Typical flow in ' + mo, '')
       : '<section><h3>Typical flow</h3><p class="miss">No USGS gauge in WA Fish Map’s river data for this river.</p></section>';
     var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
-    $('#sbody').innerHTML = head + notesHtml + flowHtml +
+    $('#sbody').innerHTML = head + accessHtml(id) + notesHtml + flowHtml +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Rules change in season and differ by river and species. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
       footHtml();
     $('#sbody').scrollTop = 0;
@@ -2926,29 +2948,175 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   }
 
   function clearRiver() { riverSel = null; rsel.style.display = 'none'; }
-  function openRiver(id, px, py) {
+
+  /* ---- water focus (Recent reports and Typical season) ----
+     Tapping a river, or a launch or shore site that belongs to one (rivers-tap.js siteRiver), fits the whole river into the free map area and puts the
+     map out of focus: the base map and the other markers are blurred and dimmed, while the river, the access sites on it and their labels stay sharp
+     (CSS in #focus-css; render() marks the nodes with .infocus through focusPass). The river's card lists its access sites; a launch's sheet opened from
+     it offers "Back to <river>". Done, Escape or a tap on empty map ends it and the camera returns to where it was before the first focus. */
+  var WATER = null, TAPNAME = null;
+  // Launches and shore sites on a river, by name. Only typical.js sites are linked, so without it a river simply has none.
+  function waterSites(id) {
+    if (!WATER) {
+      WATER = {};
+      if (TAP && TAP.siteRiver && HAS_TYPICAL) {
+        initTypical();
+        Object.keys(TAP.siteRiver).forEach(function (sid) {
+          var t = TBY.get(sid), rid = TAP.siteRiver[sid];
+          if (t && TAPBY[rid]) (WATER[rid] = WATER[rid] || []).push(t);
+        });
+        Object.keys(WATER).forEach(function (k) { WATER[k].sort(function (a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; }); });
+      }
+    }
+    return WATER[id] || [];
+  }
+  // The river a site sits on: a report site by its own river line (or the river of the same name), a Typical season site by siteRiver.
+  function waterOfSite(id) {
+    if (!TAP) return null;
+    if (view === 'reports') {
+      var s = siteOf(id);
+      if (!s) return null;
+      if (s.tap && TAPBY[s.tap]) return s.tap;
+      if (!TAPNAME) { TAPNAME = {}; TAP.rivers.forEach(function (r) { if (!TAPNAME[r.name]) TAPNAME[r.name] = r.id; }); }
+      return TAPNAME[s.name] || null;
+    }
+    if (view === 'typical') return TAPBY[TAP.siteRiver && TAP.siteRiver[id]] ? TAP.siteRiver[id] : null;
+    return null;
+  }
+  // A site the sheet can describe without a rating: a pier or shore access site, or a launch while its river is in focus.
+  function accessOf(id) {
+    var o = ACCESS.filter(function (q) { return q.t.id === id; })[0];
+    if (o || !wf || !wf.ids[id]) return o || null;
+    var t = TBY.get(id);
+    return { t: t.site, ll: t.ll, xy: t.xy };
+  }
+  function lengthText(r) {
+    var km = r && r.lengthKm, mi = km * 0.621371, f = function (n) { return n < 10 ? n.toFixed(1) : String(Math.round(n)); };
+    return km > 0 ? f(km) + ' km (' + f(mi) + ' mi)' : '';
+  }
+  function accessHtml(id) {
+    var list = waterSites(id);
+    if (!list.length) return '';
+    var typ = view === 'typical';
+    return '<section class="wfacc"><h3>Access on this river (' + list.length + ')</h3><div class="rows">' + list.map(function (t) {
+      // Typical season already shows each site's rating word on its pin; Recent reports shows none, so the card adds none there.
+      var word = typ ? ' · ' + (t.vw.r === 'unrated' ? 'No guidance' : Season.LABEL[t.vw.r]) : '';
+      return '<button type="button" class="row lrow" data-wfsite="' + esc(t.id) + '"><span class="rt"><span class="nm">' + esc(t.name) + '</span><span class="dt">' + esc(Season.KIND_LABEL[t.kind] + word) + '</span></span></button>';
+    }).join('') + '</div></section>';
+  }
+  function wfBackHtml(id) {
+    if (!wf || !wf.ids[id]) return '';
+    return '<div class="wfback"><button type="button" class="listbtn" data-wfback>Back to ' + esc(TAPBY[wf.id].name) + '</button></div>';
+  }
+  function say(t) { $('#wfsay').textContent = t; }
+  // The river's drawn extent in map units, parsed once from its path.
+  function waterBox(id) {
+    var r = TAPBY[id];
+    if (!r.box) {
+      var n = r.d.match(/-?\d+(?:\.\d+)?/g) || [], x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (var i = 0; i + 1 < n.length; i += 2) { var x = +n[i], y = +n[i + 1]; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      r.box = [[x0, y0], [x1, y1]];
+    }
+    return r.box;
+  }
+  // The whole river in the free area: left of the sheet on wide windows, above it on phones, 12 percent of the river's own extent as padding,
+  // never closer than 8 times the opening scale (a creek would otherwise fill the screen) and never past the whole-state floor.
+  function fitWater() {
+    if (!wf) return;
+    var b = waterBox(wf.id), w = Math.max(1, b[1][0] - b[0][0]), h = Math.max(1, b[1][1] - b[0][1]), p = pads();
+    if (window.innerWidth < 760) p.b = Math.max(p.b, Math.min(sheet.getBoundingClientRect().height || 0, H * 0.66) + 8);
+    var aw = Math.max(40, W - p.l - p.r), ah = Math.max(40, H - p.t - p.b);
+    var s = Math.max(minS, Math.min(Math.min(aw / (w * 1.24), ah / (h * 1.24)), 8 * s0));
+    var cx = (b[0][0] + b[1][0]) / 2, cy = (b[0][1] + b[1][1]) / 2;
+    animateTo({ s: s, tx: p.l + aw / 2 - cx * s, ty: p.t + ah / 2 - cy * s });
+  }
+  // Start or continue the focus. The camera is stored once, on the first entry; moving to another river or one of its launches keeps it.
+  // defer: set the state only (the card is about to be built), the camera moves on the call that follows once the sheet is open.
+  function enterWater(id, rep, defer) {
+    var r = TAPBY[id];
+    if (!r) return;
+    var first = !wf;
+    if (first) wf = { prev: { s: v.s, tx: v.tx, ty: v.ty }, need: false };
+    var changed = first || wf.id !== id;
+    wf.id = id; wf.rep = rep || (changed ? null : wf.rep); wf.list = waterSites(id);
+    wf.ids = {}; wf.list.forEach(function (t) { wf.ids[t.id] = 1; });
+    appEl.classList.add('focus-water');
+    rselCase.setAttribute('d', r.d); rselLine.setAttribute('d', r.d); rsel.style.display = '';
+    syncFocusHl();
+    if (changed) {
+      wf.need = true;
+      say('Focused on ' + r.name + ', ' + wf.list.length + (wf.list.length === 1 ? ' access site' : ' access sites') + '. Press Escape to leave.');
+    }
+    if (!defer && wf.need) {
+      wf.need = false;
+      // A link that opens a river while the page loads: the compact-layout styles after this script are not applied yet, so the free area is unknown until load.
+      if (document.readyState === 'complete') fitWater(); else window.addEventListener('load', function () { size(); fitWater(); }, { once: true });
+    }
+  }
+  // A report river is drawn in its rating colour; in focus a copy of that line sits in the sharp layer (the original is hidden by CSS while it is marked).
+  var fhl = null;
+  function syncFocusHl() {
+    var src = wf && wf.rep && view === 'reports' ? hlNodes[wf.rep] : null;
+    if (!src) { if (fhl) { fhl.remove(); fhl = null; } return; }
+    if (!fhl || fhl.__src !== src) {
+      if (fhl) fhl.remove();
+      fhl = src.cloneNode(true);
+      fhl.removeAttribute('data-id'); fhl.id = 'fhl'; fhl.__src = src;
+      var hit = fhl.querySelector('.hit'); if (hit) hit.remove();
+      fvp.appendChild(fhl);
+    }
+    fhl.setAttribute('class', src.getAttribute('class').replace(/\binfocus\b/, '').trim());
+    fhl.setAttribute('data-r', src.getAttribute('data-r') || '');
+    fhl.setAttribute('style', src.getAttribute('style') || '');
+  }
+  // restore: ease back to the camera from before the first focus.
+  function leaveWater(restore) {
+    if (!wf) return;
+    var w = wf, name = TAPBY[w.id].name;
+    wf = null;
+    appEl.classList.remove('focus-water');
+    rsel.style.display = 'none';
+    syncFocusHl();
+    focusPass();
+    say('Left focus on ' + name + '.');
+    if (restore) animateTo({ s: w.prev.s, tx: w.prev.tx, ty: w.prev.ty });
+  }
+  // Marks what stays sharp: the focused river's report pin and line, its access sites (pins, markers, labels) and any cluster that holds one.
+  var focusMarked = false;
+  function focusPass() {
+    if (!wf && !focusMarked) return;
+    focusMarked = !!wf;
+    var ids = wf ? wf.ids : {}, rep = wf ? wf.rep : null;
+    var mark = function (n, f) { if (n && n.classList.contains('infocus') !== !!f) n.classList.toggle('infocus', !!f); };
+    SITES.forEach(function (q) { var f = !!rep && q.id === rep; mark(pinNodes[q.id].g, f); mark(pinNodes[q.id].lab, f); mark(hlNodes[q.id], f); });
+    tPool.forEach(function (pn) { var f = !!ids[pn.g.getAttribute('data-id')]; mark(pn.g, f); mark(pn.lab, f); });
+    Object.keys(OVL).forEach(function (k) { var f = k.indexOf('t:') === 0 && !!ids[k.slice(2)]; mark(OVL[k].g, f); mark(OVL[k].lab, f); });
+    ACCESS.forEach(function (o) { if (o.g) { var f = !!ids[o.t.id]; mark(o.g, f); mark(o.lab, f); } });
+    clusterPool.forEach(function (c) { mark(c.g, !!(c.g.__members && c.g.__members.some(function (m) { return ids[m.id] || (rep && m.id === rep); }))); });
+    COUNTBADGES.forEach(function (b) { mark(b.g, !!rep && b.s.id === rep); });
+    if (wf) syncFocusHl();
+  }
+  function openWaterSite(id) { if (view === 'typical') openSheet(id); else openAccess(id); }
+  function backToWater() {
+    if (!wf) return;
+    var id = wf.id, rep = wf.rep;
+    if (view === 'reports' && rep) openSheet(rep); else openRiver(id);
+    fitWater();
+  }
+  function openRiver(id) {
     if (!Object.prototype.hasOwnProperty.call(TAPBY, id)) return;
     var r = TAPBY[id];
-    // A river that is itself one of the reported waters opens its catch-report sheet, never a "no report" sheet.
-    var same = SITES.filter(function (s) { return s.name === r.name; })[0];
+    // A river that is itself one of the reported waters opens its catch-report sheet, never a "no report" sheet. (Typical season has no catch-report sheets.)
+    var same = view === 'reports' ? SITES.filter(function (s) { return s.name === r.name; })[0] : null;
     if (same) { openSheet(same.id); return; }
     selected = null; mode = 'river'; riverSel = id; spotSel = null; seasonSel = null; accessSel = null;
     fillRiver(id);
     showSheet();
     $('#listbtn').setAttribute('aria-expanded', 'false');
-    rselCase.setAttribute('d', r.d); rselLine.setAttribute('d', r.d); rsel.style.display = '';
-    applyStyles(); render();
+    applyStyles();
+    render();
+    enterWater(id, null);
     syncLink();
-    // Keep the tapped spot in view: beside the inspector on wide screens, between the card and the sheet on phones.
-    if (px == null) return;
-    var wide = window.innerWidth >= 760, dx = 0, dy = 0;
-    if (wide && px > W - sheetInset() - 12) dx = (W - sheetInset()) / 2 - px;
-    if (!wide) {
-      if (px < 48 || px > W - 48) dx = W / 2 - px;
-      var barB = $('#bar').getBoundingClientRect().bottom, free = H - Math.min(sheet.getBoundingClientRect().height || 0, H * 0.66);
-      if (py > free - 24 || py < barB + 12) dy = (barB + free) / 2 - py;
-    }
-    if (dx || dy) animateTo({ s: v.s, tx: v.tx + dx, ty: v.ty + dy });
   }
   var returnFocus = null, riseT = 0;
   // Each open or swap of the sheet lets its blocks rise once (CSS keyed on .rise); the class comes off again so a later re-render of the same sheet stays still.
@@ -2967,11 +3135,15 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   }
   function openSheet(id) {
     clearRiver();
+    var wid = waterOfSite(id);
+    if (!wid) leaveWater(false); else enterWater(wid, view === 'reports' ? id : null, true);
     selected = id; mode = 'detail'; spotSel = null; seasonSel = null; accessSel = null;
     fillSheet(id);
     showSheet();
     $('#listbtn').setAttribute('aria-expanded', 'false');
     applyStyles();
+    // On a river: the whole river comes into view instead of a close view of the pin (water focus).
+    if (wid) { render(); enterWater(wid, view === 'reports' ? id : null); syncLink(); return; }
     var s = siteOf(id);
     var wide = window.innerWidth >= 760;
     var sh = sheet.getBoundingClientRect().height || 0;
@@ -3012,7 +3184,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   }
   function openSpot(id) {
     if (!SPOTLIST.some(function (q) { return q.s.id === id; })) return;
-    clearRiver();
+    clearRiver(); leaveWater(false);
     selected = null; mode = 'spot'; spotSel = id; seasonSel = null; accessSel = null;
     fillSpot(id);
     showSheet();
@@ -3028,7 +3200,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   }
   // A group of overlapping guide pins: pick one from the list, or zoom until they come apart.
   function openSpotGroup(ids) {
-    clearRiver();
+    clearRiver(); leaveWater(true);
     selected = null; mode = 'spotgroup'; spotSel = null; seasonSel = null; accessSel = null;
     var list = SPOTLIST.filter(function (q) { return ids.indexOf(q.s.id) >= 0; });
     $('#stitle').textContent = list.length + ' spot guides here';
@@ -3060,11 +3232,11 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   /* ---- Piers and shore sheet: what the site is and how to get there, never a rating. Its timing is one tap away in Typical season. ---- */
   var accessSel = null;
   function fillAccess(id) {
-    var o = ACCESS.filter(function (q) { return q.t.id === id; })[0], t = o.t;
+    var o = accessOf(id), t = o.t;
     var shield = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l6 2.3v4.6c0 4-2.5 6.7-6 8.2-3.5-1.5-6-4.2-6-8.2V4.5z"/><path d="M10 6.8v4M10 13.4v.1"/></svg>';
     var dir = 'https://maps.apple.com/?ll=' + t.lat + ',' + t.lon + '&q=' + encodeURIComponent(t.name);
     $('#stitle').textContent = t.name;
-    $('#sbody').innerHTML = '<div class="head"><p>' + esc(Season.KIND_LABEL[t.kind]) + (t.county ? ' · ' + esc(t.county) + ' County' : '') + '</p>' +
+    $('#sbody').innerHTML = wfBackHtml(id) + '<div class="head"><p>' + esc(Season.KIND_LABEL[t.kind]) + (t.county ? ' · ' + esc(t.county) + ' County' : '') + '</p>' +
       '<p>' + esc(scopeText(t)) + '</p>' + distHtml(o.ll) + (t.closed ? '<span class="chip">WDFW marks this pier closed</span>' : '') + '</div>' +
       actsHtml(dir, '<button type="button" class="ico" data-typical="' + esc(t.id) + '">' + ICO.timing + '<span>Typical timing</span></button>') +
       tidesHtml(t, o) + heatHtml(t.id) + creelSiteHtml(t.id) +
@@ -3074,13 +3246,17 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     $('#sbody').scrollTop = 0;
   }
   function openAccess(id) {
-    if (!ACCESS.some(function (q) { return q.t.id === id; })) return;
+    if (!accessOf(id)) return;
     clearRiver();
+    var wid = TAP && TAP.siteRiver && TAPBY[TAP.siteRiver[id]] ? TAP.siteRiver[id] : null;
+    if (!wid) leaveWater(false);
     selected = null; mode = 'access'; spotSel = null; seasonSel = null; accessSel = id;
+    if (wid && !(wf && wf.id === wid)) enterWater(wid, null, true);   // set before the sheet is built, so the sheet knows to offer "Back to"
     fillAccess(id);
     showSheet();
     $('#listbtn').setAttribute('aria-expanded', 'false');
     render();
+    if (wid) enterWater(wid, wf && wf.id === wid ? wf.rep : null);
     syncLink();
   }
   /* ---- Seasons layer: its own month (Spawning lends its ribbon month instead), and the season sheet ---- */
@@ -3212,7 +3388,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   }
   function openSeason(id) {
     if (!FYS.some(function (x) { return x.id === id; })) return;
-    clearRiver();
+    clearRiver(); leaveWater(true);
     selected = null; mode = 'season'; spotSel = null; seasonSel = id; accessSel = null;
     fillSeason(id);
     showSheet();
@@ -3221,7 +3397,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     syncLink();
   }
   function openList() {
-    clearRiver();
+    clearRiver(); leaveWater(true);
     selected = null; mode = 'list'; spotSel = null; seasonSel = null; accessSel = null;
     fillList();
     showSheet();
@@ -3232,7 +3408,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     syncLink();
   }
   function closeSheet() {
-    clearRiver();
+    clearRiver(); leaveWater(true);
     selected = null; mode = null; spotSel = null; seasonSel = null; accessSel = null;
     // Focus leaves the sheet before it is hidden from assistive technology, or the browser blocks aria-hidden on a focused element.
     if (sheet.contains(document.activeElement)) document.activeElement.blur();
@@ -3313,6 +3489,9 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   $('#sdone').addEventListener('click', closeSheet);
   $('#listbtn').addEventListener('click', function () { if (mode === 'list') closeSheet(); else openList(); });
   $('#sbody').addEventListener('click', function (e) {
+    // Water focus: an access site on the river's card, and the way back from it.
+    var wfb = e.target.closest ? e.target.closest('[data-wfsite],[data-wfback]') : null;
+    if (wfb) { if (wfb.hasAttribute('data-wfback')) backToWater(); else openWaterSite(wfb.getAttribute('data-wfsite')); return; }
     var b = e.target.closest ? e.target.closest('.lrow') : null;
     // "Typical timing here": the same site in Typical season, where its rating lives. Catch-report colours leave the view first.
     var ty = e.target.closest ? e.target.closest('[data-typical]') : null;
@@ -3486,12 +3665,12 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       month: view === 'spawning' ? SMONTH : layers.indexOf('seasons') >= 0 && LMONTH !== MONTH ? LMONTH : null,
       species: species,
       site: !rep && mode === 'detail' ? selected : null,
-      river: rep ? (mode === 'detail' ? selected : riverSel) : null,
+      river: rep ? (wf ? (wf.rep || wf.id) : mode === 'detail' ? selected : riverSel) : null,
       today: LINK0.today,
       layers: layers,
       spot: mode === 'spot' ? spotSel : null,
       season: mode === 'season' ? seasonSel : null,
-      access: mode === 'access' ? accessSel : null
+      access: mode === 'access' && ACCESS.some(function (q) { return q.t.id === accessSel; }) ? accessSel : null
     }, window.history, window.location);
   }
   function speciesKnown(name) {
@@ -3656,4 +3835,37 @@ html:not(.touched):has(.hints .hint:not([hidden])) .depthchip, html:has(#hint:no
 .amark .hit { fill: transparent; stroke: none; }
 .laypop { max-height: calc(100dvh - 120px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .laypop .lg { margin: 10px 8px 2px; font: 600 12px/16px var(--sans); letter-spacing: .03em; text-transform: uppercase; color: var(--ink2); }
+</style>
+<style id="focus-css">
+/* Water focus: a tapped river is fitted on screen and the rest of the map goes out of focus. The river, its access sites and their labels stay sharp:
+   #rsel and a copy of a report river's line live in #focus (above the blurred #base, #heat and the scrim), and render() marks the sharp markers .infocus. */
+:root { --wf-scrim: rgba(28,28,30,.2); --wf-blur: 3.5px; --wf-mblur: 2px; --wf-dim: .3; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --wf-scrim: rgba(0,0,0,.42); } }
+:root[data-theme="dark"] { --wf-scrim: rgba(0,0,0,.42); }
+#focus { pointer-events: none; }
+#wfscrim { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: var(--wf-scrim); }
+#app.focus-water #wfscrim { opacity: 1; }
+#app.focus-water #rsel, #app.typ.focus-water #rsel, #app.spw.focus-water #rsel { display: inline; }
+#vp .hl.infocus .casing, #vp .hl.infocus .line { visibility: hidden; }
+#app.focus-water #over > :not(.infocus), #app.focus-water #guides > :not(.infocus) { opacity: var(--wf-dim); }
+.wfback { margin: 0 0 8px; }
+.wfacc .rows { margin-top: 4px; }
+/* Blur and the dim change together over --dur-base. Reduced motion gets the dim at once and no blur; reduced transparency gets the dim and no blur. */
+@media (prefers-reduced-motion: no-preference) {
+  #wfscrim, #over > *, #guides > * { transition: opacity var(--dur-base) var(--ease-out), filter var(--dur-base) var(--ease-out); }
+  #base, #heat { transition: filter var(--dur-base) var(--ease-out); }
+  #app.focus-water #base { filter: blur(var(--wf-blur)); }
+  #app.focus-water #heat { filter: blur(6px); }
+  #app.focus-water #over > :not(.infocus), #app.focus-water #guides > :not(.infocus) { filter: blur(var(--wf-mblur)); }
+}
+/* Touch screens: blur the base map and the heat layer (two layers) and only dim the markers, not hundreds of small filtered nodes. */
+@media (pointer: coarse) {
+  #app.focus-water #over > :not(.infocus), #app.focus-water #guides > :not(.infocus) { filter: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  #app.focus-water #base, #app.focus-water #over > :not(.infocus), #app.focus-water #guides > :not(.infocus) { filter: none; }
+  #app.focus-water #heat { filter: blur(2.5px); }
+}
+/* On a phone the card takes about 40 percent of the screen while a river is in focus, so the whole river has room above it (it was 66 percent, which left a strip about 130px tall). */
+@media (max-width: 759px) { #app.focus-water #sheet { max-height: min(42vh, 360px); } }
 </style>
