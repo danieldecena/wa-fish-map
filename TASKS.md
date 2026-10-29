@@ -1,4 +1,6 @@
 ## Tasks
+- [ ] After the depth spike: decide whether to bake depth shading
+- [ ] Read the river rules on the live map (a re-verify is running)
 - [ ] Puget Sound river reports: repeat the sourcing pass (spec 2026-10-26-puget-river-reports) when new shop or guide reports appear; a river is added only with a report at most 21 days old (Skagit added 2026-10-26 on the Confluence Fly Shop's Oct 10 report; replace it when a fresher one appears). First pass: docs/research/2026-10-26-puget-river-reports.md.
 
 #### Design critique 2026-10-26
