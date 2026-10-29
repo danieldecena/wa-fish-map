@@ -503,6 +503,58 @@ for (const [w, h] of [[390, 844], [1280, 800]]) {
   check(gerr.length === 0, `guides ${w}px: no page errors (${gerr.join(' | ').slice(0, 160)})`);
   await gctx.close();
 }
+// Motion (docs/design/motion-spec.md). With reduced motion emulated the sheet, the popovers and the disclosures change at once, and the computed styles say so;
+// with no preference the same elements move. Each number is read from a rule, then the popover is watched: after two frames it is part-way through its fade.
+for (const motion of ['reduce', 'no-preference']) {
+  const rm = motion === 'reduce';
+  const mctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: motion });
+  const mp = await mctx.newPage(); const merr = [];
+  mp.on('pageerror', e => merr.push(String(e)));
+  await mp.goto(base + '/index.html?mode=reports&river=cowlitz&today=' + today, { waitUntil: 'networkidle' });
+  const open = await mp.evaluate(() => { const s = document.getElementById('sheet'), g = (el, p) => getComputedStyle(el)[p], r = document.querySelector('#over .pin.sel .ring'), pn = document.querySelector('#over .pin.sel .pin-s');
+    return { isOpen: s.classList.contains('open'), dur: g(s, 'transitionDuration'), ease: g(s, 'transitionTimingFunction'), ring: r ? g(r, 'animationName') : null, lift: pn ? g(pn, 'translate') : null }; });
+  check(open.isOpen && open.dur === (rm ? '0s' : '0.28s') && (rm || /cubic-bezier\(0\.2, 0\.8, 0\.2, 1\)/.test(open.ease)), `motion ${motion}: the open sheet's transition is ${rm ? 'none' : '280 ms ease-out'} (${open.dur} ${open.ease})`);
+  check(open.ring === (rm ? 'none' : 'pin-ring') && open.lift === (rm ? 'none' : '0px -2px'), `motion ${motion}: the selected pin ${rm ? 'has no ring pulse and does not lift' : 'pulses a ring once and lifts 2px'} (${open.ring}, ${open.lift})`);
+  await mp.click('#sdone');
+  const shut = await mp.evaluate(() => { const s = document.getElementById('sheet'), c = getComputedStyle(s); return { closed: !s.classList.contains('open'), dur: c.transitionDuration, ease: c.transitionTimingFunction }; });
+  check(shut.closed && shut.dur === (rm ? '0s' : '0.2s, 0s') && (rm || /cubic-bezier\(0\.4, 0, 1, 1\)/.test(shut.ease)), `motion ${motion}: closing the sheet is ${rm ? 'instant' : 'shorter (200 ms) and eases in'} (${shut.dur} ${shut.ease})`);
+  await mp.waitForTimeout(400);
+  await mp.click('#listbtn');
+  const rise = await mp.evaluate(() => { const b = document.getElementById('sbody'), k = b.children[1] || b.firstElementChild; return { cls: b.classList.contains('rise'), name: getComputedStyle(k).animationName, delay: getComputedStyle(k).animationDelay }; });
+  check(rise.name === (rm ? 'none' : 'rise') && (rm || (rise.cls && rise.delay === '0.12s')), `motion ${motion}: the opened sheet's blocks ${rm ? 'do not rise' : 'rise one after another'} (${rise.name}, second block delay ${rise.delay})`);
+  await mp.waitForTimeout(750);
+  check(await mp.evaluate(() => !document.getElementById('sbody').classList.contains('rise')), `motion ${motion}: the rise class comes off again, so a re-render of the same sheet stays still`);
+  const pop = await mp.evaluate(() => new Promise(done => {
+    const b = document.getElementById('laybtn'), p = document.getElementById('laypop');
+    b.click();
+    const opened = !p.hidden;
+    // Read straight after the click: the transition starts at this style update and the panel is still at its first frame, so the opacity is below 1 only if a transition ran.
+    const mid = +getComputedStyle(p).opacity, dur = getComputedStyle(p).transitionDuration;
+    const runs = p.getAnimations().filter(a => a.transitionProperty).map(a => a.transitionProperty + ':' + a.effect.getTiming().duration).sort();
+    setTimeout(() => {
+      const end = +getComputedStyle(p).opacity; b.click();
+      const g = document.querySelector('.pop.ghost');
+      const o = { opened, mid, end, runs, dur, hiddenNow: p.hidden, ghosts: document.querySelectorAll('.pop.ghost').length, ghostAnim: g ? getComputedStyle(g).animationName : null, ghostIds: document.querySelectorAll('.pop.ghost [id], .pop.ghost[id]').length };
+      setTimeout(() => { o.ghostsLater = document.querySelectorAll('.pop.ghost').length; done(o); }, 450);
+    }, 400);
+  }));
+  check(pop.opened && pop.end === 1 && pop.dur === (rm ? '0s' : '0.16s, 0.16s') && (rm ? pop.mid === 1 && pop.runs.length === 0 : (pop.mid < 1 && pop.runs.join() === 'opacity:160,transform:160')), `motion ${motion}: the Layers popover ${rm ? 'is fully visible at its first frame' : 'starts an opacity and a transform transition of 160 ms when it opens'} (first-frame opacity ${pop.mid}, then ${pop.end}; running ${pop.runs.join(' ') || 'none'}; ${pop.dur})`);
+  check(pop.hiddenNow && (rm ? pop.ghosts === 0 : (pop.ghosts === 1 && pop.ghostAnim === 'pop-out' && pop.ghostIds === 0 && pop.ghostsLater === 0)), `motion ${motion}: closing the popover ${rm ? 'leaves no exit copy' : 'plays a short exit on an id-free copy that removes itself'}, and the panel itself is hidden at once (${pop.ghosts} copies, ${pop.ghostAnim}, ${pop.ghostIds} ids, ${pop.ghostsLater} later)`);
+  const sw = await mp.evaluate(() => { const e = document.querySelector('.layrow .sw'); return [getComputedStyle(e).transitionDuration, getComputedStyle(e, '::after').transitionDuration]; });
+  check(sw.every(d => d === (rm ? '0s' : '0.16s')), `motion ${motion}: the Layers switch moves in ${rm ? '0' : '160'} ms (${sw.join(', ')})`);
+  await mp.goto(base + '/index.html?mode=typical&site=port-angeles-city-pier&today=' + today, { waitUntil: 'networkidle' });
+  const det = await mp.evaluate(() => { const ds = [...document.querySelectorAll('#sbody details.sp')], d = ds[0], pc = () => getComputedStyle(d, '::details-content').transitionDuration;
+    const off = pc(); d.open = true; const on = pc(); return { n: ds.length, on, off }; });
+  check(det.n >= 6 && det.on === (rm ? '0s' : '0.2s, 0.2s') && det.off === (rm ? '0s' : '0.12s, 0.12s'), `motion ${motion}: a species row's disclosure ${rm ? 'opens and closes at once' : 'opens in 200 ms and closes in 120'} (open ${det.on}, closed ${det.off})`);
+  // Heat circles and Depth lines are drawn only from Puget Sound scale; zoom in until they are, then read how they arrived.
+  await mp.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+  for (let i = 0; i < 5; i++) { await mp.click('#zin'); await mp.waitForTimeout(650); }
+  const lay = await mp.evaluate(() => { const cs = [...document.querySelectorAll('svg#heat circle')], g = document.getElementById('depthg'), ds = cs.map(c => parseFloat(c.style.animationDelay) || 0);
+    return { n: cs.length, anim: cs[0] ? getComputedStyle(cs[0]).animationName : null, maxDelay: Math.max(0, ...ds), depth: g ? getComputedStyle(g).animationName : null }; });
+  check(lay.n > 0 && lay.anim === (rm ? 'none' : 'layer-in') && lay.maxDelay <= 150 && lay.depth === (rm ? 'none' : 'layer-fade'), `motion ${motion}: ${lay.n} heat circles and the depth lines ${rm ? 'appear without a fade' : 'fade in, the circles waiting at most 150 ms'} (${lay.anim}, longest wait ${lay.maxDelay} ms, ${lay.depth})`);
+  check(merr.length === 0, `motion ${motion}: no page errors (${merr.join(' | ').slice(0, 160)})`);
+  await mctx.close();
+}
 } finally { await browser.close(); if (server) server.close(); }
 console.log(fails.length ? `\n${fails.length} FAILED` : '\nall checks passed');
 process.exit(fails.length ? 1 : 0);
