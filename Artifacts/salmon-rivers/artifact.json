@@ -18,6 +18,7 @@
     "reports.js",
     "rivers-tap.js",
     "rules.js",
+    "river-rules.js",
     "season.js",
     "sites.js",
     "typical.js",

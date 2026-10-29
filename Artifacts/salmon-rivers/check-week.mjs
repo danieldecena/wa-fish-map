@@ -167,6 +167,31 @@ for (const scheme of ['light', 'dark']) {
       await page.goto(base + '/index.html?mode=reports&river=columbia', { waitUntil: 'networkidle' });
       const cn = await page.evaluate(() => { const d = document.querySelector('#sbody details.srcs'); return { text: d ? d.textContent : '', links: d ? d.querySelectorAll('a').length : 0 }; });
       check(/Notes/.test(cn.text) && /Sections that reported/.test(cn.text) && cn.links === 0, `river sheet: the Columbia creel note still shows, in a Notes section with no links (${cn.text.slice(0, 60).replace(/\s+/g, ' ')})`);
+      // Rules for the river (river-rules.js, 2026-10-29): cards under the creel section and above "Before you go", a checked date, and no link inside.
+      const rulesOf = () => page.evaluate(() => {
+        const b = document.getElementById('sbody'), hs = [...b.querySelectorAll('h3')], h = hs.find(x => /^Rules for /.test(x.textContent)), sec = h && h.parentElement;
+        const at = re => hs.findIndex(x => re.test(x.textContent));
+        return { title: h ? h.textContent : '', cards: sec ? sec.querySelectorAll('.row').length : 0, links: sec ? sec.querySelectorAll('a[href]').length : 0, text: sec ? sec.innerText : '',
+          order: h ? [at(/^WDFW weekly creel/), at(/^Rules for /), at(/^Before you go/)] : [], advisory: /Confirm this water’s rules on WDFW before you fish/.test(b.innerText) };
+      });
+      await page.goto(base + '/index.html?mode=reports&river=cowlitz&today=2026-10-29', { waitUntil: 'networkidle' });
+      const rl = await rulesOf();
+      check(rl.title === 'Rules for Cowlitz River' && rl.cards >= 2 && /Checked Oct 29/.test(rl.text) && rl.links === 0, `river sheet: Cowlitz shows "Rules for Cowlitz River" with ${rl.cards} cards, "Checked Oct 29" and no link inside (${rl.title}, ${rl.links} links)`);
+      check(rl.order.length === 3 && rl.order[0] >= 0 && rl.order[0] < rl.order[1] && rl.order[1] < rl.order[2] && rl.advisory, `river sheet: Rules sit under the creel section and above "Before you go", whose WDFW line is unchanged (${rl.order.join(',')})`);
+      check(/Release/.test(rl.text) && !/\bopen\b/i.test(rl.text), 'river sheet: a release-only rule carries the Release chip, and the section never says open');
+      // A water with nothing in force shows no section: every row past its date (a real file), and one water with its rows removed (intercepted file).
+      await page.goto(base + '/index.html?mode=reports&river=cowlitz&today=2027-02-01', { waitUntil: 'networkidle' });
+      const rx = await rulesOf();
+      check(rx.title === '' && rx.cards === 0 && rx.advisory, `river sheet: once every row is past its date there is no Rules section, and the advisory stays (${rx.title})`);
+      const nctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      const np = await nctx.newPage();
+      await np.route('**/river-rules.js', async route => { const res = await route.fetch(); await route.fulfill({ response: res, body: (await res.text()) + "\n;(function(){var R=window.RIVER_RULES;R.ROWS.splice(0,R.ROWS.length,...R.ROWS.filter(function(r){return r.id!=='cowlitz';}));})();\n" }); });
+      await np.goto(base + '/index.html?mode=reports&river=cowlitz&today=2026-10-29', { waitUntil: 'networkidle' });
+      const rn = await np.evaluate(() => ({ title: document.getElementById('stitle').textContent, rules: [...document.querySelectorAll('#sbody h3')].some(x => /^Rules for /.test(x.textContent)) }));
+      await np.goto(base + '/index.html?mode=reports&river=columbia&today=2026-10-29', { waitUntil: 'networkidle' });
+      const rc = await np.evaluate(() => [...document.querySelectorAll('#sbody h3')].some(x => /^Rules for /.test(x.textContent)));
+      check(/Cowlitz/.test(rn.title) && !rn.rules && rc, `river sheet: a water with no rows shows no Rules section while another still does (cowlitz ${rn.rules}, columbia ${rc})`);
+      await nctx.close();
       await page.goto(base + '/index.html?mode=reports&river=cowlitz', { waitUntil: 'networkidle' });
       await page.click('#sdone');
       check(await page.evaluate(() => location.search) === '', 'deep link: Done clears the query');
