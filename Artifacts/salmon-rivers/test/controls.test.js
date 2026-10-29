@@ -121,9 +121,11 @@ test('Typical season and Spawning layers: neutral shapes and words, never a rati
   assert.match(state, /word:/, 'every marker carries its state in words');
 });
 
-test('month card: report counts keep their colour and word; the heat strip and guidance counts are neutral', () => {
+test('month card: no report tally and no rating colour; the chips, the heat strip and the guidance counts are neutral', () => {
   const dash = between('function dashHtml', 'function setLMonth');
-  assert.match(dash, /RWORD\[r\]/, 'a report colour always has its word');
+  assert.doesNotMatch(dash, /RWORD|tally|at a glance|data-dash="reports"/, 'the report tally and its heading were removed');
+  assert.doesNotMatch(dash, /--(prime|good|fair|slow)/, 'the month card draws no rating colour');
+  assert.match(dash, /data-dash="seasons"/, 'the neutral chips stay');
   const heat = dash.slice(dash.indexOf('#heat'));
   assert.doesNotMatch(heat, /--(prime|good|fair|slow)/);
   assert.match(html, /\.heat \.hc i \{[^}]*background: var\(--on-text\)/);

@@ -83,6 +83,11 @@ for (const scheme of ['light', 'dark']) {
         check(lay.btn === 'Layers · 3' && lay.smonth && lay.legend === 3, `Layers ${w}px ${scheme}: three layers on, month slider shown, three legend lines (${lay.btn}, ${lay.legend})`);
       }
       if (name === 'Map') {
+        // The month card carries no "at a glance" heading and no report tally chip; the three neutral chips stay.
+        const gl = await page.evaluate(() => { const c = document.getElementById('sml'); const b = [...c.querySelectorAll('.dsum button')].map(x => x.getAttribute('data-dash')); return { glance: /at a glance/.test(c.textContent), tally: !!c.querySelector('[data-dash="reports"], .rk'), chips: b }; });
+        check(!gl.glance && !gl.tally && gl.chips.includes('seasons') && gl.chips.includes('spawn') && gl.chips.includes('typical'), `Map ${w}px ${scheme}: the month card has no "at a glance" heading or report tally, and keeps seasons, spawning and prime-season chips (${gl.chips.join(', ')})`);
+      }
+      if (name === 'Map') {
         // Heat circles and bars never use the rating ramp: red, orange and amber already mean Excellent, Good and Fair reports.
         const hv = await page.evaluate(() => { const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue('--' + n).trim().toLowerCase(); const heat = [1, 2, 3].map(i => g('heat-' + i)), rate = ['prime', 'good', 'fair', 'slow'].map(g); return { heat, rate, clash: heat.filter(h => rate.includes(h)).length }; });
         check(hv.heat.every(Boolean) && hv.rate.every(Boolean) && hv.clash === 0, `Map ${w}px ${scheme}: the heat ramp shares no colour with the rating ramp (heat ${hv.heat.join(' ')}; ratings ${hv.rate.join(' ')})`);
