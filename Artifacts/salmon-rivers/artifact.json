@@ -3,12 +3,12 @@
   "title": "Washington Fishing Map",
   "identified": "2026-10-18, named by Daniel when asking for improvements",
   "account": "danieldecena@icloud.com",
-  "what": "One map on one URL: Recent reports, Typical season and Spawning modes under one thin control bar, plus three layers from the Layers menu: Seasons (Washington Fishing Year seasons outlined by month, with a month slider and ends-soon/opens-soon tags), Spot guides (Three Friends Fishing Hole in Kent) Piers and shore (63 WDFW piers and 80 shore access sites, no rating) and Creel counts (last week's fish kept beside each surveyed report river). Six spot guides around Puget Sound. The old Week, Year, Spots and Counts paths redirect into the map. Counts and timing never mix with ratings.",
+  "what": "One map on one URL: Recent reports, Typical season and Spawning modes under one thin control bar, plus three layers from the Layers menu: Seasons (Washington Fishing Year seasons outlined by month, with a month slider and ends-soon/opens-soon tags), Spot guides (Three Friends Fishing Hole in Kent) Piers and shore (63 WDFW piers and 80 shore access sites, no rating) and Creel counts (last week's fish kept beside each surveyed report river). Six spot guides around Puget Sound. The old Week, Year, Spots and Counts paths redirect into the map. Counts and timing never mix with ratings. Since 2026-10-29 the map opens with all eight layers on, including Depth (NOAA contours) and Heat circles, and pier and shore sheets carry a Where to cast card with a time slider.",
   "baselineVersion": "1792352926-fede",
-  "currentVersion": "1793093361-13fb",
-  "previousVersion": "1793089848-ed42",
+  "currentVersion": "1793270374-b717",
+  "previousVersion": "1793268755-6f44",
   "note": "Refresh by PASSING THIS URL with file_path=Artifacts/salmon-rivers/index.html and files= any changed paths from `files` (files left out are kept on the live page). Read the live version first. Rollback: republish a previous version id. 2026-10-26: versions 16 (Week tab, deep links, tides, five-tab bar), 17 (thin control bar) and 18 (phone bar) were published from the week-page-and-deep-links branch; 1792491424-046f had been published outside the repo and was captured here first.",
-  "synced": "2026-10-27: live 1793093361-13fb (version 38: rating colours moved to the iOS 26 values the app draws; only index.html changed) published from fix/web-map-ios26-ramp. Live index.html read back equals the repo file plus the publisher's wrapper.",
+  "synced": "2026-10-29: live 1793270374-b717 (version 40) published from main after the live page, which a claude.ai chat session had moved to 1793268755-6f44 (Depth and Heat layers, Where to cast, depth-data.js), was captured into the repo and merged with main (PR 114). Read back after publishing: live index.html equals the repo file plus the publisher's wrapper; layers.js, links.js and depth-data.js are byte-identical. Not yet loaded and clicked through in a browser after the publish.",
   "files": [
     "index.html",
     "cluster.js",
@@ -32,6 +32,7 @@
     "spots/index.html",
     "counts/index.html",
     "tide-predictor.js",
-    "tide-harmonics.js"
+    "tide-harmonics.js",
+    "depth-data.js"
   ]
 }
