@@ -3005,7 +3005,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   }
   function dashHtml(nSeasons) {
     var rows = heatData(), mi = LMONTH - 1, spN = HAS_SPAWN ? rows[1].v[mi] : 0, tN = HAS_TYPICAL ? rows[rows.length - 1].v[mi] : 0;
-    // The report tally (2 Excellent, 4 Good...) and the "at a glance" heading are gone: the pins, the Key and the Rivers list already say it.
+    // Report counts and a month heading are not drawn here: the pins, the Key and the Rivers list already say it.
     $('#sml').innerHTML = '<div class="dsum">' +
       '<button type="button" data-dash="seasons" aria-pressed="' + (layers.indexOf('seasons') >= 0) + '"><b>' + nSeasons + '</b> ' + (nSeasons === 1 ? 'season' : 'seasons') + ' open</button>' +
       (HAS_SPAWN ? '<button type="button" data-dash="spawn"><b>' + spN + '</b> spawning</button>' : '') +
