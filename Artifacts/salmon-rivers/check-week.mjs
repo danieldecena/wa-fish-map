@@ -304,6 +304,33 @@ for (const [w, h, lo, hi] of [[1024, 768, 380, 380], [1440, 900, 480, 500], [192
   check(sw.w >= lo && sw.w <= hi && sw.pinX !== null && sw.pinX < sw.left, `sheet ${w}px: the side sheet is ${sw.w}px wide (expected ${lo} to ${hi}) and the tapped river's pin (x ${sw.pinX}) sits left of it (x ${sw.left})`);
   await wctx.close();
 }
+// Panning stays inside Washington: zoomed in and dragged hard in every direction, the screen's edges end within a small margin of the state's border.
+{
+  const pctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const pp = await pctx.newPage();
+  await pp.goto(base + '/index.html?layers=none&today=' + today, { waitUntil: 'networkidle' });
+  await pp.waitForTimeout(600);
+  for (let i = 0; i < 4; i++) { await pp.click('#zin'); await pp.waitForTimeout(450); }
+  await pp.waitForTimeout(500);
+  const drag = async (dx, dy) => { await pp.mouse.move(640, 450); await pp.mouse.down(); for (let k = 1; k <= 8; k++) await pp.mouse.move(640 + dx * k / 8, 450 + dy * k / 8); await pp.mouse.up(); await pp.waitForTimeout(450); };
+  const edges = () => pp.evaluate(() => {
+    const m = /translate\(([-\d.]+)[ ,]+([-\d.]+)\)\s*scale\(([\d.]+)\)/.exec(document.getElementById('vp').getAttribute('transform') || '');
+    if (!m) return null; const tx = +m[1], ty = +m[2], s = +m[3], sb = window.GEO.bounds.state, W = innerWidth, H = innerHeight;
+    const mg = Math.max(sb[1][0] - sb[0][0], sb[1][1] - sb[0][1]) * 0.025;
+    return { s, left: -tx / s, right: (W - tx) / s, top: -ty / s, bottom: (H - ty) / s, x0: sb[0][0] - mg, x1: sb[1][0] + mg, y0: sb[0][1] - mg, y1: sb[1][1] + mg, vw: W / s, vh: H / s };
+  });
+  const bad = [];
+  for (const [dx, dy, name] of [[3000, 0, 'right'], [-3000, 0, 'left'], [0, 3000, 'down'], [0, -3000, 'up']]) {
+    await drag(dx, dy);
+    const e = await edges();
+    if (!e) { bad.push(name + ': unreadable'); continue; }
+    const tol = 0.6;
+    if (e.vw < e.x1 - e.x0 && (e.left < e.x0 - tol || e.right > e.x1 + tol)) bad.push(name + ': x edges ' + e.left.toFixed(1) + '..' + e.right.toFixed(1) + ' outside ' + e.x0.toFixed(1) + '..' + e.x1.toFixed(1));
+    if (e.vh < e.y1 - e.y0 && (e.top < e.y0 - tol || e.bottom > e.y1 + tol)) bad.push(name + ': y edges ' + e.top.toFixed(1) + '..' + e.bottom.toFixed(1) + ' outside ' + e.y0.toFixed(1) + '..' + e.y1.toFixed(1));
+  }
+  check(bad.length === 0, `pan limit: dragged hard right, left, down and up while zoomed in, the screen's edges stay within the state's border plus a small margin (${bad.join('; ') || 'all four held'})`);
+  await pctx.close();
+}
 // Layer-marker labels on the map are the name alone; the rating word stays in the marker's accessible name (and the sheet).
 {
   const lctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
