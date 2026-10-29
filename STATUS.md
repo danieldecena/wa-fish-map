@@ -139,6 +139,12 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-29 (Figma library reconciled to DesignSystem.swift; map panels critiqued; all layers on by default)
+- Decided: Figma changed to match code. `scripts/figma_ds_diff.py` found 10 drift rows (rc 1): seven rating colors were still the iOS 17/18 system values (slow, fair dark, good, prime) and three `DS.TypeScale` roles (fineprint, mapLabel, tideValue) had no text style. Edited in place: the seven variables set to the iOS 26 resolved values, three text styles added (11 total). Re-exported and re-diffed: `[ok] no drift, 14 not covered`, rc 0. The 14 are Figma-only variables (accent, ink, surface, fill/tertiary, radius cell and pill, spacing 3-12, tap target) that each match a literal in the views; accepted, recorded in `docs/research/2026-10-27-figma-library-drift.md`. Decided by Claude, not asked, since each is reversible in Figma.
+- Checked: 0 detached instances on Components (71) and Screens (112); 2 text nodes without a style, both the "Closed" label, which Swift draws as `.caption.weight(.semibold)` with no `DS` role. Rating Badge screenshot shows all five states drawing. Not checked by screenshot: the other components.
+- Code Connect cannot be used: the mapping call is refused on these plans. The Swift line numbers cited in the component descriptions were re-read against the code and match.
+- Map: PR 110 opens the page with all six layers on (`layers=none` still turns them off). Cost seen at 390 px: the month card opens fully and its chips run off the edge. `docs/design/2026-10-29-panels-critique.md` critiques the Layers menu, Key and site sheet; findings 1-5 are open. Whether Typical season and Spawning should be one mode is Daniel's call (finding 6).
+
 ### 2026-10-27 (pin checks pass on the iPhone)
 - `scripts/verify_pins_device.sh` ran on Daniel's iPhone (unlocked, `passcodeRequired: false`) at 03:54: `MarkerEdgeTapUITests` passed (24.4 s) and `PinVoiceOverProbe` passed (14.5 s), `** TEST SUCCEEDED **`, xcodebuild exit 0, read from the log, not the wrapper. The 44pt tap target's Known broken line is removed: hardware, unlike the simulator, consults `hitRect`, and the edge tap landed there. Not done: the test was not run on device with `hitRect` broken, so it has been seen to pass on hardware, not seen to fail there.
 
