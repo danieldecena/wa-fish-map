@@ -224,6 +224,39 @@ for (const [w, h] of [[1024, 768], [1280, 800], [1440, 900], [390, 844]]) {
   }
   await octx.close();
 }
+// Month names on a phone whose fallback font is wider than SF Pro (Android, Windows; critique 2026-10-27 finding 3). This Mac has SF Pro, so the
+// check forces Verdana as --sans and first proves the font is wide enough that three letters could not fit a 22px cell: a check that passes
+// only because the font was never swapped would be worthless.
+for (const scheme of ['light', 'dark']) for (const [w, h] of [[360, 780], [375, 812]]) {
+  const mctx = await browser.newContext({ viewport: { width: w, height: h }, colorScheme: scheme });
+  const mp = await mctx.newPage();
+  await mp.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+  await mp.addStyleTag({ content: ':root { --sans: Verdana, "DejaVu Sans", sans-serif !important; }' });
+  await mp.click('#mfold');
+  const m = await mp.evaluate(() => {
+    const probe = document.createElement('span'); probe.textContent = 'May'; probe.style.cssText = 'position:absolute;visibility:hidden;font:600 12px/16px var(--sans)';
+    document.body.appendChild(probe);
+    const wide = probe.getBoundingClientRect().width, face = getComputedStyle(probe).fontFamily; probe.remove();
+    const btns = [...document.querySelectorAll('#smonth .months button')].filter(b => b.getClientRects().length);
+    const rs = btns.map(b => { const g = document.createRange(); g.selectNodeContents(b); const q = g.getBoundingClientRect(); return { name: b.getAttribute('aria-label').split(':')[0], left: q.left, right: q.right, cell: b.getBoundingClientRect().width }; });
+    return { wide, face, n: rs.length, cell: Math.round(Math.min(...rs.map(r => r.cell))), hits: rs.slice(1).filter((r, i) => rs[i].right > r.left - 1).map(r => r.name), inCell: rs.every(r => r.right - r.left <= r.cell) };
+  });
+  check(m.wide > 26 && /Verdana/.test(m.face), `months ${w}px ${scheme}: the forced fallback font is wide (May is ${m.wide.toFixed(1)}px in ${m.face.slice(0, 30)})`);
+  check(m.n === 12 && m.hits.length === 0 && m.inCell, `months ${w}px ${scheme}: with a wide fallback font the twelve month names keep a 1px gap and stay in their ${m.cell}px cells (touching: ${m.hits.join(', ')})`);
+  await mctx.close();
+}
+{
+  // From 380 px the spelled-out names return; the buttons keep their full names for screen readers at every width.
+  for (const [w, h, want] of [[360, 780, 'J'], [390, 844, 'Jan']]) {
+    const nctx = await browser.newContext({ viewport: { width: w, height: h } });
+    const np = await nctx.newPage();
+    await np.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+    if (w < 760) await np.click('#mfold');
+    const first = await np.evaluate(() => { const b = document.querySelector('#smonth .months button'); const g = document.createRange(); g.selectNodeContents(b); return { shown: g.toString().length ? [...b.children].filter(c => getComputedStyle(c).display !== 'none').map(c => c.textContent).join('') : '', label: b.getAttribute('aria-label').split(':')[0] }; });
+    check(first.shown === want && first.label === 'January', `months ${w}px: the first month button shows "${want}" and is named January (${first.shown}, ${first.label})`);
+    await nctx.close();
+  }
+}
 // Guide pins: Kent (three-friends) and Codiga Park overlap at the opening zoom. Every guide must be the thing a tap at its pin reaches,
 // either its own pin or a group pin that lists it, and the group's "Zoom in here" must pull the two apart.
 for (const [w, h] of [[390, 844], [1280, 800]]) {
@@ -243,6 +276,38 @@ for (const [w, h] of [[390, 844], [1280, 800]]) {
   const before = await reach(), kent = before.find(q => q.id === 'three-friends');
   check(!!kent && kent.ok === true, `guides ${w}px: a tap at the Kent guide's pin reaches it at the opening zoom (${JSON.stringify(kent)})`);
   check(before.every(q => q.ok !== false), `guides ${w}px: no guide pin is covered by another mark (${before.filter(q => q.ok === false).map(q => q.id + ' under ' + q.hit).join('; ')})`);
+  // Critique 2026-10-27, finding 6: a group's name starts 4px past its count badge, and no group name sits on another guide pin.
+  const gcheck = await gp.evaluate(() => {
+    const vis = e => e.style.display !== 'none' && e.getClientRects().length;
+    const groups = [...document.querySelectorAll('.spotgrp')].filter(vis), labs = [...document.querySelectorAll('#guides text.lab')].filter(t => vis(t) && /^\d+ spot guides$/.test(t.textContent));
+    const hit = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+    return labs.map(t => {
+      const r = t.getBoundingClientRect(), start = t.getAttribute('text-anchor') === 'start';
+      // This label's own group: among the groups with the label's count, the one whose badge is nearest its anchored edge.
+      const n = t.textContent.split(' ')[0], ex = start ? r.left : r.right;
+      const own = groups.filter(g => g.querySelector('.n text').textContent === n).map(g => ({ g, c: g.querySelector('.n circle').getBoundingClientRect() })).sort((p, q) => Math.hypot(p.c.right - ex, p.c.top - r.top) - Math.hypot(q.c.right - ex, q.c.top - r.top))[0];
+      const others = [...document.querySelectorAll('.spotpin')].filter(e => vis(e) && e !== own.g).map(e => e.querySelector('.balloon').getBoundingClientRect());
+      return { text: t.textContent, gap: start ? Math.round((r.left - own.c.right) * 10) / 10 : null, onPin: others.some(o => hit(r, o)) };
+    });
+  });
+  check(gcheck.length > 0, `guides ${w}px: a group name is drawn at the opening view (${gcheck.length})`);
+  check(gcheck.every(q => q.gap === null || q.gap >= 3.5), `guides ${w}px: a group name starts 4px past its count badge (${gcheck.map(q => q.text + ' gap ' + q.gap).join('; ')})`);
+  check(gcheck.every(q => !q.onPin), `guides ${w}px: no group name touches another guide pin (${gcheck.filter(q => q.onPin).map(q => q.text).join('; ')})`);
+  // Finding 4: every dashed season ring that draws carries its season's name, and the names never sit on a pin or on each other.
+  const sr = await gp.evaluate(() => {
+    const vis = e => e.style.display !== 'none' && e.getClientRects().length;
+    const hit = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+    const tags = [...document.querySelectorAll('.stag')].filter(vis), pins = [...document.querySelectorAll('#over .pin, #guides .pin')].filter(vis).map(p => p.querySelector('.balloon') || p);
+    const rings = [...document.querySelectorAll('.sring')].filter(vis).map(r => {
+      const c = r.getBoundingClientRect(), id = r.getAttribute('data-season');
+      const near = tags.filter(t => t.getAttribute('data-season') === id).some(t => { const b = t.getBoundingClientRect(); return Math.min(Math.abs(b.left - c.right), Math.abs(c.left - b.right)) < 24 && b.top < c.bottom + 24 && b.bottom > c.top; });
+      return { name: r.getAttribute('aria-label'), near };
+    });
+    const clash = tags.filter(t => { const b = t.getBoundingClientRect(); return pins.some(p => hit(b, p.getBoundingClientRect())) || tags.some(u => u !== t && hit(b, u.getBoundingClientRect())); }).map(t => t.textContent);
+    return { rings, clash };
+  });
+  check(sr.rings.length > 0 && sr.rings.every(r => r.near), `seasons ${w}px: every dashed ring has its season's name beside it (${sr.rings.filter(r => !r.near).map(r => r.name).join('; ') || sr.rings.length + ' rings'})`);
+  check(sr.clash.length === 0, `seasons ${w}px: no season name sits on a pin or on another name (${sr.clash.join('; ')})`);
   if (kent && kent.ok && kent.grouped) {
     const at = await gp.evaluate(() => { const g = [...document.querySelectorAll('.spotpin[data-spotgroup]')].find(n => getComputedStyle(n).display !== 'none' && n.getAttribute('data-spotgroup').split(',').includes('three-friends')); const r = g.querySelector('.balloon').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
     await gp.mouse.click(at[0], at[1]);
