@@ -6,9 +6,9 @@
   'use strict';
 
   /* Map layers drawn on top of any mode. Nothing here rates anything: seasons are dates, spots are text, counts are counts. */
-  var NAMES = ['seasons', 'spots', 'access', 'counts', 'typical', 'spawn'];
+  var NAMES = ['seasons', 'spots', 'access', 'counts', 'typical', 'spawn', 'depth', 'heat'];
   /* On when a link names no layers: the map opens with Typical season and Spawning drawn as neutral shapes over the reports. */
-  var DEFAULT = ['typical', 'spawn'];
+  var DEFAULT = [];
 
   function canon(list) { return NAMES.filter(function (n) { return list.indexOf(n) >= 0; }); }
   function parse(str) { return canon(String(str || '').split(',')); }

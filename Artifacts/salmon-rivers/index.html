@@ -601,8 +601,11 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
 <div id="app">
   <div id="map" role="application" aria-label="Map of salmon rivers in southwest Washington. Drag to pan, pinch or use the buttons to zoom, select a river marker for details.">
     <svg id="base" aria-hidden="true"><g id="vp"></g></svg>
+    <svg id="heat" aria-hidden="true"></svg>
     <svg id="over"></svg>
     <svg id="guides"></svg>
+    <button type="button" class="glass depthchip" id="depthchip" aria-live="polite" aria-expanded="false" hidden></button>
+    <div class="xhair" id="xhair" aria-hidden="true" hidden><i></i></div>
   </div>
 
   <div id="chrome">
@@ -647,12 +650,18 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     </div>
     <div class="glass pop laypop" id="laypop" role="group" aria-label="Map layers" hidden>
       <p class="lh">Show on the map</p>
-      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="typical"><span class="lt"><b>Typical season</b><span>Launches, piers and shore. Solid when in season this month.</span></span><span class="sw" aria-hidden="true"></span></button>
-      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="spawn"><span class="lt"><b>Spawning</b><span>Salmon viewing sites. Solid when fish are spawning.</span></span><span class="sw" aria-hidden="true"></span></button>
-      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="seasons"><span class="lt"><b>Seasons</b><span>Waters open in the chosen month. Outlines, not ratings.</span></span><span class="sw" aria-hidden="true"></span></button>
-      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="spots"><span class="lt"><b>Spot guides</b><span>Hand-written guides to one bank spot.</span></span><span class="sw" aria-hidden="true"></span></button>
-      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="access"><span class="lt"><b>Piers and shore</b><span>WDFW piers and shore access sites. No rating.</span></span><span class="sw" aria-hidden="true"></span></button>
-      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="counts"><span class="lt"><b>Creel counts</b><span>Fish kept last week, from WDFW surveys.</span></span><span class="sw" aria-hidden="true"></span></button>
+      <p class="lg">Timing</p>
+      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="typical"><span class="lt"><b>Typical season</b><span>Launches, piers and shore, solid when in season.</span></span><span class="sw" aria-hidden="true"></span></button>
+      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="seasons"><span class="lt"><b>Seasons</b><span>Waters open this month. Outlines only.</span></span><span class="sw" aria-hidden="true"></span></button>
+      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="spawn"><span class="lt"><b>Spawning</b><span>Salmon viewing sites, solid when spawning.</span></span><span class="sw" aria-hidden="true"></span></button>
+      <p class="lg">Places</p>
+      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="access"><span class="lt"><b>Piers and shore</b><span>WDFW piers and shore access. No rating.</span></span><span class="sw" aria-hidden="true"></span></button>
+      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="spots"><span class="lt"><b>Spot guides</b><span>Hand-written bank spot guides.</span></span><span class="sw" aria-hidden="true"></span></button>
+      <p class="lg">Reports</p>
+      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="counts"><span class="lt"><b>Creel counts</b><span>Fish kept last week, from WDFW.</span></span><span class="sw" aria-hidden="true"></span></button>
+      <p class="lg">Water</p>
+      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="depth"><span class="lt"><b>Depth</b><span>NOAA contours, labels and a + estimate.</span></span><span class="sw" aria-hidden="true"></span></button>
+      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="heat"><span class="lt"><b>Heat circles</b><span>A guess at the best piers right now.</span></span><span class="sw" aria-hidden="true"></span></button>
       <p class="fine">Layers add to the mode you are in. They never change a pin colour.</p>
     </div>
     <div class="glass spawn smonth" id="smonth" hidden>
@@ -681,12 +690,13 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   </div>
 
   <aside id="sheet" aria-labelledby="stitle" tabindex="-1" aria-hidden="true">
-    <div class="sbar"><span class="grab"></span><h2 class="st" id="stitle"></h2><button type="button" id="sdone">Done</button></div>
+    <div class="sbar"><span class="grab"></span><h2 class="st" id="stitle"></h2><button type="button" id="sstar" aria-pressed="false" aria-label="Save this place" title="Save this place" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 17l-5.4 2.9 1.1-6.1L3.2 9.6l6.1-.8z"/></svg></button><button type="button" id="sdone">Done</button></div>
     <div class="sbody" id="sbody"></div>
   </aside>
 </div>
 
 <script src="geo.js"></script>
+<script src="depth-data.js"></script>
 <script src="rivers-tap.js"></script>
 <script src="rules.js"></script>
 <script src="reports.js"></script>
@@ -973,6 +983,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   function accessNode(o) {
     if (o.g) return o;
     o.g = el('g', { 'class': 'amark', 'data-access': o.t.id, tabindex: '0', role: 'button', 'aria-label': o.t.name + ', ' + Season.KIND_LABEL[o.t.kind].toLowerCase() }, over);
+    el('circle', { 'class': 'hit', r: (window.matchMedia && matchMedia('(pointer: coarse)').matches) ? 16 : 11 }, o.g);
     if (o.t.kind === 'pier') el('path', { 'class': 'd', d: 'M0 -6L6 0 0 6 -6 0Z' }, o.g);
     else el('circle', { 'class': 'd', r: 5 }, o.g);
     o.lab = el('text', { 'class': 'lab' }, over); o.lab.textContent = o.t.name;
@@ -1104,7 +1115,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   function limits() {
     // Reports mode may zoom out to the unpadded state; Typical mode opens on the whole state, so its floor fits the state inside the chrome.
     var f = fitFor(D.bounds.state, { t: 0, b: 0, l: 0, r: 0 });
-    var home = view !== 'reports' ? homeFit().s : fitFor(D.bounds.state, { t: 0, b: 0, l: 0, r: 0 }).s;
+    var home = homeFit().s;
     minS = home * 0.9; maxS = f.s * 90;
   }
   function setView(t) {
@@ -1138,33 +1149,15 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   }
   // Typical season and Spawning open on all of Washington. Recent reports opens on the southwest box grown to hold every report pin,
   // so the view does not spend its bottom edge on blank Oregon ground and a river added beyond the southwest is on screen.
-  function homeBounds() { return view !== 'reports' ? D.bounds.state : Reports.homeBox(SITES.map(function (s) { return s.xy; }), SW_BOX); }
+  function homeBounds() { return D.bounds.state; }
   // The opening view. Wide windows keep the card and legend in a left column and give the map everything to their right; narrow windows
   // stack the card, map and legend. Either way the bounds' southern edge sits on the bottom of the free area, so any blank band is
   // above the map (Canada side, under the card) and Oregon ground is off-screen.
   function homeFit() {
-    var wide = window.innerWidth >= 760, b = homeBounds(), p = pads();
-    // Pins and their labels rise about 30 px above their point, so a site on the state's north edge would sit under the bar.
-    var rise = view !== 'reports' ? 30 : 0;
-    p.t += rise;
-    // Phones: the southwest box is wider than tall, so fitting it by width left the reported rivers in a strip above the legend.
-    // Fit the reported waters themselves and center them in the free area instead.
-    if (!wide && view === 'reports') {
-      var xs = SITES.map(function (s) { return s.xy[0]; }), ys = SITES.map(function (s) { return s.xy[1]; });
-      return fitFor([[Math.min.apply(null, xs) - 12, Math.min.apply(null, ys) - 24], [Math.max.apply(null, xs) + 12, b[1][1]]], p);
-    }
-    // The southwest bounds end on the Columbia, so the legend can sit over Oregon ground: let the map run to the bottom edge on wide windows.
-    if (wide && view === 'reports') p.b = 12;
-    var f = fitFor(b, p), bottom = p.b;
-    if (wide) {
-      var col = $('#bar').getBoundingClientRect().right + 12;
-      var c = fitFor(b, { t: 12 + rise, b: 12, l: col, r: p.r > 8 ? p.r : 68 });
-      if (c.s > f.s) { f = c; bottom = 12; }
-    }
-    // Wide windows anchor the state to the bottom edge. Phones keep fitFor's centring: the state is width-bound there,
-    // and anchoring it low left a blank band above it in Typical season and Spawning.
-    if (wide) f.ty = (H - bottom) - b[1][1] * f.s;
-    return f;
+    // Always fit the whole state inside the free area (below the bar and cards, above the legend), centred, at any window width.
+    var p = pads();
+    p.t += 30; p.l = 8; p.r = 8; p.b = Math.max(p.b, 12);
+    return fitFor(homeBounds(), p);
   }
   function resetView() { animateTo(homeFit(), 350); }
 
@@ -1228,6 +1221,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var dk = view + '|' + species + '|' + LMONTH + '|' + layers.join();
     if (dk !== dashKey) { dashKey = dk; syncSeasonUi(); }
     vp.setAttribute('transform', 'translate(' + v.tx + ' ' + v.ty + ') scale(' + v.s + ')');
+    depthTick();
+    heatTick();
     var typ = view === 'typical', spw = view === 'spawning';
     // Typical season and Spawning draw from the pin pool; Recent reports keeps its eight fixed pins.
     var pool = typ || spw;
@@ -1638,7 +1633,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   if (phoneMq.addEventListener) phoneMq.addEventListener('change', placeModes); else phoneMq.addListener(placeModes);
   /* ---- layers: drawn on top of whichever mode is showing; they never change a pin's colour ---- */
   var layers = [], laybtn = $('#laybtn'), laypop = $('#laypop');
-  var LAYER_KEY = { typical: 'Square, diamond, circle: launch, pier, shore. Solid when in season (typical timing, not a report)', spawn: 'Triangle: salmon viewing site. Solid when spawning', seasons: 'Dashed outline: a season open in the chosen month', spots: 'White pin: a spot guide', access: 'Diamond: a WDFW pier · circle: shore access', counts: 'Badge: fish kept last week (WDFW survey)' };
+  var LAYER_KEY = { typical: 'Square, diamond, circle: launch, pier, shore. Solid when in season (typical timing, not a report)', spawn: 'Triangle: salmon viewing site. Solid when spawning', seasons: 'Dashed outline: a season open in the chosen month', spots: 'White pin: a spot guide', access: 'Diamond: a WDFW pier · circle: shore access', counts: 'Badge: fish kept last week (WDFW survey)', depth: 'Blue lines: NOAA depth contours, labelled in feet below low tide. The + mark gives an estimate; a species depth is a guess, not a report. Not for navigation', heat: 'Circles, amber then orange then red: a weaker to stronger guess for a pier or shore site right now, from depth, tide and light. Relative, not a rating, no catch data' };
   function syncLayUi() {
     $('#layl').innerHTML = layers.map(function (n) { return '<li>' + LAYER_KEY[n] + '</li>'; }).join('');
     $('#layl').hidden = !layers.length;
@@ -1647,6 +1642,505 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     $('#laycount').textContent = layers.length || ''; $('#laycount').hidden = !layers.length;
   }
   function setLayers(list) { layers = list; syncLayUi(); syncSeasonUi(); applyStyles(); render(); syncLink(); }
+
+  /* ---- Depth layer: NOAA depth contours baked into depth-data.js (no network). Contours are drawn as lines with feet labels
+     when zoomed in; the + mark at the centre gets an estimate interpolated between the two nearest contours, and a chosen
+     species gets a rule-of-thumb depth range. All of it is a guess from a chart, never a report. Not for navigation. ---- */
+  var DD = window.DEPTHDATA, depthG = null, depthLab = null, depthPoly = null, depthKey = '', depthSp = null, depthTxt = '';
+  var DEPTH_LINES_DEG = 3.0, DEPTH_LABEL_DEG = 0.7, DEPTH_LABEL_MAX = 36;
+  /* Species depth guesses, in feet. basis says where each came from; none is a catch report. */
+  var DEPTH_GUESS = [
+    { re: /coho/i, name: 'Coho', lo: 30, hi: 60, basis: 'one fishing report: trolling 30–60 ft' },
+    { re: /chinook/i, name: 'Chinook', lo: 60, hi: 150, basis: 'angler rule of thumb, unverified' },
+    { re: /lingcod/i, name: 'Lingcod', lo: 32, hi: 328, basis: 'WDFW: mostly rocky bottom, 32–328 ft' }
+  ];
+  function depthGuess() { if (!species) return null; for (var i = 0; i < DEPTH_GUESS.length; i++) if (DEPTH_GUESS[i].re.test(species)) return DEPTH_GUESS[i]; return null; }
+  function depthOn() { return !!DD && layers.indexOf('depth') >= 0; }
+  function depthCenter() { var p = pads(); return [p.l + (W - p.l - p.r) / 2, p.t + (H - p.t - p.b) / 2]; }
+  function depthSay(html) {
+    var chip = $('#depthchip');
+    if (html === depthTxt && !chip.hidden) return;
+    depthTxt = html; chip.innerHTML = html; chip.hidden = false;
+  }
+  // The chip is tappable: with no species it opens the species list, otherwise it opens or closes its detail. It never starts a map drag.
+  (function () {
+    var chip = $('#depthchip');
+    ['pointerdown', 'mousedown', 'touchstart', 'wheel'].forEach(function (ev) { chip.addEventListener(ev, function (e) { e.stopPropagation(); }, { passive: true }); });
+    chip.addEventListener('click', function () {
+      if (!species && depthOn()) { toggleLayers(false); toggleSpecies(true); return; }
+      var open = !chip.classList.contains('open'); chip.classList.toggle('open', open); chip.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  })();
+  function svgEl(n, a) { var e = document.createElementNS('http://www.w3.org/2000/svg', n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+  function depthBuild() {
+    if (depthG) return;
+    depthG = svgEl('g', { id: 'depthg', transform: 'scale(' + DD.scale + ')' });
+    DD.levels.forEach(function (lv) {
+      var p = svgEl('path', { d: lv.d, fill: 'none', 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke' });
+      p.setAttribute('data-ft', lv.ft); depthG.appendChild(p);
+    });
+    depthLab = svgEl('g', { id: 'depthlab' });
+    for (var i = 0; i < DEPTH_LABEL_MAX; i++) depthLab.appendChild(svgEl('text', { display: 'none' }));
+    vp.appendChild(depthG); vp.appendChild(depthLab);
+    depthSp = null;
+  }
+  function depthStyle() {
+    var g = depthGuess(), spk = g ? g.name : '';
+    if (spk === depthSp) return;
+    depthSp = spk;
+    [].forEach.call(depthG.childNodes, function (p) {
+      var ft = +p.getAttribute('data-ft'), hit = g && ft >= g.lo && ft <= g.hi;
+      p.style.stroke = hit ? 'var(--depth-hit)' : 'var(--depth-line)';
+      p.setAttribute('stroke-width', hit ? 1.6 : (ft % 60 === 0 || ft === 30 ? 1.2 : 0.8));
+      p.setAttribute('stroke-opacity', g ? (hit ? 0.9 : 0.3) : (ft % 60 === 0 || ft === 30 ? 0.8 : 0.55));
+    });
+  }
+  function depthOff() {
+    if (depthG && depthG.parentNode) depthG.parentNode.removeChild(depthG);
+    if (depthLab && depthLab.parentNode) depthLab.parentNode.removeChild(depthLab);
+    depthG = depthLab = null; depthKey = ''; depthTxt = ''; depthSp = null;
+    $('#depthchip').hidden = true; $('#xhair').hidden = true;
+  }
+  var DEPTH_MAJOR = { 30: 1, 60: 1, 120: 1, 300: 1, 600: 1 };
+  function depthLabels() {
+    var degW = W / v.s / D.proj.kx, show = degW <= DEPTH_LABEL_DEG, nodes = depthLab.childNodes, i, j, n = 0;
+    if (show) {
+      var x0 = -v.tx / v.s, y0 = -v.ty / v.s, x1 = x0 + W / v.s, y1 = y0 + H / v.s, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, vis = [];
+      var all = degW <= 0.25;
+      for (i = 0; i < DD.lab.length; i++) { var l = DD.lab[i]; if (l[0] >= x0 && l[0] <= x1 && l[1] >= y0 && l[1] <= y1 && (all || DEPTH_MAJOR[l[2]])) vis.push(l); }
+      vis.sort(function (a, b) { return Math.hypot(a[0] - cx, a[1] - cy) - Math.hypot(b[0] - cx, b[1] - cy); });
+      // Keep labels apart (46 px) and clear of pier and shore markers (34 px) so numbers never sit on a name.
+      var keep = [], marks = [];
+      if (layers.indexOf('access') >= 0 || layers.indexOf('heat') >= 0) ACCESS.forEach(function (o) { var mx = o.xy[0] * v.s + v.tx, my = o.xy[1] * v.s + v.ty; if (mx > -40 && mx < W + 40 && my > -40 && my < H + 40) marks.push([mx, my]); });
+      var fs = 11 / v.s;
+      for (i = 0; i < vis.length && keep.length < DEPTH_LABEL_MAX; i++) {
+        var lb = vis[i], sx = lb[0] * v.s + v.tx, sy = lb[1] * v.s + v.ty, ok = true;
+        for (j = 0; j < keep.length && ok; j++) if (Math.abs(keep[j][0] - sx) < 46 && Math.abs(keep[j][1] - sy) < 18) ok = false;
+        for (j = 0; j < marks.length && ok; j++) if (Math.abs(marks[j][0] - sx) < 34 && Math.abs(marks[j][1] - sy) < 34) ok = false;
+        if (!ok) continue;
+        keep.push([sx, sy]);
+        var t = nodes[n++];
+        t.setAttribute('x', lb[0]); t.setAttribute('y', lb[1]); t.setAttribute('font-size', fs); t.setAttribute('stroke-width', 3 / v.s);
+        t.textContent = lb[2]; t.removeAttribute('display');
+      }
+    }
+    for (; n < nodes.length; n++) nodes[n].setAttribute('display', 'none');
+  }
+  function depthParse() {
+    if (depthPoly) return depthPoly;
+    depthPoly = [];
+    DD.levels.forEach(function (lv) {
+      lv.d.split('M').forEach(function (seg) {
+        if (!seg) return;
+        var li = seg.indexOf('l'), head = (li < 0 ? seg : seg.slice(0, li)).trim().split(' '), x = +head[0], y = +head[1];
+        var xs = [x], ys = [y], mnx = x, mxx = x, mny = y, mxy = y;
+        if (li >= 0) {
+          var q = seg.slice(li + 1).trim().split(' ');
+          for (var i = 0; i + 1 < q.length; i += 2) {
+            x += +q[i]; y += +q[i + 1]; xs.push(x); ys.push(y);
+            if (x < mnx) mnx = x; if (x > mxx) mxx = x; if (y < mny) mny = y; if (y > mxy) mxy = y;
+          }
+        }
+        depthPoly.push({ ft: lv.ft, xs: xs, ys: ys, b: [mnx, mny, mxx, mxy] });
+      });
+    });
+    return depthPoly;
+  }
+  /* Nearest distance (in 0.01 map units) from a map point to each contour depth, within r. */
+  function depthLevelsNear(mx, my, r) {
+    var P = depthParse(), px = mx * 100, py = my * 100, best = {}, i, j;
+    for (i = 0; i < P.length; i++) {
+      var o = P[i], b = o.b;
+      if (px < b[0] - r || px > b[2] + r || py < b[1] - r || py > b[3] + r) continue;
+      var md = 1e18;
+      for (j = 0; j + 1 < o.xs.length; j++) {
+        var ax = o.xs[j], ay = o.ys[j], dx = o.xs[j + 1] - ax, dy = o.ys[j + 1] - ay, L2 = dx * dx + dy * dy, t = L2 ? ((px - ax) * dx + (py - ay) * dy) / L2 : 0;
+        t = t < 0 ? 0 : t > 1 ? 1 : t;
+        var ex = ax + t * dx - px, ey = ay + t * dy - py, d = ex * ex + ey * ey;
+        if (d < md) md = d;
+      }
+      md = Math.sqrt(md);
+      if (md < r && (best[o.ft] === undefined || md < best[o.ft])) best[o.ft] = md;
+    }
+    return best;
+  }
+  /* Depth at a map point: interpolate between the two nearest contour lines of different depths. Null when no contour is close. */
+  function depthEstimate(mx, my) {
+    var best = depthLevelsNear(mx, my, 150);
+    var arr = Object.keys(best).map(function (k) { return { ft: +k, d: best[k] / 100 }; }).sort(function (a, b) { return a.d - b.d; });
+    if (!arr.length || arr[0].d > 0.35) return null;
+    var a = arr[0], c = arr.filter(function (x) { return x.ft !== a.ft; })[0];
+    if (!c) return { ft: a.ft, near: true };
+    return { ft: a.ft + (c.ft - a.ft) * a.d / (a.d + c.d), near: false };
+  }
+  function depthReadout() {
+    var c = depthCenter(), est = depthEstimate((c[0] - v.tx) / v.s, (c[1] - v.ty) / v.s), g = depthGuess(), t, sub = '', more;
+    if (!est) {
+      t = '<b>No charted depth</b> <small>near +</small>';
+      if (g) sub = '<span class="sub">' + esc(g.name) + ' usually ' + g.lo + '–' + g.hi + ' ft (no chart here)</span>';
+      more = (g ? esc(g.name) + ' depth is a guess: ' + esc(g.basis) + '. ' : '') + 'No NOAA depth contours within about a quarter mile of the + mark. Open coast and rivers have little or no chart data.';
+    }
+    else {
+      var ft = est.near ? est.ft : Math.max(3, Math.round(est.ft / 5) * 5);
+      t = '<b>' + (est.near ? 'Near the ' + ft + ' ft line' : '≈ ' + ft + ' ft') + '</b> <small>at +</small>';
+      if (g) {
+        var where = ft < g.lo ? 'shallower here' : ft > g.hi ? 'deeper here' : 'in range';
+        sub = '<span class="sub">' + esc(g.name) + ' ' + g.lo + '–' + g.hi + ' ft · ' + where + '</span>';
+        more = esc(g.name) + ' depth is a guess: ' + esc(g.basis) + '. ';
+      } else { sub = '<span class="sub"><small>Tap to pick a species</small></span>'; more = ''; }
+      more += 'Depth is rounded and interpolated between NOAA contour lines. Not for navigation.';
+    }
+    depthSay(t + sub + '<span class="more">' + more + '</span>');
+  }
+  function depthTick() {
+    if (!depthOn()) { if (depthG || !$('#depthchip').hidden) depthOff(); return; }
+    if (!W || !H) return;
+    var chip = $('#depthchip'), xh = $('#xhair'), c = depthCenter();
+    var degW = W / v.s / D.proj.kx;
+    if (degW > DEPTH_LINES_DEG) {
+      if (depthG) { depthG.parentNode.removeChild(depthG); depthLab.parentNode.removeChild(depthLab); depthG = depthLab = null; }
+      depthKey = ''; xh.hidden = true; depthSay('<b>Depth</b> <small>zoom in on Puget Sound</small>');
+      return;
+    }
+    depthBuild(); depthStyle(); depthLabels();
+    xh.hidden = false; xh.style.left = c[0] + 'px'; xh.style.top = c[1] + 'px';
+    var key = Math.round(v.s * 100) + '|' + Math.round(v.tx) + '|' + Math.round(v.ty) + '|' + (species || '');
+    if (key === depthKey) return;
+    depthKey = key;
+    clearTimeout(depthTick.t); depthTick.t = setTimeout(function () { if (depthOn() && depthG) depthReadout(); }, 160);
+  }
+  /* ---- Heat circles: a rule-of-thumb guess for each saltwater pier and shore site, right now. Three parts, each shown in the
+     sheet with its reason: is water of the species' usual depth within casting reach (depth contours), is the tide turning
+     (computed tides), and is it near dawn or dusk. Relative, never a rating; there is no catch data behind it. ---- */
+  var HEAT = { sites: null, cache: {} }, depthAsked = false;
+  var YD_PER_UNIT = 1218;   // one map unit is 0.01 degree of latitude, about 1.11 km
+  function heatSites() { if (!HEAT.sites) HEAT.sites = ACCESS.slice(); return HEAT.sites; }
+  function sunEvents(lat, lon, when) {
+    var out = [], rad = Math.PI / 180;
+    for (var k = -1; k <= 1; k++) {
+      var day = Date.UTC(when.getUTCFullYear(), when.getUTCMonth(), when.getUTCDate() + k), dt = new Date(day);
+      var N = Math.floor((day - Date.UTC(dt.getUTCFullYear(), 0, 0)) / 86400000), g = 2 * Math.PI / 365 * (N - 1);
+      var eq = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g));
+      var de = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g);
+      var c = Math.cos(90.833 * rad) / (Math.cos(lat * rad) * Math.cos(de)) - Math.tan(lat * rad) * Math.tan(de);
+      if (c < -1 || c > 1) continue;
+      var ha = Math.acos(c) / rad;
+      out.push({ at: day + (720 - 4 * (lon + ha) - eq) * 60000, kind: 'rise' }, { at: day + (720 - 4 * (lon - ha) - eq) * 60000, kind: 'set' });
+    }
+    return out.sort(function (a, b) { return a.at - b.at; });
+  }
+  function heatLight(o, when) {
+    var ev = sunEvents(o.ll[0], o.ll[1], when), t = when.getTime(), near = null, prev = null, i;
+    for (i = 0; i < ev.length; i++) { if (ev[i].at <= t) prev = ev[i]; if (!near || Math.abs(ev[i].at - t) < Math.abs(near.at - t)) near = ev[i]; }
+    if (!near) return null;
+    var mins = Math.round(Math.abs(near.at - t) / 60000), word = near.kind === 'rise' ? 'sunrise' : 'sunset';
+    if (mins <= 90) return { s: 1, why: 'Light: ' + (mins < 5 ? 'right at ' : mins + ' min ' + (near.at > t ? 'before ' : 'after ')) + word + ', a common bite window' };
+    if (prev && prev.kind === 'rise') return { s: 0.55, why: 'Light: daytime, away from dawn and dusk' };
+    return { s: 0.3, why: 'Light: after dark' };
+  }
+  function heatTide(o, when) {
+    if (!TE) return null;
+    var st = Tides.nearest(o.ll[0], o.ll[1], TE.stations);
+    if (!st) return null;
+    var ds = [-1, 0, 1].map(function (k) { return Tides.laParts(new Date(when.getTime() + k * 86400000)).date; }), ev = [];
+    ds.forEach(function (d) { var k = st.id + '|' + d; HEAT.ev = HEAT.ev || {}; if (!HEAT.ev[k]) HEAT.ev[k] = TE.day(st.id, d) || []; ev = ev.concat(HEAT.ev[k]); });
+    var best = null;
+    ev.forEach(function (e) { if (!best || Math.abs(e.at - when) < Math.abs(best.at - when)) best = e; });
+    if (!best) return null;
+    var mins = Math.round(Math.abs(best.at - when) / 60000), kind = best.type === 'H' ? 'high' : 'low';
+    if (mins <= 60) return { s: 1, why: 'Tide: ' + kind + ' tide ' + (best.at > when ? 'in ' : mins + ' min ago') + (best.at > when ? mins + ' min' : '') + ', water changing direction' };
+    if (mins <= 120) return { s: 0.7, why: 'Tide: ' + kind + ' tide ' + (best.at > when ? 'in ' + mins + ' min' : mins + ' min ago') + ', close to a turn' };
+    return { s: 0.45, why: 'Tide: mid-tide, well away from a turn' };
+  }
+  /* Each part is { s: 0..1 or null, why }. A null s is shown in the sheet but not counted, so a site missing one kind of data
+     is still scored from the kinds we do have. */
+  function heatDepth(o, g) {
+    if (!o.t.area) return null;                       // freshwater: no tide or chart depth
+    if (!DD) return { s: null, why: 'Depth: no chart data in this page, so depth is not counted' };
+    if (!o.nl) o.nl = depthLevelsNear(o.xy[0], o.xy[1], 20);
+    var ks = Object.keys(o.nl);
+    if (!ks.length) return { s: null, why: 'Depth: no NOAA depth contours near this site, so depth is not counted' };
+    if (!g) return { s: null, why: 'Depth: pick a species to count depth' };
+    var best = null, deeper = false;
+    ks.forEach(function (k) {
+      var ft = +k, d = o.nl[k];
+      if (ft >= g.lo && ft <= g.hi && (!best || d < best.d)) best = { ft: ft, d: d };
+      if (ft > g.hi) deeper = true;
+    });
+    if (best) {
+      var yd = Math.max(10, Math.round(best.d / 100 * YD_PER_UNIT / 10) * 10);
+      return { s: best.d <= 8 ? 1 : 0.6, why: 'Depth: the ' + best.ft + ' ft line is about ' + yd + ' yards out (' + g.name + ' often ' + g.lo + '–' + g.hi + ' ft)' };
+    }
+    return deeper ? { s: 0.3, why: 'Depth: deeper than ' + g.name + ' usually holds, and no ' + g.lo + '–' + g.hi + ' ft water close' } : { s: 0.15, why: 'Depth: only shallow water within about 250 yards' };
+  }
+  /* Typical timing already on file for the site (the Typical season data), for the chosen species and this month. */
+  var HEAT_SEASON = { prime: 1, good: 0.8, fair: 0.5, slow: 0.2 };
+  function heatSeason(o) {
+    if (typeof Season === 'undefined' || !HAS_TYPICAL) return null;
+    initTypical();
+    if (!prep) return null;
+    var sv = Season.siteView(prep, o.t, MONTH, species);
+    if (!sv || sv.r === 'unrated') return { s: null, why: 'Season: no typical timing on file for this site, so it is not counted' };
+    return { s: HEAT_SEASON[sv.r], why: 'Season: typical timing here is ' + Season.LABEL[sv.r].toLowerCase() + ' this month' + (species ? ' for ' + species : '') };
+  }
+  function heatScore(o, whenOpt) {
+    var when = whenOpt || tideNow(), g = depthGuess(), key = o.t.id + '|' + (g ? g.name : '') + '|' + (species || '') + '|' + MONTH + '|' + Math.floor(when.getTime() / 300000);
+    if (HEAT.cache[key] !== undefined) return HEAT.cache[key];
+    var parts = [], tot = 0, wsum = 0, r = null;
+    [[heatDepth(o, g), 0.35], [o.t.area ? heatTide(o, when) : null, 0.25], [heatSeason(o), 0.25], [heatLight(o, when), 0.15]].forEach(function (pw) {
+      var p = pw[0]; if (!p) return;
+      parts.push(p);
+      if (p.s !== null) { tot += p.s * pw[1]; wsum += pw[1]; }
+    });
+    // Enough known: light plus at least one other part.
+    if (wsum >= 0.39) r = { s: tot / wsum, parts: parts };
+    if (Object.keys(HEAT.cache).length > 6000) HEAT.cache = {};
+    HEAT.cache[key] = r;
+    return r;
+  }
+  function heatTick() {
+    if (!HEAT) return;
+    var svg = $('#heat'), on = layers.indexOf('heat') >= 0 && !!TE;
+    // Zoomed out to the whole state the circles would pile into blobs, so they wait until the map is at Puget Sound scale or closer.
+    if (on && W / v.s / D.proj.kx > 3.5) on = false;
+    if (!on) { if (svg.firstChild) svg.innerHTML = ''; return; }
+    var sites = heatSites(), n = 0, i, o, x, y, h, c;
+    for (i = 0; i < sites.length; i++) {
+      o = sites[i]; x = o.xy[0] * v.s + v.tx; y = o.xy[1] * v.s + v.ty;
+      if (x < -50 || x > W + 50 || y < -50 || y > H + 50) continue;
+      h = heatScore(o); if (!h) continue;
+      c = svg.childNodes[n];
+      if (!c) { c = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); svg.appendChild(c); }
+      n++;
+      c.setAttribute('cx', x.toFixed(1)); c.setAttribute('cy', y.toFixed(1));
+      // Three steps, amber then orange then red: weaker to stronger, relative.
+      var step = h.s >= 0.75 ? 2 : h.s >= 0.55 ? 1 : 0;
+      c.setAttribute('r', [11, 15, 19][step]);
+      c.style.fill = ['var(--heat-1)', 'var(--heat-2)', 'var(--heat-3)'][step];
+      c.setAttribute('fill-opacity', [0.28, 0.4, 0.52][step]);
+    }
+    while (svg.childNodes.length > n) svg.removeChild(svg.lastChild);
+  }
+  function heatSection(id) {
+    if (layers.indexOf('heat') < 0) return '';
+    var o = heatSites().filter(function (q) { return q.t.id === id; })[0];
+    if (!o) return '';
+    var h = heatScore(o);
+    if (!h) return '<section><h3>Heat circle</h3><p class="miss">Not enough is known about this site for a heat circle: no tide, typical timing or depth on file.</p></section>';
+    var word = h.s >= 0.75 ? 'Stronger combination right now' : h.s >= 0.55 ? 'Middling combination right now' : 'Weaker combination right now';
+    return '<section><h3>Heat circle · a guess</h3><p class="tidenow"><b>' + word + '</b></p><ul class="heatwhy">' +
+      h.parts.map(function (p) { return '<li>' + esc(p.why) + '</li>'; }).join('') + '</ul>' +
+      '<p class="miss">A rule-of-thumb guess from what is on file for this site: depth contours, typical timing, computed tides and the sun. Parts we have no data for are left out, not guessed. No catch data behind it, not a report and not a rating.</p></section>';
+  }
+
+  /* ---- Where to cast: for a saltwater pier or shore site, a top-down picture of the depth contours around it (rings at 50, 100 and
+     200 yards), the compass direction and distance to water of the species' usual depth, a side view along that line with a lure
+     depth, and a 48-hour strip. Drag the time and the tide, light and the other pictures move with it. Wind is picked by hand (the
+     page has no live wind). Chart depths are at low tide, so the tide at the chosen time is added. A guess from a chart and common
+     angler rules of thumb; pier layout and current direction are not known. ---- */
+  var CAST = { wind: null, at: null, raf: 0 };
+  var COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'], YD = 12.18, CAST_R = 250, HOUR = 3600000;
+  function bName(b) { return COMPASS[Math.round(((b % 360) + 360) % 360 / 45) % 8]; }
+  function nearSeg(px, py, ax, ay, bx, by) {
+    var dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy, t = L2 ? ((px - ax) * dx + (py - ay) * dy) / L2 : 0;
+    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    var x = ax + t * dx, y = ay + t * dy;
+    return { x: x, y: y, d: Math.hypot(x - px, y - py) };
+  }
+  function castStart() { return Tides.laMidnight(TODAY).getTime(); }
+  function castWhen() { return CAST.at === null ? tideNow() : new Date(CAST.at); }
+  function castTide(o, when) {
+    if (!TE) return null;
+    var st = Tides.nearest(o.ll[0], o.ll[1], TE.stations); if (!st) return null;
+    var n = TE.now(st.id, when); return n ? { v: Math.max(-3, n.v), rising: n.rising, name: st.name, id: st.id } : null;
+  }
+  function castData(o, g, tv) {
+    var P = depthParse(), px = o.xy[0] * 100, py = o.xy[1] * 100, R = CAST_R / YD + 2, near = [], i, j;
+    for (i = 0; i < P.length; i++) { var b = P[i].b; if (px >= b[0] - R && px <= b[2] + R && py >= b[1] - R && py <= b[3] + R) near.push(P[i]); }
+    var res = { near: near, px: px, py: py, tgt: null, prof: null, tv: tv };
+    if (!g) return res;
+    var all = null, down = null, w = CAST.wind, wx = 0, wy = 0;
+    if (w !== null) { var T = (w + 180) * Math.PI / 180; wx = Math.sin(T); wy = -Math.cos(T); }
+    near.forEach(function (q) {
+      var real = q.ft + tv;                                  // chart depth plus the tide at the chosen time
+      if (real < g.lo || real > g.hi) return;
+      for (j = 0; j + 1 < q.xs.length; j++) {
+        var c = nearSeg(px, py, q.xs[j], q.ys[j], q.xs[j + 1], q.ys[j + 1]), yd = c.d * YD;
+        if (yd > CAST_R) continue;
+        var cand = { x: c.x, y: c.y, yd: yd, ft: Math.round(real) };
+        if (!all || yd < all.yd) all = cand;
+        if (w !== null && (c.x - px) * wx + (c.y - py) * wy > 0 && (!down || yd < down.yd)) down = cand;
+      }
+    });
+    var t = down && all && down.yd <= all.yd * 1.6 + 15 ? down : all;
+    if (!t) return res;
+    t.b = (Math.atan2(t.x - px, -(t.y - py)) * 180 / Math.PI + 360) % 360;
+    res.tgt = t;
+    // Depths along the cast line: where it crosses each contour.
+    var ux = Math.sin(t.b * Math.PI / 180), uy = -Math.cos(t.b * Math.PI / 180), pts = [];
+    near.forEach(function (q) {
+      for (j = 0; j + 1 < q.xs.length; j++) {
+        var ax = q.xs[j] - px, ay = q.ys[j] - py, sx = q.xs[j + 1] - q.xs[j], sy = q.ys[j + 1] - q.ys[j], den = ux * sy - uy * sx;
+        if (Math.abs(den) < 1e-9) continue;
+        var tt = (ax * sy - ay * sx) / den, ww = (ax * uy - ay * ux) / den;
+        if (tt >= 0 && ww >= 0 && ww <= 1 && tt * YD <= CAST_R) pts.push({ d: tt * YD, ft: q.ft });
+      }
+    });
+    pts.sort(function (a, b) { return a.d - b.d; });
+    res.prof = pts;
+    return res;
+  }
+  function castPlan(cd, g) {
+    var S = 6.09, cx = 140, cy = 140, px = cd.px, py = cd.py, h = '', i, tv = cd.tv;
+    function pp(deg, r) { var a = deg * Math.PI / 180; return [cx + Math.sin(a) * r, cy - Math.cos(a) * r]; }
+    h += '<clipPath id="castclip"><circle cx="140" cy="140" r="125"/></clipPath><circle cx="140" cy="140" r="125" fill="var(--surface)" fill-opacity=".7"/>';
+    if (CAST.wind !== null) {
+      var T = (CAST.wind + 180) % 360, a = pp(T - 90, 125), b = pp(T + 90, 125);
+      h += '<path d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + 'A125 125 0 0 1 ' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + 'Z" fill="var(--on)" fill-opacity=".1"/>';
+    }
+    h += '<g clip-path="url(#castclip)" fill="none" stroke-linejoin="round">';
+    cd.near.forEach(function (q) {
+      var hit = g && q.ft + tv >= g.lo && q.ft + tv <= g.hi, d = '';
+      for (i = 0; i < q.xs.length; i++) d += (i ? 'L' : 'M') + (cx + (q.xs[i] - px) * S).toFixed(1) + ' ' + (cy + (q.ys[i] - py) * S).toFixed(1);
+      h += '<path d="' + d + '" stroke="' + (hit ? 'var(--depth-hit)' : 'var(--depth-line)') + '" stroke-width="' + (hit ? 2.5 : 1) + '" stroke-opacity="' + (hit ? 1 : 0.55) + '"/>';
+    });
+    h += '</g>';
+    [[25, '50'], [50, '100'], [100, '200 yd']].forEach(function (r) {
+      h += '<circle cx="140" cy="140" r="' + r[0] + '" fill="none" stroke="var(--ink2)" stroke-opacity=".45" stroke-dasharray="3 3"/><text x="143" y="' + (138 - r[0]) + '" font-size="10" fill="var(--ink2)">' + r[1] + '</text>';
+    });
+    h += '<text x="140" y="11" font-size="10" font-weight="700" fill="var(--ink)" text-anchor="middle">N</text>';
+    if (CAST.wind !== null) {
+      var s0 = pp(CAST.wind, 122), s1 = pp(CAST.wind, 84), ang = (CAST.wind + 180) * Math.PI / 180, hx = Math.sin(ang), hy = -Math.cos(ang);
+      var p1 = [s1[0] - hx * 8 + hy * 5, s1[1] - hy * 8 - hx * 5], p2 = [s1[0] - hx * 8 - hy * 5, s1[1] - hy * 8 + hx * 5];
+      h += '<g stroke="var(--on-text)" fill="var(--on-text)"><line x1="' + s0[0].toFixed(1) + '" y1="' + s0[1].toFixed(1) + '" x2="' + s1[0].toFixed(1) + '" y2="' + s1[1].toFixed(1) + '" stroke-width="2.5" stroke-linecap="round"/><path d="M' + s1[0].toFixed(1) + ' ' + s1[1].toFixed(1) + 'L' + p1[0].toFixed(1) + ' ' + p1[1].toFixed(1) + 'L' + p2[0].toFixed(1) + ' ' + p2[1].toFixed(1) + 'Z" stroke="none"/></g>';
+    }
+    if (cd.tgt) {
+      var t = cd.tgt, tx = cx + (t.x - px) * S, ty = cy + (t.y - py) * S;
+      h += '<line x1="140" y1="140" x2="' + tx.toFixed(1) + '" y2="' + ty.toFixed(1) + '" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4 3"/><circle cx="' + tx.toFixed(1) + '" cy="' + ty.toFixed(1) + '" r="6" fill="var(--depth-hit)" stroke="var(--ink)" stroke-width="1.5"/>' +
+        '<text x="' + (tx + (tx > 200 ? -10 : 10)).toFixed(1) + '" y="' + (ty - 9).toFixed(1) + '" font-size="10" font-weight="700" fill="var(--ink)" text-anchor="' + (tx > 200 ? 'end' : 'start') + '" stroke="var(--surface)" stroke-width="3" paint-order="stroke">' + t.ft + ' ft</text>';
+    }
+    h += '<path d="M140 134L146 140 140 146 134 140Z" fill="var(--ink)" stroke="var(--surface)" stroke-width="1.5"/>';
+    return '<svg class="castviz" viewBox="0 0 280 280" role="img" aria-label="Top-down view of depth contours around the pier">' + h + '</svg>';
+  }
+  function castLure(cd, g) {
+    var t = cd.tgt; if (!t) return null;
+    var water = t.ft, hi = Math.max(g.lo, Math.min(g.hi, Math.round(water) - 3));
+    return { lo: g.lo, hi: hi, water: Math.round(water) };
+  }
+  function castSide(cd, g) {
+    var X0 = 30, XW = 242, Y0 = 8, YH = 84, tv = cd.tv, t = cd.tgt, pts = (cd.prof || []).map(function (p) { return { d: p.d, ft: Math.max(1, p.ft + tv) }; });
+    if (!pts.length || !t) return '';
+    var est = depthEstimate(cd.px / 100, cd.py / 100), f0 = est ? Math.max(1, est.ft + tv) : Math.max(1, pts[0].ft * 0.6);
+    pts.unshift({ d: 0, ft: f0 }); pts.push({ d: CAST_R, ft: pts[pts.length - 1].ft });
+    var maxD = 70; pts.forEach(function (p) { if (p.ft > maxD) maxD = p.ft; }); maxD = Math.max(Math.min(130, Math.ceil(Math.max(maxD, g.hi + 15) / 10) * 10), 50);
+    function X(d) { return (X0 + d / CAST_R * XW).toFixed(1); }
+    function Y(f) { return (Y0 + Math.min(f, maxD) / maxD * YH).toFixed(1); }
+    var line = pts.map(function (p, i) { return (i ? 'L' : 'M') + X(p.d) + ' ' + Y(p.ft); }).join('');
+    var h = '<rect x="' + X0 + '" y="' + Y0 + '" width="' + XW + '" height="' + YH + '" fill="var(--on)" fill-opacity=".08"/>' +
+      '<rect x="' + X0 + '" y="' + Y(g.lo) + '" width="' + XW + '" height="' + Math.max(1, Y(g.hi) - Y(g.lo)).toFixed(1) + '" fill="var(--depth-hit)" fill-opacity=".22"/>' +
+      '<path d="' + line + 'L' + X(CAST_R) + ' ' + (Y0 + YH) + 'L' + X0 + ' ' + (Y0 + YH) + 'Z" fill="var(--ink2)" fill-opacity=".28"/>' +
+      '<path d="' + line + '" fill="none" stroke="var(--depth-line)" stroke-width="2" stroke-linejoin="round"/>';
+    [0, g.lo, g.hi].forEach(function (f) { h += '<text x="' + (X0 - 4) + '" y="' + (+Y(f) + 3.5) + '" font-size="10" fill="var(--ink2)" text-anchor="end">' + f + '</text>'; });
+    [0, 100, 200].forEach(function (d) { h += '<text x="' + X(d) + '" y="' + (Y0 + YH + 14) + '" font-size="10" fill="var(--ink2)" text-anchor="' + (d ? 'middle' : 'start') + '">' + (d ? d + ' yd' : 'pier') + '</text>'; });
+    var lure = castLure(cd, g);
+    if (lure) h += '<line x1="' + X(t.yd) + '" y1="' + Y(lure.lo) + '" x2="' + X(t.yd) + '" y2="' + Y(lure.hi) + '" stroke="var(--depth-hit)" stroke-width="5" stroke-linecap="round"/><circle cx="' + X(t.yd) + '" cy="' + Y(lure.hi) + '" r="3.5" fill="var(--ink)"/>';
+    return '<svg class="castviz" viewBox="0 0 280 112" role="img" aria-label="Side view of water depth along the cast line">' + h + '</svg>';
+  }
+  /* The 48 hours from midnight today: night shaded, the tide line, and a bar per hour for the relative heat score, with the chosen time marked. */
+  function castTimeline(o, g, when) {
+    var W = 300, H = 92, T0 = castStart(), T1 = T0 + 48 * HOUR, bot = H - 16, top = 4, st = Tides.nearest(o.ll[0], o.ll[1], TE.stations);
+    function X(t) { return ((t - T0) / (T1 - T0) * W).toFixed(1); }
+    var h = '', ev = [], seen = {}, i;
+    [0, 24, 48].forEach(function (k) { sunEvents(o.ll[0], o.ll[1], new Date(T0 + k * HOUR)).forEach(function (e) { var m = Math.round(e.at / 60000); if (!seen[m]) { seen[m] = 1; ev.push(e); } }); });
+    ev.sort(function (a, b) { return a.at - b.at; });
+    for (i = 0; i + 1 < ev.length; i++) if (ev[i].kind === 'set' && ev[i + 1].kind === 'rise') {
+      var a = Math.max(T0, ev[i].at), b = Math.min(T1, ev[i + 1].at);
+      if (b > a) h += '<rect x="' + X(a) + '" y="0" width="' + (X(b) - X(a)).toFixed(1) + '" height="' + bot + '" fill="var(--ink2)" fill-opacity=".16"/>';
+    }
+    for (var k = 0; k < 48; k++) {
+      var sc = heatScore(o, new Date(T0 + (k + 0.5) * HOUR));
+      if (!sc) continue;
+      var step = sc.s >= 0.75 ? 2 : sc.s >= 0.55 ? 1 : 0, ht = (6 + sc.s * (bot - top - 6)).toFixed(1);
+      h += '<rect x="' + (k * W / 48 + 0.5).toFixed(1) + '" y="' + (bot - ht).toFixed(1) + '" width="' + (W / 48 - 1).toFixed(1) + '" height="' + ht + '" rx="1.5" fill="' + ['var(--heat-1)', 'var(--heat-2)', 'var(--heat-3)'][step] + '" fill-opacity=".7"/>';
+    }
+    var curve = TE.curve(st.id, TODAY).concat(TE.curve(st.id, Tides.laParts(new Date(T0 + 30 * HOUR)).date)), lo = 1e9, hi = -1e9;
+    curve.forEach(function (q) { lo = Math.min(lo, q.v); hi = Math.max(hi, q.v); });
+    var rng = (hi - lo) || 1, d = '';
+    curve.forEach(function (q, j) { var t = q.at.getTime(); if (t < T0 || t > T1) return; d += (d ? 'L' : 'M') + X(t) + ' ' + (bot - 3 - (q.v - lo) / rng * (bot - top - 6)).toFixed(1); });
+    h += '<path d="' + d + '" fill="none" stroke="var(--depth-line)" stroke-width="2" stroke-linejoin="round"/>';
+    var nowT = Date.now(); if (TODAY === todayISO() && nowT >= T0 && nowT <= T1) h += '<circle cx="' + X(nowT) + '" cy="' + (bot + 4) + '" r="2.5" fill="var(--ink2)"/>';
+    var wx = X(Math.min(T1, Math.max(T0, when.getTime())));
+    h += '<line x1="' + wx + '" y1="0" x2="' + wx + '" y2="' + bot + '" stroke="var(--ink)" stroke-width="2"/>';
+    [[0, '12a'], [12, '12p'], [24, '12a'], [36, '12p']].forEach(function (l) { h += '<text x="' + (l[0] * W / 48 + 2) + '" y="' + (H - 3) + '" font-size="10" fill="var(--ink2)">' + l[1] + '</text>'; });
+    h += '<text x="' + (W - 2) + '" y="' + (H - 3) + '" font-size="10" fill="var(--ink2)" text-anchor="end">' + Tides.shortDate(Tides.laParts(new Date(T0 + 30 * HOUR)).date) + '</text><text x="2" y="' + (H - 3 - 0) + '" font-size="0"></text>';
+    return '<svg class="castviz" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Next 48 hours: tide line, night, and relative heat bars">' + h + '</svg>';
+  }
+  function castFmt(d) {
+    return new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', hour: 'numeric', minute: '2-digit' }).format(d);
+  }
+  function castDyn(id) {
+    var o = heatSites().filter(function (q) { return q.t.id === id; })[0];
+    if (!o || !DD) return '';
+    var when = castWhen(), g = depthGuess(), tide = castTide(o, when), tv = tide ? tide.v : 0, cd = castData(o, g, tv), t = cd.tgt, lines = [], h = '';
+    var sc = heatScore(o, when);
+    if (sc) { var step = sc.s >= 0.75 ? 2 : sc.s >= 0.55 ? 1 : 0; lines.push('At this time the heat circle is <b>' + ['amber (weaker)', 'orange (middle)', 'red (stronger)'][step] + '</b>, a relative guess, not a catch forecast.'); }
+    if (!g) lines.push('Pick a species for a target depth, a cast direction and a lure depth.');
+    else if (!t) lines.push('No ' + g.lo + '–' + g.hi + ' ft water on the chart within ' + CAST_R + ' yards of this pier at this tide. Cast as far as you can toward deeper water.');
+    else {
+      lines.push('Cast toward <b>' + bName(t.b) + '</b> (' + Math.round(t.b) + '°), about <b>' + (Math.round(t.yd / 10) * 10 || 10) + ' yards</b> out, where the water is about ' + t.ft + ' ft.');
+      var lure = castLure(cd, g);
+      lines.push('Lure at <b>' + lure.lo + '–' + lure.hi + ' ft</b> below the surface. ' + esc(g.name) + ' often ' + g.lo + '–' + g.hi + ' ft' + (tide ? '; the water is ' + Math.abs(tide.v).toFixed(1) + ' ft ' + (tide.v >= 0 ? 'above' : 'below') + ' the chart’s low-tide level and ' + (tide.rising ? 'rising' : 'falling') + ' at this time.' : '.'));
+      if (CAST.wind !== null) {
+        var T = (CAST.wind + 180) % 360, diff = Math.abs(((t.b - T + 540) % 360) - 180), how = diff < 45 ? 'a downwind cast, easy to place' : diff > 135 ? 'a cast into the wind, shorter and harder to control' : 'a crosswind cast, so expect the line to drift';
+        lines.push('Wind from <b>' + bName(CAST.wind) + '</b> blows toward the <b>' + bName(T) + '</b> side, the downwind side. This is ' + how + '.');
+      }
+    }
+    h += '<ul class="heatwhy">' + lines.map(function (l) { return '<li>' + l + '</li>'; }).join('') + '</ul>';
+    h += castPlan(cd, g || { lo: 1e9, hi: 1e9 });
+    if (g && t) h += '<p class="miss">Top view, north up. Grey-blue lines are depth contours; the orange lines are where the water is ' + esc(g.name) + '’s usual depth at this tide. Rings are 50, 100 and 200 yards.</p>' + castSide(cd, g) + '<p class="miss">Side view along the dashed line: the grey is the bottom with the tide added, the orange band is the usual depth, the thick mark is the lure depth.</p>';
+    h += '<p class="miss"><b>Next 48 hours.</b> The blue line is the tide, the bars are the relative heat score each hour (amber, orange, red), grey is night, the black line is the time you picked.</p>' + castTimeline(o, g, when);
+    return h;
+  }
+  function castHtml(id) {
+    if (layers.indexOf('heat') < 0 && layers.indexOf('depth') < 0) return '';
+    var o = heatSites().filter(function (q) { return q.t.id === id; })[0];
+    if (!o || !o.t.area || !DD || !TE) return '';
+    CAST.at = null;
+    var w = castWhen().getTime(), T0 = castStart(), mins = Math.max(0, Math.min(2880, Math.round((w - T0) / 600000) * 10));
+    var h = '<section id="castbox" data-id="' + esc(id) + '"><h3>Where to cast · a guess</h3>';
+    h += '<div class="windrow" role="group" aria-label="Wind direction"><span class="wl">Wind from</span>';
+    COMPASS.forEach(function (n, i) { h += '<button type="button" data-wind="' + i * 45 + '" aria-pressed="' + (CAST.wind === i * 45 ? 'true' : 'false') + '">' + n + '</button>'; });
+    h += '<button type="button" data-wind="" aria-pressed="' + (CAST.wind === null ? 'true' : 'false') + '">Calm</button></div>';
+    h += '<div class="scrub"><div class="scrubtop"><label for="castscrub">Time</label><output id="castwhen">' + esc(castFmt(castWhen())) + '</output><button type="button" id="castnow">Now</button></div>' +
+      '<input type="range" id="castscrub" min="0" max="2880" step="10" value="' + mins + '" aria-label="Time, drag to move the tide, light and heat" aria-valuetext="' + esc(castFmt(castWhen())) + '"></div>';
+    h += '<div id="castdyn" aria-live="polite">' + castDyn(id) + '</div>';
+    h += '<p class="miss">A guess from NOAA depth contours (taken at low tide, so the tide at the chosen time is added) and common angler rules of thumb. Pier layout, current direction and live wind are not in this page, so pick the wind yourself. Not for navigation.</p></section>';
+    return h;
+  }
+  function castRefresh() {
+    var box = $('#castbox'); if (!box) return;
+    var when = castWhen(), s = $('#castscrub');
+    $('#castdyn').innerHTML = castDyn(box.getAttribute('data-id'));
+    $('#castwhen').textContent = castFmt(when);
+    s.setAttribute('aria-valuetext', castFmt(when));
+    Array.prototype.forEach.call(box.querySelectorAll('[data-wind]'), function (b) {
+      var val = b.getAttribute('data-wind'); b.setAttribute('aria-pressed', (val === '' ? CAST.wind === null : CAST.wind === +val) ? 'true' : 'false');
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('[data-wind],#castnow') : null;
+    if (!b || !b.closest('#castbox')) return;
+    if (b.id === 'castnow') { CAST.at = null; var w = castWhen().getTime(); $('#castscrub').value = Math.max(0, Math.min(2880, Math.round((w - castStart()) / 600000) * 10)); }
+    else { var val = b.getAttribute('data-wind'); CAST.wind = val === '' ? null : +val; }
+    castRefresh();
+  });
+  document.addEventListener('input', function (e) {
+    if (!e.target || e.target.id !== 'castscrub') return;
+    CAST.at = castStart() + (+e.target.value) * 60000;
+    if (CAST.raf) return;
+    CAST.raf = requestAnimationFrame(function () { CAST.raf = 0; castRefresh(); });
+  });
+  function heatHtml(id) { return heatSection(id) + castHtml(id); }
   function toggleLayers(open) {
     if (!open && laypop.contains(document.activeElement)) laybtn.focus({ preventScroll: true });
     if (open) { toggleSpecies(false); toggleNotice(false); toggleModes(false); if (typeof toggleKey === 'function') toggleKey(false); if (!$('#mepanel').hidden) toggleMe(false); }
@@ -1665,7 +2159,14 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   keybtn.addEventListener('click', function () { toggleKey(keypop.hidden); });
   laypop.addEventListener('click', function (e) {
     var b = e.target.closest ? e.target.closest('[data-layer]') : null;
-    if (b) setLayers(Layers.toggle(layers, b.getAttribute('data-layer')));
+    if (b) {
+      var nm = b.getAttribute('data-layer'), nx = Layers.toggle(layers, nm);
+      // Heat circles are tapped through the pier and shore markers, so turning them on turns those on too.
+      if (nm === 'heat' && nx.indexOf('heat') >= 0 && nx.indexOf('access') < 0) nx = Layers.toggle(nx, 'access');
+      setLayers(nx);
+      // Depth guesses and heat circles need a species; ask once per visit when one of them is turned on without one.
+      if ((nm === 'depth' || nm === 'heat') && nx.indexOf(nm) >= 0 && !species && !depthAsked) { depthAsked = true; toggleLayers(false); toggleSpecies(true); }
+    }
   });
   placeModes();
   function syncModeLbl() { var on = modesEl.querySelector('[aria-checked="true"]'); if (on) $('#modelbl').textContent = on.textContent; }
@@ -1694,6 +2195,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     setSpLabel();
     toggleSpecies(false);
     applyStyles(); render();
+    castRefresh();
     if (mode === 'detail') fillSheet(selected); else if (mode === 'list') fillList();
     syncLink();
   }
@@ -1922,7 +2424,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       '<a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
       '<section><h3>Typical timing, ' + month + '</h3><p class="miss">' + TYPICAL_LINE + '</p>' + (miss ? '<p class="miss">' + esc(miss) + '</p>' : '') +
       (body ? '<div class="rows">' + body + '</div>' : '') + '</section>' +
-      tidesHtml(site, t) + siteFlowHtml(id) + creelSiteHtml(id) +
+      tidesHtml(site, t) + heatHtml(id) + siteFlowHtml(id) + creelSiteHtml(id) +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Seasons, areas and limits change year to year and can close with little notice. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
       typicalFootHtml();
     $('#sbody').scrollTop = 0;
@@ -2348,7 +2850,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       '<p>' + esc(scopeText(t)) + '</p>' + distHtml(o.ll) + (t.closed ? '<span class="chip">WDFW marks this pier closed</span>' : '') + '</div>' +
       '<div class="acts"><a class="dir" href="' + dir + '" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 1.5L1.5 6.8l5 1.7 1.7 5z"/></svg>Directions</a>' +
       '<button type="button" class="more" data-typical="' + esc(t.id) + '">Typical timing here</button></div>' +
-      tidesHtml(t, o) + creelSiteHtml(t.id) +
+      tidesHtml(t, o) + heatHtml(t.id) + creelSiteHtml(t.id) +
       '<section class="advisory">' + shield + '<div><h3>Before you go</h3><p>Seasons, areas and limits change year to year and can close with little notice. Confirm this water’s rules on WDFW before you fish.</p></div></section>' +
       '<div class="foot"><div>A WDFW pier or shore access site. Not a catch report and not a rating. Not for navigation or safety decisions.</div>' +
       '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a></div>';
@@ -2520,6 +3022,72 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var back = returnFocus; returnFocus = null;
     if (back && back !== document.body && document.contains(back) && back.focus) back.focus({ preventScroll: true });
   }
+  /* ---- Saved places: a star on a sheet keeps that site or river on this device (localStorage only; nothing is sent anywhere).
+     Saved places are listed at the top of the Rivers sheet. ---- */
+  var SAVED_KEY = 'wafm.saved.v1', saved = [];
+  try { saved = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]') || []; if (!Array.isArray(saved)) saved = []; } catch (e) { saved = []; }
+  function persistSaved() { try { localStorage.setItem(SAVED_KEY, JSON.stringify(saved)); } catch (e) {} }
+  var sstar = $('#sstar');
+  function currentRef() {
+    if (!sheet.classList.contains('open')) return null;
+    if (mode === 'detail' && selected) return { k: 'site', id: selected, v: view };
+    if (mode === 'river' && riverSel) return { k: 'river', id: riverSel, v: view };
+    if (mode === 'spot' && spotSel) return { k: 'spot', id: spotSel, v: view };
+    if (mode === 'access' && accessSel) return { k: 'access', id: accessSel, v: view };
+    return null;
+  }
+  function refKey(r) { return r.k + ':' + (r.k === 'site' ? r.v + ':' : '') + r.id; }
+  function savedLabel(s) {
+    if (s.k === 'site') return s.v === 'typical' ? 'Typical season site' : s.v === 'spawning' ? 'Spawning site' : 'Catch report';
+    return s.k === 'river' ? 'River' : s.k === 'spot' ? 'Spot guide' : 'Piers and shore';
+  }
+  function syncStar() {
+    var r = currentRef();
+    sstar.hidden = !r;
+    if (!r) return;
+    var on = saved.some(function (s) { return s.key === refKey(r); });
+    sstar.setAttribute('aria-pressed', on ? 'true' : 'false');
+    sstar.setAttribute('aria-label', on ? 'Remove from saved' : 'Save this place');
+    sstar.title = on ? 'Remove from saved' : 'Save this place';
+    sstar.classList.toggle('on', on);
+  }
+  function showSavedBlock() {
+    var body = $('#sbody'), old = body.querySelector('.savedblock');
+    if (old) old.remove();
+    if (!saved.length) return;
+    var div = document.createElement('div');
+    div.className = 'savedblock';
+    div.innerHTML = '<h3>Saved</h3><div class="rows">' + saved.map(function (s, i) {
+      return '<div class="row"><button type="button" class="srow" data-saved="' + i + '"><span class="nm">' + esc(s.name) + '</span><span class="dt">' + esc(savedLabel(s)) + '</span></button>' +
+        '<button type="button" class="sx" data-unsave="' + i + '" aria-label="Remove ' + esc(s.name) + ' from saved">Remove</button></div>';
+    }).join('') + '</div>';
+    body.insertBefore(div, body.firstChild);
+  }
+  function openSaved(s) {
+    if (s.k === 'site') { if (s.v !== view && (s.v === 'typical' || s.v === 'spawning' || s.v === 'reports')) setMode(s.v); openSheet(s.id); }
+    else if (s.k === 'river') openRiver(s.id);
+    else if (s.k === 'spot') { if (layers.indexOf('spots') < 0) setLayers(Layers.toggle(layers, 'spots')); openSpot(s.id); }
+    else if (s.k === 'access') { if (layers.indexOf('access') < 0) setLayers(Layers.toggle(layers, 'access')); openAccess(s.id); }
+  }
+  sstar.addEventListener('click', function () {
+    var r = currentRef();
+    if (!r) return;
+    var key = refKey(r), at = -1;
+    saved.forEach(function (s, n) { if (s.key === key) at = n; });
+    if (at >= 0) saved.splice(at, 1); else saved.push({ key: key, k: r.k, id: r.id, v: r.v, name: $('#stitle').textContent });
+    persistSaved(); syncStar();
+  });
+  $('#sbody').addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('[data-saved],[data-unsave]') : null;
+    if (!t) return;
+    if (t.hasAttribute('data-unsave')) { saved.splice(+t.getAttribute('data-unsave'), 1); persistSaved(); showSavedBlock(); return; }
+    var s = saved[+t.getAttribute('data-saved')];
+    if (s) openSaved(s);
+  });
+  if (window.MutationObserver) new MutationObserver(function () {
+    syncStar();
+    if ($('#stitle').textContent === 'Rivers') showSavedBlock();
+  }).observe($('#stitle'), { childList: true, characterData: true, subtree: true });
   $('#sdone').addEventListener('click', closeSheet);
   $('#listbtn').addEventListener('click', function () { if (mode === 'list') closeSheet(); else openList(); });
   $('#sbody').addEventListener('click', function (e) {
@@ -2751,3 +3319,118 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   syncLink();
 })();
 </script>
+
+<style id="compact-phone">
+/* Compact phone layout: smaller controls so the map gets more room. */
+@media (max-width: 1100px), (pointer: coarse) {
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  .bar { height: 44px !important; padding: 4px 6px !important; gap: 4px !important; }
+  .pop { top: 50px !important; }
+  .nbtn, .listbtn, .seg button, .mfold { min-height: 30px !important; font-size: 12px !important; line-height: 16px !important; }
+  #mebtn { width: 30px !important; min-width: 30px !important; }
+  #spbtn { min-width: 30px !important; }
+  #laybtn, #keybtn, #listbtn, #nbtn { min-width: 30px !important; padding: 0 8px !important; }
+  .modes button { min-height: 30px !important; font-size: 12px !important; line-height: 16px !important; padding: 0 6px !important; }
+  .modes button::before { inset: 2px 0 !important; }
+  .dsum button { min-height: 28px !important; font-size: 12px !important; padding: 0 9px !important; }
+  .months button { min-height: 28px !important; font-size: 12px !important; }
+  .heat .hc { height: 7px !important; }
+  .agechip { font-size: 12px !important; padding: 4px 10px !important; }
+  .zoom button { width: 32px !important; height: 32px !important; }
+  .zoom svg { width: 16px !important; height: 16px !important; }
+  #chrome { padding-block: 6px !important; gap: 6px !important; }
+  .barstack { gap: 6px !important; }
+  .glass { border-radius: 12px !important; }
+}
+</style>
+<style id="compact-2">
+/* Slimmer top bar and a one-row month card that opens folded at every width. */
+@media (max-width: 1100px), (pointer: coarse) {
+  .bar { height: 38px !important; padding: 3px 6px !important; gap: 3px !important; }
+  .bar .logo { display: none !important; }
+  .nbtn, .listbtn, .seg button { min-height: 28px !important; font-size: 12px !important; line-height: 16px !important; }
+  .listbtn { padding: 0 8px !important; gap: 4px !important; }
+  .nbtn { padding: 0 8px !important; }
+  .modes button { min-height: 28px !important; font-size: 12px !important; padding: 0 5px !important; }
+  .modes button::before { inset: 2px 0 !important; }
+  #spbtn { max-width: 110px !important; }
+  #mebtn { width: 28px !important; min-width: 28px !important; }
+  .pop { top: 44px !important; }
+  #smonth { display: flex !important; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 6px 8px !important; }
+  #smonth[hidden] { display: none !important; }
+  #smonth #sml { flex: 1 1 0; min-width: 0; }
+  #smonth .mfold { margin: 0 !important; flex: none; min-height: 26px !important; padding: 0 10px !important; font-size: 12px !important; }
+  #smonth .mfold[hidden] { display: none !important; }
+  #smonth .heat, #smonth .months { flex: 0 0 100%; }
+  .smonth.dash.fold .heat, .smonth.dash.fold .months { display: none !important; }
+  .mfold:not([hidden]) { display: flex !important; }
+  .dhead { font-size: 12px !important; line-height: 16px !important; margin-bottom: 3px; }
+  .dsum { flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; gap: 4px !important; }
+  .dsum button { flex: none; min-height: 24px !important; font-size: 12px !important; padding: 0 8px !important; }
+}
+</style>
+<style id="compact-3">
+/* Controls look compact but keep a 44 px tap area: an invisible extension above and below each one. */
+@media (max-width: 1100px), (pointer: coarse) {
+  .nbtn, .listbtn, .seg button, .mfold, .dsum button, .months button, .zoom button { position: relative; }
+  .nbtn::after, .listbtn::after, .seg button::after, .mfold::after, .dsum button::after, .months button::after { content: ""; position: absolute; inset: -8px -1px; }
+  .zoom button::after { content: ""; position: absolute; inset: -6px; }
+  .dsum { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+}
+</style>
+<script>
+/* Tooltips for the icon-only buttons. */
+[["mebtn","My location"],["listbtn","Rivers"],["laybtn","Layers"],["keybtn","Map key"],["spbtn","Species"],["nbtn","Report age notice"],["modebtn","Map mode"]].forEach(function (p) { var e = document.getElementById(p[0]); if (e && !e.getAttribute("title")) e.setAttribute("title", p[1]); });
+</script>
+
+<style id="saved-css">
+.sbar .st { flex: 1 1 auto; min-width: 0; }
+#sstar { flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 44px; padding: 0 !important; color: var(--on-text); }
+#sstar[hidden] { display: none !important; }
+#sstar svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+#sstar.on svg { fill: currentColor; }
+.savedblock { margin: 0 0 14px; }
+.savedblock h3 { margin: 0 0 6px; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--ink2); }
+.savedblock .row { align-items: center; }
+.srow { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; text-align: left; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; padding: 0; min-height: 44px; }
+.srow .nm { font-weight: 600; }
+.srow .dt { font-size: 12px; line-height: 16px; color: var(--ink2); }
+.sx { border: 0; background: transparent; color: var(--on-text); font: 600 12px/16px var(--sans); cursor: pointer; min-height: 44px; padding: 0 4px; }
+</style>
+<style id="depth-css">
+.depthchip { position: absolute; left: 66px; bottom: 14px; z-index: 3; max-width: min(300px, calc(100% - 76px)); padding: 7px 12px; border-radius: 14px; font: 600 12px/16px var(--sans); color: var(--ink); cursor: pointer; text-align: left; border: 0; }
+.depthchip b { font-size: 14px; line-height: 18px; font-weight: 700; }
+.depthchip small { font: 500 12px/16px var(--sans); color: var(--ink2); }
+.depthchip .sub { display: block; }
+.depthchip .more { display: none; margin-top: 4px; font: 500 12px/16px var(--sans); color: var(--ink2); }
+.depthchip.open .more { display: block; }
+.depthchip::after { content: ''; position: absolute; inset: -6px -2px; }
+.xhair { position: absolute; z-index: 3; width: 0; height: 0; pointer-events: none; }
+.xhair i { position: absolute; left: -10px; top: -10px; width: 20px; height: 20px; }
+.xhair i::before, .xhair i::after { content: ''; position: absolute; background: var(--ink); box-shadow: 0 0 0 1.5px rgba(255,255,255,.85); border-radius: 1px; }
+.xhair i::before { left: 9px; top: 2px; width: 2px; height: 16px; }
+.xhair i::after { left: 2px; top: 9px; width: 16px; height: 2px; }
+#heat { pointer-events: none; filter: blur(2.5px); }
+.castviz { display: block; width: 100%; max-width: 340px; margin: 8px 0 4px; border-radius: 12px; background: var(--fill-row); }
+
+.scrub { margin: 6px 0 2px; }
+.scrubtop { display: flex; align-items: center; gap: 8px; }
+.scrubtop label { font: 600 12px/16px var(--sans); color: var(--ink2); }
+.scrubtop output { flex: 1; font: 600 15px/20px var(--sans); color: var(--ink); }
+.scrubtop button { min-height: 44px; min-width: 56px; border: 0; border-radius: 10px; background: var(--fill-toggle); color: var(--ink); font: 600 13px/18px var(--sans); cursor: pointer; }
+.scrub input[type=range] { width: 100%; height: 44px; margin: 0; accent-color: var(--on); touch-action: pan-y; }
+.windrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 4px 0 6px; }
+.windrow .wl { grid-column: 1 / -1; font: 600 12px/16px var(--sans); color: var(--ink2); }
+.windrow button { min-width: 44px; min-height: 44px; border: 0; border-radius: 10px; background: var(--fill-toggle); color: var(--ink); font: 600 13px/18px var(--sans); cursor: pointer; }
+.windrow button[aria-pressed="true"] { background: var(--on); color: #fff; }
+.heatwhy { margin: 6px 0 0; padding-left: 18px; font-size: 13px; line-height: 18px; color: var(--ink2); }
+
+#depthg, #depthlab { pointer-events: none; }
+:root { --depth-line: #007aff; --depth-hit: #ff9500; --heat-1: #ffcc00; --heat-2: #ff9500; --heat-3: #ff3b30; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --depth-line: #64d2ff; --depth-hit: #ff9f0a; --heat-1: #ffd60a; --heat-2: #ff9f0a; --heat-3: #ff453a; } }
+:root[data-theme="dark"] { --depth-line: #64d2ff; --depth-hit: #ff9f0a; --heat-1: #ffd60a; --heat-2: #ff9f0a; --heat-3: #ff453a; }
+#depthlab text { font-family: var(--sans); font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--halo); stroke-linejoin: round; text-anchor: middle; dominant-baseline: central; }
+.amark .hit { fill: transparent; stroke: none; }
+.laypop { max-height: calc(100dvh - 120px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.laypop .lg { margin: 10px 8px 2px; font: 600 12px/16px var(--sans); letter-spacing: .03em; text-transform: uppercase; color: var(--ink2); }
+</style>
