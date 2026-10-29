@@ -1,5 +1,8 @@
 """Tests for figma_ds_diff: a known-good pair must pass and each kind of drift must fire."""
+import contextlib
 import copy
+import io
+import json
 import os
 import tempfile
 import unittest
@@ -37,6 +40,11 @@ class DiffTests(unittest.TestCase):
         self.root = tempfile.mkdtemp()
         os.makedirs(os.path.join(self.root, "WAFishMap/Views"))
         open(os.path.join(self.root, "WAFishMap/Views/RatingBadge.swift"), "w").close()
+        self.write_source("Font.caption.bold()")
+
+    def write_source(self, badge_font):
+        with open(os.path.join(self.root, "WAFishMap/DesignSystem.swift"), "w") as f:
+            f.write(f"enum TypeScale {{\n    static let badge = {badge_font}\n}}\n")
 
     def run_diff(self, manifest=MANIFEST, inventory=INVENTORY, token_map=MAP):
         return d.diff(manifest, inventory, token_map, self.root)
@@ -141,6 +149,67 @@ class DiffTests(unittest.TestCase):
         inv = copy.deepcopy(INVENTORY)
         inv["components"][0]["description"] = "RatingBadge in &quot;RatingBadge.swift&quot;"
         self.assertEqual(self.run_diff(inventory=inv), [])
+
+    def test_empty_components_is_an_error_not_a_pass(self):
+        inv = copy.deepcopy(INVENTORY)
+        inv["components"] = []
+        with self.assertRaises(ValueError):
+            self.run_diff(inventory=inv)
+
+    def test_non_inter_family_fires(self):
+        inv = copy.deepcopy(INVENTORY)
+        inv["textStyles"][0]["family"] = "SF Pro"
+        self.assertEqual(self.kinds(self.run_diff(inventory=inv)), ["type-family"])
+
+    def test_wrong_directory_in_path_fires(self):
+        inv = copy.deepcopy(INVENTORY)
+        inv["components"][0]["description"] = "RatingBadge in WAFishMap/Components/RatingBadge.swift"
+        self.assertEqual(self.kinds(self.run_diff(inventory=inv)), ["description"])
+
+    def test_radius_drift_in_any_mode_fires(self):
+        inv = copy.deepcopy(INVENTORY)
+        inv["variables"][1]["values"] = {"Compact": 14, "Regular": 12}
+        self.assertEqual(self.kinds(self.run_diff(inventory=inv)), ["radius"])
+
+    def test_source_weight_change_makes_the_manifest_stale(self):
+        self.write_source("Font.caption.weight(.semibold)")
+        self.assertEqual(self.kinds(self.run_diff()), ["manifest-stale"])
+
+    def test_main_fails_on_drift_and_lists_uncovered_apart(self):
+        inv = copy.deepcopy(INVENTORY)
+        inv["variables"][0]["values"]["Dark"] = "#ff3b30"
+        inv["variables"].append({"id": "V9", "name": "rating/extra", "collection": "Color",
+                                 "type": "COLOR", "values": {"Light": "#000000", "Dark": "#000000"}})
+        paths = []
+        for obj in (MANIFEST, inv, MAP):
+            fd, path = tempfile.mkstemp(suffix=".json")
+            with os.fdopen(fd, "w") as f:
+                json.dump(obj, f)
+            paths.append(path)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            rc = d.main(["figma_ds_diff.py", *paths], repo_root=self.root)
+        text = out.getvalue()
+        self.assertEqual(rc, 1)
+        self.assertIn("[x] color: rating.prime (dark)", text)
+        self.assertIn("[--] not covered by code tokens: rating/extra", text)
+        self.assertIn("1 drift, 1 not covered", text)
+
+    def test_main_passes_when_only_uncovered_remain(self):
+        inv = copy.deepcopy(INVENTORY)
+        inv["variables"].append({"id": "V9", "name": "rating/extra", "collection": "Color",
+                                 "type": "COLOR", "values": {"Light": "#000000", "Dark": "#000000"}})
+        paths = []
+        for obj in (MANIFEST, inv, MAP):
+            fd, path = tempfile.mkstemp(suffix=".json")
+            with os.fdopen(fd, "w") as f:
+                json.dump(obj, f)
+            paths.append(path)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            rc = d.main(["figma_ds_diff.py", *paths], repo_root=self.root)
+        self.assertEqual(rc, 0)
+        self.assertIn("[ok] no drift, 1 not covered", out.getvalue())
 
 
 if __name__ == "__main__":

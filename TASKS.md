@@ -3,7 +3,8 @@
 
 #### Design critique 2026-10-26
 
-- [ ] Retake the App Store screenshots in daylight
+- [x] Retake the App Store screenshots in daylight
+- [ ] [you] Upload docs/app-store/screenshots/asc-6.5 to the ASC 6.5" slot
 - [ ] Fishing Year: source pink once WDFW sets 2027 odd-year seasons (Apr 2027)
 
 ## Completed

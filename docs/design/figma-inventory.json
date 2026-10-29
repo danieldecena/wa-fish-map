@@ -6,8 +6,8 @@
       "collection": "Color",
       "type": "COLOR",
       "values": {
-        "Light": "#ff3b30",
-        "Dark": "#ff453a"
+        "Light": "#ff383c",
+        "Dark": "#ff4245"
       },
       "alphas": {
         "Light": 1,
@@ -20,8 +20,8 @@
       "collection": "Color",
       "type": "COLOR",
       "values": {
-        "Light": "#ff9500",
-        "Dark": "#ff9f0a"
+        "Light": "#ff8d28",
+        "Dark": "#ff9230"
       },
       "alphas": {
         "Light": 1,
@@ -35,7 +35,7 @@
       "type": "COLOR",
       "values": {
         "Light": "#ffcc00",
-        "Dark": "#ffd60a"
+        "Dark": "#ffd600"
       },
       "alphas": {
         "Light": 1,
@@ -48,8 +48,8 @@
       "collection": "Color",
       "type": "COLOR",
       "values": {
-        "Light": "#007aff",
-        "Dark": "#0a84ff"
+        "Light": "#0088ff",
+        "Dark": "#0091ff"
       },
       "alphas": {
         "Light": 1,
@@ -425,6 +425,39 @@
       "lineHeight": {
         "unit": "PIXELS",
         "value": 13
+      }
+    },
+    {
+      "id": "S:313135b5f005f3f8ce76cf6dbdd9f3d4179fe87b,",
+      "name": "Fineprint",
+      "family": "Inter",
+      "style": "Regular",
+      "size": 11,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 13
+      }
+    },
+    {
+      "id": "S:8c01961c6870ec6bd52b2644d79f122b59fa9302,",
+      "name": "Map label",
+      "family": "Inter",
+      "style": "Semi Bold",
+      "size": 11,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 13
+      }
+    },
+    {
+      "id": "S:9f25dbbd6c9a2287a7560395e8be2dd3e899558d,",
+      "name": "Tide value",
+      "family": "Inter",
+      "style": "Regular",
+      "size": 15,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 20
       }
     }
   ],

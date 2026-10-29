@@ -6,7 +6,8 @@ Prints one line per drift and exits 1 if there is any. An empty Figma
 export is an error, not a pass: it means the export failed.
 
 Drift kinds: color, alpha, type-mismatch, missing-variable, unmapped-variable,
-radius, type-size, type-weight, missing-style, description.
+radius, type-size, type-weight, type-family, missing-style, description,
+manifest-stale.
 """
 import html
 import json
@@ -16,14 +17,31 @@ import sys
 
 WEIGHTS = {"Regular": "regular", "Semi Bold": "semibold", "SemiBold": "semibold", "Bold": "bold"}
 SWIFT_PATH = re.compile(r"[\w/]*\w+\.swift")
+TYPE_ROLE = re.compile(r"static let (\w+) = Font\.(\w+)((?:\.weight\(\.\w+\)|\.bold\(\))?)")
 
 
-def _swift_exists(repo_root, path):
-    """A full repo path, or a bare file name found anywhere under WAFishMap/."""
+def _swift_exists(repo_root, path, swift_names):
+    """A full repo path, or a bare file name (no directory) found under WAFishMap/."""
     if os.path.exists(os.path.join(repo_root, path)):
         return True
-    name = os.path.basename(path)
-    return any(name in files for _, _, files in os.walk(os.path.join(repo_root, "WAFishMap")))
+    return "/" not in path and path in swift_names
+
+
+def source_weights(swift_source):
+    """Weight each DS.TypeScale role asks for, read from DesignSystem.swift.
+
+    The manifest test restates weights by hand (a SwiftUI Font cannot be read
+    back), so this is what catches the restatement going stale.
+    """
+    weights = {}
+    for role, style, modifier in TYPE_ROLE.findall(swift_source):
+        if "bold()" in modifier:
+            weights[role] = "bold"
+        elif modifier:
+            weights[role] = re.search(r"\.weight\(\.(\w+)\)", modifier).group(1)
+        else:
+            weights[role] = "semibold" if style == "headline" else "regular"
+    return weights
 
 
 def _rgb(hex_str):
@@ -38,6 +56,8 @@ def _close(a, b):
 def diff(manifest, inventory, token_map, repo_root):
     if not inventory.get("variables") and not inventory.get("textStyles"):
         raise ValueError("Figma export has no variables or text styles; the export failed")
+    if not inventory.get("components"):
+        raise ValueError("Figma export has no components; the Components page was not read")
     rows = []
     by_name = {v["name"]: v for v in inventory["variables"]}
     styles = {s["name"]: s for s in inventory["textStyles"]}
@@ -73,9 +93,9 @@ def diff(manifest, inventory, token_map, repo_root):
         if var["type"] != "FLOAT":
             rows.append({"kind": "type-mismatch", "token": token, "code": "FLOAT", "figma": f"{name} is {var['type']}"})
             continue
-        got = next(iter(var["values"].values()))
-        if abs(float(got) - float(value)) > 0.01:
-            rows.append({"kind": "radius", "token": token, "code": value, "figma": got})
+        for mode, got in var["values"].items():
+            if abs(float(got) - float(value)) > 0.01:
+                rows.append({"kind": "radius", "token": f"{token} ({mode})", "code": value, "figma": got})
 
     mapped = set(token_map["colors"].values()) | set(token_map["radii"].values()) | set(token_map["ignoreVariables"])
     for var in inventory["variables"]:
@@ -91,22 +111,33 @@ def diff(manifest, inventory, token_map, repo_root):
             rows.append({"kind": "type-size", "token": role, "code": spec["size"], "figma": style["size"]})
         if WEIGHTS.get(style["style"]) != spec["weight"]:
             rows.append({"kind": "type-weight", "token": role, "code": spec["weight"], "figma": style["style"]})
+        if style["family"] != "Inter":
+            rows.append({"kind": "type-family", "token": role, "code": "Inter", "figma": style["family"]})
 
+    with open(os.path.join(repo_root, "WAFishMap/DesignSystem.swift")) as f:
+        declared = source_weights(f.read())
+    for role, spec in manifest["type"].items():
+        if role in declared and declared[role] != spec["weight"]:
+            rows.append({"kind": "manifest-stale", "token": role,
+                         "code": declared[role], "figma": f"manifest says {spec['weight']}"})
+
+    swift_names = {n for _, _, files in os.walk(os.path.join(repo_root, "WAFishMap"))
+                   for n in files if n.endswith(".swift")}
     for comp in inventory["components"]:
         if comp["name"].startswith("Icon/"):
             continue
         desc = html.unescape(comp.get("description") or "")
         paths = SWIFT_PATH.findall(desc)
-        missing = [p for p in paths if not _swift_exists(repo_root, p)]
+        missing = [p for p in paths if not _swift_exists(repo_root, p, swift_names)]
         if not paths or missing:
             rows.append({"kind": "description", "token": comp["name"],
                          "code": missing or "no Swift path", "figma": desc})
     return rows
 
 
-def main(argv):
+def main(argv, repo_root=None):
     manifest, inventory, token_map = (json.load(open(p)) for p in argv[1:4])
-    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    root = repo_root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     rows = diff(manifest, inventory, token_map, root)
     # A Figma variable with no DS token is not drift: it is a value the check
     # cannot judge. List it apart so it is reviewed, never silently ignored.

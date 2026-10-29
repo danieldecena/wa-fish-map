@@ -25,8 +25,14 @@
     "badge": "Badge",
     "control": "Control",
     "legend": "Legend",
-    "clusterCount": "Cluster count"
+    "clusterCount": "Cluster count",
+    "fineprint": "Fineprint",
+    "mapLabel": "Map label",
+    "tideValue": "Tide value"
   },
-  "modes": {"light": "Light", "dark": "Dark"},
+  "modes": {
+    "light": "Light",
+    "dark": "Dark"
+  },
   "ignoreVariables": []
 }

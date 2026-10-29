@@ -25,6 +25,7 @@ struct DesignTokenManifestTests {
         let resolved = UIColor(color).resolvedColor(with: UITraitCollection(userInterfaceStyle: style))
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         #expect(resolved.getRed(&r, green: &g, blue: &b, alpha: &a))
+        #expect(a > 0 && a <= 1, "alpha out of range: \(a)")
         return (Double(a) * 1000).rounded() / 1000
     }
 
