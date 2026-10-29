@@ -12,7 +12,7 @@
   /* Which keys mean anything in each mode. Typical season has no month control, so month is spawning-only. */
   var KEYS = { reports: ['species', 'river'], typical: ['species', 'site'], spawning: ['month', 'species', 'site'] };
   /* Map layers (layers.js) work in every mode. The list is repeated here so links.js stays standalone; test/layers.test.js holds them equal. */
-  var LAYERS = ['seasons', 'spots', 'access', 'counts', 'typical', 'spawn'];
+  var LAYERS = ['seasons', 'spots', 'access', 'counts', 'typical', 'spawn', 'depth', 'heat'];
   /* No `layers` in the link means the default set; `layers=none` means every layer off. */
   var DEFAULT_LAYERS = LAYERS.slice();
   function layerList(s) { var a = String(s || '').split(','); return LAYERS.filter(function (n) { return a.indexOf(n) >= 0; }); }
@@ -55,7 +55,7 @@
       if (v !== null && v !== undefined && v !== '') p.set(k, String(v));
     });
     var ls = state.layers ? layerList(state.layers.join(',')) : DEFAULT_LAYERS.slice();
-    if (!ls.length) p.set('layers', 'none');
+    if (!ls.length) { if (DEFAULT_LAYERS.length) p.set('layers', 'none'); }
     else if (ls.join() !== DEFAULT_LAYERS.join()) p.set('layers', ls.join(','));
     // A spot sheet is only reachable with its layer on, so the link carries it only then.
     if (ls.indexOf('spots') >= 0 && state.spot) p.set('spot', String(state.spot));

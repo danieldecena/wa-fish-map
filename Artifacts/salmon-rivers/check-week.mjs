@@ -71,8 +71,9 @@ for (const scheme of ['light', 'dark']) {
       page.on('pageerror', e => errors.push(String(e)));
       await page.goto(base + p + '?' + q + 'today=' + today, { waitUntil: 'networkidle' });
       check(errors.length === 0, `${name} ${w}px ${scheme}: no console errors (${errors.join(' | ').slice(0, 200)})`);
-      // A mouse on a wide window gets the compact bar: one 44px row with 36px controls. Everything else keeps 44px targets.
-      const bar = await page.evaluate(() => ({ h: Math.round(document.getElementById('bar').getBoundingClientRect().height), min: Math.min(...[...document.querySelectorAll('#bar .listbtn, #bar .nbtn')].filter(b => b.getClientRects().length).map(b => b.getBoundingClientRect().height)), tabs: !!document.querySelector('nav.apptabs') }));
+      // A mouse on a wide window gets the compact bar: one 44px row with 36px controls. Everything else keeps 44px targets. A compact control may draw smaller
+      // than that if an invisible ::after extender brings its tappable height up to the target (tapH adds the extender's negative top and bottom inset).
+      const bar = await page.evaluate(() => { const tapH = (b) => { const r = b.getBoundingClientRect().height, a = getComputedStyle(b, '::after'); const ext = a.content !== 'none' && a.position === 'absolute' ? Math.max(0, -parseFloat(a.top) || 0) + Math.max(0, -parseFloat(a.bottom) || 0) : 0; return r + ext; }; return ({ h: Math.round(document.getElementById('bar').getBoundingClientRect().height), min: Math.min(...[...document.querySelectorAll('#bar .listbtn, #bar .nbtn')].filter(b => b.getClientRects().length).map(b => tapH(b))), tabs: !!document.querySelector('nav.apptabs') }); });
       check(!bar.tabs, `${name} ${w}px: no page tab bar`);
       check(bar.min >= (w >= 1024 ? 36 : 44), `${name} ${w}px: bar controls are ${w >= 1024 ? 36 : 44}px targets (${bar.min}px, bar ${bar.h}px)`);
       const sx = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
@@ -81,12 +82,17 @@ for (const scheme of ['light', 'dark']) {
         const lay = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, smonth: !document.getElementById('smonth').hidden, spot: !!document.querySelector('#guides .spotpin') && getComputedStyle(document.querySelector('#guides .spotpin')).display !== 'none', legend: document.querySelectorAll('#layl li').length }));
         check(lay.btn === 'Layers · 3' && lay.smonth && lay.legend === 3, `Layers ${w}px ${scheme}: three layers on, month slider shown, three legend lines (${lay.btn}, ${lay.legend})`);
       }
+      if (name === 'Map' && w >= 1024) {
+        // With every layer on, the Depth chip shows at load; it must not sit on the hint box under the map.
+        const ov = await page.evaluate(() => { const c = document.getElementById('depthchip'), h = document.querySelector('.hints'); if (!c || c.hidden || !h || getComputedStyle(h).display === 'none') return { skipped: true }; const a = c.getBoundingClientRect(), b = h.getBoundingClientRect(); return { skipped: false, hit: a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top }; });
+        check(!ov.skipped && !ov.hit, `Map ${w}px ${scheme}: the Depth chip and the hint box do not overlap (${ov.skipped ? 'one of them is not showing: the check proves nothing' : ov.hit ? 'overlap' : 'clear'})`);
+      }
       if (name === 'Map') {
-        const dl = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, legend: document.querySelectorAll('#layl li').length, on: [...document.querySelectorAll('#laypop [data-layer][aria-checked=true]')].length }));
-        check(dl.on === 6 && dl.legend === 6, `Map ${w}px ${scheme}: a bare link opens with all six layers on (${dl.btn}, ${dl.on} on, ${dl.legend} legend lines)`);
+        const dl = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, legend: document.querySelectorAll('#layl li').length, rows: document.querySelectorAll('#laypop [data-layer]').length, on: [...document.querySelectorAll('#laypop [data-layer][aria-checked=true]')].length }));
+        check(dl.rows >= 8 && dl.on === dl.rows && dl.legend === dl.rows, `Map ${w}px ${scheme}: a bare link opens with every layer on (${dl.btn}, ${dl.on} of ${dl.rows} on, ${dl.legend} legend lines)`);
       }
       if (name === 'Map' && w <= 390) {
-        const k = await page.evaluate(() => { const b = document.getElementById('keybtn'); return { h: b.getBoundingClientRect().height, shown: getComputedStyle(b).display !== 'none', body: !document.getElementById('keypop').hidden, exp: b.getAttribute('aria-expanded'), text: b.textContent, hint: getComputedStyle(document.getElementById('rhint')).display !== 'none' }; });
+        const k = await page.evaluate(() => { const tapH = (b) => { const r = b.getBoundingClientRect().height, a = getComputedStyle(b, '::after'); const ext = a.content !== 'none' && a.position === 'absolute' ? Math.max(0, -parseFloat(a.top) || 0) + Math.max(0, -parseFloat(a.bottom) || 0) : 0; return r + ext; }; const b = document.getElementById('keybtn'); return { h: tapH(b), shown: getComputedStyle(b).display !== 'none', body: !document.getElementById('keypop').hidden, exp: b.getAttribute('aria-expanded'), text: b.textContent, hint: getComputedStyle(document.getElementById('rhint')).display !== 'none' }; });
         check(k.shown && k.text === 'Key' && k.h >= 44 && !k.body && k.exp === 'false', `Map ${w}px ${scheme}: the key is closed behind a 44px Key button in the bar (${Math.round(k.h)}px, body shown ${k.body})`);
         const age = await page.evaluate(() => { const c = document.getElementById('agechip'), r = c.getBoundingClientRect(); return { shown: getComputedStyle(c).display !== 'none' && !c.hidden, text: c.textContent, h: Math.round(r.height), right: Math.round(r.right) }; });
         check(age.shown && /^Dashed pins: reports over a week old \(newest [A-Z][a-z]{2} \d{1,2}\)$/.test(age.text) && age.right <= w, `Map ${w}px ${scheme}: the stale-report line is visible on a phone and fits (${age.text})`);
@@ -238,7 +244,7 @@ for (const scheme of ['light', 'dark']) for (const [w, h] of [[360, 780], [375, 
   const mp = await mctx.newPage();
   await mp.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
   await mp.addStyleTag({ content: ':root { --sans: Verdana, "DejaVu Sans", sans-serif !important; }' });
-  await mp.click('#mfold');
+  if (await mp.isVisible('#mfold')) await mp.click('#mfold');
   const m = await mp.evaluate(() => {
     const probe = document.createElement('span'); probe.textContent = 'May'; probe.style.cssText = 'position:absolute;visibility:hidden;font:600 12px/16px var(--sans)';
     document.body.appendChild(probe);
@@ -257,7 +263,7 @@ for (const scheme of ['light', 'dark']) for (const [w, h] of [[360, 780], [375, 
     const nctx = await browser.newContext({ viewport: { width: w, height: h } });
     const np = await nctx.newPage();
     await np.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
-    if (w < 760) await np.click('#mfold');
+    if (w < 760 && await np.isVisible('#mfold')) await np.click('#mfold');
     const first = await np.evaluate(() => { const b = document.querySelector('#smonth .months button'); const g = document.createRange(); g.selectNodeContents(b); return { shown: g.toString().length ? [...b.children].filter(c => getComputedStyle(c).display !== 'none').map(c => c.textContent).join('') : '', label: b.getAttribute('aria-label').split(':')[0] }; });
     check(first.shown === want && first.label === 'January', `months ${w}px: the first month button shows "${want}" and is named January (${first.shown}, ${first.label})`);
     await nctx.close();

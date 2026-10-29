@@ -31,6 +31,6 @@ test('siteRiver: known launches get their river, saltwater sites never do', () =
 
 test('page: a site sheet shows the gauge link only through siteRiver', () => {
   const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
-  assert.match(html, /tidesHtml\(site, t\) \+ siteFlowHtml\(id\)/);
+  assert.match(html, /tidesHtml\(site, t\) \+ (heatHtml\(id\) \+ )?siteFlowHtml\(id\)/);
   assert.match(html, /TAP\.siteRiver \? TAPBY\[TAP\.siteRiver\[id\]\]/);
 });

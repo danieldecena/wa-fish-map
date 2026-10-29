@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const Links = require('../links.js');
 
 test('read: empty search gives all nulls', () => {
-  assert.deepEqual(Links.read(''), { mode: null, month: null, species: null, site: null, river: null, today: null, layers: ['seasons', 'spots', 'access', 'counts', 'typical', 'spawn'], spot: null, season: null, access: null });
+  assert.deepEqual(Links.read(''), { mode: null, month: null, species: null, site: null, river: null, today: null, layers: ['seasons', 'spots', 'access', 'counts', 'typical', 'spawn', 'depth', 'heat'], spot: null, season: null, access: null });
 });
 
 test('read: every key round-trips', () => {
@@ -107,9 +107,9 @@ test('access: a pier or shore sheet travels with its layer', () => {
 });
 
 test('default layers: a link with no layers opens every layer; none turns every layer off; both round-trip', () => {
-  assert.deepEqual(Links.read('').layers, ['seasons', 'spots', 'access', 'counts', 'typical', 'spawn']);
+  assert.deepEqual(Links.read('').layers, ['seasons', 'spots', 'access', 'counts', 'typical', 'spawn', 'depth', 'heat']);
   assert.deepEqual(Links.read('?layers=none').layers, []);
-  assert.equal(Links.toQuery({ mode: 'reports', layers: ['seasons', 'spots', 'access', 'counts', 'typical', 'spawn'] }), '');
+  assert.equal(Links.toQuery({ mode: 'reports', layers: ['seasons', 'spots', 'access', 'counts', 'typical', 'spawn', 'depth', 'heat'] }), '');
   assert.equal(Links.toQuery({ mode: 'reports' }), '');
   assert.equal(Links.toQuery({ mode: 'reports', layers: ['typical', 'spawn'] }), '?layers=typical%2Cspawn');
   for (const q of ['', '?layers=none', '?layers=spawn']) assert.equal(Links.toQuery(Links.read(q)), q);
