@@ -45,24 +45,6 @@
     },
     {
       "id": "columbia",
-      "species": "Coho Salmon",
-      "stretch": "Tongue Point line to the Puget Island line",
-      "text": "Through Oct 31: 6 salmon a day, up to 3 adults (coho 20 in or longer). Only hatchery coho, which have a clipped adipose fin, may be kept.",
-      "release": false,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
-    },
-    {
-      "id": "columbia",
-      "species": "Coho Salmon",
-      "stretch": "Puget Island line to Bonneville Dam",
-      "text": "Oct 16 to 31: 6 salmon a day, up to 2 adults. Only hatchery coho may be kept.",
-      "release": false,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
-    },
-    {
-      "id": "columbia",
       "species": "Chinook Salmon",
       "stretch": "Tongue Point line to Bonneville Dam",
       "text": "Through Oct 31: release all Chinook.",
@@ -156,15 +138,6 @@
       "species": "Coho Salmon",
       "stretch": "Highway 14 bridge to Shipherd Falls",
       "text": "Through Oct 31: 6 salmon a day, up to 2 adults. Release wild coho.",
-      "release": false,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
-    },
-    {
-      "id": "wind",
-      "species": "Chinook Salmon",
-      "stretch": "Mouth to the Highway 14 bridge",
-      "text": "Oct 1 to 31: wild and hatchery Chinook may be kept within the 6 salmon, up to 2 adults limit (Chinook 24 in or longer).",
       "release": false,
       "through": "2026-10-31",
       "checked": "2026-10-29"

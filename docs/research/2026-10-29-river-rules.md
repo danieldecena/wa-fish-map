@@ -66,6 +66,8 @@ Pamphlet (Oct 1 to 31): limit 2, release all salmon other than coho, night closu
 
 ## Not confirmed
 
+- **Left out on 2026-10-29 before merge (the agent's own doubts, not verified):** Lower Columbia coho (both stretches: the Sept 24 emergency rule says up to 3 adults where the Oct 5 pamphlet still says 2, and the Oct 16 to 31 rows from Puget Island to Bonneville assumed one pamphlet table covers every reach) and the Wind River Chinook row from the mouth to the Highway 14 bridge (the "may be kept" wording was inferred from the coho release line). These waters now show only the rows that were read directly.
+
 - **Wind River above Shipherd Falls (Carson area):** no fall salmon rule found in the table; not written.
 - **Lower Columbia, Buoy 10 to the Tongue Point line, and Puget Island up to Pasco after Sept 30 outside the Bonneville stretch:** outside the page's Tongue Point to Bonneville range, not written.
 - **Rules after the stated end dates** (Nov 1 onward for the Columbia, Lewis, Wind and Drano; the pamphlet gives different Nov 1 rules): not written. The page hides a row after its `through` date rather than show an expired rule.
