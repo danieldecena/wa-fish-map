@@ -7,7 +7,7 @@
     "klickitat:var(--good):false",
     "lewis:var(--good):false",
     "washougal:var(--unrated):false",
-    "wind:var(--good):false"
+    "wind:var(--good):true"
   ],
   "coho": [
     "columbia:var(--prime):false",
@@ -17,7 +17,7 @@
     "klickitat:var(--good):false",
     "lewis:var(--good):false",
     "washougal:var(--unrated):false",
-    "wind:var(--good):false"
+    "wind:var(--good):true"
   ],
   "chinook": [
     "columbia:var(--fair):true",
@@ -27,6 +27,6 @@
     "klickitat:var(--good):false",
     "lewis:var(--fair):false",
     "washougal:var(--unrated):false",
-    "wind:var(--fair):false"
+    "wind:var(--fair):true"
   ]
 }
