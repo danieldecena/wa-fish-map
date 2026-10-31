@@ -227,7 +227,7 @@ Rules that cross from the app into the pages:
 - Counts (creel) are never ratings, and catch-report colours never share a
   view with seasonal colours. Each page README lists its own rules.
 
-Generated files (`typical.js`, `creel.js`, `counts.js`, `data.js`, `seasons-data.js`, `tides-data.js`, `geo.js`)
+Generated files (`typical.js`, `creel.js`, `counts.js`, `data.js`, `seasons-data.js`, `tides-data.js`, `depth-shading.js`, `geo.js`)
 say so in their header. Regenerate them; never hand-edit.
 
 ## Tests: four suites
