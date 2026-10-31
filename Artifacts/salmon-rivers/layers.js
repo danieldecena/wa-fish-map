@@ -6,7 +6,7 @@
   'use strict';
 
   /* Map layers drawn on top of any mode. Nothing here rates anything: seasons are dates, spots are text, counts are counts. */
-  var NAMES = ['seasons', 'spots', 'access', 'counts', 'typical', 'spawn', 'depth', 'heat'];
+  var NAMES = ['seasons', 'spots', 'access', 'counts', 'typical', 'spawn', 'shading', 'depth', 'heat'];
   /* On when a link names no layers: the map opens with every layer drawn. */
   var DEFAULT = NAMES.slice();
 
