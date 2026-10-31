@@ -1,0 +1,1396 @@
+{
+ "tacoma": {
+  "title": "Commencement Bay, Tacoma",
+  "bbox": [
+   -122.5,
+   47.24,
+   -122.38,
+   47.32
+  ],
+  "station": "9446484 Tacoma",
+  "navd88_to_mllw_shift_m": 0.729,
+  "source_px": [
+   3888,
+   2592
+  ],
+  "output_px": [
+   512,
+   500
+  ],
+  "metres_per_output_px": 17.7,
+  "source_m_px": [
+   2.33,
+   3.41
+  ],
+  "area_km2": 80.2,
+  "water_share": 0.369,
+  "dem_depth_ft_p1_p50_p99_of_water": [
+   1.65,
+   398.04,
+   570.75
+  ],
+  "dem_max_depth_ft": 584.0,
+  "sizes_bytes": {
+   "png_512": 33886,
+   "webp80_512": 9604,
+   "png_256": 8970,
+   "png_1024": 91263
+  },
+  "contour_bytes": {
+   "3": 2202,
+   "6": 2013,
+   "12": 1861,
+   "18": 1827,
+   "24": 1890,
+   "30": 1963,
+   "60": 1030,
+   "90": 1070,
+   "120": 1101,
+   "180": 1060,
+   "240": 1144,
+   "300": 1112,
+   "360": 1084,
+   "420": 915,
+   "480": 892,
+   "600": 0
+  },
+  "contour_bytes_total": 21164,
+  "enc_vertices_in_box": 926,
+  "enc_contour_bytes_estimate": 5556,
+  "vs_enc_contours": {
+   "per_level": {
+    "3": null,
+    "6": {
+     "n": 205,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      -2.38,
+      4.9,
+      15.56
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      9.19,
+      24.7
+     ],
+     "share_within_3ft": 0.322
+    },
+    "12": {
+     "n": 192,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      -5.59,
+      4.62,
+      14.8
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      7.8,
+      18.1
+     ],
+     "share_within_3ft": 0.203
+    },
+    "18": {
+     "n": 244,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      -1.83,
+      5.02,
+      15.35
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      8.89,
+      26.09
+     ],
+     "share_within_3ft": 0.283
+    },
+    "24": null,
+    "30": {
+     "n": 193,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      -0.95,
+      3.46,
+      13.77
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      8.14,
+      36.85
+     ],
+     "share_within_3ft": 0.409
+    },
+    "60": {
+     "n": 92,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      2.65,
+      8.02,
+      20.92
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      16.47,
+      46.42
+     ],
+     "share_within_3ft": 0.098
+    },
+    "90": null,
+    "120": null,
+    "180": null,
+    "240": null,
+    "300": null,
+    "360": null,
+    "420": null,
+    "480": null,
+    "600": null
+   },
+   "pointwise_abs_diff_ft_p50_p90": [
+    5.83,
+    16.93
+   ],
+   "best_within_12m_abs_diff_ft_p50_p90": [
+    1.01,
+    4.97
+   ],
+   "share_within_3ft_pointwise": 0.283,
+   "share_within_3ft_best12m": 0.787
+  },
+  "enc_label_points": [
+   {
+    "lon": -122.48708,
+    "lat": 47.2872,
+    "enc_ft": 6,
+    "dem_ft_at_point": 7.9,
+    "dem_ft_range_within_12m": [
+     4.8,
+     14.5
+    ],
+    "diff_at_point": 1.9
+   },
+   {
+    "lon": -122.49402,
+    "lat": 47.293,
+    "enc_ft": 12,
+    "dem_ft_at_point": 20.9,
+    "dem_ft_range_within_12m": [
+     15.7,
+     25.7
+    ],
+    "diff_at_point": 8.9
+   },
+   {
+    "lon": -122.48867,
+    "lat": 47.2882,
+    "enc_ft": 18,
+    "dem_ft_at_point": 27.0,
+    "dem_ft_range_within_12m": [
+     16.5,
+     31.3
+    ],
+    "diff_at_point": 9.0
+   },
+   {
+    "lon": -122.46902,
+    "lat": 47.2781,
+    "enc_ft": 30,
+    "dem_ft_at_point": 28.8,
+    "dem_ft_range_within_12m": [
+     24.3,
+     35.1
+    ],
+    "diff_at_point": -1.2
+   },
+   {
+    "lon": -122.45645,
+    "lat": 47.2745,
+    "enc_ft": 60,
+    "dem_ft_at_point": 82.2,
+    "dem_ft_range_within_12m": [
+     71.7,
+     93.0
+    ],
+    "diff_at_point": 22.2
+   }
+  ],
+  "soundings": {
+   "deep_over_150ft": {
+    "n": 367,
+    "diff_ft_p10_p50_p90": [
+     0.05,
+     1.29,
+     6.29
+    ],
+    "mae_after_removing_median": 2.52
+   },
+   "by_survey_year": {
+    "2000-2015": {
+     "n": 571,
+     "median_diff": 1.74,
+     "mae": 3.21
+    },
+    "2015-2100": {
+     "n": 309,
+     "median_diff": 1.42,
+     "mae": 1.98
+    }
+   },
+   "mae_after_removing_median_ft": 2.05,
+   "within_3ft_after_removing_median": 0.823,
+   "n": 880,
+   "skipped_bands": [],
+   "n_where_dem_says_land": 4,
+   "n_excluded_lake_soundings": 0,
+   "bands": {
+    "enc_harbour": 866,
+    "enc_coastal": 18
+   },
+   "mean_diff_ft": 2.45,
+   "median_diff_ft": 1.57,
+   "mae_ft": 2.78,
+   "p90_abs_ft": 6.07,
+   "within_3ft": 0.722,
+   "within_10pct": 0.901,
+   "by_depth": {
+    "0-30 ft": {
+     "n": 187,
+     "mean_diff": 2.0,
+     "mae": 2.3,
+     "p90_abs": 6.1,
+     "within_3ft": 0.845
+    },
+    "30-100 ft": {
+     "n": 265,
+     "mean_diff": 2.5,
+     "mae": 2.6,
+     "p90_abs": 4.9,
+     "within_3ft": 0.74
+    },
+    "100-300 ft": {
+     "n": 171,
+     "mean_diff": 3.4,
+     "mae": 4.0,
+     "p90_abs": 6.3,
+     "within_3ft": 0.62
+    },
+    "300-2000 ft": {
+     "n": 257,
+     "mean_diff": 2.1,
+     "mae": 2.6,
+     "p90_abs": 6.5,
+     "within_3ft": 0.681
+    }
+   },
+   "survey_years": [
+    2001.0,
+    2009.0,
+    2023.0
+   ]
+  },
+  "five_soundings": [
+   {
+    "lon": -122.42165,
+    "lat": 47.27081,
+    "enc_sounding_ft": 2.3,
+    "dem_ft": 2.9,
+    "diff_ft": 0.6
+   },
+   {
+    "lon": -122.4153,
+    "lat": 47.28607,
+    "enc_sounding_ft": 33.8,
+    "dem_ft": 34.9,
+    "diff_ft": 1.1
+   },
+   {
+    "lon": -122.43788,
+    "lat": 47.26348,
+    "enc_sounding_ft": 96.5,
+    "dem_ft": 96.9,
+    "diff_ft": 0.4
+   },
+   {
+    "lon": -122.44904,
+    "lat": 47.30822,
+    "enc_sounding_ft": 366.8,
+    "dem_ft": 367.9,
+    "diff_ft": 1.1
+   },
+   {
+    "lon": -122.4573,
+    "lat": 47.30684,
+    "enc_sounding_ft": 549.9,
+    "dem_ft": 549.9,
+    "diff_ft": 0.1
+   }
+  ],
+  "resolution_simulation": {
+   "1/3 arc-second (10 m)": {
+    "grid": [
+     1296,
+     864
+    ],
+    "mae_ft": 2.11,
+    "within_3ft": 0.823
+   },
+   "3 arc-second (90 m, Coastal Relief Model class)": {
+    "grid": [
+     144,
+     96
+    ],
+    "mae_ft": 5.44,
+    "within_3ft": 0.501
+   },
+   "15 arc-second (GEBCO grid, about 460 x 310 m)": {
+    "grid": [
+     29,
+     19
+    ],
+    "mae_ft": 22.42,
+    "within_3ft": 0.15
+   }
+  },
+  "largest_sounding_misses": [
+   {
+    "lon": -122.45784,
+    "lat": 47.27689,
+    "enc_sounding_ft": 168.0,
+    "dem_ft": 300.5,
+    "diff_ft": 132.5,
+    "survey_year": 2009
+   },
+   {
+    "lon": -122.43415,
+    "lat": 47.27528,
+    "enc_sounding_ft": 131.9,
+    "dem_ft": 172.2,
+    "diff_ft": 40.3,
+    "survey_year": 2009
+   },
+   {
+    "lon": -122.47167,
+    "lat": 47.2815,
+    "enc_sounding_ft": 95.8,
+    "dem_ft": 121.7,
+    "diff_ft": 25.9,
+    "survey_year": 2010
+   },
+   {
+    "lon": -122.44096,
+    "lat": 47.27505,
+    "enc_sounding_ft": 264.8,
+    "dem_ft": 287.6,
+    "diff_ft": 22.8,
+    "survey_year": 2003
+   },
+   {
+    "lon": -122.42925,
+    "lat": 47.27329,
+    "enc_sounding_ft": 6.9,
+    "dem_ft": 28.3,
+    "diff_ft": 21.4,
+    "survey_year": 2010
+   },
+   {
+    "lon": -122.43379,
+    "lat": 47.27299,
+    "enc_sounding_ft": 27.9,
+    "dem_ft": 43.1,
+    "diff_ft": 15.2,
+    "survey_year": 2009
+   }
+  ],
+  "features_missed": {
+   "water_share_with_no_enc_contour_within_250m": 0.724,
+   "share_of_that_with_over_15ft_relief_in_150m": 0.547,
+   "area_km2_missed": 11.39,
+   "largest_blobs": [
+    {
+     "lon": -122.4528,
+     "lat": 47.2911,
+     "km2": 10.13,
+     "depth_ft_range": [
+      88.0,
+      576.0
+     ]
+    },
+    {
+     "lon": -122.4658,
+     "lat": 47.3037,
+     "km2": 0.41,
+     "depth_ft_range": [
+      428.0,
+      552.0
+     ]
+    },
+    {
+     "lon": -122.4839,
+     "lat": 47.3183,
+     "km2": 0.3,
+     "depth_ft_range": [
+      473.0,
+      583.0
+     ]
+    }
+   ]
+  },
+  "seconds": {
+   "load_tif": 0.03,
+   "resample": 0.01,
+   "contours": 0.37,
+   "shade_and_png": 0.07,
+   "total": 1.19
+  }
+ },
+ "portangeles": {
+  "title": "Port Angeles harbour",
+  "bbox": [
+   -123.5,
+   48.08,
+   -123.34,
+   48.16
+  ],
+  "station": "9444090 Port Angeles",
+  "navd88_to_mllw_shift_m": 0.129,
+  "source_px": [
+   5184,
+   2592
+  ],
+  "output_px": [
+   512,
+   381
+  ],
+  "metres_per_output_px": 23.2,
+  "source_m_px": [
+   2.29,
+   3.41
+  ],
+  "area_km2": 105.2,
+  "water_share": 0.467,
+  "dem_depth_ft_p1_p50_p99_of_water": [
+   3.28,
+   105.27,
+   275.03
+  ],
+  "dem_max_depth_ft": 349.0,
+  "sizes_bytes": {
+   "png_512": 22743,
+   "webp80_512": 4580,
+   "png_256": 5824,
+   "png_1024": 60766
+  },
+  "contour_bytes": {
+   "3": 1372,
+   "6": 1212,
+   "12": 1247,
+   "18": 1193,
+   "24": 1282,
+   "30": 1328,
+   "60": 1118,
+   "90": 691,
+   "120": 948,
+   "180": 920,
+   "240": 650,
+   "300": 63,
+   "360": 0,
+   "420": 0,
+   "480": 0,
+   "600": 0
+  },
+  "contour_bytes_total": 12024,
+  "enc_vertices_in_box": 661,
+  "enc_contour_bytes_estimate": 3966,
+  "vs_enc_contours": {
+   "per_level": {
+    "3": null,
+    "6": {
+     "n": 99,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      -8.97,
+      0.13,
+      4.26
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      9.36,
+      29.66
+     ],
+     "share_within_3ft": 0.525
+    },
+    "12": {
+     "n": 149,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      -4.67,
+      1.84,
+      7.36
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      15.35,
+      80.13
+     ],
+     "share_within_3ft": 0.537
+    },
+    "18": {
+     "n": 198,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      -0.57,
+      3.05,
+      7.12
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      26.02,
+      117.84
+     ],
+     "share_within_3ft": 0.444
+    },
+    "24": null,
+    "30": {
+     "n": 148,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      0.28,
+      2.74,
+      10.46
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      25.31,
+      103.89
+     ],
+     "share_within_3ft": 0.493
+    },
+    "60": {
+     "n": 36,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      1.4,
+      2.35,
+      12.33
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      59.96,
+      262.83
+     ],
+     "share_within_3ft": 0.583
+    },
+    "90": null,
+    "120": {
+     "n": 18,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      4.0,
+      5.52,
+      18.85
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      49.45,
+      88.19
+     ],
+     "share_within_3ft": 0.0
+    },
+    "180": {
+     "n": 9,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      4.89,
+      5.15,
+      7.6
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      73.17,
+      86.18
+     ],
+     "share_within_3ft": 0.0
+    },
+    "240": {
+     "n": 4,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      5.59,
+      6.04,
+      6.12
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      69.67,
+      114.79
+     ],
+     "share_within_3ft": 0.0
+    },
+    "300": null,
+    "360": null,
+    "420": null,
+    "480": null,
+    "600": null
+   },
+   "pointwise_abs_diff_ft_p50_p90": [
+    3.16,
+    11.06
+   ],
+   "best_within_12m_abs_diff_ft_p50_p90": [
+    1.31,
+    5.19
+   ],
+   "share_within_3ft_pointwise": 0.475,
+   "share_within_3ft_best12m": 0.735
+  },
+  "enc_label_points": [
+   {
+    "lon": -123.45494,
+    "lat": 48.1399,
+    "enc_ft": 6,
+    "dem_ft_at_point": 7.3,
+    "dem_ft_range_within_12m": [
+     4.7,
+     9.4
+    ],
+    "diff_at_point": 1.3
+   },
+   {
+    "lon": -123.46087,
+    "lat": 48.1389,
+    "enc_ft": 12,
+    "dem_ft_at_point": 16.9,
+    "dem_ft_range_within_12m": [
+     15.6,
+     18.1
+    ],
+    "diff_at_point": 4.9
+   },
+   {
+    "lon": -123.48673,
+    "lat": 48.1335,
+    "enc_ft": 18,
+    "dem_ft_at_point": 17.5,
+    "dem_ft_range_within_12m": [
+     15.9,
+     18.8
+    ],
+    "diff_at_point": -0.5
+   },
+   {
+    "lon": -123.49251,
+    "lat": 48.1371,
+    "enc_ft": 30,
+    "dem_ft_at_point": 31.5,
+    "dem_ft_range_within_12m": [
+     31.2,
+     31.7
+    ],
+    "diff_at_point": 1.5
+   },
+   {
+    "lon": -123.47951,
+    "lat": 48.1495,
+    "enc_ft": 60,
+    "dem_ft_at_point": 65.0,
+    "dem_ft_range_within_12m": [
+     62.8,
+     69.2
+    ],
+    "diff_at_point": 5.0
+   },
+   {
+    "lon": -123.47748,
+    "lat": 48.148,
+    "enc_ft": 120,
+    "dem_ft_at_point": 140.8,
+    "dem_ft_range_within_12m": [
+     137.5,
+     143.9
+    ],
+    "diff_at_point": 20.8
+   },
+   {
+    "lon": -123.36985,
+    "lat": 48.1468,
+    "enc_ft": 180,
+    "dem_ft_at_point": 186.5,
+    "dem_ft_range_within_12m": [
+     185.8,
+     187.5
+    ],
+    "diff_at_point": 6.5
+   }
+  ],
+  "soundings": {
+   "deep_over_150ft": {
+    "n": 130,
+    "diff_ft_p10_p50_p90": [
+     -0.82,
+     1.6,
+     4.0
+    ],
+    "mae_after_removing_median": 1.67
+   },
+   "by_survey_year": {
+    "2000-2015": {
+     "n": 1064,
+     "median_diff": 1.86,
+     "mae": 2.66
+    }
+   },
+   "mae_after_removing_median_ft": 1.92,
+   "within_3ft_after_removing_median": 0.845,
+   "n": 1065,
+   "skipped_bands": [],
+   "n_where_dem_says_land": 0,
+   "n_excluded_lake_soundings": 0,
+   "bands": {
+    "enc_harbour": 1048,
+    "enc_coastal": 17
+   },
+   "mean_diff_ft": 2.41,
+   "median_diff_ft": 1.86,
+   "mae_ft": 2.66,
+   "p90_abs_ft": 5.43,
+   "within_3ft": 0.66,
+   "within_10pct": 0.793,
+   "by_depth": {
+    "0-30 ft": {
+     "n": 424,
+     "mean_diff": 2.3,
+     "mae": 2.5,
+     "p90_abs": 5.0,
+     "within_3ft": 0.691
+    },
+    "30-100 ft": {
+     "n": 404,
+     "mean_diff": 2.7,
+     "mae": 2.9,
+     "p90_abs": 6.2,
+     "within_3ft": 0.629
+    },
+    "100-300 ft": {
+     "n": 237,
+     "mean_diff": 2.0,
+     "mae": 2.5,
+     "p90_abs": 4.6,
+     "within_3ft": 0.658
+    }
+   },
+   "survey_years": [
+    1995.0,
+    2012.0,
+    2012.0
+   ]
+  },
+  "five_soundings": [
+   {
+    "lon": -123.39956,
+    "lat": 48.11568,
+    "enc_sounding_ft": 4.9,
+    "dem_ft": 5.4,
+    "diff_ft": 0.5
+   },
+   {
+    "lon": -123.41843,
+    "lat": 48.14295,
+    "enc_sounding_ft": 18.7,
+    "dem_ft": 22.7,
+    "diff_ft": 4.0
+   },
+   {
+    "lon": -123.44339,
+    "lat": 48.12547,
+    "enc_sounding_ft": 39.7,
+    "dem_ft": 42.7,
+    "diff_ft": 3.0
+   },
+   {
+    "lon": -123.43722,
+    "lat": 48.13231,
+    "enc_sounding_ft": 84.0,
+    "dem_ft": 88.4,
+    "diff_ft": 4.4
+   },
+   {
+    "lon": -123.39303,
+    "lat": 48.14625,
+    "enc_sounding_ft": 215.9,
+    "dem_ft": 219.1,
+    "diff_ft": 3.2
+   }
+  ],
+  "resolution_simulation": {
+   "1/3 arc-second (10 m)": {
+    "grid": [
+     1728,
+     864
+    ],
+    "mae_ft": 1.93,
+    "within_3ft": 0.843
+   },
+   "3 arc-second (90 m, Coastal Relief Model class)": {
+    "grid": [
+     192,
+     96
+    ],
+    "mae_ft": 2.96,
+    "within_3ft": 0.698
+   },
+   "15 arc-second (GEBCO grid, about 460 x 310 m)": {
+    "grid": [
+     38,
+     19
+    ],
+    "mae_ft": 14.83,
+    "within_3ft": 0.309
+   }
+  },
+  "largest_sounding_misses": [
+   {
+    "lon": -123.44646,
+    "lat": 48.12586,
+    "enc_sounding_ft": 6.9,
+    "dem_ft": 38.7,
+    "diff_ft": 31.8,
+    "survey_year": 2012
+   },
+   {
+    "lon": -123.42961,
+    "lat": 48.13968,
+    "enc_sounding_ft": 95.8,
+    "dem_ft": 117.4,
+    "diff_ft": 21.6,
+    "survey_year": 2012
+   },
+   {
+    "lon": -123.46107,
+    "lat": 48.13614,
+    "enc_sounding_ft": 17.7,
+    "dem_ft": 38.5,
+    "diff_ft": 20.8,
+    "survey_year": 2012
+   },
+   {
+    "lon": -123.4476,
+    "lat": 48.12522,
+    "enc_sounding_ft": 36.7,
+    "dem_ft": 19.9,
+    "diff_ft": -16.8,
+    "survey_year": 2012
+   },
+   {
+    "lon": -123.42758,
+    "lat": 48.13924,
+    "enc_sounding_ft": 131.9,
+    "dem_ft": 149.9,
+    "diff_ft": 18.0,
+    "survey_year": 2012
+   },
+   {
+    "lon": -123.44482,
+    "lat": 48.12728,
+    "enc_sounding_ft": 29.9,
+    "dem_ft": 47.6,
+    "diff_ft": 17.7,
+    "survey_year": 2010
+   }
+  ],
+  "features_missed": {
+   "water_share_with_no_enc_contour_within_250m": 0.634,
+   "share_of_that_with_over_15ft_relief_in_150m": 0.237,
+   "area_km2_missed": 7.19,
+   "largest_blobs": [
+    {
+     "lon": -123.4115,
+     "lat": 48.1361,
+     "km2": 2.56,
+     "depth_ft_range": [
+      53.0,
+      191.0
+     ]
+    },
+    {
+     "lon": -123.4724,
+     "lat": 48.156,
+     "km2": 1.85,
+     "depth_ft_range": [
+      52.0,
+      349.0
+     ]
+    },
+    {
+     "lon": -123.433,
+     "lat": 48.1462,
+     "km2": 1.26,
+     "depth_ft_range": [
+      12.0,
+      277.0
+     ]
+    }
+   ]
+  },
+  "seconds": {
+   "load_tif": 0.02,
+   "resample": 0.01,
+   "contours": 0.08,
+   "shade_and_png": 0.05,
+   "total": 0.65
+  }
+ },
+ "elliott": {
+  "title": "Elliott Bay, Seattle",
+  "bbox": [
+   -122.44,
+   47.56,
+   -122.32,
+   47.65
+  ],
+  "station": "9447130 Seattle",
+  "navd88_to_mllw_shift_m": 0.715,
+  "source_px": [
+   3888,
+   2916
+  ],
+  "output_px": [
+   512,
+   566
+  ],
+  "metres_per_output_px": 17.6,
+  "source_m_px": [
+   2.32,
+   3.41
+  ],
+  "area_km2": 89.6,
+  "water_share": 0.505,
+  "dem_depth_ft_p1_p50_p99_of_water": [
+   1.76,
+   306.99,
+   747.75
+  ],
+  "dem_max_depth_ft": 827.0,
+  "sizes_bytes": {
+   "png_512": 50524,
+   "webp80_512": 12464,
+   "png_256": 14148,
+   "png_1024": 134249
+  },
+  "contour_bytes": {
+   "3": 2692,
+   "6": 2686,
+   "12": 2666,
+   "18": 2564,
+   "24": 2346,
+   "30": 1897,
+   "60": 1564,
+   "90": 1207,
+   "120": 1168,
+   "180": 1380,
+   "240": 1632,
+   "300": 1326,
+   "360": 1338,
+   "420": 1307,
+   "480": 1020,
+   "600": 1501
+  },
+  "contour_bytes_total": 28294,
+  "enc_vertices_in_box": 2441,
+  "enc_contour_bytes_estimate": 14646,
+  "vs_enc_contours": {
+   "per_level": {
+    "3": null,
+    "6": {
+     "n": 343,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      -20.54,
+      1.48,
+      9.11
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      10.65,
+      51.2
+     ],
+     "share_within_3ft": 0.347
+    },
+    "12": {
+     "n": 365,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      -15.77,
+      2.52,
+      8.57
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      9.92,
+      48.75
+     ],
+     "share_within_3ft": 0.359
+    },
+    "18": {
+     "n": 629,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      -20.37,
+      0.38,
+      7.18
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      10.72,
+      144.61
+     ],
+     "share_within_3ft": 0.258
+    },
+    "24": null,
+    "30": {
+     "n": 597,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      -20.18,
+      1.92,
+      7.75
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      12.54,
+      3260.42
+     ],
+     "share_within_3ft": 0.313
+    },
+    "60": {
+     "n": 243,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      0.68,
+      4.69,
+      11.3
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      11.06,
+      28.49
+     ],
+     "share_within_3ft": 0.391
+    },
+    "90": null,
+    "120": null,
+    "180": null,
+    "240": null,
+    "300": {
+     "n": 154,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      1.59,
+      4.77,
+      13.69
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      12.63,
+      21.31
+     ],
+     "share_within_3ft": 0.247
+    },
+    "360": null,
+    "420": null,
+    "480": null,
+    "600": {
+     "n": 110,
+     "dem_minus_enc_ft_p10_p50_p90": [
+      0.97,
+      2.2,
+      7.78
+     ],
+     "horiz_m_to_my_contour_p50_p90": [
+      17.69,
+      53.99
+     ],
+     "share_within_3ft": 0.664
+    }
+   },
+   "pointwise_abs_diff_ft_p50_p90": [
+    4.85,
+    18.9
+   ],
+   "best_within_12m_abs_diff_ft_p50_p90": [
+    1.17,
+    12.17
+   ],
+   "share_within_3ft_pointwise": 0.33,
+   "share_within_3ft_best12m": 0.724
+  },
+  "enc_label_points": [
+   {
+    "lon": -122.416,
+    "lat": 47.5708,
+    "enc_ft": 6,
+    "dem_ft_at_point": 7.7,
+    "dem_ft_range_within_12m": [
+     7.1,
+     8.4
+    ],
+    "diff_at_point": 1.7
+   },
+   {
+    "lon": -122.42235,
+    "lat": 47.6425,
+    "enc_ft": 12,
+    "dem_ft_at_point": 15.8,
+    "dem_ft_range_within_12m": [
+     15.0,
+     18.3
+    ],
+    "diff_at_point": 3.8
+   },
+   {
+    "lon": -122.42264,
+    "lat": 47.642,
+    "enc_ft": 18,
+    "dem_ft_at_point": 19.3,
+    "dem_ft_range_within_12m": [
+     17.8,
+     21.3
+    ],
+    "diff_at_point": 1.3
+   },
+   {
+    "lon": -122.4121,
+    "lat": 47.5677,
+    "enc_ft": 30,
+    "dem_ft_at_point": 37.7,
+    "dem_ft_range_within_12m": [
+     23.2,
+     50.0
+    ],
+    "diff_at_point": 7.7
+   },
+   {
+    "lon": -122.42235,
+    "lat": 47.5728,
+    "enc_ft": 60,
+    "dem_ft_at_point": 62.3,
+    "dem_ft_range_within_12m": [
+     59.9,
+     65.0
+    ],
+    "diff_at_point": 2.3
+   },
+   {
+    "lon": -122.42784,
+    "lat": 47.5762,
+    "enc_ft": 300,
+    "dem_ft_at_point": 310.7,
+    "dem_ft_range_within_12m": [
+     306.9,
+     314.5
+    ],
+    "diff_at_point": 10.7
+   },
+   {
+    "lon": -122.43536,
+    "lat": 47.5675,
+    "enc_ft": 600,
+    "dem_ft_at_point": 667.7,
+    "dem_ft_range_within_12m": [
+     612.6,
+     684.5
+    ],
+    "diff_at_point": 67.7
+   }
+  ],
+  "soundings": {
+   "deep_over_150ft": {
+    "n": 758,
+    "diff_ft_p10_p50_p90": [
+     0.21,
+     1.62,
+     4.06
+    ],
+    "mae_after_removing_median": 1.39
+   },
+   "by_survey_year": {
+    "2000-2015": {
+     "n": 923,
+     "median_diff": 1.1,
+     "mae": 2.51
+    },
+    "2015-2100": {
+     "n": 1142,
+     "median_diff": 2.22,
+     "mae": 2.73
+    }
+   },
+   "mae_after_removing_median_ft": 1.86,
+   "within_3ft_after_removing_median": 0.875,
+   "n": 2069,
+   "skipped_bands": [],
+   "n_where_dem_says_land": 11,
+   "n_excluded_lake_soundings": 219,
+   "bands": {
+    "enc_harbour": 2277,
+    "enc_coastal": 22
+   },
+   "mean_diff_ft": 1.77,
+   "median_diff_ft": 1.74,
+   "mae_ft": 2.67,
+   "p90_abs_ft": 4.89,
+   "within_3ft": 0.728,
+   "within_10pct": 0.858,
+   "by_depth": {
+    "0-30 ft": {
+     "n": 462,
+     "mean_diff": 1.4,
+     "mae": 3.0,
+     "p90_abs": 6.1,
+     "within_3ft": 0.699
+    },
+    "30-100 ft": {
+     "n": 729,
+     "mean_diff": 1.6,
+     "mae": 2.9,
+     "p90_abs": 5.5,
+     "within_3ft": 0.678
+    },
+    "100-300 ft": {
+     "n": 498,
+     "mean_diff": 2.2,
+     "mae": 2.4,
+     "p90_abs": 4.3,
+     "within_3ft": 0.737
+    },
+    "300-2000 ft": {
+     "n": 380,
+     "mean_diff": 1.9,
+     "mae": 2.1,
+     "p90_abs": 3.9,
+     "within_3ft": 0.85
+    }
+   },
+   "survey_years": [
+    1997.0,
+    2017.0,
+    2026.0
+   ]
+  },
+  "five_soundings": [
+   {
+    "lon": -122.36772,
+    "lat": 47.58525,
+    "enc_sounding_ft": 3.0,
+    "dem_ft": 4.7,
+    "diff_ft": 1.8
+   },
+   {
+    "lon": -122.34308,
+    "lat": 47.59008,
+    "enc_sounding_ft": 34.1,
+    "dem_ft": 38.9,
+    "diff_ft": 4.8
+   },
+   {
+    "lon": -122.39595,
+    "lat": 47.62663,
+    "enc_sounding_ft": 65.9,
+    "dem_ft": 66.2,
+    "diff_ft": 0.3
+   },
+   {
+    "lon": -122.38794,
+    "lat": 47.603,
+    "enc_sounding_ft": 237.2,
+    "dem_ft": 238.7,
+    "diff_ft": 1.5
+   },
+   {
+    "lon": -122.41316,
+    "lat": 47.59933,
+    "enc_sounding_ft": 569.9,
+    "dem_ft": 569.0,
+    "diff_ft": -0.8
+   }
+  ],
+  "resolution_simulation": {
+   "1/3 arc-second (10 m)": {
+    "grid": [
+     1296,
+     972
+    ],
+    "mae_ft": 1.91,
+    "within_3ft": 0.866
+   },
+   "3 arc-second (90 m, Coastal Relief Model class)": {
+    "grid": [
+     144,
+     108
+    ],
+    "mae_ft": 4.6,
+    "within_3ft": 0.58
+   },
+   "15 arc-second (GEBCO grid, about 460 x 310 m)": {
+    "grid": [
+     29,
+     22
+    ],
+    "mae_ft": 18.87,
+    "within_3ft": 0.127
+   }
+  },
+  "largest_sounding_misses": [
+   {
+    "lon": -122.41608,
+    "lat": 47.62765,
+    "enc_sounding_ft": 347.8,
+    "dem_ft": 410.1,
+    "diff_ft": 62.3,
+    "survey_year": 2010
+   },
+   {
+    "lon": -122.38333,
+    "lat": 47.60585,
+    "enc_sounding_ft": 378.0,
+    "dem_ft": 417.2,
+    "diff_ft": 39.3,
+    "survey_year": 2010
+   },
+   {
+    "lon": -122.33785,
+    "lat": 47.62801,
+    "enc_sounding_ft": 28.9,
+    "dem_ft": 4.0,
+    "diff_ft": -24.9,
+    "survey_year": 2010
+   },
+   {
+    "lon": -122.33444,
+    "lat": 47.62757,
+    "enc_sounding_ft": 28.9,
+    "dem_ft": 4.3,
+    "diff_ft": -24.5,
+    "survey_year": 1997
+   },
+   {
+    "lon": -122.39831,
+    "lat": 47.61784,
+    "enc_sounding_ft": 347.8,
+    "dem_ft": 373.2,
+    "diff_ft": 25.4,
+    "survey_year": 2010
+   },
+   {
+    "lon": -122.33251,
+    "lat": 47.62877,
+    "enc_sounding_ft": 24.9,
+    "dem_ft": 3.1,
+    "diff_ft": -21.8,
+    "survey_year": 2000
+   }
+  ],
+  "features_missed": {
+   "water_share_with_no_enc_contour_within_250m": 0.404,
+   "share_of_that_with_over_15ft_relief_in_150m": 0.7,
+   "area_km2_missed": 12.38,
+   "largest_blobs": [
+    {
+     "lon": -122.4167,
+     "lat": 47.5912,
+     "km2": 3.81,
+     "depth_ft_range": [
+      125.0,
+      773.0
+     ]
+    },
+    {
+     "lon": -122.4146,
+     "lat": 47.6275,
+     "km2": 2.97,
+     "depth_ft_range": [
+      27.0,
+      596.0
+     ]
+    },
+    {
+     "lon": -122.3594,
+     "lat": 47.5969,
+     "km2": 2.57,
+     "depth_ft_range": [
+      110.0,
+      291.0
+     ]
+    }
+   ]
+  },
+  "seconds": {
+   "load_tif": 0.01,
+   "resample": 0.01,
+   "contours": 0.18,
+   "shade_and_png": 0.08,
+   "total": 1.08
+  }
+ }
+}

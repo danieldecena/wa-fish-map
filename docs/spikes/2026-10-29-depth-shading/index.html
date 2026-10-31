@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Depth shading spike</title>
+<style>
+:root {
+  --ground: #f2f2f7;
+  --surface: #ffffff;
+  --land: #fcfcfd;
+  --ink: #000000;
+  --ink2: rgba(60,60,67,0.78);
+  --line: rgba(60,60,67,0.2);
+  --enc: #101418;
+  --enc-halo: rgba(255,255,255,0.85);
+  --mine: rgba(255,255,255,0.6);
+  --pin: #1d1d1f;
+  --accent: #00708f;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #1c1c1e;
+    --surface: #000000;
+    --land: #262629;
+    --ink: #ffffff;
+    --ink2: rgba(235,235,245,0.74);
+    --line: rgba(235,235,245,0.22);
+    --enc: #f2f2f7;
+    --enc-halo: rgba(0,0,0,0.7);
+    --mine: rgba(255,255,255,0.6);
+    --pin: #ffffff;
+    --accent: #5ac8e6;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ground); color: var(--ink); font: 15px/1.45 var(--sans); }
+.wrap { max-width: 1480px; margin: 0 auto; padding: 20px 16px 60px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+h2 { font-size: 17px; margin: 0 0 2px; }
+p { margin: 0 0 8px; }
+.lede { color: var(--ink2); max-width: 78ch; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; padding: 10px 14px; margin: 14px 0 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; font-size: 14px; }
+.bar label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.legend { display: flex; align-items: center; gap: 10px; flex: 1 1 360px; min-width: 260px; }
+.ramp { position: relative; flex: 1; height: 14px; border-radius: 7px; border: 1px solid var(--line); }
+.ticks { position: relative; flex: 1; height: 16px; font: 11px var(--mono); color: var(--ink2); }
+.ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.area { margin: 26px 0 0; }
+.stats { color: var(--ink2); font-size: 13.5px; margin-bottom: 8px; max-width: 120ch; }
+.row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+figure { margin: 0; }
+figcaption { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+figcaption small { font-weight: 400; color: var(--ink2); }
+.stage { position: relative; overflow: hidden; background: var(--land); border: 1px solid var(--line); border-radius: 10px; touch-action: none; cursor: grab; }
+.stage.drag { cursor: grabbing; }
+.inner { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: 0 0; }
+.inner img, .inner svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }
+.inner img { image-rendering: auto; }
+.px .inner img { image-rendering: pixelated; }
+.inner svg { overflow: hidden; }
+.enc path, .case path { fill: none; stroke: var(--enc); stroke-width: 1.15; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.mine path { fill: none; stroke: var(--mine); stroke-width: 0.9; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.both .enc path, .case path { stroke: #ffffff; stroke-width: 1.5; }
+.both .case path { stroke: rgba(0,18,40,0.8); stroke-width: 3.4; }
+.both .mine path { stroke: #a9e4f2; stroke-width: 0.8; stroke-opacity: 0.75; }
+.lab text { font-family: var(--mono); fill: var(--enc); paint-order: stroke; stroke: var(--enc-halo); stroke-width: 3px; stroke-linejoin: round; text-anchor: middle; dominant-baseline: central; }
+.site circle { fill: var(--pin); stroke: var(--surface); vector-effect: non-scaling-stroke; stroke-width: 1.5; }
+.site text { font-family: var(--sans); font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--enc-halo); stroke-width: 3px; }
+.stage.enc .enc path { stroke: #101418; }
+.stage.enc .lab text { fill: #101418; stroke: rgba(255,255,255,0.85); }
+.stage.enc .site text { fill: #1d1d1f; stroke: rgba(255,255,255,0.85); }
+.hide-mine .mine, .hide-lab .lab { display: none; }
+.zoombar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; font-size: 12.5px; color: var(--ink2); }
+.zoombar button { font: inherit; padding: 2px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.zoombar button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.zoombar .read { margin-left: auto; font-family: var(--mono); }
+footer { margin-top: 36px; color: var(--ink2); font-size: 13px; max-width: 110ch; }
+@media (max-width: 980px) { .row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <h1>Depth shading from open bathymetry (spike)</h1>
+  <p class="lede">Three test areas. Left: the Depth layer as published today (NOAA ENC contours, <code>depth-data.js</code>, used unchanged). Middle: colour relief and smoothed contours baked from NOAA NCEI CUDEM, 512 px wide per area. Right: both together. Everything is local, no network. A guess from a chart and a model, never for navigation.</p>
+  <div class="bar">
+    <label><input type="checkbox" id="optMine" checked> Smoothed contours from the DEM</label>
+    <label><input type="checkbox" id="optLab" checked> ENC feet labels</label>
+    <label><input type="checkbox" id="optPx"> Show raster pixels</label>
+    <div class="legend"><span>Feet below low tide</span><div style="flex:1"><div class="ramp" id="ramp"></div><div class="ticks" id="ticks"></div></div></div>
+  </div>
+  <div id="areas"></div>
+  <footer>
+    <p>Wheel or pinch to zoom, drag to pan, double-click to reset; the three panels of an area move together. Lines stay sharp because they are vectors; the shading is a raster and softens or blocks up as you zoom, which is the point of this test.</p>
+    <p>Data: NOAA NCEI, Continuously Updated Digital Elevation Model (CUDEM) 1/9 arc-second tiles, not subject to copyright in the US; NOAA Office of Coast Survey ENC contours. CUDEM heights are metres on NAVD88, shifted here to feet below MLLW with the nearest tide station's separation. Details and the licence table are in the README beside this page.</p>
+  </footer>
+</div>
+<script src="../../../Artifacts/salmon-rivers/depth-data.js"></script>
+<script src="shading-data.js"></script>
+<script>
+(function () {
+  var S = window.SHADING, DD = window.DEPTHDATA, NS = 'http://www.w3.org/2000/svg';
+  var wrap = document.getElementById('wrap');
+  function el(tag, attrs, ns) { var e = ns ? document.createElementNS(NS, tag) : document.createElement(tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+  function kb(n) { return (n / 1024).toFixed(n < 10240 ? 1 : 0) + ' KB'; }
+
+  // Legend
+  var stops = S.legend, maxFt = stops[stops.length - 1].ft;
+  function pos(ft) { return Math.sqrt(ft / maxFt) * 100; }  // square-root axis so the shallow stops do not pile up
+  document.getElementById('ramp').style.background = 'linear-gradient(to right,' + stops.map(function (s) { return 'rgb(' + s.rgb.join(',') + ') ' + pos(s.ft).toFixed(1) + '%'; }).join(',') + ')';
+  var tk = document.getElementById('ticks');
+  stops.forEach(function (s) { var t = el('span', {}); if (s.ft === 6 || s.ft === 18) return; t.textContent = s.ft; t.style.left = pos(s.ft) + '%'; tk.appendChild(t); });
+
+  // Keep only the part of an ENC path that touches the box, so each panel holds a few KB, not the whole file.
+  function crop(d, x0, y0, x1, y1) {
+    var out = [], segs = d.match(/M[^M]*/g) || [], pad = 40;
+    for (var i = 0; i < segs.length; i++) {
+      var n = segs[i].match(/-?\d+(?:\.\d+)?/g).map(Number), x = n[0], y = n[1], hit = false, ax = x, ay = y;
+      for (var j = 2; j < n.length - 1; j += 2) { ax += n[j]; ay += n[j + 1]; if (ax >= x0 - pad && ax <= x1 + pad && ay >= y0 - pad && ay <= y1 + pad) { hit = true; break; } }
+      if (!hit && x >= x0 - pad && x <= x1 + pad && y >= y0 - pad && y <= y1 + pad) hit = true;
+      if (hit) out.push(segs[i]);
+    }
+    return out.join('');
+  }
+  function encGroup(m, cls) {
+    var g = el('g', { 'class': cls || 'enc' }, true), sc = el('g', { transform: 'scale(' + DD.scale + ')' }, true);
+    var x0 = m.map[0] / DD.scale, y0 = m.map[1] / DD.scale, x1 = m.map[2] / DD.scale, y1 = m.map[3] / DD.scale;
+    DD.levels.forEach(function (lv) { var d = crop(lv.d, x0, y0, x1, y1); if (d) { var p = el('path', { d: d }, true); p.setAttribute('data-ft', lv.ft); sc.appendChild(p); } });
+    g.appendChild(sc); return g;
+  }
+  function mineGroup(m) {
+    var g = el('g', { 'class': 'mine' }, true), sc = el('g', { transform: 'scale(' + S.scale + ')' }, true);
+    m.levels.forEach(function (lv) { var p = el('path', { d: lv.d }, true); p.setAttribute('data-ft', lv.ft); sc.appendChild(p); });
+    g.appendChild(sc); return g;
+  }
+  function labels(m) {
+    var g = el('g', { 'class': 'lab' }, true), cell = 0.5, seen = {}, n = 0;
+    DD.lab.forEach(function (l) {
+      if (l[0] < m.map[0] + 0.1 || l[0] > m.map[2] - 0.1 || l[1] < m.map[1] + 0.1 || l[1] > m.map[3] - 0.1) return;
+      var k = Math.floor(l[0] / cell) + ',' + Math.floor(l[1] / cell); if (seen[k]) return; seen[k] = 1; n++;
+      var t = el('text', { x: l[0], y: l[1] }, true); t.textContent = l[2]; g.appendChild(t);
+    });
+    return g;
+  }
+  function sites(m) {
+    var all = el('g', {}, true);
+    m.sites.forEach(function (s) {
+      var g = el('g', { 'class': 'site' }, true);
+      var x = (s.lon - S.proj.lon0) * S.proj.kx, y = (S.proj.lat0 - s.lat) * S.proj.k;
+      var c = el('circle', { cx: x, cy: y, r: 0.05 }, true), t = el('text', { x: x + 0.1, y: y - 0.06 }, true); t.textContent = s.name; g.appendChild(c); g.appendChild(t);
+      all.appendChild(g);
+    });
+    return all;
+  }
+
+  var areas = [];
+  Object.keys(S.areas).forEach(function (key) {
+    var m = S.areas[key], st = m.stats, sec = el('section', { 'class': 'area' });
+    var h = el('h2', {}); h.textContent = m.title; sec.appendChild(h);
+    var p = el('p', { 'class': 'stats' });
+    p.textContent = 'Shading ' + m.size[0] + ' x ' + m.size[1] + ' px, ' + st.m_per_px + ' m per pixel (the DEM itself is ' + st.source_m_px[0] + ' x ' + st.source_m_px[1] + ' m). Relief PNG ' + kb(st.png_bytes) + ' (lossy WebP ' + kb(st.webp_bytes) + '), smoothed contours ' + kb(st.contour_bytes) + ' against about ' + kb(st.enc_bytes) + ' for the ENC lines in the same box. Against ' + st.snd_n + ' ENC spot soundings the DEM reads a median ' + st.snd_median + ' ft deeper, mean absolute error ' + st.snd_mae + ' ft, ' + Math.round(st.snd_within3 * 100) + '% within 3 ft.' + (st.note ? ' ' + st.note : '');
+    sec.appendChild(p);
+    var row = el('div', { 'class': 'row' }); sec.appendChild(row);
+    var vb = m.map[0] + ' ' + m.map[1] + ' ' + (m.map[2] - m.map[0]) + ' ' + (m.map[3] - m.map[1]);
+    var inners = [], stages = [], labGs = [];
+    [['enc', 'A. Today: NOAA ENC lines', 'depth-data.js, as published'], ['shade', 'B. Shading + smoothed contours', 'CUDEM, baked'], ['both', 'C. Both overlaid', 'ENC in white with a dark edge, DEM contours in pale blue']].forEach(function (cfg) {
+      var fig = el('figure', {}), cap = el('figcaption', {}); cap.innerHTML = cfg[1] + ' <small>' + cfg[2] + '</small>'; fig.appendChild(cap);
+      var stage = el('div', { 'class': 'stage ' + cfg[0] }); stage.style.aspectRatio = m.size[0] + ' / ' + m.size[1];
+      var inner = el('div', { 'class': 'inner' });
+      var img = el('img', { src: cfg[0] === 'enc' ? m.mask : m.png, alt: cfg[0] === 'enc' ? 'water outline' : 'depth shading', draggable: 'false' }); inner.appendChild(img);
+      var svg = el('svg', { viewBox: vb, preserveAspectRatio: 'none' }, true);
+      if (cfg[0] !== 'enc') svg.appendChild(mineGroup(m));
+      if (cfg[0] === 'both') svg.appendChild(encGroup(m, 'case'));
+      if (cfg[0] !== 'shade') { svg.appendChild(encGroup(m)); var lg = labels(m); svg.appendChild(lg); labGs.push(lg); }
+      svg.appendChild(sites(m));
+      inner.appendChild(svg); stage.appendChild(inner); fig.appendChild(stage); row.appendChild(fig);
+      inners.push(inner); stages.push(stage);
+    });
+    var zb = el('div', { 'class': 'zoombar' }); sec.appendChild(zb);
+    var read = el('span', { 'class': 'read' });
+    var state = { z: 1, tx: 0, ty: 0 };
+    function apply() {
+      var w = stages[0].clientWidth, hgt = stages[0].clientHeight;
+      state.z = Math.max(1, Math.min(32, state.z));
+      state.tx = Math.min(0, Math.max(w - w * state.z, state.tx)); state.ty = Math.min(0, Math.max(hgt - hgt * state.z, state.ty));
+      inners.forEach(function (i) { i.style.transform = 'translate(' + state.tx + 'px,' + state.ty + 'px) scale(' + state.z + ')'; });
+      var unit = w / (m.map[2] - m.map[0]) * state.z;
+      labGs.forEach(function (g) { [].forEach.call(g.childNodes, function (t) { t.setAttribute('font-size', 10 / unit); t.style.strokeWidth = 3 / unit + 'px'; }); });
+      document.querySelectorAll('[data-sitefor="' + key + '"]').forEach(function () {});
+      var sz = (w * state.z) / m.size[0];
+      read.textContent = state.z.toFixed(1) + 'x, one raster pixel = ' + sz.toFixed(1) + ' screen px = ' + (st.m_per_px).toFixed(1) + ' m';
+      [].forEach.call(sec.querySelectorAll('.site'), function (g) { var c = g.firstChild, t = g.lastChild; c.setAttribute('r', 4 / unit); t.setAttribute('font-size', 11 / unit); t.style.strokeWidth = 3 / unit + 'px'; t.setAttribute('x', parseFloat(c.getAttribute('cx')) + 7 / unit); t.setAttribute('y', parseFloat(c.getAttribute('cy')) - 5 / unit); });
+      [].forEach.call(zb.querySelectorAll('button[data-z]'), function (b) { b.setAttribute('aria-pressed', String(Math.abs(+b.dataset.z - state.z) < 0.01)); });
+    }
+    function zoomAt(f, cx, cy) {
+      var nz = Math.max(1, Math.min(32, state.z * f)), r = nz / state.z;
+      state.tx = cx - (cx - state.tx) * r; state.ty = cy - (cy - state.ty) * r; state.z = nz; apply();
+    }
+    [1, 2, 4, 8, 16].forEach(function (z) {
+      var b = el('button', { type: 'button', 'data-z': z }); b.textContent = z + 'x';
+      b.addEventListener('click', function () { var w = stages[0].clientWidth, hgt = stages[0].clientHeight; if (z === 1) { state.z = 1; state.tx = state.ty = 0; apply(); } else zoomAt(z / state.z, w / 2, hgt / 2); });
+      zb.appendChild(b);
+    });
+    zb.appendChild(read);
+    stages.forEach(function (stage) {
+      var drag = null;
+      stage.addEventListener('wheel', function (e) { e.preventDefault(); var r = stage.getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+      stage.addEventListener('pointerdown', function (e) { drag = { x: e.clientX, y: e.clientY, tx: state.tx, ty: state.ty }; stage.setPointerCapture(e.pointerId); stage.classList.add('drag'); });
+      stage.addEventListener('pointermove', function (e) { if (!drag) return; state.tx = drag.tx + e.clientX - drag.x; state.ty = drag.ty + e.clientY - drag.y; apply(); });
+      stage.addEventListener('pointerup', function () { drag = null; stage.classList.remove('drag'); });
+      stage.addEventListener('dblclick', function () { state.z = 1; state.tx = state.ty = 0; apply(); });
+    });
+    wrap.querySelector('#areas').appendChild(sec);
+    areas.push({ key: key, apply: apply, state: state, stages: stages, zoomAt: zoomAt });
+    apply();
+  });
+  window.addEventListener('resize', function () { areas.forEach(function (a) { a.apply(); }); });
+  window.SPIKE = areas.reduce(function (o, a) { o[a.key] = a; return o; }, {});
+
+  function sync() {
+    wrap.classList.toggle('hide-mine', !document.getElementById('optMine').checked);
+    wrap.classList.toggle('hide-lab', !document.getElementById('optLab').checked);
+    wrap.classList.toggle('px', document.getElementById('optPx').checked);
+  }
+  ['optMine', 'optLab', 'optPx'].forEach(function (id) { document.getElementById(id).addEventListener('change', sync); });
+  sync();
+})();
+</script>
+</body>
+</html>
