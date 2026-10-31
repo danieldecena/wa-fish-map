@@ -894,7 +894,7 @@ for (const motion of ['reduce', 'no-preference']) {
     const N = await sp.evaluate(() => window.DEPTHSHADE.tiles.length);
     const a = await SH(sp);
     check(!!a && a.n === N && N >= 20 && a.inVp && a.prev === 'tbase' && a.pe === 'none' && a.data, `shading ${scheme}: a bare link draws ${a && a.n} of ${N} inline image tiles, in #vp right after the base map, taking no taps`);
-    check(a && Math.abs(a.op - (scheme === 'dark' ? 0.5 : 0.9)) < 0.01, `shading ${scheme}: opacity ${a && a.op} (the ramp reads at .9 in light and .5 in dark)`);
+    check(a && Math.abs(a.op - (scheme === 'dark' ? 0.5 : 0.8)) < 0.01, `shading ${scheme}: opacity ${a && a.op} (the ramp reads at .8 in light and .5 in dark)`);
     // Every tile decodes in this browser at its stated size, and the shading stays on Puget Sound water.
     const dec = await sp.evaluate(() => Promise.all(window.DEPTHSHADE.tiles.map(t => new Promise(ok => { const i = new Image(); i.onload = () => ok(i.naturalWidth === t.px[0] && i.naturalHeight === t.px[1]); i.onerror = () => ok(false); i.src = t.uri; }))));
     check(dec.length === N && dec.every(Boolean), `shading ${scheme}: all ${N} tiles decode at their stated size (${dec.filter(Boolean).length} of ${dec.length})`);
