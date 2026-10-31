@@ -3981,7 +3981,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
 </style>
 <style id="shade-css">
 /* Depth shading: image tiles in #vp (see shadeBuild). They sit in #base, so the water focus blur and the scrim dim them with the rest. */
-:root { --shade-o: .9; }
+:root { --shade-o: .8; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --shade-o: .5; } }
 :root[data-theme="dark"] { --shade-o: .5; }
 #shade { pointer-events: none; opacity: calc(var(--shade-o) * var(--shade-f, 1)); }
