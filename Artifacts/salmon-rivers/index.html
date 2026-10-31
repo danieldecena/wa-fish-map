@@ -661,6 +661,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   #heat circle.hin { transform-box: fill-box; transform-origin: center; animation: layer-in var(--dur-layer) var(--ease-out) backwards; }
   @keyframes layer-in { from { opacity: 0; transform: scale(.8); } }
   #depthg { animation: layer-fade var(--dur-layer) var(--ease-out) backwards; }
+  #shade { animation: layer-fade var(--dur-layer) var(--ease-out) backwards; }
   @keyframes layer-fade { from { opacity: 0; } }
   /* Layers switch: the knob slides and the track changes colour together. */
   .layrow .sw { transition: background-color var(--dur-pop) var(--ease-out); }
@@ -738,6 +739,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       <p class="lg">Reports</p>
       <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="counts"><span class="lt"><b>Creel counts</b><span>Fish kept last week, from WDFW.</span></span><span class="sw" aria-hidden="true"></span></button>
       <p class="lg">Water</p>
+      <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="shading"><span class="lt"><b>Depth shading</b><span>A model of the seabed in blue. Puget Sound only.</span></span><span class="sw" aria-hidden="true"></span></button>
       <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="depth"><span class="lt"><b>Depth</b><span>NOAA contours, labels and a + estimate.</span></span><span class="sw" aria-hidden="true"></span></button>
       <button type="button" class="layrow" role="switch" aria-checked="false" data-layer="heat"><span class="lt"><b>Heat circles</b><span>A guess at the best piers right now.</span></span><span class="sw" aria-hidden="true"></span></button>
       <p class="fine">Layers add to the mode you are in. They never change a pin colour.</p>
@@ -775,6 +777,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
 
 <script src="geo.js"></script>
 <script src="depth-data.js"></script>
+<script src="depth-shading.js"></script>
 <script src="rivers-tap.js"></script>
 <script src="rules.js"></script>
 <script src="river-rules.js"></script>
@@ -1370,6 +1373,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     if (dk !== dashKey) { dashKey = dk; syncSeasonUi(); }
     vp.setAttribute('transform', 'translate(' + v.tx + ' ' + v.ty + ') scale(' + v.s + ')');
     fvp.setAttribute('transform', vp.getAttribute('transform'));
+    shadeTick();
     depthTick();
     heatTick();
     var typ = view === 'typical', spw = view === 'spawning';
@@ -1861,13 +1865,51 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   var layers = [], laybtn = $('#laybtn'), laypop = $('#laypop');
   var LAYER_KEY = { typical: 'Square, diamond, circle: launch, pier, shore. Solid when in season (typical timing, not a report)', spawn: 'Triangle: salmon viewing site. Solid when spawning', seasons: 'Dashed outline: a season open in the chosen month', spots: 'White pin: a spot guide', access: 'Diamond: a WDFW pier · circle: shore access', counts: 'Badge: fish kept last week (WDFW survey)', depth: 'Blue lines: NOAA depth contours, labelled in feet below low tide. The + mark gives an estimate; a species depth is a guess, not a report. Not for navigation', heat: 'Circles, light to deep violet: a weaker to stronger guess for a pier or shore site right now, from depth, tide and light. Relative, not a rating, no catch data' };
   function syncLayUi() {
-    $('#layl').innerHTML = layers.length ? '<li class="lkh">Layers on the map</li>' + layers.map(function (n) { return '<li>' + LAYER_KEY[n] + '</li>'; }).join('') : '';
+    $('#layl').innerHTML = layers.length ? '<li class="lkh">Layers on the map</li>' + layers.map(function (n) { return '<li' + (n === 'shading' ? ' class="shadekey"' : '') + '>' + LAYER_KEY[n] + '</li>'; }).join('') : '';
     $('#layl').hidden = !layers.length;
     laypop.querySelectorAll('[data-layer]').forEach(function (b) { b.setAttribute('aria-checked', layers.indexOf(b.getAttribute('data-layer')) >= 0 ? 'true' : 'false'); });
     $('#laylbl').textContent = layers.length ? 'Layers · ' + layers.length : 'Layers';
     $('#laycount').textContent = layers.length || ''; $('#laycount').hidden = !layers.length;
   }
   function setLayers(list) { layers = list; syncLayUi(); syncSeasonUi(); applyStyles(); render(); syncLink(); }
+
+  /* ---- Depth shading layer: a model of the seabed, baked from NOAA's CUDEM into depth-shading.js as image tiles (data URIs, so the
+     page makes no request). The tiles are SVG images in the map's own units, under the base map's rivers and the NOAA contours, so
+     they pan, zoom and blur with the rest of #base. Puget Sound only. A model, not a survey and not sonar. Not for navigation. ---- */
+  var DS = window.DEPTHSHADE && window.DEPTHSHADE.tiles && window.DEPTHSHADE.tiles.length ? window.DEPTHSHADE : null, shadeG = null;
+  function shadeKey() {
+    var ramp = DS ? DS.ramp : [], top = ramp.length ? ramp[ramp.length - 1][0] : 800;
+    var stops = ramp.map(function (s) { return s[1] + ' ' + (Math.sqrt(s[0] / top) * 100).toFixed(1) + '%'; }).join(', ');
+    var labs = [0, 30, 120, 240, 480].map(function (f) { return '<span style="left:' + (Math.sqrt(f / top) * 100).toFixed(1) + '%">' + f + '</span>'; }).join('') + '<span style="left:100%">' + top + '</span>';
+    return '<div><b>Depth shading.</b> Blue shading from a NOAA model of the seabed: pale is shallow, dark is deep. A model, not a survey and not sonar. '
+      + 'Puget Sound only (Admiralty Inlet to South Sound, Hood Canal, Whidbey Basin), not the Strait, San Juans or coast. Not for navigation.'
+      + '<span class="ramp" role="img" aria-label="Depth ramp, feet below low tide: pale blue is shallow, dark blue is deep" style="background:linear-gradient(90deg,' + stops + ')"></span>'
+      + '<span class="rampl" aria-hidden="true">' + labs + '</span><span class="rampt">Feet below low tide</span>'
+      + '<span class="fine">' + (DS ? esc(DS.credit) : '') + '</span></div>';
+  }
+  LAYER_KEY.shading = shadeKey();
+  if (!DS) { var shadeRow = laypop.querySelector('[data-layer="shading"]'); if (shadeRow) shadeRow.style.display = 'none'; }
+  function shadeOn() { return !!DS && layers.indexOf('shading') >= 0; }
+  function shadeBuild() {
+    if (shadeG) return;
+    shadeG = el('g', { id: 'shade' }); shadeF = 1;
+    DS.tiles.forEach(function (t) {
+      el('image', { x: t.x, y: t.y, width: t.w, height: t.h, href: t.uri, preserveAspectRatio: 'none' }, shadeG);
+    });
+    // Just above the water fill and land tint, under the rivers, the markers and the NOAA contours.
+    var after = typeof tbase !== 'undefined' && tbase ? tbase.nextSibling : vp.firstChild;
+    vp.insertBefore(shadeG, after);
+  }
+  /* A raster pixel is about 20 m, so on a wide screen at the closest zoom it is 3.7 CSS pixels and the shading is soft (the contours stay sharp).
+     Full strength until a pixel is 2.5 CSS pixels, then it eases down to 60 percent at 4 and holds there; it never switches off. */
+  var SHADE_SOFT = 2.5, SHADE_SOFTER = 4, SHADE_FLOOR = 0.6, shadeF = 1;
+  function shadeFactor(pxCss) { return pxCss <= SHADE_SOFT ? 1 : Math.max(SHADE_FLOOR, 1 - (pxCss - SHADE_SOFT) / (SHADE_SOFTER - SHADE_SOFT) * (1 - SHADE_FLOOR)); }
+  function shadeTick() {
+    if (!shadeOn()) { if (shadeG) { shadeG.parentNode.removeChild(shadeG); shadeG = null; } return; }
+    shadeBuild();
+    var t0 = DS.tiles[0], f = shadeFactor(Math.max(t0.w / t0.px[0], t0.h / t0.px[1]) * v.s);
+    if (Math.abs(f - shadeF) > 0.005) { shadeF = f; shadeG.style.setProperty('--shade-f', f.toFixed(3)); }
+  }
 
   /* ---- Depth layer: NOAA depth contours baked into depth-data.js (no network). Contours are drawn as lines with feet labels
      when zoomed in; the + mark at the centre gets an estimate interpolated between the two nearest contours, and a chosen
@@ -3936,6 +3978,24 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
 .srow .nm { font-weight: 600; }
 .srow .dt { font-size: 12px; line-height: 16px; color: var(--ink2); }
 .sx { border: 0; background: transparent; color: var(--on-text); font: 600 12px/16px var(--sans); cursor: pointer; min-height: 44px; padding: 0 4px; }
+</style>
+<style id="shade-css">
+/* Depth shading: image tiles in #vp (see shadeBuild). They sit in #base, so the water focus blur and the scrim dim them with the rest. */
+:root { --shade-o: .9; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --shade-o: .5; } }
+:root[data-theme="dark"] { --shade-o: .5; }
+#shade { pointer-events: none; opacity: calc(var(--shade-o) * var(--shade-f, 1)); }
+#shade image { image-rendering: auto; }
+/* Reduced transparency: no see-through blend over the water. */
+@media (prefers-reduced-transparency: reduce) { :root, :root:not([data-theme="light"]), :root[data-theme="dark"] { --shade-o: 1; } }
+.legend li.shadekey { display: block; }
+.shadekey .ramp { display: block; height: 10px; margin: 8px 0 0; border-radius: 5px; box-shadow: inset 0 0 0 1px var(--glass-line); }
+.shadekey .rampl { display: block; position: relative; height: 16px; margin: 2px 0 0; font: 600 11px/16px var(--sans); color: var(--ink2); font-variant-numeric: tabular-nums; }
+.shadekey .rampl span { position: absolute; top: 0; transform: translateX(-50%); }
+.shadekey .rampl span:first-child { transform: none; }
+.shadekey .rampl span:last-child { transform: translateX(-100%); }
+.shadekey .rampt { display: block; font: 500 12px/16px var(--sans); color: var(--ink2); }
+.shadekey .fine { display: block; margin-top: 4px; font: 500 12px/16px var(--sans); color: var(--ink2); }
 </style>
 <style id="depth-css">
 .depthchip { position: absolute; left: 66px; bottom: 14px; z-index: 3; max-width: min(300px, calc(100% - 76px)); padding: 7px 12px; border-radius: 14px; font: 600 12px/16px var(--sans); color: var(--ink); cursor: pointer; text-align: left; border: 0; }

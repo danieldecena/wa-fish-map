@@ -107,7 +107,7 @@ for (const scheme of ['light', 'dark']) {
       }
       if (name === 'Map') {
         const dl = await page.evaluate(() => ({ btn: document.getElementById('laylbl').textContent, legend: document.querySelectorAll('#layl li:not(.lkh)').length, rows: document.querySelectorAll('#laypop [data-layer]').length, on: [...document.querySelectorAll('#laypop [data-layer][aria-checked=true]')].length }));
-        check(dl.rows >= 8 && dl.on === dl.rows && dl.legend === dl.rows, `Map ${w}px ${scheme}: a bare link opens with every layer on (${dl.btn}, ${dl.on} of ${dl.rows} on, ${dl.legend} legend lines)`);
+        check(dl.rows >= 9 && dl.on === dl.rows && dl.legend === dl.rows, `Map ${w}px ${scheme}: a bare link opens with every layer on (${dl.btn}, ${dl.on} of ${dl.rows} on, ${dl.legend} legend lines)`);
       }
       if (name === 'Map' && w <= 390) {
         const k = await page.evaluate(() => { const tapH = (b) => { const r = b.getBoundingClientRect().height, a = getComputedStyle(b, '::after'); const ext = a.content !== 'none' && a.position === 'absolute' ? Math.max(0, -parseFloat(a.top) || 0) + Math.max(0, -parseFloat(a.bottom) || 0) : 0; return r + ext; }; const b = document.getElementById('keybtn'); return { h: tapH(b), shown: getComputedStyle(b).display !== 'none', body: !document.getElementById('keypop').hidden, exp: b.getAttribute('aria-expanded'), text: b.textContent, hint: getComputedStyle(document.getElementById('rhint')).display !== 'none' }; });
@@ -880,6 +880,119 @@ for (const motion of ['reduce', 'no-preference']) {
   check(lay.n > 0 && lay.anim === (rm ? 'none' : 'layer-in') && lay.maxDelay <= 150 && lay.depth === (rm ? 'none' : 'layer-fade'), `motion ${motion}: ${lay.n} heat circles and the depth lines ${rm ? 'appear without a fade' : 'fade in, the circles waiting at most 150 ms'} (${lay.anim}, longest wait ${lay.maxDelay} ms, ${lay.depth})`);
   check(merr.length === 0, `motion ${motion}: no page errors (${merr.join(' | ').slice(0, 160)})`);
   await mctx.close();
+}
+// Depth shading layer (depth-shading.js): image tiles in #vp under the rivers and the NOAA contours, in #base so water focus blurs and dims them.
+{
+  const SH = (p) => p.evaluate(() => { const g = document.getElementById('shade'); return g ? { n: g.querySelectorAll('image').length, inVp: g.parentNode.id === 'vp', prev: g.previousElementSibling && g.previousElementSibling.id, pe: getComputedStyle(g).pointerEvents, op: +getComputedStyle(g).opacity, f: g.style.getPropertyValue('--shade-f'), anim: getComputedStyle(g).animationName, inBase: !!g.closest('#base'), data: [...g.querySelectorAll('image')].every(i => /^data:image\/webp;base64,/.test(i.getAttribute('href')) && i.getAttribute('preserveAspectRatio') === 'none') } : null; });
+  for (const scheme of ['light', 'dark']) {
+    const sctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, colorScheme: scheme });
+    const sp = await sctx.newPage(); const serr = [], outside = [];
+    sp.on('pageerror', e => serr.push(String(e)));
+    sp.on('console', m => { if (m.type() === 'error') serr.push(m.text()); });
+    sp.on('request', r => { if (!r.url().startsWith(base) && !r.url().startsWith('data:') && !r.url().startsWith('blob:')) outside.push(r.url()); });
+    await sp.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+    const N = await sp.evaluate(() => window.DEPTHSHADE.tiles.length);
+    const a = await SH(sp);
+    check(!!a && a.n === N && N >= 20 && a.inVp && a.prev === 'tbase' && a.pe === 'none' && a.data, `shading ${scheme}: a bare link draws ${a && a.n} of ${N} inline image tiles, in #vp right after the base map, taking no taps`);
+    check(a && Math.abs(a.op - (scheme === 'dark' ? 0.5 : 0.9)) < 0.01, `shading ${scheme}: opacity ${a && a.op} (the ramp reads at .9 in light and .5 in dark)`);
+    // Every tile decodes in this browser at its stated size, and the shading stays on Puget Sound water.
+    const dec = await sp.evaluate(() => Promise.all(window.DEPTHSHADE.tiles.map(t => new Promise(ok => { const i = new Image(); i.onload = () => ok(i.naturalWidth === t.px[0] && i.naturalHeight === t.px[1]); i.onerror = () => ok(false); i.src = t.uri; }))));
+    check(dec.length === N && dec.every(Boolean), `shading ${scheme}: all ${N} tiles decode at their stated size (${dec.filter(Boolean).length} of ${dec.length})`);
+    if (scheme === 'light') {
+      const px = await sp.evaluate(async () => {
+        const P = window.GEO.proj, S = window.DEPTHSHADE;
+        const alphaAt = async (lon, lat) => {
+          const x = (lon - P.lon0) * P.kx, y = (P.lat0 - lat) * P.k, hit = S.tiles.filter(t => x >= t.x && x < t.x + t.w && y >= t.y && y < t.y + t.h);
+          if (!hit.length) return -1;
+          let best = 0;
+          for (const t of hit) {
+            const im = await new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.src = t.uri; });
+            const c = document.createElement('canvas'); c.width = t.px[0]; c.height = t.px[1]; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+            const a = g.getImageData(Math.min(t.px[0] - 1, Math.floor((x - t.x) / t.w * t.px[0])), Math.min(t.px[1] - 1, Math.floor((y - t.y) / t.h * t.px[1])), 1, 1).data[3];
+            best = Math.max(best, a);
+          }
+          return best;
+        };
+        const out = {};
+        for (const [k, [lo, la]] of Object.entries({ elliott: [-122.40, 47.60], commencement: [-122.485, 47.301], hood: [-122.93, 47.40], whidbey: [-122.345, 47.931], lakeWashington: [-122.255, 47.62], lakeUnion: [-122.335, 47.64], capitolHill: [-122.31, 47.62], strait: [-123.1, 48.18], sanJuan: [-122.9, 48.55] })) out[k] = await alphaAt(lo, la);
+        return out;
+      });
+      check(px.elliott > 200 && px.commencement > 200 && px.hood > 200 && px.whidbey > 200, `shading: water in Elliott Bay, Commencement Bay, Hood Canal and the Whidbey Basin is opaque (${px.elliott}, ${px.commencement}, ${px.hood}, ${px.whidbey})`);
+      check(px.lakeWashington <= 0 && px.lakeUnion <= 0 && px.capitolHill <= 0, `shading: Lake Washington, Lake Union and Capitol Hill land are transparent or off the tiles (${px.lakeWashington}, ${px.lakeUnion}, ${px.capitolHill})`);
+      check(px.strait === -1 && px.sanJuan === -1, `shading: nothing is drawn over the Strait or the San Juans (${px.strait}, ${px.sanJuan})`);
+    }
+    // Zoom in: the NOAA contour group is built, and it sits after (over) the shading. At the closest zoom the shading eases down but is still there.
+    for (let i = 0; i < 6; i++) { await sp.click('#zin'); await sp.waitForTimeout(450); }
+    const z = await sp.evaluate(() => { const g = document.getElementById('shade'), d = document.getElementById('depthg'); return { n: g ? g.querySelectorAll('image').length : 0, depth: !!d, over: !!(g && d && (g.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING)), s: +/scale\(([\d.]+)\)/.exec(document.getElementById('vp').getAttribute('transform'))[1] }; });
+    check(z.depth && z.over && z.n === N, `shading ${scheme}: with the contours drawn they come after the shading in the DOM, so they sit on top (${z.depth ? 'contours' : 'no contours'}, scale ${z.s.toFixed(0)})`);
+    for (let i = 0; i < 4; i++) { await sp.click('#zin'); await sp.waitForTimeout(450); }
+    const close = await sp.evaluate(() => { const g = document.getElementById('shade'), t = window.DEPTHSHADE.tiles[0], s = +/scale\(([\d.]+)\)/.exec(document.getElementById('vp').getAttribute('transform'))[1]; return { f: g ? parseFloat(g.style.getPropertyValue('--shade-f') || '1') : null, px: Math.max(t.w / t.px[0], t.h / t.px[1]) * s, s, op: g ? +getComputedStyle(g).opacity : null }; });
+    check(close.s > 100 && close.f !== null && close.f >= 0.6 && close.f <= 1 && (close.px <= 2.5 ? close.f === 1 : close.f < 1) && close.op > 0.2, `shading ${scheme}: at scale ${close.s.toFixed(0)} a raster pixel is ${close.px.toFixed(1)} CSS px and the strength factor is ${close.f}, so it holds rather than vanishing (opacity ${close.op})`);
+    check(outside.length === 0, `shading ${scheme}: no request leaves the page (${outside.slice(0, 3).join(', ')})`);
+    check(serr.length === 0, `shading ${scheme}: no page errors (${serr.join(' | ').slice(0, 160)})`);
+    await sctx.close();
+  }
+  // The layer in the menu, the URL and the key.
+  const lctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const lp = await lctx.newPage();
+  await lp.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+  await lp.click('#laybtn');
+  const m0 = await lp.evaluate(() => ({ rows: document.querySelectorAll('#laypop [data-layer]').length, row: (document.querySelector('#laypop [data-layer="shading"]') || {}).textContent, on: document.querySelector('#laypop [data-layer="shading"]')?.getAttribute('aria-checked'), btn: document.getElementById('laylbl').textContent, q: location.search }));
+  check(m0.rows === 9 && /Depth shading/.test(m0.row || '') && m0.on === 'true' && m0.btn === 'Layers · 9' && !/layers=/.test(m0.q), `shading menu: nine layers, "Depth shading" is a row and is on by default (${m0.rows} rows, ${m0.btn})`);
+  await lp.click('#laypop [data-layer="shading"]');
+  const off = await lp.evaluate(() => ({ shade: !!document.getElementById('shade'), btn: document.getElementById('laylbl').textContent, q: location.search, key: [...document.querySelectorAll('#layl li:not(.lkh)')].length, checked: document.querySelector('#laypop [data-layer="shading"]').getAttribute('aria-checked') }));
+  check(!off.shade && off.btn === 'Layers · 8' && /layers=seasons%2Cspots%2Caccess%2Ccounts%2Ctypical%2Cspawn%2Cdepth%2Cheat/.test(off.q) && off.checked === 'false' && off.key === 8, `shading menu: turning it off removes the tiles, says Layers · 8, and the URL lists the other eight (${off.btn}, ${off.q})`);
+  await lp.click('#laypop [data-layer="shading"]');
+  const on = await lp.evaluate(() => ({ shade: !!document.getElementById('shade'), n: document.querySelectorAll('#shade image').length, btn: document.getElementById('laylbl').textContent, q: location.search }));
+  check(on.shade && on.n > 20 && on.btn === 'Layers · 9' && !/layers=/.test(on.q), `shading menu: turning it back on restores the tiles and a link with no layers (${on.n} tiles, ${on.q})`);
+  await lp.click('#laypop [data-layers="none"]');
+  check(await lp.evaluate(() => !document.getElementById('shade')), 'shading menu: All off removes the tiles');
+  await lp.click('#laypop [data-layers="all"]');
+  check(await lp.evaluate(() => !!document.getElementById('shade')), 'shading menu: All on draws them again');
+  await lp.goto(base + '/index.html?layers=shading&today=' + today, { waitUntil: 'networkidle' });
+  const only = await lp.evaluate(() => ({ shade: !!document.getElementById('shade'), depthg: !!document.getElementById('depthg'), chip: !document.getElementById('depthchip').hidden, btn: document.getElementById('laylbl').textContent }));
+  check(only.shade && !only.depthg && !only.chip && only.btn === 'Layers · 1', `shading link: ?layers=shading draws the shading alone, with no contours and no depth chip (${only.btn})`);
+  await lp.goto(base + '/index.html?layers=none&today=' + today, { waitUntil: 'networkidle' });
+  check(await lp.evaluate(() => !document.getElementById('shade')), 'shading link: ?layers=none draws no shading');
+  await lp.goto(base + '/index.html?layers=depth&today=' + today, { waitUntil: 'networkidle' });
+  check(await lp.evaluate(() => !document.getElementById('shade')), 'shading link: ?layers=depth (the contours without the shading) draws no shading');
+  await lp.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+  await lp.click('#keybtn');
+  const key = await lp.evaluate(() => { const li = document.querySelector('#layl li.shadekey'); return li ? { text: li.textContent, ramp: !!li.querySelector('.ramp[role="img"]'), grad: li.querySelector('.ramp').style.background, labels: [...li.querySelectorAll('.rampl span')].map(s => s.textContent), vis: li.getBoundingClientRect().height > 60, n: document.querySelectorAll('#layl li:not(.lkh)').length, rows: document.querySelectorAll('#laypop [data-layer]').length } : null; });
+  check(!!key && key.ramp && /linear-gradient/.test(key.grad) && key.labels.join() === '0,30,120,240,480,800' && key.vis && key.n === key.rows, `shading key: a depth ramp legend in feet below low tide (${key && key.labels.join(' ')}), one key line per layer (${key && key.n} of ${key && key.rows})`);
+  check(!!key && /not a survey and not sonar/.test(key.text) && /Not for navigation/.test(key.text) && /Puget Sound only/.test(key.text) && /not the Strait, San Juans or coast/.test(key.text) && /CIRES \/ NCEI, doi:10\.25921\/ds9v-ky35/.test(key.text) && /Feet below low tide/.test(key.text), 'shading key: says model not survey not sonar, not for navigation, where it covers, and cites NOAA NCEI CUDEM');
+  await lctx.close();
+  // Water focus (a river, and a marine area) blurs and dims the base map, shading included.
+  for (const [what, q] of [['river', '?river=cowlitz'], ['marine area', '?mode=typical&site=les-davis-pier']]) {
+    const fctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, colorScheme: 'light' });
+    const fp = await fctx.newPage(); const ferr = [];
+    fp.on('pageerror', e => ferr.push(String(e)));
+    await fp.goto(base + '/index.html' + q + '&today=' + today, { waitUntil: 'networkidle' });
+    await fp.waitForTimeout(900);
+    const f = await fp.evaluate(() => { const g = document.getElementById('shade'), b = document.getElementById('base'), sc = document.getElementById('wfscrim'); return { focus: document.getElementById('app').classList.contains('focus-water'), n: g ? g.querySelectorAll('image').length : 0, inBase: !!(g && g.closest('#base')), filter: getComputedStyle(b).filter, scrim: getComputedStyle(sc).opacity, order: !!(b.compareDocumentPosition(sc) & Node.DOCUMENT_POSITION_FOLLOWING) }; });
+    check(f.focus && f.n > 20 && f.inBase && /blur\(3\.5px\)/.test(f.filter) && f.scrim === '1' && f.order, `shading focus (${what}): the tiles stay in the blurred base and the scrim lies over them (${f.n} tiles, ${f.filter}, scrim ${f.scrim})`);
+    check(ferr.length === 0, `shading focus (${what}): no page errors`);
+    await fctx.close();
+  }
+  // Motion: the tiles fade in with the other layers unless the visitor asked for reduced motion.
+  for (const motion of ['reduce', 'no-preference']) {
+    const mctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: motion });
+    const mp = await mctx.newPage();
+    await mp.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+    const a = await SH(mp);
+    check(a && a.anim === (motion === 'reduce' ? 'none' : 'layer-fade'), `shading motion ${motion}: the tiles ${motion === 'reduce' ? 'appear without a fade' : 'fade in with the other layers'} (${a && a.anim})`);
+    await mctx.close();
+  }
+  // A phone: the shading is there, nothing scrolls sideways, and the key does not spill.
+  const pctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  const pp = await pctx.newPage(); const perr = [];
+  pp.on('pageerror', e => perr.push(String(e)));
+  await pp.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+  await pp.click('#keybtn');
+  const ph = await pp.evaluate(() => { const li = document.querySelector('#layl li.shadekey'), k = document.getElementById('keypop').getBoundingClientRect(); return { n: document.querySelectorAll('#shade image').length, sx: document.documentElement.scrollWidth <= innerWidth, fits: !!li && k.left >= 0 && k.right <= innerWidth + 1, over: li ? li.scrollWidth <= li.clientWidth + 1 : false }; });
+  check(ph.n > 20 && ph.sx && ph.fits && ph.over, `shading phone 390px: tiles drawn (${ph.n}), no sideways scroll, the key and its ramp fit the screen`);
+  check(perr.length === 0, 'shading phone 390px: no page errors');
+  await pctx.close();
 }
 } finally { await browser.close(); if (server) server.close(); }
 console.log(fails.length ? `\n${fails.length} FAILED` : '\nall checks passed');

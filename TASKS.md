@@ -1,5 +1,5 @@
 ## Tasks
-- [ ] Verify and ship Depth shading (feat/depth-shading)
+- [x] Depth shading layer (version 50)
 - [x] Water focus for marine areas (version 49)
 - [ ] Water focus for lakes (needs outlines from NHD or WDFW)
 - [ ] Read the river rules on the live map (a re-verify is running)
