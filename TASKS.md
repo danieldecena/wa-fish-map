@@ -1,5 +1,5 @@
 ## Tasks
-- [ ] Decide on a Depth shading layer (spike done, PR 131)
+- [x] Decide on a Depth shading layer - built on feat/depth-shading
 - [ ] Water focus for marine areas (outlines in .cache/wdfw)
 - [ ] Read the river rules on the live map (a re-verify is running)
 - [ ] Puget Sound river reports: repeat the sourcing pass (spec 2026-10-26-puget-river-reports) when new shop or guide reports appear; a river is added only with a report at most 21 days old (Skagit added 2026-10-26 on the Confluence Fly Shop's Oct 10 report; replace it when a fresher one appears). First pass: docs/research/2026-10-26-puget-river-reports.md.
