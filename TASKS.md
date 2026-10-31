@@ -1,5 +1,5 @@
 ## Tasks
-- [ ] Decide on a Depth shading layer (spike done, PR 131)
+- [ ] Verify and ship Depth shading (feat/depth-shading)
 - [x] Water focus for marine areas (version 49)
 - [ ] Water focus for lakes (needs outlines from NHD or WDFW)
 - [ ] Read the river rules on the live map (a re-verify is running)
@@ -251,16 +251,17 @@
 
 <!-- resume-footer -->
 ---
-Plan approved 2026-09-21 16:47.
+Plan approved 2026-10-30 17:24.
+Plan file: docs/superpowers/plans/serialized-enchanting-backus.md
 
-Sessions start in "plan" (permissions.defaultMode in
+Sessions start in "default" mode (permissions.defaultMode in
 ~/.claude/settings.json). Bypass is reachable in the Shift+Tab cycle only
 when launched via `cb` (--allow-dangerously-skip-permissions); `yolo`
 (--dangerously-skip-permissions) starts in bypass outright.
 
 Only if Claude Code actually closed:
 
-    claude --resume 1f7317de-786d-4345-a4f4-babf6f9efb0e
+    claude --resume d589e9e9-b907-4b8b-8989-afb514f176c3
 
 (`-c` resumes the most recent session; bare `--resume` opens a searchable picker.)
 <!-- /resume-footer -->
