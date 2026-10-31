@@ -7,7 +7,7 @@
   'use strict';
   return {
  "generated": "2026-10-30",
- "credit": "Source: NOAA NCEI CUDEM (CIRES / NCEI, doi:10.25921/ds9v-ky35), public domain. Heights are matched to low tide with NOAA VDatum and a local correction to NOAA's charted soundings; against those soundings the shading is typically within 4 ft (75% within 3 ft).",
+ "credit": "Source: NOAA NCEI CUDEM (CIRES / NCEI, doi:10.25921/ds9v-ky35), public domain. Heights are matched to low tide with NOAA VDatum and a local correction to NOAA's charted soundings. Against those soundings the shading is off by 3.1 ft on average and 75% are within 3 ft; steep walls such as Hood Canal's are much worse.",
  "datum": "feet below MLLW (low tide)",
  "areas": [
   "8-1",

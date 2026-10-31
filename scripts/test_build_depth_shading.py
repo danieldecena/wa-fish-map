@@ -28,7 +28,7 @@ class RampTests(unittest.TestCase):
         for name, rgb in b.RATING_COLOURS.items():
             self.assertFalse(b.calm_blue(rgb), name)
         for ft, rgb in b.RAMP:
-            self.assertTrue(b.calm_blue(rgb), "ramp stop at %d ft" % ft)
+            self.assertTrue(b.calm_blue(rgb), f"ramp stop at {ft} ft")
 
     def test_ramp_gets_darker_with_depth_and_is_in_order(self):
         lum = [sum(rgb) for _, rgb in b.RAMP]
@@ -54,9 +54,9 @@ class GridTests(unittest.TestCase):
             self.assertAlmostEqual((n - s) / ny, b.W_PX, places=12)
 
     def test_tiles_abut_and_pixels_are_about_square_on_the_ground(self):
-        w0, s0, e0, n0 = b.tile_box(3, 3)
-        w1, s1, e1, n1 = b.tile_box(3, 4)
-        w2, s2, e2, n2 = b.tile_box(4, 3)
+        _w0, s0, e0, _n0 = b.tile_box(3, 3)
+        w1, _s1, _e1, _n1 = b.tile_box(3, 4)
+        _w2, _s2, _e2, n2 = b.tile_box(4, 3)
         self.assertAlmostEqual(e0, w1, places=12)
         self.assertAlmostEqual(s0, n2, places=12)
         self.assertAlmostEqual(b.M_PER_PX_Y * b.OUT_LAT_PX, 20.5, delta=0.1)
@@ -90,15 +90,15 @@ class DatumTests(unittest.TestCase):
         self.assertLess(b.depth_ft(2.0, 0.75), 0)
 
     def test_interp_grid_is_bilinear_and_refuses_off_grid(self):
-        g = dict(
-            lon0=-123.0,
-            lat0=48.0,
-            dlon=1.0,
-            dlat=1.0,
-            nx=2,
-            ny=2,
-            z=[[0.0, 1.0], [2.0, 3.0]],
-        )
+        g = {
+            "lon0": -123.0,
+            "lat0": 48.0,
+            "dlon": 1.0,
+            "dlat": 1.0,
+            "nx": 2,
+            "ny": 2,
+            "z": [[0.0, 1.0], [2.0, 3.0]],
+        }
         self.assertAlmostEqual(b.interp_grid(g, -122.5, 47.5), 1.5)
         self.assertAlmostEqual(b.interp_grid(g, -123.0, 48.0), 0.0)
         self.assertIsNone(b.interp_grid(g, -124.0, 47.5))
@@ -131,21 +131,36 @@ class DatumTests(unittest.TestCase):
         for aid in b.AREA_IDS:
             sel = [r for r in rows if r["area"] == aid]
             self.assertGreaterEqual(len(sel), 30, aid)
-            self.assertLess(abs(bias(shipped, sel)), 1.5, "area %s median bias" % aid)
+            self.assertLess(abs(bias(shipped, sel)), 1.5, f"area {aid} median bias")
         deep = [r for r in rows if r["enc_ft"] > 150]
         self.assertGreaterEqual(len(deep), 40)
         self.assertLess(abs(bias(shipped, deep)), 1.0, "deep flat water")
         # The known-bad input: the spike's one Seattle constant must fail this same test, or the test cannot fail.
         flat = lambda r: 0.715
-        self.assertGreater(abs(bias(flat, rows)), 1.0, "pooled: the single constant would pass")
-        over = [a for a in b.AREA_IDS if abs(bias(flat, [r for r in rows if r["area"] == a])) > 1.5]
-        self.assertGreaterEqual(len(over), 2, "per area: the single constant would pass")
+        self.assertGreater(
+            abs(bias(flat, rows)), 1.0, "pooled: the single constant would pass"
+        )
+        over = [
+            a
+            for a in b.AREA_IDS
+            if abs(bias(flat, [r for r in rows if r["area"] == a])) > 1.5
+        ]
+        self.assertGreaterEqual(
+            len(over), 2, "per area: the single constant would pass"
+        )
 
 
 @unittest.skipUnless(STACK, "numpy stack not installed")
 class StackTests(unittest.TestCase):
     def geom(self):
-        return dict(lon0=-123.0, lat0=48.0, dlon=0.05, dlat=0.02, nx=20, ny=30)
+        return {
+            "lon0": -123.0,
+            "lat0": 48.0,
+            "dlon": 0.05,
+            "dlat": 0.02,
+            "nx": 20,
+            "ny": 30,
+        }
 
     def test_datum_numpy_equals_pure_python_interp(self):
         g = self.geom()
@@ -160,7 +175,14 @@ class StackTests(unittest.TestCase):
             )
 
     def test_fit_correction_recovers_a_known_offset_and_is_zero_far_from_data(self):
-        g = dict(lon0=-125.0, lat0=48.0, dlon=0.2, dlat=0.02, nx=20, ny=30)  # 4 degrees across
+        g = {
+            "lon0": -125.0,
+            "lat0": 48.0,
+            "dlon": 0.2,
+            "dlat": 0.02,
+            "nx": 20,
+            "ny": 30,
+        }  # 4 degrees across
         rng = b.np.random.default_rng(1)
         lon = rng.uniform(-122.8, -122.4, 500)
         lat = rng.uniform(47.6, 47.9, 500)
@@ -168,25 +190,27 @@ class StackTests(unittest.TestCase):
         i = int((-122.6 - g["lon0"]) / g["dlon"])
         j = int((g["lat0"] - 47.75) / g["dlat"])
         self.assertAlmostEqual(float(corr[j, i]), 0.5, places=6)
-        self.assertEqual(float(corr[0, 0]), 0.0)  # 2 degrees from any sounding: VDatum on its own
+        self.assertEqual(
+            float(corr[0, 0]), 0.0
+        )  # 2 degrees from any sounding: VDatum on its own
 
     def test_vdatum_samples_fill_and_the_no_answer_value_is_dropped(self):
-        vd = dict(
-            nx=3,
-            ny=2,
-            lon0=-123.0,
-            lat0=48.0,
-            dlon=0.1,
-            dlat=0.1,
-            points=[
-                dict(i=0, j=0, z=0.7),
-                dict(i=1, j=0, z=-999999.0),
-                dict(i=2, j=0, z=0.9),
-                dict(i=0, j=1, z=None),
-                dict(i=1, j=1, z=0.8),
-                dict(i=2, j=1, z=0.85),
+        vd = {
+            "nx": 3,
+            "ny": 2,
+            "lon0": -123.0,
+            "lat0": 48.0,
+            "dlon": 0.1,
+            "dlat": 0.1,
+            "points": [
+                {"i": 0, "j": 0, "z": 0.7},
+                {"i": 1, "j": 0, "z": -999999.0},
+                {"i": 2, "j": 0, "z": 0.9},
+                {"i": 0, "j": 1, "z": None},
+                {"i": 1, "j": 1, "z": 0.8},
+                {"i": 2, "j": 1, "z": 0.85},
             ],
-        )
+        }
         d = b.Datum.from_vdatum(vd)
         self.assertEqual(d.answered, 4)
         self.assertTrue(b.np.all(b.np.abs(d.grid) < 5))

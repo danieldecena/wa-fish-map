@@ -159,7 +159,7 @@ def load_outlines(path=MARINE, ids=AREA_IDS):
             ]
     missing = [i for i in ids if i not in out]
     if missing:
-        sys.exit("marine-areas.js has no outline for %s" % ", ".join(missing))
+        sys.exit("marine-areas.js has no outline for {}".format(", ".join(missing)))
     return out
 
 
@@ -241,15 +241,15 @@ def get(url, params=None, limit=None, tries=6):
             with urllib.request.urlopen(url, timeout=240) as r:
                 n = r.headers.get("Content-Length")
                 if limit and n and int(n) > limit:
-                    raise SystemExit("refusing %s bytes from %s" % (n, url))
+                    raise SystemExit(f"refusing {n} bytes from {url}")
                 body = r.read(limit + 1 if limit else None)
                 if limit and len(body) > limit:
-                    raise SystemExit("response over %d bytes from %s" % (limit, url))
+                    raise SystemExit(f"response over {limit} bytes from {url}")
                 return body
         except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
             last = e
             time.sleep(2 + 3 * i)
-    raise SystemExit("gave up on %s: %s" % (url[:120], last))
+    raise SystemExit(f"gave up on {url[:120]}: {last}")
 
 
 def get_json(url, params, tries=10):
@@ -294,17 +294,17 @@ def tiles_with_water(mask):
 
 def fetch_dem(work, tiles):
     for r, c in tiles:
-        tif = work / ("dem-r%02d-c%02d.tif" % (r, c))
+        tif = work / f"dem-r{r:02d}-c{c:02d}.tif"
         if tif.exists():
             continue
         (west, south, east, north), (nx, ny) = window_box(r, c)
         body = get(
             IMAGE_SERVER + "/exportImage",
             {
-                "bbox": "%.9f,%.9f,%.9f,%.9f" % (west, south, east, north),
+                "bbox": f"{west:.9f},{south:.9f},{east:.9f},{north:.9f}",
                 "bboxSR": 4326,
                 "imageSR": 4326,
-                "size": "%d,%d" % (nx, ny),
+                "size": f"{nx},{ny}",
                 "format": "tiff",
                 "pixelType": "F32",
                 "interpolation": "RSP_BilinearInterpolation",
@@ -343,9 +343,9 @@ def fetch_soundings(work):
         off, n0 = 0, len(rows)
         while True:
             j = get_json(
-                ENC_BASE + band + "/MapServer/%d/query" % lid[0],
+                ENC_BASE + band + f"/MapServer/{lid[0]}/query",
                 {
-                    "geometry": "%s,%s,%s,%s" % (west, south, east, north),
+                    "geometry": f"{west},{south},{east},{north}",
                     "geometryType": "esriGeometryEnvelope",
                     "inSR": 4326,
                     "outSR": 4326,
@@ -357,17 +357,17 @@ def fetch_soundings(work):
                 },
             )
             if "error" in j:
-                raise SystemExit("query failed for %s: %s" % (band, str(j)[:200]))
+                raise SystemExit(f"query failed for {band}: {str(j)[:200]}")
             for f in j.get("features", []):
                 g = f["geometry"]
                 rows.append(
-                    dict(
-                        band=band,
-                        lon=g["x"],
-                        lat=g["y"],
-                        z_m=f["attributes"]["Z"],
-                        sordat=f["attributes"]["SORDAT"],
-                    )
+                    {
+                        "band": band,
+                        "lon": g["x"],
+                        "lat": g["y"],
+                        "z_m": f["attributes"]["Z"],
+                        "sordat": f["attributes"]["SORDAT"],
+                    }
                 )
             if not j.get("exceededTransferLimit"):
                 break
@@ -401,16 +401,16 @@ def vdatum_points(mask):
 
 
 def vdatum_one(lon, lat):
-    q = dict(
-        s_x="%.6f" % lon,
-        s_y="%.6f" % lat,
-        s_z=0,
-        s_h_frame="NAD83_2011",
-        t_h_frame="IGS14",  # the west coast tidal region only accepts IGS14 as the target frame
-        s_v_frame="NAVD88",
-        t_v_frame="MLLW",
-        region="westcoast",
-    )
+    q = {
+        "s_x": f"{lon:.6f}",
+        "s_y": f"{lat:.6f}",
+        "s_z": 0,
+        "s_h_frame": "NAD83_2011",
+        "t_h_frame": "IGS14",  # the west coast tidal region only accepts IGS14 as the target frame
+        "s_v_frame": "NAVD88",
+        "t_v_frame": "MLLW",
+        "region": "westcoast",
+    }
     for i in range(5):
         try:
             j = json.loads(get(VDATUM_URL, q, tries=3))
@@ -442,21 +442,21 @@ def fetch_vdatum(work, mask):
     with ThreadPoolExecutor(4) as ex:
         res = list(ex.map(one, pts))
     ok = sum(1 for r in res if r[4] is not None)
-    print("vdatum: %d of %d points answered" % (ok, len(res)), flush=True)
+    print(f"vdatum: {ok} of {len(res)} points answered", flush=True)
     dst.write_text(
         json.dumps(
-            dict(
-                nx=nx,
-                ny=ny,
-                lon0=WEST0,
-                lat0=NORTH0,
-                dlon=VD_STEP_LON,
-                dlat=VD_STEP_LAT,
-                points=[
-                    dict(i=i, j=j, lon=lo, lat=la, z=z, u=u)
+            {
+                "nx": nx,
+                "ny": ny,
+                "lon0": WEST0,
+                "lat0": NORTH0,
+                "dlon": VD_STEP_LON,
+                "dlat": VD_STEP_LAT,
+                "points": [
+                    {"i": i, "j": j, "lon": lo, "lat": la, "z": z, "u": u}
                     for i, j, lo, la, z, u in res
                 ],
-            )
+            }
         )
     )
 
@@ -515,7 +515,7 @@ def load_soundings(work):
 
 
 def read_dem(work, r, c):
-    return tifffile.imread(work / ("dem-r%02d-c%02d.tif" % (r, c))).astype(np.float32)
+    return tifffile.imread(work / f"dem-r{r:02d}-c{c:02d}.tif").astype(np.float32)
 
 
 def sample_dem(work, lon, lat):
@@ -525,7 +525,7 @@ def sample_dem(work, lon, lat):
     cc = np.floor((lon - WEST0) / (TILE * W_LON)).astype(int)
     rr = np.floor((NORTH0 - lat) / (TILE * W_LAT)).astype(int)
     for r, c in sorted(set(zip(rr.tolist(), cc.tolist()))):
-        f = work / ("dem-r%02d-c%02d.tif" % (r, c))
+        f = work / f"dem-r{r:02d}-c{c:02d}.tif"
         if not f.exists():
             continue
         sel = (rr == r) & (cc == c)
@@ -567,7 +567,7 @@ def fetch(work, only):
     outlines = load_outlines()
     mask = water_mask_full(outlines)
     tiles = tiles_with_water(mask)
-    print("%d tiles with water of %d" % (len(tiles), COLS * ROWS), flush=True)
+    print(f"{len(tiles)} tiles with water of {COLS * ROWS}", flush=True)
     if only in (None, "soundings"):
         fetch_soundings(work)
     if only in (None, "vdatum"):
@@ -695,14 +695,18 @@ def encode_webp(rgba):
 
 
 def hex_rgb(rgb):
-    return "#%02x%02x%02x" % tuple(rgb)
+    return "#{:02x}{:02x}{:02x}".format(*tuple(rgb))
 
 
 # ---------------------------------------------------------------- datum calibration and the report
 
 CAL_CELL_WEIGHT_CAP = 25
-CAL_CLIP_M = 3.0  # one wild sounding (a drying height, a wreck) must not steer the field
-CAL_MAX_M = 1.6  # the largest local correction ever applied; the real ones are 0.3 to 1.2 m
+CAL_CLIP_M = (
+    3.0  # one wild sounding (a drying height, a wreck) must not steer the field
+)
+CAL_MAX_M = (
+    1.6  # the largest local correction ever applied; the real ones are 0.3 to 1.2 m
+)
 # Kernel widths tried in turn until a node has enough neighbours. Picked by cross-validation:
 # 8, 20 and 60 km over-corrected the Whidbey Basin by 1.5 ft; 3, 8 and 40 km leave every area within 0.3 ft.
 CAL_SIGMAS_KM = (3.0, 8.0, 40.0)
@@ -720,16 +724,16 @@ def usable_soundings(work, outlines):
     zdem = sample_dem(work, lon, lat)
     area = area_of(outlines, lon, lat)
     ok = np.isfinite(zdem) & (zm > 0) & (area != "") & (zdem < 0)
-    return dict(
-        skipped=skipped,
-        n_all=len(rows),
-        lon=lon[ok],
-        lat=lat[ok],
-        zm=zm[ok],
-        zdem=zdem[ok],
-        band=band[ok],
-        area=area[ok],
-    )
+    return {
+        "skipped": skipped,
+        "n_all": len(rows),
+        "lon": lon[ok],
+        "lat": lat[ok],
+        "zm": zm[ok],
+        "zdem": zdem[ok],
+        "band": band[ok],
+        "area": area[ok],
+    }
 
 
 def split_fixture(S, per_cell=10):
@@ -805,12 +809,12 @@ def model_depth_diff_ft(zdem, shift_m, zm):
 def stats(d):
     if len(d) == 0:
         return None
-    return dict(
-        n=int(len(d)),
-        median_ft=round(float(np.median(d)), 2),
-        mae_ft=round(float(np.abs(d).mean()), 2),
-        within_3ft=round(float((np.abs(d) <= 3).mean()), 3),
-    )
+    return {
+        "n": len(d),
+        "median_ft": round(float(np.median(d)), 2),
+        "mae_ft": round(float(np.abs(d).mean()), 2),
+        "within_3ft": round(float((np.abs(d) <= 3).mean()), 3),
+    }
 
 
 def per_area(S, shift_m, mask=None):
@@ -823,15 +827,15 @@ def per_area(S, shift_m, mask=None):
 
 
 def grid_json(geom, z):
-    return dict(
-        lon0=geom["lon0"],
-        lat0=geom["lat0"],
-        dlon=geom["dlon"],
-        dlat=geom["dlat"],
-        nx=geom["nx"],
-        ny=geom["ny"],
-        z=[[round(float(v), 4) for v in row] for row in z],
-    )
+    return {
+        "lon0": geom["lon0"],
+        "lat0": geom["lat0"],
+        "dlon": geom["dlon"],
+        "dlat": geom["dlat"],
+        "nx": geom["nx"],
+        "ny": geom["ny"],
+        "z": [[round(float(v), 4) for v in row] for row in z],
+    }
 
 
 # ---------------------------------------------------------------- build
@@ -881,46 +885,46 @@ def build(work):
         c = fit_correction(S["lon"][tr], S["lat"][tr], resid[tr], geom)
         s_oof[te] = Datum(geom, d_vd.grid + c).shift_m(S["lon"][te], S["lat"][te])
     const = np.full(len(S["zm"]), SEATTLE_CONSTANT_M)
-    report = dict(
-        generated=time.strftime("%Y-%m-%d"),
-        soundings=dict(
-            fetched_after_dedupe=S["n_all"],
-            scored=int(len(S["zm"])),
-            in_fit=int(fit.sum()),
-            held_out_fixture=int(held.sum()),
-            bands={b: int((S["band"] == b).sum()) for b in sorted(set(S["band"]))},
-            bands_skipped=S["skipped"],
-        ),
-        vdatum=dict(
-            asked=d_vd.asked,
-            answered=d_vd.answered,
-            grid_step_km=round(VD_STEP_LAT * 110.574, 2),
-            shift_m_range=[
+    report = {
+        "generated": time.strftime("%Y-%m-%d"),
+        "soundings": {
+            "fetched_after_dedupe": S["n_all"],
+            "scored": len(S["zm"]),
+            "in_fit": int(fit.sum()),
+            "held_out_fixture": int(held.sum()),
+            "bands": {b: int((S["band"] == b).sum()) for b in sorted(set(S["band"]))},
+            "bands_skipped": S["skipped"],
+        },
+        "vdatum": {
+            "asked": d_vd.asked,
+            "answered": d_vd.answered,
+            "grid_step_km": round(VD_STEP_LAT * 110.574, 2),
+            "shift_m_range": [
                 round(float(d_vd.grid.min()), 3),
                 round(float(d_vd.grid.max()), 3),
             ],
-            correction_m_range=[
+            "correction_m_range": [
                 round(float(corr.min()), 3),
                 round(float(corr.max()), 3),
             ],
-        ),
-        median_dem_minus_enc_ft=dict(
-            before_single_constant=per_area(S, const),
-            vdatum_only=per_area(S, s_vd),
-            vdatum_plus_calibration_in_sample=per_area(S, s_cal, fit),
-            vdatum_plus_calibration_out_of_fold=per_area(S, s_oof, fit),
-            vdatum_plus_calibration_held_out_fixture=per_area(S, s_cal, held),
-        ),
-    )
+        },
+        "median_dem_minus_enc_ft": {
+            "before_single_constant": per_area(S, const),
+            "vdatum_only": per_area(S, s_vd),
+            "vdatum_plus_calibration_in_sample": per_area(S, s_cal, fit),
+            "vdatum_plus_calibration_out_of_fold": per_area(S, s_oof, fit),
+            "vdatum_plus_calibration_held_out_fixture": per_area(S, s_cal, held),
+        },
+    }
     # Fixtures for the test: the held-out soundings with the raw DEM height under each, and the shipped datum grid.
     fx = [
-        dict(
-            area=str(S["area"][i]),
-            lon=round(float(S["lon"][i]), 5),
-            lat=round(float(S["lat"][i]), 5),
-            enc_ft=round(float(S["zm"][i] * FT), 1),
-            dem_navd88_m=round(float(S["zdem"][i]), 3),
-        )
+        {
+            "area": str(S["area"][i]),
+            "lon": round(float(S["lon"][i]), 5),
+            "lat": round(float(S["lat"][i]), 5),
+            "enc_ft": round(float(S["zm"][i] * FT), 1),
+            "dem_navd88_m": round(float(S["zdem"][i]), 3),
+        }
         for i in np.flatnonzero(held)
     ]
     about = (
@@ -928,15 +932,16 @@ def build(work):
         "CUDEM height under each (metres, NAVD88). Written by scripts/build_depth_shading.py."
     )
     SOUNDINGS_FIXTURE.write_text(
-        '{"about": %s,\n"rows": [\n%s\n]}\n'
-        % (json.dumps(about), ",\n".join(json.dumps(r) for r in fx))
+        '{{"about": {},\n"rows": [\n{}\n]}}\n'.format(
+            json.dumps(about), ",\n".join(json.dumps(r) for r in fx)
+        )
     )
     DATUM_FIXTURE.write_text(
         json.dumps(
-            dict(
-                about="Height of NAVD88 zero above MLLW in metres on a grid over Puget Sound: NOAA VDatum plus a smooth local correction to NOAA's charted soundings. Written by scripts/build_depth_shading.py.",
-                grid=grid_json(geom, d_cal.grid),
-            )
+            {
+                "about": "Height of NAVD88 zero above MLLW in metres on a grid over Puget Sound: NOAA VDatum plus a smooth local correction to NOAA's charted soundings. Written by scripts/build_depth_shading.py.",
+                "grid": grid_json(geom, d_cal.grid),
+            }
         )
         + "\n"
     )
@@ -951,46 +956,50 @@ def build(work):
         x0, y0 = lonlat_to_map(west, north)
         x1, y1 = lonlat_to_map(west + OUT_PX * W_LON, north - OUT_PX * W_LAT)
         out_tiles.append(
-            dict(
-                x=round(x0, 4),
-                y=round(y0, 4),
-                w=round(x1 - x0, 4),
-                h=round(y1 - y0, 4),
-                px=[OUT_PX, OUT_PX],
-                uri="data:image/webp;base64," + base64.b64encode(webp).decode(),
-            )
+            {
+                "x": round(x0, 4),
+                "y": round(y0, 4),
+                "w": round(x1 - x0, 4),
+                "h": round(y1 - y0, 4),
+                "px": [OUT_PX, OUT_PX],
+                "uri": "data:image/webp;base64," + base64.b64encode(webp).decode(),
+            }
         )
         total += len(webp)
-        print("tile r%02d c%02d %d bytes" % (r, c, len(webp)), flush=True)
+        print(f"tile r{r:02d} c{c:02d} {len(webp)} bytes", flush=True)
     oof = report["median_dem_minus_enc_ft"]["vdatum_plus_calibration_out_of_fold"][
         "all"
     ]
-    body = dict(
-        generated=report["generated"],
-        credit=CREDIT_SOURCE
-        + " Heights are matched to low tide with NOAA VDatum and a local correction to NOAA's charted soundings; against those soundings the shading is typically within %.0f ft (%d%% within 3 ft)."
-        % (math.ceil(oof["mae_ft"]), round(oof["within_3ft"] * 100)),
-        datum="feet below MLLW (low tide)",
-        areas=AREA_IDS,
-        pixel_m=[round(W_LAT * 110574.0, 1), round(W_LON * 111320.0 * COS_LAT, 1)],
-        ramp=[[ft, hex_rgb(rgb)] for ft, rgb in RAMP],
-        accuracy=dict(mae_ft=oof["mae_ft"], within_3ft=oof["within_3ft"], n=oof["n"]),
-        tiles=out_tiles,
-    )
+    body = {
+        "generated": report["generated"],
+        "credit": CREDIT_SOURCE
+        + " Heights are matched to low tide with NOAA VDatum and a local correction to NOAA's charted soundings."
+        f" Against those soundings the shading is off by {oof['mae_ft']:.1f} ft on average"
+        f" and {round(oof['within_3ft'] * 100)}% are within 3 ft; steep walls such as Hood Canal's are much worse.",
+        "datum": "feet below MLLW (low tide)",
+        "areas": AREA_IDS,
+        "pixel_m": [round(W_LAT * 110574.0, 1), round(W_LON * 111320.0 * COS_LAT, 1)],
+        "ramp": [[ft, hex_rgb(rgb)] for ft, rgb in RAMP],
+        "accuracy": {
+            "mae_ft": oof["mae_ft"],
+            "within_3ft": oof["within_3ft"],
+            "n": oof["n"],
+        },
+        "tiles": out_tiles,
+    }
     js = HEADER + TEMPLATE.replace("__BODY__", json.dumps(body, indent=1))
     if len(js.encode()) > MAX_BYTES:
         sys.exit(
-            "depth-shading.js would be %d bytes, over %d"
-            % (len(js.encode()), MAX_BYTES)
+            f"depth-shading.js would be {len(js.encode())} bytes, over {MAX_BYTES}"
         )
     OUT.write_text(js)
-    report["output"] = dict(
-        tiles=len(out_tiles),
-        webp_bytes=total,
-        file_bytes=len(js.encode()),
-        tile_px=OUT_PX,
-        pixel_m=body["pixel_m"],
-    )
+    report["output"] = {
+        "tiles": len(out_tiles),
+        "webp_bytes": total,
+        "file_bytes": len(js.encode()),
+        "tile_px": OUT_PX,
+        "pixel_m": body["pixel_m"],
+    }
     REPORT.write_text(json.dumps(report, indent=1) + "\n")
     print(json.dumps(report["output"]))
     print(json.dumps(report["median_dem_minus_enc_ft"], indent=1))
