@@ -146,7 +146,7 @@ current counts rather than trusting a number written here.
 ### 2026-10-31 (river reports refresh published, version 52)
 - Published the PR 139 refresh (Wind River and Drano Lake coho Good from The Guide's Forecast Oct 29, Wind River release only from Nov 1, sources added for the Klickitat and Drano Chinook): `reports.js` only, version 52 (1793492161-59c8), read back byte-identical. The cloud session that made it is folded into this one; its follow-up (the river rules still end the Skagit coho and Wind River rows on Oct 31) stays on TASKS.
 
-### 2026-10-31 (catch reports refreshed; not yet published)
+### 2026-10-31 (catch reports refreshed, version 52)
 - Reports pass recorded in `docs/research/2026-10-31-river-reports.md`. Wind River and Drano Lake coho are Good on The Guide's Forecast's Oct 29 SW Washington summary ("Wind River/Drano still good for coho"); the newest report moves from Oct 17 to Oct 29. "Klickitat River mouth excellent" in the same summary names no species, so it gives no rating (the Washougal rule).
 - Wind River is release only from Nov 1 (pamphlet: release all salmon), so both its species are marked `release: true` and the river ranks after the keepable ones. Klickitat's pair and Drano's Chinook gain the Oct 15 Guide's Forecast summary as their source: its words match those ratings exactly. LEGACY is down to 7.
 - Kept, not dropped: the Skagit coho rating. WDFW extended the Skagit coho season through Nov 15 (rule of Oct 30). Cowlitz, Lower Columbia, Lewis and Kalama have no newer report with a rating word: Northwest Sportsman's Oct 26 relay of WDFW's creel summary is counts only.
