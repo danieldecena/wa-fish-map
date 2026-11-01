@@ -112,8 +112,11 @@ for (const scheme of ['light', 'dark']) {
       if (name === 'Map' && w <= 390) {
         const k = await page.evaluate(() => { const tapH = (b) => { const r = b.getBoundingClientRect().height, a = getComputedStyle(b, '::after'); const ext = a.content !== 'none' && a.position === 'absolute' ? Math.max(0, -parseFloat(a.top) || 0) + Math.max(0, -parseFloat(a.bottom) || 0) : 0; return r + ext; }; const b = document.getElementById('keybtn'); return { h: tapH(b), shown: getComputedStyle(b).display !== 'none', body: !document.getElementById('keypop').hidden, exp: b.getAttribute('aria-expanded'), text: b.textContent, hint: getComputedStyle(document.getElementById('rhint')).display !== 'none' }; });
         check(k.shown && k.text === 'Key' && k.h >= 44 && !k.body && k.exp === 'false', `Map ${w}px ${scheme}: the key is closed behind a 44px Key button in the bar (${Math.round(k.h)}px, body shown ${k.body})`);
-        const age = await page.evaluate(() => { const c = document.getElementById('agechip'), r = c.getBoundingClientRect(); return { shown: getComputedStyle(c).display !== 'none' && !c.hidden, text: c.textContent, h: Math.round(r.height), right: Math.round(r.right) }; });
-        check(age.shown && /^Dashed pins: reports over a week old \(newest [A-Z][a-z]{2} \d{1,2}\)$/.test(age.text) && age.right <= w, `Map ${w}px ${scheme}: the stale-report line is visible on a phone and fits (${age.text})`);
+        // The line follows the data: it shows exactly when the page's own rule says the newest report is over a week old.
+        // Run with a --today past the newest report plus 7 days to exercise the shown case.
+        const age = await page.evaluate((day) => { const c = document.getElementById('agechip'), r = c.getBoundingClientRect(); return { want: !!window.Reports.staleNotice(window.Reports.SITES, day), shown: getComputedStyle(c).display !== 'none' && !c.hidden, text: c.textContent, h: Math.round(r.height), right: Math.round(r.right) }; }, today);
+        check(age.want ? (age.shown && /^Dashed pins: reports over a week old \(newest [A-Z][a-z]{2} \d{1,2}\)$/.test(age.text) && age.right <= w) : !age.shown,
+          `Map ${w}px ${scheme}: the stale-report line shows only when reports are over a week old, and fits (${age.want ? 'stale' : 'fresh'}: ${age.shown ? age.text : 'hidden'})`);
         // The opening view leaves room for that line: it must not cover any pin or pin label.
         const cov = await page.evaluate(() => { const c = document.getElementById('agechip').getBoundingClientRect(); return [...document.querySelectorAll('#over .pin, #guides .pin, #over text.lab:not(.city):not(.peak):not(.dam):not(.water):not(.region), #guides text.lab')].filter(e => { const b = e.getBoundingClientRect(); return e.getClientRects().length && b.bottom > c.top && b.top < c.bottom && b.right > c.left && b.left < c.right; }).map(e => e.textContent || e.getAttribute('data-id')); });
         check(cov.length === 0, `Map ${w}px ${scheme}: the stale-report line covers no pin or pin label (${cov.join(', ')})`);
@@ -512,9 +515,14 @@ for (const [w, h] of [[390, 844], [1280, 800]]) {
     const pt = await p.evaluate(id => {
       const path = document.querySelector('#rtap path[data-river="' + id + '"]'), m = path.getScreenCTM(), L = path.getTotalLength();
       const bar = Math.max(document.getElementById('bar').getBoundingClientRect().bottom, document.getElementById('smonth').getBoundingClientRect().bottom);
-      for (let f = 0.5; f < 0.97; f += 0.03) { const q = path.getPointAtLength(L * f), x = m.a * q.x + m.e, y = m.d * q.y + m.f; if (x > 20 && x < innerWidth * 0.6 && y > bar + 20 && y < innerHeight - 220) return [x, y]; }
+      // A point on the line, clear of the chrome, where the topmost element is the river itself (its tap path, or its report line), not a marker on it.
+      const own = e => !!e && (e.closest('#rtap path[data-river="' + id + '"]') || e.closest('.hl .hit'));
+      for (let f = 0.5; f < 1.47; f += 0.01) { const q = path.getPointAtLength(L * (f % 1)), x = m.a * q.x + m.e, y = m.d * q.y + m.f; if (x > 20 && x < innerWidth - 70 && y > bar + 20 && y < innerHeight - 220 && own(document.elementFromPoint(x, y))) return [x, y]; }
       return null;
     }, id);
+    // With fresh reports the phone's stale line is hidden and the map sits higher: the old left-60-percent cut missed the Cowlitz by 8 px, and the first
+    // point right of it was a launch marker, so the search now asks the page what a tap there would hit.
+    if (!pt) throw new Error('tapRiver: no on-screen point of ' + id + ' clear of the chrome');
     await p.mouse.click(pt[0], pt[1]);
     await p.waitForTimeout(1300);
   };

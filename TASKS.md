@@ -3,7 +3,8 @@
 - [x] Water focus for marine areas (version 49)
 - [ ] Water focus for lakes (needs outlines from NHD or WDFW)
 - [ ] Read the river rules on the live map (a re-verify is running)
-- [ ] Puget Sound river reports: repeat the sourcing pass (spec 2026-10-26-puget-river-reports) when new shop or guide reports appear; a river is added only with a report at most 21 days old (Skagit added 2026-10-26 on the Confluence Fly Shop's Oct 10 report; replace it when a fresher one appears). First pass: docs/research/2026-10-26-puget-river-reports.md.
+- [ ] Puget Sound river reports: repeat the sourcing pass (spec 2026-10-26-puget-river-reports) when new shop or guide reports appear; a river is added only with a report at most 21 days old (Skagit added 2026-10-26 on the Confluence Fly Shop's Oct 10 report; replace it when a fresher one appears). First pass: docs/research/2026-10-26-puget-river-reports.md. Last pass 2026-10-31 (docs/research/2026-10-31-river-reports.md, both regions): next, the Confluence November report and the Thursday Guide’s Forecast summary.
+- [ ] River rules: add the Skagit coho extension (Nov 1-15, WDFW rule of Oct 30) and the Wind River Nov 1 release-all-salmon rule to `rules/river-rules.json`; both still end Oct 31.
 
 #### Design critique 2026-10-26
 

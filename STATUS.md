@@ -139,6 +139,12 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-31 (catch reports refreshed; not yet published)
+- Reports pass recorded in `docs/research/2026-10-31-river-reports.md`. Wind River and Drano Lake coho are Good on The Guide's Forecast's Oct 29 SW Washington summary ("Wind River/Drano still good for coho"); the newest report moves from Oct 17 to Oct 29. "Klickitat River mouth excellent" in the same summary names no species, so it gives no rating (the Washougal rule).
+- Wind River is release only from Nov 1 (pamphlet: release all salmon), so both its species are marked `release: true` and the river ranks after the keepable ones. Klickitat's pair and Drano's Chinook gain the Oct 15 Guide's Forecast summary as their source: its words match those ratings exactly. LEGACY is down to 7.
+- Kept, not dropped: the Skagit coho rating. WDFW extended the Skagit coho season through Nov 15 (rule of Oct 30). Cowlitz, Lower Columbia, Lewis and Kalama have no newer report with a rating word: Northwest Sportsman's Oct 26 relay of WDFW's creel summary is counts only.
+- Found, not fixed: `rules/river-rules.json` still ends the Skagit coho rule and the Wind River rows on Oct 31.
+
 ### 2026-10-31 (verification of versions 49 to 51 on the live page)
 - Observed: driven in the built-in browser on the published page (version 51): the Sound is shaded, tapping water opens Marine Area 10 with the area fitted and the rest dimmed, Done restores the view, and turning Depth shading off keeps the contours ("Layers · 8"). At phone size two taps meant for water opened a launch and a spawning creek instead.
 - Measured: of the Puget Sound water on screen at the opening view, a tap reaches the area under 20 percent of the time (phone 390: 41 of 206 sample points, laptop 1280: 36 of 202); pins, spot markers, river hit paths and season outlines hold the rest. After two zoom-ins it is 68 percent on a phone and 59 on a laptop. Tap targets were not shrunk to change this (the 22 pt fingertip rule); zooming in or tapping a pier reaches the area. If area focus should be reachable without zooming, it needs its own entry (a chip or a Layers row), which is a design call, not a hit-test tweak.
