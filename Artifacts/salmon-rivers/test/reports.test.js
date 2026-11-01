@@ -21,7 +21,8 @@ test('viewOf keeps the colours the published page showed on 2026-10-18', () => {
     cowlitz:   { all: ['prime', 'coho', false],    coho: ['prime', 'coho', false], chinook: ['fair', 'chinook', true] },
     columbia:  { all: ['prime', 'coho', false],    coho: ['prime', 'coho', false], chinook: ['fair', 'chinook', true] },
     lewis:     { all: ['good', 'coho', false],     coho: ['good', 'coho', false],  chinook: ['fair', 'chinook', false] },
-    wind:      { all: ['good', 'coho', false],     coho: ['good', 'coho', false],  chinook: ['fair', 'chinook', false] },
+    // Wind changed on purpose on 2026-10-31: both species are release only from Nov 1 (pamphlet: release all salmon).
+    wind:      { all: ['good', 'coho', true],      coho: ['good', 'coho', true],   chinook: ['fair', 'chinook', true] },
     klickitat: { all: ['good', 'coho', false],     coho: ['good', 'coho', false],  chinook: ['good', 'chinook', false] },
     drano:     { all: ['good', 'coho', false],     coho: ['good', 'coho', false],  chinook: ['good', 'chinook', false] },
   };
@@ -93,22 +94,22 @@ test('dates: format, age words, future dates, invalid input', () => {
 });
 
 test('latestReport is the newest dated report and ignores undated ones', () => {
-  assert.equal(R.latestReport(R.SITES), '2026-10-17');
+  assert.equal(R.latestReport(R.SITES), '2026-10-29');
   assert.equal(R.latestReport([{ id: 'x', name: 'X', reports: { 'Coho Salmon': { r: 'fair', asOf: null, d: '' } } }]), null);
 });
 
 test('staleNotice appears only when the newest report is older than 7 days', () => {
-  assert.equal(R.staleNotice(R.SITES, '2026-10-24'), null); // 7 days
-  assert.match(R.staleNotice(R.SITES, '2026-10-26'), /9 days old \(Oct 17\)/);
+  assert.equal(R.staleNotice(R.SITES, '2026-11-05'), null); // 7 days
+  assert.match(R.staleNotice(R.SITES, '2026-11-07'), /9 days old \(Oct 29\)/);
   assert.equal(R.staleNotice([{ id: 'x', name: 'X' }], TODAY), null); // nothing dated, nothing to claim
 });
 
 test('rankSites: retainable first, fresh before stale, then rating, then name', () => {
   const ids = f => R.rankSites(R.SITES, F[f], TODAY).map(e => e.site.id);
   // Kalama (slow, fresh) ranks below the good rivers; Skagit (fair, 8 days old on TODAY, so stale) comes after every fresh river;
-  // Washougal has no report and goes last of the retainable sites.
-  assert.deepEqual(ids('all'), ['cowlitz', 'columbia', 'drano', 'klickitat', 'lewis', 'wind', 'kalama', 'skagit', 'washougal']);
-  assert.deepEqual(ids('chinook'), ['drano', 'klickitat', 'lewis', 'wind', 'kalama', 'skagit', 'washougal', 'cowlitz', 'columbia']);
+  // Washougal has no report and goes last of the retainable sites. Wind is release only (2026-10-31), so it ranks after every retainable site.
+  assert.deepEqual(ids('all'), ['cowlitz', 'columbia', 'drano', 'klickitat', 'lewis', 'kalama', 'skagit', 'washougal', 'wind']);
+  assert.deepEqual(ids('chinook'), ['drano', 'klickitat', 'lewis', 'kalama', 'skagit', 'washougal', 'cowlitz', 'columbia', 'wind']);
 });
 
 test('ratingWord carries the release-only caveat as text', () => {
@@ -165,10 +166,12 @@ test('missingNote speaks only when a chosen species has no report on that water'
   assert.match(R.missingNote(lone, 'Chinook Salmon'), /^No report for Chinook Salmon on this water\. Confirm what is open and what you may keep on WDFW before you fish\.$/);
 });
 
-// The twelve reports that predate per-report sources. They are covered by the page-level
-// source links and must not gain a guessed attribution. This list only ever shrinks.
-const LEGACY = new Set(['cowlitz', 'columbia', 'lewis', 'wind', 'klickitat', 'drano']
-  .flatMap(id => ['Coho Salmon', 'Chinook Salmon'].map(n => id + '/' + n)));
+// The reports that predate per-report sources. They are covered by the page-level
+// source links and must not gain a guessed attribution. This list only ever shrinks:
+// 2026-10-31 dropped Wind and Drano coho (replaced by sourced reports) and the Klickitat
+// pair and Drano Chinook (their Oct 15 wording matched The Guide's Forecast word for word).
+const LEGACY = new Set(['cowlitz/Coho Salmon', 'cowlitz/Chinook Salmon', 'columbia/Coho Salmon', 'columbia/Chinook Salmon',
+  'lewis/Coho Salmon', 'lewis/Chinook Salmon', 'wind/Chinook Salmon']);
 
 test('every report added after the species change names its source', () => {
   for (const s of R.SITES) {

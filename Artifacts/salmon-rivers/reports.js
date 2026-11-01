@@ -12,7 +12,7 @@
   var DAY = 86400000;
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  /* Reports through Oct 17, 2026. asOf is the date of the report each rating comes from. */
+  /* Reports through Oct 29, 2026. asOf is the date of the report each rating comes from. Pass of 2026-10-31: docs/research/2026-10-31-river-reports.md. */
   var SITES = [
     { id: 'cowlitz', name: 'Cowlitz River', sub: 'Below the hatchery at Salkum', hl: true,
       reports: { 'Coho Salmon': { r: 'prime', asOf: '2026-10-17', d: 'Tacoma Power recovered 3,094 adult coho and 1,876 jacks at the hatchery separator over six days.' },
@@ -25,15 +25,21 @@
       'Chinook Salmon': { r: 'fair', asOf: '2026-10-13', d: 'Same creel: 3 Chinook and 1 jack kept.' },
       'Fall Chinook': { r: 'good', asOf: '2026-09-26', d: 'Fall Chinook reported in good numbers, though the report says the run may be past its peak.',
         src: { label: 'The Guide\u2019s Forecast, Sep 26', url: 'https://www.theguidesforecast.com/free/salmon-and-coho-retention-reopens/286727/' } } }, extra: 'nws' },
+    /* Release only: from Nov 1 the pamphlet rule for the Wind is "Release all salmon" (hatchery steelhead only). */
     { id: 'wind', name: 'Wind River', sub: 'Lower river near Carson', hl: true,
-      reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-15', d: 'Reported very good for coho.' },
-      'Chinook Salmon': { r: 'fair', asOf: '2026-10-03', d: 'Chinook were still biting on the Wind River and Drano Lake.' } } },
+      reports: { 'Coho Salmon': { r: 'good', release: true, asOf: '2026-10-29', d: 'Still good for coho. All salmon must now be released here.',
+        src: { label: 'The Guide’s Forecast, Oct 29', url: 'https://www.theguidesforecast.com/sw-washington-fishing/sw-washington-fishing-50/287167/' } },
+      'Chinook Salmon': { r: 'fair', release: true, asOf: '2026-10-03', d: 'Chinook were still biting on the Wind River and Drano Lake.' } } },
     { id: 'klickitat', name: 'Klickitat River', sub: 'Lower river near Lyle', hl: true,
-      reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-15', d: 'Coho rated good.' },
-      'Chinook Salmon': { r: 'good', asOf: '2026-10-15', d: 'Chinook rated good.' } } },
+      reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-15', d: 'Coho rated good.',
+        src: { label: 'The Guide’s Forecast, Oct 15', url: 'https://www.theguidesforecast.com/sw-washington-fishing/sw-washington-fishing-49/286992/' } },
+      'Chinook Salmon': { r: 'good', asOf: '2026-10-15', d: 'Chinook rated good.',
+        src: { label: 'The Guide’s Forecast, Oct 15', url: 'https://www.theguidesforecast.com/sw-washington-fishing/sw-washington-fishing-49/286992/' } } } },
     { id: 'drano', name: 'Drano Lake', sub: 'Mouth of the Little White Salmon River', hl: false,
-      reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-15', d: 'Coho rated good.' },
-      'Chinook Salmon': { r: 'good', asOf: '2026-10-15', d: 'Chinook rated good.' } } },
+      reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-29', d: 'Still good for coho.',
+        src: { label: 'The Guide’s Forecast, Oct 29', url: 'https://www.theguidesforecast.com/sw-washington-fishing/sw-washington-fishing-50/287167/' } },
+      'Chinook Salmon': { r: 'good', asOf: '2026-10-15', d: 'Chinook rated good.',
+        src: { label: 'The Guide’s Forecast, Oct 15', url: 'https://www.theguidesforecast.com/sw-washington-fishing/sw-washington-fishing-49/286992/' } } } },
     /* Slow is only ever the source's own word (slow or poor), kept in phrase. Never worked out from a number. */
     { id: 'kalama', name: 'Kalama River', sub: 'Lower river near Kalama', hl: true,
       reports: { 'Coho Salmon': { r: 'slow', asOf: '2026-10-17', phrase: 'Fishing remains poor', d: 'Fishing is poor in low water. Four bank anglers kept one coho, and the weir is still in place. It is expected out this week.',
