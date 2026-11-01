@@ -932,6 +932,17 @@ for (const motion of ['reduce', 'no-preference']) {
     check(serr.length === 0, `shading ${scheme}: no page errors (${serr.join(' | ').slice(0, 160)})`);
     await sctx.close();
   }
+  // Reduced transparency: the shading goes to full strength in both schemes (the control is the .8 and .5 read above).
+  for (const scheme of ['light', 'dark']) {
+    const rctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, colorScheme: scheme });
+    const rp = await rctx.newPage();
+    await (await rctx.newCDPSession(rp)).send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-transparency', value: 'reduce' }] });
+    await rp.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
+    const emu = await rp.evaluate(() => matchMedia('(prefers-reduced-transparency: reduce)').matches);
+    const rop = await rp.evaluate(() => { const g = document.getElementById('shade'); return g ? +getComputedStyle(g).opacity : null; });
+    check(emu && rop === 1, `shading ${scheme}: with reduced transparency the emulation took (${emu}) and the opacity is ${rop}, not .8 or .5`);
+    await rctx.close();
+  }
   // The layer in the menu, the URL and the key.
   const lctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const lp = await lctx.newPage();
