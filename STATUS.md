@@ -139,6 +139,11 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-10-31 (Areas entry in the list button)
+- Built: the list button now exists in every view and opens a list of the 12 marine areas that have sites ("Marine Area 10, Seattle - Bremerton, 23 piers and launches"); a row calls the same `openArea` as a tap on the water, so the focus, card and Done behave the same and the mode is kept. Typical season gets "Areas" (sheet title "Marine areas"); Recent reports keeps "Rivers" with the areas after the rivers; Spawning keeps "Sites" with the areas before its foot. Chosen over shrinking pin targets (the 22 pt fingertip rule) because only 18 to 20 percent of the Sound's water was reachable at the opening view.
+- Decided: the ocean areas (1 to 4, no sites) are left out of the list; they stay tappable on the map. `test/controls.test.js` no longer says "Rivers belongs to Recent reports only"; it says every view has a list named for it.
+- Checked: the new page checks pass on the page and fail on a copy with the old rule (`#listbtn` hidden outside Recent reports); 260 Node tests.
+
 ### 2026-10-31 (verification of versions 49 to 51 on the live page)
 - Observed: driven in the built-in browser on the published page (version 51): the Sound is shaded, tapping water opens Marine Area 10 with the area fitted and the rest dimmed, Done restores the view, and turning Depth shading off keeps the contours ("Layers · 8"). At phone size two taps meant for water opened a launch and a spawning creek instead.
 - Measured: of the Puget Sound water on screen at the opening view, a tap reaches the area under 20 percent of the time (phone 390: 41 of 206 sample points, laptop 1280: 36 of 202); pins, spot markers, river hit paths and season outlines hold the rest. After two zoom-ins it is 68 percent on a phone and 59 on a laptop. Tap targets were not shrunk to change this (the 22 pt fingertip rule); zooming in or tapping a pier reaches the area. If area focus should be reachable without zooming, it needs its own entry (a chip or a Layers row), which is a design call, not a hit-test tweak.

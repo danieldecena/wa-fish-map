@@ -2493,10 +2493,9 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   }
   function buildSpecies() {
     sppanel.innerHTML = '';
-    $('#listbtn').hidden = view !== 'reports';
-    // Spawning has its own list, Sites; Typical season has none.
-    if (view === 'spawning') $('#listbtn').hidden = false;
-    $('#listbtn .rl').textContent = view === 'spawning' ? 'Sites' : 'Rivers';
+    // Each view has a list: Rivers, Sites in Spawning, and Areas in Typical season (marine areas, where pins cover the water).
+    $('#listbtn').hidden = false;
+    $('#listbtn .rl').textContent = view === 'spawning' ? 'Sites' : view === 'typical' ? 'Areas' : 'Rivers';
     setSpLabel();
     toggleSpecies(false);
     var top = document.createElement('div'); top.className = 'seg'; sppanel.appendChild(top);
@@ -2548,8 +2547,27 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       '<a href="https://wdfw.wa.gov/fishing/regulations" target="_blank" rel="noopener">WDFW fishing rules and emergency changes</a>' +
       (extra || '') + '</div>';
   }
+  // The marine areas that have a pier, launch or shore site on this map, in WDFW's order: one row each opens the area's focus and card,
+  // the way in from any mode when pins and rivers cover the water. The ocean areas (no sites) are left out.
+  function areaListHtml(bare) {
+    if (!HAS_TYPICAL) return '';
+    var key = function (id) { var a = String(id).split('-'); return (+a[0]) * 10 + (+a[1] || 0); };
+    var ids = Object.keys(ABY).filter(function (id) { return TypicalData.areas[id] && areaSites(id).length; }).sort(function (a, b) { return key(a) - key(b); });
+    if (!ids.length) return '';
+    return '<section class="lgroup">' + (bare ? '' : '<h3>Marine areas <span class="n">' + ids.length + '</span></h3>') + '<div class="rows">' + ids.map(function (id) {
+      var n = areaSites(id).length;
+      return '<button type="button" class="row lrow" data-areaopen="' + esc(id) + '"><span class="rt"><span class="nm">' + esc(areaName(id)) + '</span><span class="dt">' +
+        esc(areaTitle(id) + ' · ' + n + (n === 1 ? ' pier or launch' : ' piers and launches')) + '</span></span></button>';
+    }).join('') + '</div></section>';
+  }
+  function fillAreaList() {
+    $('#stitle').textContent = 'Marine areas';
+    $('#sbody').innerHTML = '<p class="lede">WDFW marine areas with piers, launches or shore sites on this map. Pick one to fit it on the map with its own card.</p>' + areaListHtml(true) + typicalFootHtml();
+    $('#sbody').scrollTop = 0;
+  }
   function fillList(keep) {
     if (view === 'spawning') { fillSpawnList(keep); return; }
+    if (view === 'typical') { fillAreaList(); return; }
     var ranked = Reports.rankSites(SITES, species, TODAY);
     var near = !!me && listSort === 'near';
     // Nearest first reorders by straight-line distance only; it changes no rating.
@@ -2567,7 +2585,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       '<button type="button" role="radio" data-sort="near" aria-checked="' + near + '">Nearest first</button></div>' : '';
     $('#sbody').innerHTML = sorts + '<p class="lede">' + (species === null ? 'All salmon' : esc(species)) +
       (near ? ', nearest first by straight-line distance from ' + esc(me.label) + '. Ratings are unchanged.'
-        : ', best first. Fresh reports rank above older ones.') + '</p><div class="rows">' + rows + '</div>' + footHtml();
+        : ', best first. Fresh reports rank above older ones.') + '</p><div class="rows">' + rows + '</div>' + areaListHtml() + footHtml();
     $('#sbody').scrollTop = 0;
   }
   /* Sheets show data first; longer notes fold into one closed section at the end, and the WDFW rules link and the "Before you go" advisory stay in view. */
@@ -2934,7 +2952,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
         html += '<section class="lgroup"><h3>' + SP_WORD[k] + ' <span class="n">' + list.length + '</span></h3><div class="rows">' + list.map(row).join('') + '</div></section>';
       });
     }
-    html += '<div class="foot"><div>From WDFW’s Salmon Viewing list. Species and months are typical for each water unless a site’s own information says otherwise. ' + SPAWN_FINE + '</div>' +
+    html += areaListHtml() + '<div class="foot"><div>From WDFW’s Salmon Viewing list. Species and months are typical for each water unless a site’s own information says otherwise. ' + SPAWN_FINE + '</div>' +
       '<a href="' + SP_VIEWING + '" target="_blank" rel="noopener">WDFW Salmon Viewing list</a></div>';
     $('#stitle').textContent = 'Sites in ' + mo;
     sb.innerHTML = html;
@@ -3672,6 +3690,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   $('#listbtn').addEventListener('click', function () { if (mode === 'list') closeSheet(); else openList(); });
   $('#sbody').addEventListener('click', function (e) {
     // Water focus: an access site on the river's card, and the way back from it.
+    var ao = e.target.closest ? e.target.closest('[data-areaopen]') : null;
+    if (ao) { openArea(ao.getAttribute('data-areaopen')); return; }
     var wfb = e.target.closest ? e.target.closest('[data-wfsite],[data-wfback]') : null;
     if (wfb) { if (wfb.hasAttribute('data-wfback')) backToWater(); else openWaterSite(wfb.getAttribute('data-wfsite')); return; }
     var b = e.target.closest ? e.target.closest('.lrow') : null;

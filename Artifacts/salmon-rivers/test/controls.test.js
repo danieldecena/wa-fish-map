@@ -28,7 +28,8 @@ test('Rivers sits in the one-row bar, and the (visually hidden) title names the 
   assert.match(bar, /id="listbtn"[^>]*><svg class="ri"[^]*?<\/svg><span class="rl">Rivers<\/span><\/button>/);
   assert.match(bar, /<div class="sr"><div class="title" id="ttl">Salmon this month</, 'Recent reports is the default mode; the title stays for screen readers');
   assert.match(html, /\$\('#ttl'\)\.textContent = typ \? 'Typical season' : 'Salmon this month';/);
-  assert.match(html, /\$\('#listbtn'\)\.hidden = view !== 'reports';/, 'Rivers belongs to Recent reports only');
+  assert.match(html, /\$\('#listbtn'\)\.hidden = false;/, 'every view has a list: Rivers, Sites in Spawning, Areas in Typical season');
+  assert.match(html, /view === 'spawning' \? 'Sites' : view === 'typical' \? 'Areas' : 'Rivers'/, 'the button is named for the list it opens');
 });
 
 test('controls keep 44 px targets, and the dropdown handles keyboard and focus', () => {

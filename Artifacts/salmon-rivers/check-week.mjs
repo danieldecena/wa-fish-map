@@ -881,6 +881,35 @@ for (const motion of ['reduce', 'no-preference']) {
   check(merr.length === 0, `motion ${motion}: no page errors (${merr.join(' | ').slice(0, 160)})`);
   await mctx.close();
 }
+// Marine areas entry: the list button opens a list of the areas in every mode, for when pins and rivers cover the water on a phone.
+{
+  for (const [mode, label, title] of [['typical', 'Areas', 'Marine areas'], ['reports', 'Rivers', 'Rivers'], ['spawning', 'Sites', null]]) {
+    const actx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true });
+    const ap = await actx.newPage(); const aerr = [];
+    ap.on('pageerror', e => aerr.push(String(e)));
+    await ap.goto(base + '/index.html?mode=' + mode + '&today=' + today, { waitUntil: 'networkidle' });
+    await ap.waitForTimeout(700);
+    const lb = await ap.evaluate(() => { const b = document.getElementById('listbtn'), r = b.getBoundingClientRect(), a = getComputedStyle(b, '::after'); const ext = a.content !== 'none' && a.position === 'absolute' ? Math.max(0, -parseFloat(a.top) || 0) + Math.max(0, -parseFloat(a.bottom) || 0) : 0; return { shown: !b.hidden && r.width > 0, label: b.querySelector('.rl').textContent, w: Math.round(r.width), h: Math.round(r.height + ext) }; });
+    check(lb.shown && lb.label === label && lb.w >= 44 && lb.h >= 44, `areas entry ${mode}: the list button is shown, named "${label}" and a fingertip target (${lb.shown}, ${lb.label}, ${lb.w} by ${lb.h} with its touch extender)`);
+    await ap.click('#listbtn'); await ap.waitForTimeout(600);
+    // The expected set is read from the data, not from the list: an area appears when typical.js puts a site in it and it has an outline.
+    const l = await ap.evaluate(() => {
+      const want = [...new Set(TypicalData.sites.map(s => s.area).filter(a => a && window.MARINE_AREAS[a] && window.MARINE_AREAS[a].d))].sort();
+      const rows = [...document.querySelectorAll('#sbody [data-areaopen]')];
+      return { want, got: rows.map(r => r.getAttribute('data-areaopen')).sort(), h: Math.min(...rows.map(r => r.getBoundingClientRect().height)), title: document.getElementById('stitle').textContent, heads: [...document.querySelectorAll('#sbody .lgroup h3')].map(h => h.textContent.replace(/\d+$/, '').trim()) };
+    });
+    check(l.want.length >= 10 && JSON.stringify(l.want) === JSON.stringify(l.got), `areas entry ${mode}: the list holds exactly the ${l.want.length} areas that have sites and an outline (${l.got.join(', ')})`);
+    check(l.h >= 44, `areas entry ${mode}: every area row is at least 44 px tall (${Math.round(l.h)})`);
+    if (title) check(l.title === title, `areas entry ${mode}: the sheet is titled "${title}" (${l.title})`);
+    if (mode === 'typical') check(!l.heads.includes('Marine areas'), `areas entry typical: the title is not repeated as a heading (${l.heads.join(' | ') || 'none'})`);
+    else check(l.heads.includes('Marine areas'), `areas entry ${mode}: the areas follow the list under their own heading (${l.heads.join(' | ')})`);
+    await ap.click('#sbody [data-areaopen="10"]'); await ap.waitForTimeout(1600);
+    const f = await ap.evaluate(() => ({ focus: document.getElementById('app').getAttribute('data-focus'), title: document.getElementById('stitle').textContent, mode: new URLSearchParams(location.search).get('mode'), band: document.getElementById('wfscrim') ? getComputedStyle(document.getElementById('wfscrim')).opacity : null }));
+    check(f.focus === 'area' && f.title === 'Marine Area 10' && (f.mode || 'reports') === mode, `areas entry ${mode}: tapping Area 10 fits it and opens its card, staying in ${mode} (${f.focus}, ${f.title}, mode=${f.mode})`);
+    check(aerr.length === 0, `areas entry ${mode}: no page errors (${aerr.join(' | ').slice(0, 120)})`);
+    await actx.close();
+  }
+}
 // Depth shading layer (depth-shading.js): image tiles in #vp under the rivers and the NOAA contours, in #base so water focus blurs and dims them.
 {
   const SH = (p) => p.evaluate(() => { const g = document.getElementById('shade'); return g ? { n: g.querySelectorAll('image').length, inVp: g.parentNode.id === 'vp', prev: g.previousElementSibling && g.previousElementSibling.id, pe: getComputedStyle(g).pointerEvents, op: +getComputedStyle(g).opacity, f: g.style.getPropertyValue('--shade-f'), anim: getComputedStyle(g).animationName, inBase: !!g.closest('#base'), data: [...g.querySelectorAll('image')].every(i => /^data:image\/webp;base64,/.test(i.getAttribute('href')) && i.getAttribute('preserveAspectRatio') === 'none') } : null; });
