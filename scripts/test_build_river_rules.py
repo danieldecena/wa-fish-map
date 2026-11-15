@@ -127,7 +127,8 @@ class KnownBad(unittest.TestCase):
 
         src = json.loads(brr.SRC.read_text())
         ids = brr.report_ids(brr.REPORTS.read_text())
-        self.assertEqual(brr.build_rows(src, ids, TODAY)[1], [])
+        # The real file is checked against the real day, as the generator does: a fixed TODAY goes stale each time a water is re-read.
+        self.assertEqual(brr.build_rows(src, ids, datetime.date.today())[1], [])
 
 
 if __name__ == "__main__":
