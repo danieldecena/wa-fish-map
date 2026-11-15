@@ -128,16 +128,19 @@
 
 ## Next Up
 
-- 1.0 is public in the App Store (apps.apple.com/us/app/wa-fish-map/id6807799974,
-  seen 2026-10-27 01:22). Next: refresh the App Store screenshots.
-- Fishing Year: pink seasons once WDFW sets the 2027 odd-year rules (Apr 2027).
-- 1.0 (9) carries the pin VoiceOver fix and is with both TestFlight groups,
-  `Internal` and `insideout`, beta review approved (read from Apple 2026-10-09).
+- Skagit coho rule: the Nov 1-15 rule ends today. Read the pamphlet's Skagit rule from Nov 16 and add it to `rules/river-rules.json` (TASKS).
+- Lapsed river rows: Lower Columbia, Drano Lake and Kalama rows ended Oct 31 and are hidden. Re-read them from the pamphlet (TASKS).
+- Water focus for lakes needs lake outlines (NHD or WDFW) before any work starts.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
+current counts rather than trusting a number written here.; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-11-15 (wrap-up: Next Up refreshed; rules and Areas entry live)
+- Decided: Next Up now lists only what the next session can act on (the Skagit rule from Nov 16, the lapsed river rows, lake outlines). The App Store screenshot and 1.0 items it carried since October were not this session's work and stay where they are in the store notes.
+- Done this session: Areas entry (version 55 with the Year design pass), the Skagit and Wind River rules (version 56), PRs 142 to 146 merged. Four old worktrees under `.claude/worktrees/` belong to finished or parked branches and are not removed here.
 
 ### 2026-11-14 (river rules for the Skagit and the Wind River re-read, version 56)
 - Done: both waters' rows had ended Oct 31 and the sheets had dropped them. Re-read from the sources on the day (WDFW's Oct 30 emergency rule for the Skagit; the pamphlet's Wind River page, last updated Oct 5), the emergency rules list checked for anything newer. Skagit coho Nov 1 to 15: 2 coho a day, 12 in or longer, release other salmon, night closure for all species, release Dolly Varden and bull trout. Wind River Nov 1 to Mar 15: release all salmon, hatchery steelhead only. Notes and what was not carried: `docs/research/2026-11-14-river-rules.md`.
