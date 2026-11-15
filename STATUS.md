@@ -139,8 +139,9 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
-### 2026-11-14 (river rules for the Skagit and the Wind River re-read)
+### 2026-11-14 (river rules for the Skagit and the Wind River re-read, version 56)
 - Done: both waters' rows had ended Oct 31 and the sheets had dropped them. Re-read from the sources on the day (WDFW's Oct 30 emergency rule for the Skagit; the pamphlet's Wind River page, last updated Oct 5), the emergency rules list checked for anything newer. Skagit coho Nov 1 to 15: 2 coho a day, 12 in or longer, release other salmon, night closure for all species, release Dolly Varden and bull trout. Wind River Nov 1 to Mar 15: release all salmon, hatchery steelhead only. Notes and what was not carried: `docs/research/2026-11-14-river-rules.md`.
+- Published as version 56 (1794730041-2f1f), river-rules.js only; read back byte-identical.
 - Decided: the Oct 15 Cascade emergency rule's "bait prohibited, single-point barbless hooks" is not carried because the Nov 1 to 15 notice does not repeat it. The Skagit rule ends Nov 15, so its sheet goes without a Rules section from Nov 16 until the pamphlet rule is read (TASKS).
 - Noted: the Lower Columbia (2 rows), Drano Lake (1) and Kalama (2) rows also ended Oct 31 and are hidden; not re-read in this pass (TASKS). `test_the_real_source_passes` now checks the real file against the real day (a fixed TODAY failed once a water was re-read after it).
 
