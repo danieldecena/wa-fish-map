@@ -153,7 +153,8 @@ for (const scheme of ['light', 'dark']) {
       check(await page.$eval('#modes [data-mode="spawning"]', b => b.getAttribute('aria-checked') === 'true'), 'deep link: spawning mode');
       check(await page.$eval('#sheet', s => s.classList.contains('open')), 'deep link: site sheet open');
       check(await page.$eval('#stitle', t => t.textContent.includes('Enchantment')), 'deep link: Enchantment Park sheet');
-      check(await page.$eval('#year button:nth-child(11)', b => b.getAttribute('aria-checked') === 'true').catch(() => false), 'deep link: November selected');
+      // The ribbon starts at this month (the Year design pass), so November is found by its name, not as the 11th button.
+      check(await page.$eval('#year button[aria-checked="true"]', b => b.getAttribute('aria-label').startsWith('November')).catch(() => false), 'deep link: November selected');
       await page.goto(base + '/index.html?mode=reports&river=cowlitz', { waitUntil: 'networkidle' });
       check(await page.$eval('#stitle', t => t.textContent.includes('Cowlitz')), 'deep link: Cowlitz report sheet');
       const sh = await page.evaluate(() => {
@@ -384,7 +385,8 @@ for (const [w, h, lo, hi] of [[1024, 768, 380, 380], [1440, 900, 480, 500], [192
   await zp.waitForTimeout(900);
   const zoomed = await scaleOf();
   const ratio = home && zoomed ? zoomed / home : null;
-  check(ratio !== null && ratio >= 1.4 && ratio <= 3.05, `Typical site tap: the zoom is ${ratio === null ? 'unreadable' : ratio.toFixed(2)} times the state fit (neighbourhood: 1.4 to 3.05; the old tight view was 5)`);
+  // The ratio is against the opening view, which the Year design pass made about 16 percent smaller at 1280 x 900 (1.85 to 1.56); the tap zoom itself did not move, so the bound is 3.9, still well under the old tight view's 5.
+  check(ratio !== null && ratio >= 1.4 && ratio <= 3.9, `Typical site tap: the zoom is ${ratio === null ? 'unreadable' : ratio.toFixed(2)} times the opening view (neighbourhood: 1.4 to 3.9; the old tight view was 5)`);
   await zctx.close();
 }
 // Fish names and the species list. A chip, the bar label and a sheet row show a short name when the exact one is long; the exact name stays in the
@@ -432,13 +434,15 @@ for (const scheme of ['light', 'dark']) for (const [w, h] of [[360, 780], [375, 
 }
 {
   // From 380 px the spelled-out names return; the buttons keep their full names for screen readers at every width.
-  for (const [w, h, want] of [[360, 780, 'J'], [390, 844, 'Jan']]) {
+  // The strip starts at the current month (the Year design pass), October on the check's date, and a new-year line falls before January.
+  const NOW_NAME = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][+today.slice(5, 7) - 1];
+  for (const [w, h, want] of [[360, 780, NOW_NAME[0]], [390, 844, NOW_NAME.slice(0, 3)]]) {
     const nctx = await browser.newContext({ viewport: { width: w, height: h } });
     const np = await nctx.newPage();
     await np.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
     if (w < 760 && await np.isVisible('#mfold')) await np.click('#mfold');
     const first = await np.evaluate(() => { const b = document.querySelector('#smonth .months button'); const g = document.createRange(); g.selectNodeContents(b); return { shown: g.toString().length ? [...b.children].filter(c => getComputedStyle(c).display !== 'none').map(c => c.textContent).join('') : '', label: b.getAttribute('aria-label').split(':')[0] }; });
-    check(first.shown === want && first.label === 'January', `months ${w}px: the first month button shows "${want}" and is named January (${first.shown}, ${first.label})`);
+    check(first.shown === want && first.label === NOW_NAME, `months ${w}px: the first month button shows "${want}" and is named ${NOW_NAME}, the current month (${first.shown}, ${first.label})`);
     await nctx.close();
   }
 }
@@ -556,6 +560,8 @@ for (const [w, h] of [[390, 844], [1280, 800]]) {
     const s0 = await scaleOf(fp);
     const rc0 = await fp.evaluate(() => document.querySelector('#over .pin[data-id="cowlitz"]').style.getPropertyValue('--rc'));
     const N = await fp.evaluate(() => Object.values(RIVERTAP.siteRiver).filter(r => r === 'cowlitz-river').length);
+    // Read once any opening transition has finished: the scrim and the marker filters ease in the first frames, and a read mid-ease is a tiny nonzero number, not a focus.
+    await fp.evaluate(() => Promise.all(document.getAnimations().filter(a => a.transitionProperty).map(a => a.finished.catch(() => 0))));
     const idle = await state(fp);
     check(!idle.cls && idle.marked === 0 && idle.baseFilter === 'none' && idle.scrim === '0', `focus ${w}px: before a tap nothing is focused, marked, blurred or dimmed (${idle.baseFilter}, scrim ${idle.scrim})`);
     await tapRiver(fp, 'cowlitz-river');

@@ -746,8 +746,8 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     </div>
     <div class="glass spawn smonth" id="smonth" hidden>
       <div class="summary" id="sml" aria-live="polite"></div>
-      <button type="button" class="mfold" id="mfold" aria-expanded="false" aria-controls="heat months" hidden>Months</button>
-      <div class="heat" id="heat" aria-hidden="true" hidden></div>
+      <button type="button" class="mfold" id="mfold" aria-expanded="false" aria-controls="mheat months" hidden>Months</button>
+      <div class="heat" id="mheat" aria-hidden="true" hidden></div>
       <div class="months" id="months" role="radiogroup" aria-label="Month"><span class="msp"></span></div>
     </div>
     <div class="glass spawn" id="spawn" hidden>
@@ -950,6 +950,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
         var tr = site ? (site.tap ? TAPBY[site.tap] : null) : TAPBY[p.river];
         var d = site ? (D.hl[site.id] || (tr ? tr.d : null)) : (tr ? tr.d : null);
         if (!d) return;
+        o.under = el('path', { 'class': 'shalo-u', d: d, 'aria-hidden': 'true' }, seasonG);
         o.halo = el('path', { 'class': 'shalo', d: d, 'data-season': s.id }, seasonG);
         o.xy = site ? site.xy : tr.center;
         o.label = site ? site.name : tr.name;
@@ -1239,7 +1240,10 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var cx = (W / 2 - t.tx) / t.s, cy = (H / 2 - t.ty) / t.s;
     t.s = s; t.tx = W / 2 - cx * s; t.ty = H / 2 - cy * s;
   }
+  // True while the map still shows the opening view nobody has moved: the chrome settling (a card folding, the age line wrapping) re-fits it.
+  var homeHeld = false;
   function setView(t) {
+    homeHeld = false;
     clampScale(t);
     clampView(t);
     v.s = t.s; v.tx = t.tx; v.ty = t.ty;
@@ -1252,6 +1256,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     return Math.min(520, Math.max(280, 280 + travel * 0.15));
   }
   function animateTo(t) {
+    homeHeld = false;
     clampScale(t);
     clampView(t);
     if (reduce) { setView(t); return; }
@@ -1310,7 +1315,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     p.t += 30; p.l = 8; p.r = 8; p.b = Math.max(p.b, 12);
     return fitFor(homeBounds(), p);
   }
-  function resetView() { animateTo(homeFit()); }
+  function resetView() { animateTo(homeFit()); homeHeld = true; }
 
   /* ---- render ---- */
   function colorVar(r) { return 'var(--' + r + ')'; }
@@ -1487,11 +1492,13 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     SPLACES.forEach(function (o) {
       var on = seasOn && Layers.openIn(o.s, sy, sm);
       o.tagged = false;
-      if (o.halo) o.halo.style.display = on ? '' : 'none';
+      if (o.halo) { o.halo.style.display = on ? '' : 'none'; o.under.style.display = on ? '' : 'none'; }
+      // Rings grow with zoom (16 px at the opening view, up to 26), so a named place reads at state scale and marks its water up close.
+      o.rr = Math.min(26, 16 * Math.sqrt(Math.max(1, v.s / s0)));
       var x = o.xy[0] * v.s + v.tx, y = o.xy[1] * v.s + v.ty, inView = x > -30 && x < W + 30 && y > -30 && y < H + 30;
       if (o.ring) {
         o.ring.style.display = on && inView ? '' : 'none';
-        if (on && inView) { o.ring.setAttribute('cx', x.toFixed(1)); o.ring.setAttribute('cy', y.toFixed(1)); boxes.push([x - 14, y - 14, 28, 28]); }
+        if (on && inView) { o.ring.setAttribute('cx', x.toFixed(1)); o.ring.setAttribute('cy', y.toFixed(1)); o.ring.setAttribute('r', o.rr.toFixed(1)); boxes.push([x - o.rr, y - o.rr, 2 * o.rr, 2 * o.rr]); }
       }
       if (!on || !inView || sm !== MONTH || tagged[o.s.id]) return;
       var tg = Layers.tagFor(o.s, TODAY);
@@ -1501,9 +1508,9 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       t.g.classList.remove('plain'); t.g.setAttribute('tabindex', '0'); t.g.removeAttribute('aria-hidden');
       t.g.style.display = '';
       var tw = textW(txt) + 16; t.r.setAttribute('width', tw.toFixed(1));
-      var left = x + 16 + tw > W - 8, bx = [left ? x - 16 - tw : x + 16, y + 6, tw, 20];
+      var g6 = (o.rr || 8) + 6, left = x + g6 + tw > W - 8, bx = [left ? x - g6 - tw : x + g6, y - 10, tw, 20];
       if (boxes.some(function (q) { return overlap(bx, q); })) { t.g.style.display = 'none'; return; }
-      t.g.setAttribute('transform', 'translate(' + bx[0].toFixed(1) + ' ' + (y + 16).toFixed(1) + ')');
+      t.g.setAttribute('transform', 'translate(' + bx[0].toFixed(1) + ' ' + y.toFixed(1) + ')');
       boxes.push(bx); tagged[o.s.id] = true; o.tagged = true; ti++;
     });
     // Piers and shore: a marker that would sit on a pin, label or another marker is left out, so dense shores thin out until you zoom in.
@@ -1624,10 +1631,10 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     SPLACES.forEach(function (o) {
       if (!o.ring || o.ring.style.display === 'none' || o.tagged) return;
       var x = o.xy[0] * v.s + v.tx, y = o.xy[1] * v.s + v.ty;
-      var txt = o.s.name, tw = textW(txt) + 16;
-      var rx = x + 16 + tw > W - 8 ? x - 16 - tw : x + 16, bx = [rx, y + 6, tw, 20];
+      var txt = o.s.name, tw = textW(txt) + 16, g6 = o.rr + 6;
+      var rx = x + g6 + tw > W - 8 ? x - g6 - tw : x + g6, bx = [rx, y - 10, tw, 20];
       if (bx[0] < 4 || boxes.some(function (q) { return overlap(bx, q); })) {
-        bx = [rx === x + 16 ? x - 16 - tw : x + 16, y + 6, tw, 20];
+        bx = [rx === x + g6 ? x - g6 - tw : x + g6, y - 10, tw, 20];
         if (bx[0] < 4 || bx[0] + tw > W - 4 || boxes.some(function (q) { return overlap(bx, q); })) return;
       }
       var t = getSTag(ti++);
@@ -1635,7 +1642,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       t.g.setAttribute('data-season', o.s.id); t.g.removeAttribute('aria-label');
       t.g.classList.add('plain'); t.g.setAttribute('tabindex', '-1'); t.g.setAttribute('aria-hidden', 'true');
       t.g.style.display = '';
-      t.g.setAttribute('transform', 'translate(' + bx[0].toFixed(1) + ' ' + (y + 16).toFixed(1) + ')');
+      t.g.setAttribute('transform', 'translate(' + bx[0].toFixed(1) + ' ' + y.toFixed(1) + ')');
       boxes.push(bx);
     });
     // Count badges belong to the report rivers, so only Recent reports draws them. A badge that would cover a pin or label is left out.
@@ -2998,17 +3005,19 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       if (i + 1 === MONTH) b.classList.add('now');
       b.addEventListener('click', function () { setMonth(i + 1); });
       b.addEventListener('keydown', function (e) {
-        var k = e.key, to = k === 'ArrowRight' || k === 'ArrowDown' ? SMONTH % 12 + 1 : k === 'ArrowLeft' || k === 'ArrowUp' ? (SMONTH + 10) % 12 + 1 : k === 'Home' ? 1 : k === 'End' ? 12 : 0;
+        var k = e.key, to = k === 'ArrowRight' || k === 'ArrowDown' ? SMONTH % 12 + 1 : k === 'ArrowLeft' || k === 'ArrowUp' ? (SMONTH + 10) % 12 + 1 : k === 'Home' ? MONTH : k === 'End' ? (MONTH + 10) % 12 + 1 : 0;
         if (!to) return;
         e.preventDefault(); setMonth(to); yearBtns[SMONTH - 1].focus();
       });
-      yearEl.appendChild(b); yearBtns.push(b);
+      if (i === 0 && MONTH !== 1) b.classList.add('ny');
+      yearBtns.push(b);
     });
+    for (var ri = 0; ri < 12; ri++) yearEl.appendChild(yearBtns[(MONTH - 1 + ri) % 12]);
     // Scrub: press on the ribbon and drag sideways to sweep the months. A press that barely moves stays a tap (the button's click);
     // past a few pixels of mostly sideways travel the ribbon captures the pointer and the month follows it. touch-action: pan-y keeps
     // the drag from scrolling, and the ribbon is outside #map, so the map's pan handlers (pointers that went down on #map) never see it.
     var scrub = null, swallowClick = false;
-    var monthAt = function (x) { var r = yearEl.getBoundingClientRect(); return Math.min(12, Math.max(1, Math.floor((x - r.left) / r.width * 12) + 1)); };
+    var monthAt = function (x) { var r = yearEl.getBoundingClientRect(); return (MONTH - 1 + Math.min(11, Math.max(0, Math.floor((x - r.left) / r.width * 12)))) % 12 + 1; };
     yearEl.addEventListener('pointerdown', function (e) {
       if (e.button !== undefined && e.button > 0) return;
       scrub = { id: e.pointerId, x: e.clientX, y: e.clientY, on: false };
@@ -3461,11 +3470,13 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   }
   /* ---- Seasons layer: its own month (Spawning lends its ribbon month instead), and the season sheet ---- */
   var LMONTH = MONTH, seasonSel = null, monthBtns = [], monthsOpen = false;
+  var ORD = []; for (var oi = 0; oi < 12; oi++) ORD.push((MONTH - 1 + oi) % 12);
   $('#mfold').addEventListener('click', function () {
     monthsOpen = !monthsOpen;
     $('#smonth').classList.toggle('fold', !monthsOpen);
     this.setAttribute('aria-expanded', monthsOpen ? 'true' : 'false');
     this.textContent = monthsOpen ? 'Hide months' : 'Months';
+    colH();
   });
   function seasonMonth() { return view === 'spawning' ? SMONTH : LMONTH; }
   // The Fishing Year runs from this month forward, so an earlier month means next year.
@@ -3477,15 +3488,31 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     var dash = view === 'reports' && (on || layers.indexOf('typical') >= 0 || layers.indexOf('spawn') >= 0);
     $('#smonth').hidden = !(on || dash) || view === 'spawning';
     $('#smonth').classList.toggle('dash', dash);
-    $('#heat').hidden = !dash;
-    $('#mfold').hidden = !(dash && !on);
-    $('#smonth').classList.toggle('fold', dash && !on && !monthsOpen);
+    $('#mheat').hidden = !dash;
+    // Short screens (under 700 px tall) open the card folded to its chips even with Seasons on, or it leaves the map a thumbnail.
+    var short = window.innerHeight < 700;
+    $('#mfold').hidden = !(dash && (!on || short));
+    $('#smonth').classList.toggle('fold', dash && (!on || short) && !monthsOpen);
     if (!on && !dash) return;
-    var n = openSeasons(LMONTH).length;
-    if (dash) dashHtml(n); else
-    $('#sml').innerHTML = '<b>' + n + '</b> ' + (n === 1 ? 'season' : 'seasons') + ' open in ' + esc(Layers.monthLabel(seasonYear(LMONTH), LMONTH));
+    var n = openSeasons(LMONTH).length, nx = n ? null : nextOpener(LMONTH);
+    if (dash) dashHtml(n, nx); else
+    $('#sml').innerHTML = '<b>' + n + '</b> ' + (n === 1 ? 'season' : 'seasons') + ' open in ' + esc(Layers.monthLabel(seasonYear(LMONTH), LMONTH)) +
+      (nx ? '. Next: ' + esc(nx.name) + ' opens ' + esc(Reports.formatDay(nx.start)) + '.' : '');
     monthBtns.forEach(function (b, i) { var c = i + 1 === LMONTH; b.setAttribute('aria-checked', c ? 'true' : 'false'); b.tabIndex = c ? 0 : -1; });
+    colH();
   }
+  // The first season that opens after a month with none open, so an empty month still points somewhere.
+  function nextOpener(m) {
+    var y = seasonYear(m), from = y + '-' + (m < 10 ? '0' : '') + m + '-01';
+    return FYS.filter(function (s) { return s.start >= from; }).sort(function (a, b) { return a.start < b.start ? -1 : 1; })[0] || null;
+  }
+  // The chosen month's outline runs from the top of the heat strip to the bottom of its label, as one column.
+  function colH() {
+    var sm = $('#smonth'), hm = $('#mheat'), mo = $('#months');
+    var hh = hm.hidden || sm.classList.contains('fold') ? 0 : Math.max(0, mo.getBoundingClientRect().top - hm.getBoundingClientRect().top);
+    sm.style.setProperty('--hh', hh.toFixed(1) + 'px');
+  }
+  window.addEventListener('resize', function () { colH(); });
   // Recent reports' month card: neutral chips from the guidance (seasons, spawning, prime-season sites) over a year strip. No rating colour here.
   var heatKey = null, heatRows = null;
   function heatData() {
@@ -3502,18 +3529,19 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     }
     return (heatRows = rows);
   }
-  function dashHtml(nSeasons) {
+  function dashHtml(nSeasons, nx) {
     var rows = heatData(), mi = LMONTH - 1, spN = HAS_SPAWN ? rows[1].v[mi] : 0, tN = HAS_TYPICAL ? rows[rows.length - 1].v[mi] : 0;
     // Report counts and a month heading are not drawn here: the pins, the Key and the Rivers list already say it.
     $('#sml').innerHTML = '<div class="dsum">' +
-      '<button type="button" data-dash="seasons" aria-pressed="' + (layers.indexOf('seasons') >= 0) + '"><b>' + nSeasons + '</b> ' + (nSeasons === 1 ? 'season' : 'seasons') + ' open</button>' +
+      '<button type="button" data-dash="seasons" aria-pressed="' + (layers.indexOf('seasons') >= 0) + '">' + (nSeasons || !nx ? '<b>' + nSeasons + '</b> ' + (nSeasons === 1 ? 'season' : 'seasons') + ' open' : '<b>0</b> open · next ' + esc(Reports.formatDay(nx.start))) + '</button>' +
       (HAS_SPAWN ? '<button type="button" data-dash="spawn"><b>' + spN + '</b> spawning</button>' : '') +
       (HAS_TYPICAL ? '<button type="button" data-dash="typical"><b>' + tN + '</b> prime-season sites</button>' : '') + '</div>';
     dsumEdge();
-    $('#heat').innerHTML = rows.map(function (row) {
+    $('#mheat').innerHTML = rows.map(function (row) {
       var max = Math.max.apply(null, row.v.concat([1]));
-      return '<span class="hk">' + row.k + '</span>' + row.v.map(function (n, i) {
-        return '<span class="hc' + (i === mi ? ' sel' : '') + '" title="' + MONTH_NAMES[i] + ': ' + n + ' ' + row.what + '">' + (n ? '<i style="opacity:' + (0.25 + 0.75 * n / max).toFixed(2) + '"></i>' : '') + '</span>';
+      return '<span class="hk">' + row.k + '</span>' + ORD.map(function (i) {
+        var n = row.v[i];
+        return '<span class="hc' + (i === mi ? ' sel' : '') + (i === 0 && MONTH !== 1 ? ' ny' : '') + '" title="' + MONTH_NAMES[i] + ' ' + seasonYear(i + 1) + ': ' + n + ' ' + row.what + '">' + (n ? '<i style="opacity:' + (0.25 + 0.75 * n / max).toFixed(2) + '"></i>' : '') + '</span>';
       }).join('');
     }).join('');
     monthBtns.forEach(function (b, i) { b.setAttribute('aria-label', MONTH_NAMES[i] + ': ' + rows.map(function (row) { return row.v[i] + ' ' + row.what; }).join(', ')); });
@@ -3550,12 +3578,15 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     if (i + 1 === MONTH) b.classList.add('now');
     b.addEventListener('click', function () { setLMonth(i + 1); });
     b.addEventListener('keydown', function (e) {
-      var k = e.key, to = k === 'ArrowRight' || k === 'ArrowDown' ? LMONTH % 12 + 1 : k === 'ArrowLeft' || k === 'ArrowUp' ? (LMONTH + 10) % 12 + 1 : k === 'Home' ? 1 : k === 'End' ? 12 : 0;
+      var k = e.key, to = k === 'ArrowRight' || k === 'ArrowDown' ? LMONTH % 12 + 1 : k === 'ArrowLeft' || k === 'ArrowUp' ? (LMONTH + 10) % 12 + 1 : k === 'Home' ? MONTH : k === 'End' ? (MONTH + 10) % 12 + 1 : 0;
       if (!to) return;
       e.preventDefault(); setLMonth(to); monthBtns[LMONTH - 1].focus();
     });
-    $('#months').appendChild(b); monthBtns.push(b);
+    if (i === 0 && MONTH !== 1) b.classList.add('ny');
+    monthBtns.push(b);
   });
+  // Laid out from this month on, the same order as a season's month strip; the January after a new-year line is next year.
+  ORD.forEach(function (i) { $('#months').appendChild(monthBtns[i]); });
   // The next twelve months from this one, each shaded when the season is open in it; the chosen month is outlined.
   function monthStrip(s) {
     var cells = '', m0 = MONTH, sel = seasonMonth();
@@ -3595,6 +3626,28 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     $('#listbtn').setAttribute('aria-expanded', 'false');
     render();
     syncLink();
+    requestAnimationFrame(function () { fitSeason(id); });
+  }
+  // Bring a season's places into the part of the map the sheet leaves free. A single named place zooms to about 3x the opening
+  // view (never out from a closer view); a river fits its halo. Phones keep it above the sheet, wide windows left of it.
+  function fitSeason(id) {
+    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    SPLACES.forEach(function (o) {
+      if (o.s.id !== id) return;
+      var b = null;
+      if (o.halo) { try { var bb = o.halo.getBBox(); if (bb.width || bb.height) b = [bb.x, bb.y, bb.x + bb.width, bb.y + bb.height]; } catch (err) { /* not laid out yet */ } }
+      if (!b) b = [o.xy[0], o.xy[1], o.xy[0], o.xy[1]];
+      x0 = Math.min(x0, b[0]); y0 = Math.min(y0, b[1]); x1 = Math.max(x1, b[2]); y1 = Math.max(y1, b[3]);
+    });
+    if (!isFinite(x0)) return;
+    var p = pads();
+    if (window.innerWidth < 760) p.b = Math.max(p.b, Math.min($('#sheet').offsetHeight || 0, H * 0.66) + 8);
+    var aw = Math.max(40, W - p.l - p.r), ah = Math.max(40, H - p.t - p.b);
+    var w = Math.max(1, x1 - x0), h = Math.max(1, y1 - y0);
+    var sf = Math.min(aw / (w * 1.4), ah / (h * 1.4));
+    var sc = Math.max(minS, Math.min(sf, Math.max(v.s, 3 * s0), maxS));
+    var cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    animateTo({ s: sc, tx: p.l + aw / 2 - cx * sc, ty: p.t + ah / 2 - cy * sc });
   }
   function openList() {
     clearRiver(); leaveWater(true);
@@ -3853,6 +3906,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     limits();
     var f = homeFit(); s0 = f.s;
     if (reduce) setView(f); else animateTo(f);
+    homeHeld = true;
     render();
     syncLink();
   }
@@ -3888,13 +3942,30 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     s0 = f.s;
     applyStyles();
     setView(f);
+    homeHeld = true;
   }
   var ro = window.ResizeObserver ? new ResizeObserver(function () {
     var wasS = v.s / s0;
     size(); limits();
-    var f = homeFit(); s0 = f.s;
+    var held = homeHeld, f = homeFit(); s0 = f.s;
     if (Math.abs(wasS - 1) < 0.01) setView(f); else setView({ s: v.s, tx: v.tx, ty: v.ty });
+    homeHeld = held && Math.abs(wasS - 1) < 0.01;
   }) : null;
+  // The map's own size does not change when the cards above it settle after boot (at 320 x 568 the opening fit was made around an
+  // unfolded month card and opened at less than half the zoom Reset gives). Watch the chrome too, and re-fit while nobody has moved the map.
+  map.addEventListener('pointerdown', function () { homeHeld = false; }, true);
+  map.addEventListener('wheel', function () { homeHeld = false; }, { passive: true, capture: true });
+  if (window.ResizeObserver) {
+    var cro = new ResizeObserver(function () {
+      if (!homeHeld) return;
+      limits();
+      var f = homeFit(); s0 = f.s;
+      if (anim) animateTo(f); else setView(f);
+      homeHeld = true;
+      render();
+    });
+    ['#barstack', '#bottom'].forEach(function (sel) { cro.observe($(sel)); });
+  }
   if (ro) ro.observe(map); else window.addEventListener('resize', function () { size(); limits(); render(); });
   buildSpecies();
   $('#rhint').hidden = !TAP;
@@ -3959,7 +4030,7 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
   #spbtn { max-width: 110px !important; }
   #mebtn { width: 28px !important; min-width: 28px !important; }
   .pop { top: 44px !important; }
-  #smonth { display: flex !important; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 6px 8px !important; }
+  #smonth { display: flex !important; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 6px 8px !important; }
   #smonth[hidden] { display: none !important; }
   #smonth #sml { flex: 1 1 0; min-width: 0; }
   #smonth .mfold { margin: 0 !important; flex: none; min-height: 26px !important; padding: 0 10px !important; font-size: 12px !important; }
@@ -4095,4 +4166,35 @@ html:not(.touched):has(.hints .hint:not([hidden])) .depthchip, html:has(#hint:no
 }
 /* On a phone the card takes about 40 percent of the screen while a river is in focus, so the whole river has room above it (it was 66 percent, which left a strip about 130px tall). */
 @media (max-width: 759px) { #app.focus-water #sheet { max-height: min(42vh, 360px); } }
+
+/* ---- Year map design pass (Nov 2026) ---- */
+/* Seasons layer: a soft ink band under the dotted halo so a season reads over river lines; rings carry a faint fill. */
+#seasons .shalo-u { fill: none; stroke: var(--ink); stroke-opacity: .13; stroke-width: 14px; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; pointer-events: none; }
+#seasons .shalo { stroke-opacity: .85; stroke-dasharray: 1 6; }
+.sring { fill: var(--ink); fill-opacity: .08; }
+.sring:focus-visible { stroke: var(--on); stroke-width: 3; stroke-dasharray: none; outline: none; }
+/* Month card: one chip size at every width. */
+.dsum button { min-height: 28px !important; padding: 0 10px !important; }
+/* The chosen month is one outlined column: heat cells and label together. */
+.smonth.dash .months button { position: relative; min-height: 28px; }
+.smonth.dash .months button[aria-checked="true"] { background: transparent; box-shadow: none; }
+.smonth.dash .months button[aria-checked="true"]::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; top: calc(-1 * var(--hh, 0px)); border-radius: 7px;
+  background: color-mix(in srgb, var(--on) 9%, transparent); box-shadow: inset 0 0 0 1.5px var(--on); z-index: -1; pointer-events: none; }
+.smonth.dash .heat .hc.sel { box-shadow: none; }
+.smonth.dash { isolation: isolate; }
+/* New year: a hairline before January, through the heat strip and the labels. */
+.heat .hc.ny, .months button.ny, .year button.ny { position: relative; }
+.heat .hc.ny::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1.5px; background: var(--ink2); opacity: .55; z-index: 1; }
+.months button.ny:not([aria-checked="true"]) { box-shadow: inset 1.5px 0 0 color-mix(in srgb, var(--ink2) 55%, transparent); border-radius: 0; }
+.year button.ny:not([aria-checked="true"]) { box-shadow: inset 1.5px 0 0 color-mix(in srgb, var(--ink2) 55%, transparent); border-radius: 0; }
+/* Selected already says which month: no underline on top of the outline. */
+.year button.now[aria-checked="true"] .m { text-decoration: none; }
+@media (max-width: 759px) {
+  .smonth.dash .months, .heat { grid-template-columns: 40px repeat(12, minmax(0, 1fr)); }
+  .smonth.dash .months button { letter-spacing: -0.03em; }
+}
+@media (max-width: 759px) {
+  /* With a season or river sheet open on a phone the month card steps aside (the compact rule's display:flex !important had kept it up). */
+  #app.sheet-open #smonth { display: none !important; }
+}
 </style>
