@@ -139,9 +139,10 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
-### 2026-11-14 (live Year design pass captured and merged with the Areas entry)
+### 2026-11-14 (live Year design pass captured and merged with the Areas entry, version 55)
 - Found: live version 1794067540-5e1d (published from outside this repo, a "Year map design pass") differed from the repo in `index.html` only (`geo.js` and `sites.js` differ cosmetically and have for a while: `100` against `100.0`, a generator name in a comment). It adds: the Seasons layer's ink band under the dotted halo and rings that grow with zoom; the month card and year ribbon starting at the current month with a new-year hairline; the chosen month as one outlined column; "Next: X opens ..." when no season is open; `fitSeason` (a season sheet fits its places above or beside the sheet); a chrome ResizeObserver that re-fits the opening view while nobody has moved the map; and the month card folding on screens under 700 px tall.
 - Done: three-way merged (base = version 52's page, theirs = that live page, ours = main with the Areas entry), no conflicts. The page check needed four updates, none of them a loosened assertion: the ribbon and month strip now start at this month (checked by name), the Typical tap-zoom bound against the opening view is 3.9 (the opening view is about 16 percent smaller at 1280 x 900, 1.85 to 1.56; the tap zoom itself is unchanged at 5.55), and the idle-focus check reads after opening transitions finish (the timing flake the PR 139 notes described).
+- Published as version 55 (1794728749-3015); read back equal to the repo file plus the wrapper, the other files unchanged.
 - Open: the smaller Typical opening view at 1280 x 900 comes with the live design pass; if the opening should stay as tight as before it is a design call.
 
 ### 2026-10-31 (Areas entry in the list button)
