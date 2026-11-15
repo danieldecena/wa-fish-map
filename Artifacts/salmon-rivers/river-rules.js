@@ -172,38 +172,20 @@
     {
       "id": "wind",
       "species": "Coho Salmon",
-      "stretch": "Mouth to the Highway 14 bridge",
-      "text": "Oct 1 to 31: 6 salmon a day, up to 2 adults (coho 20 in or longer). Release wild coho, which have an unclipped adipose fin.",
-      "release": false,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
-    },
-    {
-      "id": "wind",
-      "species": "Coho Salmon",
-      "stretch": "Highway 14 bridge to 400 ft below the Shipherd Falls fish ladder",
-      "text": "Through Oct 31: 6 salmon a day, up to 2 adults. Release wild coho.",
-      "release": false,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
+      "stretch": "Mouth to 400 ft below the Shipherd Falls fish ladder",
+      "text": "Nov 1 to Mar 15: release all salmon. Hatchery steelhead only, 3 a day (20 in or longer above the Highway 14 bridge).",
+      "release": true,
+      "through": "2027-03-15",
+      "checked": "2026-11-14"
     },
     {
       "id": "wind",
       "species": "Chinook Salmon",
-      "stretch": "Highway 14 bridge to 400 ft below the Shipherd Falls fish ladder",
-      "text": "Through Oct 31: release wild Chinook, which have an unclipped adipose fin.",
-      "release": true,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
-    },
-    {
-      "id": "wind",
-      "species": "All salmon",
       "stretch": "Mouth to 400 ft below the Shipherd Falls fish ladder",
-      "text": "Night closure for salmon and an anti-snagging rule through Oct 31.",
-      "release": false,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
+      "text": "Nov 1 to Mar 15: release all salmon. Hatchery steelhead only, 3 a day (20 in or longer above the Highway 14 bridge).",
+      "release": true,
+      "through": "2027-03-15",
+      "checked": "2026-11-14"
     },
     {
       "id": "wind",
@@ -212,7 +194,7 @@
       "text": "Closed waters.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-14"
     },
     {
       "id": "wind",
@@ -221,7 +203,7 @@
       "text": "Anglers 15 and older need the Columbia River Salmon and Steelhead Endorsement.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-14"
     },
     {
       "id": "klickitat",
@@ -362,28 +344,28 @@
       "id": "skagit",
       "species": "Coho Salmon",
       "stretch": "Mouth to the Marblemount Bridge",
-      "text": "Through Oct 31: 2 coho a day, 12 in or longer.",
+      "text": "Nov 1 to 15: 2 coho a day, 12 in or longer.",
       "release": false,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
+      "through": "2026-11-15",
+      "checked": "2026-11-14"
     },
     {
       "id": "skagit",
       "species": "Chinook Salmon",
       "stretch": "Mouth to the Marblemount Bridge",
-      "text": "Through Oct 31: release all Chinook and every other salmon except coho.",
+      "text": "Nov 1 to 15: release all salmon other than coho.",
       "release": true,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
+      "through": "2026-11-15",
+      "checked": "2026-11-14"
     },
     {
       "id": "skagit",
       "species": "All salmon",
       "stretch": "Mouth to the Marblemount Bridge",
-      "text": "Bait is prohibited and single-point barbless hooks are required for salmon. Night closure.",
+      "text": "Nov 1 to 15: night closure for all species. Release Dolly Varden and bull trout.",
       "release": false,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
+      "through": "2026-11-15",
+      "checked": "2026-11-14"
     },
     {
       "id": "washougal",
