@@ -126,3 +126,14 @@ test('marine focus adds no URL key and no request, and writes no river id', () =
   assert.doesNotMatch(code, /\bfetch\s*\(|XMLHttpRequest|sendBeacon|WebSocket|EventSource|\bimport\s*\(/);
   assert.doesNotMatch(code, /pushState|location\.search\s*=/);
 });
+
+test('the list button opens a marine areas list in every view, and a row opens the area without a new URL key', () => {
+  assert.match(html, /function areaListHtml\(bare\) \{\s*if \(!HAS_TYPICAL\) return '';/);
+  assert.match(html, /data-areaopen="' \+ esc\(id\)/);
+  assert.match(html, /if \(view === 'typical'\) \{ fillAreaList\(\); return; \}/);
+  assert.match(html, /areaListHtml\(\) \+ footHtml\(\)/, 'Rivers ends with the areas');
+  assert.match(html, /areaListHtml\(\) \+ '<div class="foot">/, 'Sites in Spawning ends with the areas');
+  assert.match(html, /if \(ao\) \{ openArea\(ao\.getAttribute\('data-areaopen'\)\); return; \}/, 'a row calls the same openArea a tap on the water does');
+  const code = between('function areaListHtml(bare)', 'function fillList(keep)');
+  assert.doesNotMatch(code, /\bfetch\s*\(|XMLHttpRequest|pushState/);
+});
