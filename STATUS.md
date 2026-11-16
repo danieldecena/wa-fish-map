@@ -128,7 +128,6 @@
 
 ## Next Up
 
-- Skagit coho rule: the Nov 1-15 rule ends today. Read the pamphlet's Skagit rule from Nov 16 and add it to `rules/river-rules.json` (TASKS).
 - Lapsed river rows: Lower Columbia, Drano Lake and Kalama rows ended Oct 31 and are hidden. Re-read them from the pamphlet (TASKS).
 - Water focus for lakes needs lake outlines (NHD or WDFW) before any work starts.
 
@@ -137,6 +136,10 @@ current counts rather than trusting a number written here.; run `~/bin/tasks-box
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-11-16 (Skagit salmon rule after Nov 15)
+- Done: the Nov 1 to 15 emergency rule ended, so the Skagit sheet had no Rules section. Read the pamphlet (page dated Oct 5) and WDFW's emergency list live: no Skagit salmon row runs past Oct 31, and no Skagit entry is listed. The sheet now carries one row, "WDFW lists no salmon season here after Nov 15, in the pamphlet or in its emergency rules. Check WDFW before you fish." (through Dec 31). Notes: `docs/research/2026-11-16-river-rules.md`.
+- Decided: the row states the absence found in both sources, not that the river is closed; re-read the Skagit when WDFW next posts or by Dec 31. The three lapsed rows were deleted from `river-rules.json` because the builder refuses a row that ended before its `checked` date. The Skagit coho report (Fair, Oct 10) is left: the page already marks reports older than a week as stale, with the date.
 
 ### 2026-11-15 (wrap-up: Next Up refreshed; rules and Areas entry live)
 - Decided: Next Up now lists only what the next session can act on (the Skagit rule from Nov 16, the lapsed river rows, lake outlines). The App Store screenshot and 1.0 items it carried since October were not this session's work and stay where they are in the store notes.

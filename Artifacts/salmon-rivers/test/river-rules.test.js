@@ -67,8 +67,17 @@ test('forWater drops a row after its through day and keeps it on that day', () =
 });
 
 test('Chinook release rows carry the release flag, and the known release waters are flagged', () => {
-  ['cowlitz', 'columbia', 'skagit'].forEach(id => assert.ok(RR.ROWS.some(r => r.id === id && r.species === 'Chinook Salmon' && r.release), id));
+  ['cowlitz', 'columbia'].forEach(id => assert.ok(RR.ROWS.some(r => r.id === id && r.species === 'Chinook Salmon' && r.release), id));
   assert.ok(RR.ROWS.filter(r => r.release).every(r => /release/i.test(r.text)), 'a release flag on a row whose text does not say release');
+});
+
+test('the Skagit says what WDFW lists after Nov 15, and no row claims a season', () => {
+  const rows = RR.forWater('skagit', '2026-11-16');
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].species, 'All salmon');
+  assert.match(rows[0].text, /no salmon season/);
+  assert.ok(!rows[0].release);
+  assert.deepEqual(RR.forWater('skagit', '2027-01-01'), []);
 });
 
 test('index.html loads river-rules.js after rules.js and builds the Rules section from it', () => {
