@@ -1,5 +1,5 @@
 {
-  "note": "Hand-maintained. WDFW's rules for the nine report rivers, read on 2026-10-29, with the Skagit and Wind River re-read on 2026-11-14 (sources and what was not confirmed: docs/research/2026-10-29-river-rules.md and docs/research/2026-11-14-river-rules.md). scripts/build_river_rules.py turns this into river-rules.js. Source labels and links are deliberately not carried to the page.",
+  "note": "Hand-maintained. WDFW's rules for the nine report rivers, read on 2026-10-29, with the Skagit and Wind River re-read on 2026-11-14 and the Skagit again on 2026-11-16 (sources and what was not confirmed: docs/research/2026-10-29-river-rules.md, 2026-11-14-river-rules.md and 2026-11-16-river-rules.md). scripts/build_river_rules.py turns this into river-rules.js. Source labels and links are deliberately not carried to the page.",
   "waters": {
     "cowlitz": {
       "checked": "2026-10-29",
@@ -272,26 +272,13 @@
       ]
     },
     "skagit": {
-      "checked": "2026-11-14",
+      "checked": "2026-11-16",
       "rows": [
-        {
-          "species": "Coho Salmon",
-          "stretch": "Mouth to the Marblemount Bridge",
-          "text": "Nov 1 to 15: 2 coho a day, 12 in or longer.",
-          "through": "2026-11-15"
-        },
-        {
-          "species": "Chinook Salmon",
-          "stretch": "Mouth to the Marblemount Bridge",
-          "text": "Nov 1 to 15: release all salmon other than coho.",
-          "release": true,
-          "through": "2026-11-15"
-        },
         {
           "species": "All salmon",
           "stretch": "Mouth to the Marblemount Bridge",
-          "text": "Nov 1 to 15: night closure for all species. Release Dolly Varden and bull trout.",
-          "through": "2026-11-15"
+          "text": "WDFW lists no salmon season here after Nov 15, in the pamphlet or in its emergency rules. Check WDFW before you fish.",
+          "through": "2026-12-31"
         }
       ]
     },

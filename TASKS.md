@@ -5,7 +5,7 @@
 - [ ] Read the river rules on the live map (a re-verify is running)
 - [ ] Puget Sound river reports: repeat the sourcing pass (spec 2026-10-26-puget-river-reports) when new shop or guide reports appear; a river is added only with a report at most 21 days old (Skagit added 2026-10-26 on the Confluence Fly Shop's Oct 10 report; replace it when a fresher one appears). First pass: docs/research/2026-10-26-puget-river-reports.md. Last pass 2026-10-31 (docs/research/2026-10-31-river-reports.md, both regions): next, the Confluence November report and the Thursday Guide’s Forecast summary.
 - [x] River rules: Skagit and Wind River re-read Nov 14
-- [ ] River rules: Skagit from Nov 16 (read the pamphlet rule)
+- [x] River rules: Skagit after Nov 15, no season listed
 - [ ] River rules: re-read Columbia, Drano, Kalama (lapsed)
 
 #### Design critique 2026-10-26

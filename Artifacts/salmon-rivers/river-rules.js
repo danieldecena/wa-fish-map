@@ -342,30 +342,12 @@
     },
     {
       "id": "skagit",
-      "species": "Coho Salmon",
-      "stretch": "Mouth to the Marblemount Bridge",
-      "text": "Nov 1 to 15: 2 coho a day, 12 in or longer.",
-      "release": false,
-      "through": "2026-11-15",
-      "checked": "2026-11-14"
-    },
-    {
-      "id": "skagit",
-      "species": "Chinook Salmon",
-      "stretch": "Mouth to the Marblemount Bridge",
-      "text": "Nov 1 to 15: release all salmon other than coho.",
-      "release": true,
-      "through": "2026-11-15",
-      "checked": "2026-11-14"
-    },
-    {
-      "id": "skagit",
       "species": "All salmon",
       "stretch": "Mouth to the Marblemount Bridge",
-      "text": "Nov 1 to 15: night closure for all species. Release Dolly Varden and bull trout.",
+      "text": "WDFW lists no salmon season here after Nov 15, in the pamphlet or in its emergency rules. Check WDFW before you fish.",
       "release": false,
-      "through": "2026-11-15",
-      "checked": "2026-11-14"
+      "through": "2026-12-31",
+      "checked": "2026-11-16"
     },
     {
       "id": "washougal",
