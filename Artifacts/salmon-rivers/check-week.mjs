@@ -232,7 +232,8 @@ for (const scheme of ['light', 'dark']) {
       const p3 = await ctx.newPage();
       await p3.goto(base + '/index.html?mode=typical&site=port-angeles-city-pier&today=' + today, { waitUntil: 'networkidle' });
       const tt = await p3.$eval('#sbody', b => { const h = [...b.querySelectorAll('h3')].find(x => x.textContent === 'Tides'); const sec = h && h.parentElement; return sec ? { text: sec.textContent, n: sec.querySelectorAll('.tideline span').length } : null; });
-      check(!!tt && tt.n >= 3 && /Port Angeles station, /.test(tt.text) && /from NOAA’s tide constants for the station: heights above MLLW, Washington time\. Predictions, not observations\./.test(tt.text), `map: marine pier sheet shows Tides with the nearest station and extremes (${tt && tt.text.slice(0, 80)})`);
+      // Two extremes is a real tide day: NOAA 9444090 (Port Angeles) has only a low and a high on 2026-11-17.
+      check(!!tt && tt.n >= 2 && /Port Angeles station, /.test(tt.text) && /from NOAA’s tide constants for the station: heights above MLLW, Washington time\. Predictions, not observations\./.test(tt.text), `map: marine pier sheet shows Tides with the nearest station and extremes (${tt && tt.text.slice(0, 80)})`);
       await p3.goto(base + '/index.html?mode=typical&site=cow-lake&today=' + today, { waitUntil: 'networkidle' });
       check(await p3.$eval('#sbody', b => b.textContent.length > 50 && ![...b.querySelectorAll('h3')].some(x => x.textContent === 'Tides')), 'map: a freshwater site sheet has no Tides');
       await p3.close();
@@ -483,13 +484,14 @@ for (const [w, h] of [[390, 844], [1280, 800]]) {
   check(gcheck.every(q => q.gap === null || q.gap >= 3.5), `guides ${w}px: a group name starts 4px past its count badge (${gcheck.map(q => q.text + ' gap ' + q.gap).join('; ')})`);
   check(gcheck.every(q => !q.onPin), `guides ${w}px: no group name touches another guide pin (${gcheck.filter(q => q.onPin).map(q => q.text).join('; ')})`);
   // Finding 4: every dashed season ring that draws carries its season's name, and the names never sit on a pin or on each other.
+  // Beside means within 24px of the ring on each side, above and below included (a name goes above or below when both sides are taken).
   const sr = await gp.evaluate(() => {
     const vis = e => e.style.display !== 'none' && e.getClientRects().length;
     const hit = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
     const tags = [...document.querySelectorAll('.stag')].filter(vis), pins = [...document.querySelectorAll('#over .pin, #guides .pin')].filter(vis).map(p => p.querySelector('.balloon') || p);
     const rings = [...document.querySelectorAll('.sring')].filter(vis).map(r => {
       const c = r.getBoundingClientRect(), id = r.getAttribute('data-season');
-      const near = tags.filter(t => t.getAttribute('data-season') === id).some(t => { const b = t.getBoundingClientRect(); return Math.min(Math.abs(b.left - c.right), Math.abs(c.left - b.right)) < 24 && b.top < c.bottom + 24 && b.bottom > c.top; });
+      const near = tags.filter(t => t.getAttribute('data-season') === id).some(t => { const b = t.getBoundingClientRect(); return Math.min(Math.abs(b.left - c.right), Math.abs(c.left - b.right)) < 24 && b.top < c.bottom + 24 && b.bottom > c.top - 24; });
       return { name: r.getAttribute('aria-label'), near };
     });
     const clash = tags.filter(t => { const b = t.getBoundingClientRect(); return pins.some(p => hit(b, p.getBoundingClientRect())) || tags.some(u => u !== t && hit(b, u.getBoundingClientRect())); }).map(t => t.textContent);
@@ -926,7 +928,8 @@ for (const motion of ['reduce', 'no-preference']) {
 }
 // Depth shading layer (depth-shading.js): image tiles in #vp under the rivers and the NOAA contours, in #base so water focus blurs and dims them.
 {
-  const SH = (p) => p.evaluate(() => { const g = document.getElementById('shade'); return g ? { n: g.querySelectorAll('image').length, inVp: g.parentNode.id === 'vp', prev: g.previousElementSibling && g.previousElementSibling.id, pe: getComputedStyle(g).pointerEvents, op: +getComputedStyle(g).opacity, f: g.style.getPropertyValue('--shade-f'), anim: getComputedStyle(g).animationName, inBase: !!g.closest('#base'), data: [...g.querySelectorAll('image')].every(i => /^data:image\/webp;base64,/.test(i.getAttribute('href')) && i.getAttribute('preserveAspectRatio') === 'none') } : null; });
+  // The layer fades in over --dur-layer (240 ms): opacity is read once that animation has finished, or it reads 0.9999.
+  const SH = (p) => p.evaluate(async () => { const g = document.getElementById('shade'); if (g) await Promise.all(g.getAnimations().map(a => a.finished)); return g ? { n: g.querySelectorAll('image').length, inVp: g.parentNode.id === 'vp', prev: g.previousElementSibling && g.previousElementSibling.id, pe: getComputedStyle(g).pointerEvents, op: +getComputedStyle(g).opacity, f: g.style.getPropertyValue('--shade-f'), anim: getComputedStyle(g).animationName, inBase: !!g.closest('#base'), data: [...g.querySelectorAll('image')].every(i => /^data:image\/webp;base64,/.test(i.getAttribute('href')) && i.getAttribute('preserveAspectRatio') === 'none') } : null; });
   for (const scheme of ['light', 'dark']) {
     const sctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, colorScheme: scheme });
     const sp = await sctx.newPage(); const serr = [], outside = [];
@@ -969,7 +972,7 @@ for (const motion of ['reduce', 'no-preference']) {
     const z = await sp.evaluate(() => { const g = document.getElementById('shade'), d = document.getElementById('depthg'); return { n: g ? g.querySelectorAll('image').length : 0, depth: !!d, over: !!(g && d && (g.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING)), s: +/scale\(([\d.]+)\)/.exec(document.getElementById('vp').getAttribute('transform'))[1] }; });
     check(z.depth && z.over && z.n === N, `shading ${scheme}: with the contours drawn they come after the shading in the DOM, so they sit on top (${z.depth ? 'contours' : 'no contours'}, scale ${z.s.toFixed(0)})`);
     for (let i = 0; i < 4; i++) { await sp.click('#zin'); await sp.waitForTimeout(450); }
-    const close = await sp.evaluate(() => { const g = document.getElementById('shade'), t = window.DEPTHSHADE.tiles[0], s = +/scale\(([\d.]+)\)/.exec(document.getElementById('vp').getAttribute('transform'))[1]; return { f: g ? parseFloat(g.style.getPropertyValue('--shade-f') || '1') : null, px: Math.max(t.w / t.px[0], t.h / t.px[1]) * s, s, op: g ? +getComputedStyle(g).opacity : null }; });
+    const close = await sp.evaluate(async () => { const g = document.getElementById('shade'); if (g) await Promise.all(g.getAnimations().map(a => a.finished)); const t = window.DEPTHSHADE.tiles[0], s = +/scale\(([\d.]+)\)/.exec(document.getElementById('vp').getAttribute('transform'))[1]; return { f: g ? parseFloat(g.style.getPropertyValue('--shade-f') || '1') : null, px: Math.max(t.w / t.px[0], t.h / t.px[1]) * s, s, op: g ? +getComputedStyle(g).opacity : null }; });
     check(close.s > 100 && close.f !== null && close.f >= 0.6 && close.f <= 1 && (close.px <= 2.5 ? close.f === 1 : close.f < 1) && close.op > 0.2, `shading ${scheme}: at scale ${close.s.toFixed(0)} a raster pixel is ${close.px.toFixed(1)} CSS px and the strength factor is ${close.f}, so it holds rather than vanishing (opacity ${close.op})`);
     check(outside.length === 0, `shading ${scheme}: no request leaves the page (${outside.slice(0, 3).join(', ')})`);
     check(serr.length === 0, `shading ${scheme}: no page errors (${serr.join(' | ').slice(0, 160)})`);
@@ -982,7 +985,7 @@ for (const motion of ['reduce', 'no-preference']) {
     await (await rctx.newCDPSession(rp)).send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-transparency', value: 'reduce' }] });
     await rp.goto(base + '/index.html?today=' + today, { waitUntil: 'networkidle' });
     const emu = await rp.evaluate(() => matchMedia('(prefers-reduced-transparency: reduce)').matches);
-    const rop = await rp.evaluate(() => { const g = document.getElementById('shade'); return g ? +getComputedStyle(g).opacity : null; });
+    const rop = await rp.evaluate(async () => { const g = document.getElementById('shade'); if (g) await Promise.all(g.getAnimations().map(a => a.finished)); return g ? +getComputedStyle(g).opacity : null; });
     check(emu && rop === 1, `shading ${scheme}: with reduced transparency the emulation took (${emu}) and the opacity is ${rop}, not .8 or .5`);
     await rctx.close();
   }
