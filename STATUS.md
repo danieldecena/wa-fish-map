@@ -137,6 +137,11 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
+### 2026-11-17 (catch reports refreshed again; not yet published)
+- Reports pass recorded in `docs/research/2026-11-17-river-reports.md`, from The Guide's Forecast's free SW Washington issues of Nov 7 and Nov 14: Cowlitz coho Slow ("coho slow"), Lewis coho Fair, Kalama coho Good ("coho still good"), Klickitat coho Fair (the lower end of "fair to good"). Newest report moves from Oct 29 to Nov 14.
+- Dropped: the Skagit coho rating. WDFW lists no Skagit salmon season after Nov 15 (rule note of Nov 16) and no report since Oct 10 rates it. The site stays with no rating; `test/reports.test.js` now allows an unrated site whose sheet has counts or a current WDFW notice.
+- Not rated: "Fishing has slowed" at Drano and Wind (a trend, not the source saying slow), "fair to slow" on the Washougal (no species), the Klickitat mouth lines (no species). Columbia creel summaries pause until February.
+
 ### 2026-11-16 (Skagit salmon rule after Nov 15, version 57)
 - Done: the Nov 1 to 15 emergency rule ended, so the Skagit sheet had no Rules section. Read the pamphlet (page dated Oct 5) and WDFW's emergency list live: no Skagit salmon row runs past Oct 31, and no Skagit entry is listed. The sheet now carries one row, "WDFW lists no salmon season here after Nov 15, in the pamphlet or in its emergency rules. Check WDFW before you fish." (through Dec 31). Notes: `docs/research/2026-11-16-river-rules.md`. Live as version 57 (PR 147); read back, `river-rules.js` byte-identical.
 - Decided: the row states the absence found in both sources, not that the river is closed; re-read the Skagit when WDFW next posts or by Dec 31. The three lapsed rows were deleted from `river-rules.json` because the builder refuses a row that ended before its `checked` date. The Skagit coho report (Fair, Oct 10) is left: the page already marks reports older than a week as stale, with the date.

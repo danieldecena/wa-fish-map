@@ -1,21 +1,21 @@
 {
   "all": [
     "columbia:var(--prime):false",
-    "cowlitz:var(--prime):false",
+    "cowlitz:var(--slow):false",
     "drano:var(--good):false",
-    "kalama:var(--slow):false",
+    "kalama:var(--good):false",
     "klickitat:var(--good):false",
-    "lewis:var(--good):false",
+    "lewis:var(--fair):false",
     "washougal:var(--unrated):false",
     "wind:var(--good):true"
   ],
   "coho": [
     "columbia:var(--prime):false",
-    "cowlitz:var(--prime):false",
+    "cowlitz:var(--slow):false",
     "drano:var(--good):false",
-    "kalama:var(--slow):false",
-    "klickitat:var(--good):false",
-    "lewis:var(--good):false",
+    "kalama:var(--good):false",
+    "klickitat:var(--fair):false",
+    "lewis:var(--fair):false",
     "washougal:var(--unrated):false",
     "wind:var(--good):true"
   ],
