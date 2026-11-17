@@ -1485,8 +1485,20 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       }
     });
     // Seasons: halos and rings for every season open in the layer's month; in the current month, a tag for each season ending
-    // within 7 days or opening within 14, at its first place on screen. A tag that would cover a pin or label is left out.
-    var seasOn = layers.indexOf('seasons') >= 0, sm = seasonMonth(), sy = seasonYear(sm), tagged = {}, ti = 0;
+    // within 7 days or opening within 14, at its first place on screen. Tags are placed before the mode's markers, which step
+    // aside for them, but around the guide pins (guideBoxes), which are drawn later and never step aside. A tag with no clear side is left out.
+    // Guide pins are grouped here, before anything else claims space, so the season tags can step around them; they are drawn below.
+    var spotsOn = layers.indexOf('spots') >= 0, spts = [];
+    SPOTLIST.forEach(function (o) {
+      var x = o.xy[0] * v.s + v.tx, y = o.xy[1] * v.s + v.ty;
+      o.g.style.display = 'none'; o.lab.style.display = 'none';
+      if (spotsOn && x > -40 && x < W + 40 && y > -40 && y < H + 40) spts.push({ o: o, id: o.s.id, x: x, y: y });
+    });
+    var spotGroups = Cluster.group(spts, 30, spotSel), guideBoxes = spotGroups.map(function (g) {
+      var x = 0, y = 0; g.forEach(function (m) { x += m.x; y += m.y; }); x /= g.length; y /= g.length;
+      return [x - 15, y - 36, 30, 38];
+    });
+    var seasOn = layers.indexOf('seasons') >= 0, sm = seasonMonth(), sy = seasonYear(sm), tagged = {}, ti = 0, tagQ = [];
     seasonG.style.display = seasOn ? '' : 'none';
     stagPool.forEach(function (t) { t.g.style.display = 'none'; });
     SPLACES.forEach(function (o) {
@@ -1500,19 +1512,40 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
         o.ring.style.display = on && inView ? '' : 'none';
         if (on && inView) { o.ring.setAttribute('cx', x.toFixed(1)); o.ring.setAttribute('cy', y.toFixed(1)); o.ring.setAttribute('r', o.rr.toFixed(1)); boxes.push([x - o.rr, y - o.rr, 2 * o.rr, 2 * o.rr]); }
       }
-      if (!on || !inView || sm !== MONTH || tagged[o.s.id]) return;
+      if (!on || !inView || sm !== MONTH) return;
       var tg = Layers.tagFor(o.s, TODAY);
-      if (!tg) return;
-      var t = getSTag(ti), txt = o.s.name + ' · ' + tg.text;
-      t.t.textContent = txt; t.g.setAttribute('data-season', o.s.id); t.g.setAttribute('aria-label', txt + ', ' + o.label);
-      t.g.classList.remove('plain'); t.g.setAttribute('tabindex', '0'); t.g.removeAttribute('aria-hidden');
-      t.g.style.display = '';
-      var tw = textW(txt) + 16; t.r.setAttribute('width', tw.toFixed(1));
-      var g6 = (o.rr || 8) + 6, left = x + g6 + tw > W - 8, bx = [left ? x - g6 - tw : x + g6, y - 10, tw, 20];
-      if (boxes.some(function (q) { return overlap(bx, q); })) { t.g.style.display = 'none'; return; }
-      t.g.setAttribute('transform', 'translate(' + bx[0].toFixed(1) + ' ' + y.toFixed(1) + ')');
-      boxes.push(bx); tagged[o.s.id] = true; o.tagged = true; ti++;
+      if (tg) tagQ.push({ o: o, x: x, y: y, tg: tg });
     });
+    // Where a ring's name or tag goes (a box [x, y, w, 20]): beside the ring, right then left (left first near the right edge),
+    // then above or below it, starting 4px in from the ring's centre so it still reads as the ring's. Null when no place is clear.
+    function ringLabelBox(x, y, r, tw, taken) {
+      var g6 = r + 6, right = x + g6 + tw <= W - 8;
+      var c = [[x + g6, y - 10], [x - g6 - tw, y - 10]];
+      if (!right) c.reverse();
+      c.push([x + 4, y - r - 22], [x + 4, y + r + 2], [x - 4 - tw, y - r - 22], [x - 4 - tw, y + r + 2]);
+      for (var i = 0; i < c.length; i++) {
+        var bx = [c[i][0], c[i][1], tw, 20];
+        if (bx[0] >= 4 && bx[0] + tw <= W - 4 && bx[1] >= 4 && bx[1] + 20 <= H - 4 && !taken(bx)) return bx;
+      }
+      return null;
+    }
+    // Tags step around the guide pins (a tag that ignored them once sat on two near Tacoma).
+    (function placeSeasonTags() {
+      var taken = function (bx) { return boxes.some(function (b) { return overlap(bx, b); }) || guideBoxes.some(function (b) { return overlap(bx, b); }); };
+      tagQ.forEach(function (q) {
+        var o = q.o, x = q.x, y = q.y;
+        if (tagged[o.s.id]) return;
+        var txt = o.s.name + ' · ' + q.tg.text, tw = textW(txt) + 16, bx = ringLabelBox(x, y, o.rr || 8, tw, taken);
+        if (!bx) return;
+        var t = getSTag(ti++);
+        t.t.textContent = txt; t.g.setAttribute('data-season', o.s.id); t.g.setAttribute('aria-label', txt + ', ' + o.label);
+        t.g.classList.remove('plain'); t.g.setAttribute('tabindex', '0'); t.g.removeAttribute('aria-hidden');
+        t.r.setAttribute('width', tw.toFixed(1));
+        t.g.style.display = '';
+        t.g.setAttribute('transform', 'translate(' + bx[0].toFixed(1) + ' ' + (bx[1] + 10).toFixed(1) + ')');
+        boxes.push(bx); tagged[o.s.id] = true; o.tagged = true;
+      });
+    })();
     // Piers and shore: a marker that would sit on a pin, label or another marker is left out, so dense shores thin out until you zoom in.
     // Typical season and Spawning layers: each steps aside in its own mode. In-season sites claim their place first; a marker that
     // would sit on a pin, label or another marker is left out, so dense shores thin out until you zoom in. Words appear when zoomed.
@@ -1578,15 +1611,9 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
       boxes.push(lb);
     });
     // Spot guides sit above the mode's pins in the label order: the guide pin and its name are drawn when the layer is on.
-    var spotsOn = layers.indexOf('spots') >= 0, spts = [];
-    SPOTLIST.forEach(function (o) {
-      var x = o.xy[0] * v.s + v.tx, y = o.xy[1] * v.s + v.ty;
-      o.g.style.display = 'none'; o.lab.style.display = 'none';
-      if (spotsOn && x > -40 && x < W + 40 && y > -40 && y < H + 40) spts.push({ o: o, id: o.s.id, x: x, y: y });
-    });
     spotGroupPool.forEach(function (c) { c.g.style.display = 'none'; c.lab.style.display = 'none'; });
     var sgi = 0, spotLabs = [];
-    Cluster.group(spts, 30, spotSel).forEach(function (g) {
+    spotGroups.forEach(function (g) {
       var x, y, node, lab, w, sel = false, grp = g.length > 1, sc = 0.8;
       if (g.length === 1) {
         var o = g[0].o;
@@ -1626,23 +1653,20 @@ details.srcs summary { cursor: pointer; min-height: 44px; display: flex; align-i
     });
     // Every dashed ring that shows without a tag is named by its season, so no place mark is anonymous (Hood Canal drew a bare ring beside
     // "Skagit coho · ends Oct 31"). These go last among the labels, after the tags and the guide pins have claimed their room, so a name never
-    // takes a tag's place or lands on a pin. It tries the right of the ring, then the left, and is left out when neither is clear.
+    // takes a tag's place or lands on a pin. It goes where ringLabelBox finds room, and is left out when nowhere is clear.
     // The ring already speaks for screen readers, so the name is decoration there.
     SPLACES.forEach(function (o) {
       if (!o.ring || o.ring.style.display === 'none' || o.tagged) return;
       var x = o.xy[0] * v.s + v.tx, y = o.xy[1] * v.s + v.ty;
-      var txt = o.s.name, tw = textW(txt) + 16, g6 = o.rr + 6;
-      var rx = x + g6 + tw > W - 8 ? x - g6 - tw : x + g6, bx = [rx, y - 10, tw, 20];
-      if (bx[0] < 4 || boxes.some(function (q) { return overlap(bx, q); })) {
-        bx = [rx === x + g6 ? x - g6 - tw : x + g6, y - 10, tw, 20];
-        if (bx[0] < 4 || bx[0] + tw > W - 4 || boxes.some(function (q) { return overlap(bx, q); })) return;
-      }
+      var txt = o.s.name, tw = textW(txt) + 16;
+      var bx = ringLabelBox(x, y, o.rr, tw, function (b) { return boxes.some(function (q) { return overlap(b, q); }); });
+      if (!bx) return;
       var t = getSTag(ti++);
       t.t.textContent = txt; t.r.setAttribute('width', tw.toFixed(1));
       t.g.setAttribute('data-season', o.s.id); t.g.removeAttribute('aria-label');
       t.g.classList.add('plain'); t.g.setAttribute('tabindex', '-1'); t.g.setAttribute('aria-hidden', 'true');
       t.g.style.display = '';
-      t.g.setAttribute('transform', 'translate(' + bx[0].toFixed(1) + ' ' + y.toFixed(1) + ')');
+      t.g.setAttribute('transform', 'translate(' + bx[0].toFixed(1) + ' ' + (bx[1] + 10).toFixed(1) + ')');
       boxes.push(bx);
     });
     // Count badges belong to the report rivers, so only Recent reports draws them. A badge that would cover a pin or label is left out.

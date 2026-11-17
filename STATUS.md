@@ -132,10 +132,15 @@
 - Water focus for lakes needs lake outlines (NHD or WDFW) before any work starts.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
-current counts rather than trusting a number written here.; run `~/bin/tasks-box.sh` for the
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-11-17 (page check failures fixed)
+- `check-week.mjs` failed three checks on main. Two were the checks: the Port Angeles tide sheet asked for 3 extremes, but NOAA 9444090 has only a low and a high on Nov 17 (now 2 or more); and the reduced-transparency shading read opacity during the layer's 240 ms fade-in (0.9999), so the shading reads now wait for that animation to finish.
+- One was the page: a season tag was placed before the guide pins, which never step aside, so at Nov 25 and Nov 28 the "Chum · ends Nov 30" tag sat on two guide pins near Tacoma. Guide pins are now grouped first and tags step around their boxes; tags still go ahead of the mode's markers, as before. A tag or ring name with both sides taken now tries above and below the ring before it is left out. Compared with main at 10 dates, two widths and two layer sets: no name sits on a pin, no tag is lost but one, and more rings carry their names (Apr 20 on a phone: main named 1 of 4 rings plus a tag on a guide pin; now all 4 are named). The one: at Apr 20 on a phone, "Stocked trout · opens Apr 24" has no clear place near Seattle's guide pins, so that ring shows its plain name.
+- The page check's "ring has its name beside it" now counts a name within 24px above the ring, as it already did below.
+- Checks: 257 Node tests; page check 441 ok, 0 failed at Nov 17, Nov 25 and Apr 20 2027 (run one at a time: three in parallel failed marine opacity checks mid-transition).
 
 ### 2026-11-17 (lapsed river rules re-read, version 59)
 - Re-read the Lower Columbia, Drano Lake and Kalama rows that ended Oct 31, from the pamphlet (pages dated Oct 5) and WDFW's emergency list (`docs/research/2026-11-17-river-rules.md`). Lower Columbia: the Nov 1 to Dec 31 coho row now gives the limit (6 a day, up to 2 adult salmon or 2 hatchery steelhead or 1 of each, only hatchery coho kept); the two October coho rows are removed. Drano: the limit row is the Nov 1 to Dec 31 one (1 adult salmon or hatchery steelhead), the October Tuesday closure is removed and the night closure (ended Oct 31) is dropped from the anti-snagging row. Kalama: nothing new from Nov 1; the two October rows are removed.
