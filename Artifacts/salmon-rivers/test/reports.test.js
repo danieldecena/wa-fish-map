@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const R = require('../reports.js');
 const C = require('../counts.js');
+const RR = require('../river-rules.js');
 
 const TODAY = '2026-10-18';
 const site = id => R.SITES.find(s => s.id === id);
@@ -18,12 +19,13 @@ const two = (coho, chinook) => ({ id: 'x', name: 'X', reports: { 'Coho Salmon': 
 test('viewOf keeps the colours the published page showed on 2026-10-18', () => {
   // Expected values come from the unmodified page (test/baseline-pins.json).
   const expect = {
-    cowlitz:   { all: ['prime', 'coho', false],    coho: ['prime', 'coho', false], chinook: ['fair', 'chinook', true] },
+    // Changed on purpose on 2026-11-17 from The Guide's Forecast of Nov 7 and Nov 14: Cowlitz coho slow, Lewis coho fair, Klickitat coho fair.
+    cowlitz:   { all: ['slow', 'coho', false],     coho: ['slow', 'coho', false],  chinook: ['fair', 'chinook', true] },
     columbia:  { all: ['prime', 'coho', false],    coho: ['prime', 'coho', false], chinook: ['fair', 'chinook', true] },
-    lewis:     { all: ['good', 'coho', false],     coho: ['good', 'coho', false],  chinook: ['fair', 'chinook', false] },
+    lewis:     { all: ['fair', 'coho', false],     coho: ['fair', 'coho', false],  chinook: ['fair', 'chinook', false] },
     // Wind changed on purpose on 2026-10-31: both species are release only from Nov 1 (pamphlet: release all salmon).
     wind:      { all: ['good', 'coho', true],      coho: ['good', 'coho', true],   chinook: ['fair', 'chinook', true] },
-    klickitat: { all: ['good', 'coho', false],     coho: ['good', 'coho', false],  chinook: ['good', 'chinook', false] },
+    klickitat: { all: ['good', 'chinook', false],  coho: ['fair', 'coho', false],  chinook: ['good', 'chinook', false] },
     drano:     { all: ['good', 'coho', false],     coho: ['good', 'coho', false],  chinook: ['good', 'chinook', false] },
   };
   for (const id of Object.keys(expect)) {
@@ -54,7 +56,7 @@ test('a fresh lower rating beats a stale higher one', () => {
 });
 
 test('when everything is stale the best rating still shows', () => {
-  const v = R.viewOf(site('cowlitz'), null, '2026-11-30');
+  const v = R.viewOf(site('columbia'), null, '2026-11-30');
   assert.equal(v.r, 'prime');
   assert.equal(v.k, 'Coho Salmon');
   assert.equal(v.fresh, false);
@@ -94,21 +96,21 @@ test('dates: format, age words, future dates, invalid input', () => {
 });
 
 test('latestReport is the newest dated report and ignores undated ones', () => {
-  assert.equal(R.latestReport(R.SITES), '2026-10-29');
+  assert.equal(R.latestReport(R.SITES), '2026-11-14');
   assert.equal(R.latestReport([{ id: 'x', name: 'X', reports: { 'Coho Salmon': { r: 'fair', asOf: null, d: '' } } }]), null);
 });
 
 test('staleNotice appears only when the newest report is older than 7 days', () => {
-  assert.equal(R.staleNotice(R.SITES, '2026-11-05'), null); // 7 days
-  assert.match(R.staleNotice(R.SITES, '2026-11-07'), /9 days old \(Oct 29\)/);
+  assert.equal(R.staleNotice(R.SITES, '2026-11-21'), null); // 7 days
+  assert.match(R.staleNotice(R.SITES, '2026-11-23'), /9 days old \(Nov 14\)/);
   assert.equal(R.staleNotice([{ id: 'x', name: 'X' }], TODAY), null); // nothing dated, nothing to claim
 });
 
 test('rankSites: retainable first, fresh before stale, then rating, then name', () => {
   const ids = f => R.rankSites(R.SITES, F[f], TODAY).map(e => e.site.id);
-  // Kalama (slow, fresh) ranks below the good rivers; Skagit (fair, 8 days old on TODAY, so stale) comes after every fresh river;
-  // Washougal has no report and goes last of the retainable sites. Wind is release only (2026-10-31), so it ranks after every retainable site.
-  assert.deepEqual(ids('all'), ['cowlitz', 'columbia', 'drano', 'klickitat', 'lewis', 'kalama', 'skagit', 'washougal', 'wind']);
+  // Cowlitz (slow) ranks below the good and fair rivers; Skagit and Washougal have no report and go last of the retainable sites
+  // (2026-11-17); Wind is release only (2026-10-31), so it ranks after every retainable site.
+  assert.deepEqual(ids('all'), ['columbia', 'drano', 'kalama', 'klickitat', 'lewis', 'cowlitz', 'skagit', 'washougal', 'wind']);
   assert.deepEqual(ids('chinook'), ['drano', 'klickitat', 'lewis', 'kalama', 'skagit', 'washougal', 'cowlitz', 'columbia', 'wind']);
 });
 
@@ -123,8 +125,9 @@ test('report data: ids unique, species exact, ratings valid, dates real, no date
   const used = new Set();
   for (const s of R.SITES) {
     assert.ok(!ids.has(s.id), `duplicate ${s.id}`); ids.add(s.id);
-    // A site with no reports at all is allowed only when WDFW counts back its sheet (see the counts-only test).
-    if (Object.keys(s.reports || {}).length === 0) { assert.ok(C.forWater(s.id), `${s.id} has no reports and no counts`); continue; }
+    // A site with no reports at all is allowed only when its sheet still has something from WDFW to show: creel counts (Washougal, see the
+    // counts-only test) or a current rule notice (the Skagit since 2026-11-17: WDFW lists no salmon season there after Nov 15).
+    if (Object.keys(s.reports || {}).length === 0) { assert.ok(C.forWater(s.id) || RR.forWater(s.id, TODAY).length, `${s.id} has no reports, no counts and no WDFW notice`); continue; }
     for (const [name, sp] of Object.entries(s.reports)) {
       assert.ok(R.SPECIES.includes(name), `${s.id}: "${name}" is not in Reports.SPECIES`);
       used.add(name);
@@ -145,7 +148,7 @@ test('report data: ids unique, species exact, ratings valid, dates real, no date
 
 test('pinLabel: rating and species, release caveat, and the no-report case in words', () => {
   const v = (id, sp) => R.viewOf(site(id), sp, TODAY);
-  assert.equal(R.pinLabel(site('cowlitz'), v('cowlitz', null), null), 'Cowlitz River, excellent reports for coho salmon');
+  assert.equal(R.pinLabel(site('cowlitz'), v('cowlitz', null), null), 'Cowlitz River, slow reports for coho salmon');
   assert.equal(R.pinLabel(site('cowlitz'), v('cowlitz', 'Chinook Salmon'), 'Chinook Salmon'), 'Cowlitz River, fair reports for chinook salmon, release only');
   const lone = { id: 'x', name: 'X River', reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-17', d: '' } } };
   assert.equal(R.pinLabel(lone, R.viewOf(lone, 'Chinook Salmon', TODAY), 'Chinook Salmon'), 'X River, no report for Chinook Salmon');
@@ -170,8 +173,9 @@ test('missingNote speaks only when a chosen species has no report on that water'
 // source links and must not gain a guessed attribution. This list only ever shrinks:
 // 2026-10-31 dropped Wind and Drano coho (replaced by sourced reports) and the Klickitat
 // pair and Drano Chinook (their Oct 15 wording matched The Guide's Forecast word for word).
-const LEGACY = new Set(['cowlitz/Coho Salmon', 'cowlitz/Chinook Salmon', 'columbia/Coho Salmon', 'columbia/Chinook Salmon',
-  'lewis/Coho Salmon', 'lewis/Chinook Salmon', 'wind/Chinook Salmon']);
+// 2026-11-17 dropped Cowlitz and Lewis coho (replaced by sourced reports of Nov 14).
+const LEGACY = new Set(['cowlitz/Chinook Salmon', 'columbia/Coho Salmon', 'columbia/Chinook Salmon',
+  'lewis/Chinook Salmon', 'wind/Chinook Salmon']);
 
 test('every report added after the species change names its source', () => {
   for (const s of R.SITES) {
@@ -187,13 +191,14 @@ test('control: the legacy list matches reality, so the source check is not vacuo
   for (const key of LEGACY) assert.ok(actual.includes(key), `${key} is listed as legacy but is not in SITES`);
 });
 
-test('Kalama\'s slow entry carries the source word and a link to the report that said it', () => {
-  const k = site('kalama').reports['Coho Salmon'];
+// The slow entry moved from the Kalama (Oct 17, now good) to the Cowlitz on 2026-11-17.
+test('Cowlitz\'s slow entry carries the source word and a link to the report that said it', () => {
+  const k = site('cowlitz').reports['Coho Salmon'];
   assert.equal(k.r, 'slow');
   assert.match(k.phrase, /\b(slow|poor)\b/i);
-  assert.match(k.src.url, /^https:\/\/www\.theguidesforecast\.com\/free\/coho-run-heats-up\/287017\/$/);
-  assert.equal(k.asOf, '2026-10-17');
-  assert.equal(R.viewOf(site('kalama'), null, TODAY).r, 'slow');
+  assert.match(k.src.url, /^https:\/\/www\.theguidesforecast\.com\/free\/kalama-river-coho-fishing\/287424\/$/);
+  assert.equal(k.asOf, '2026-11-14');
+  assert.equal(R.viewOf(site('cowlitz'), null, TODAY).r, 'slow');
   assert.equal(R.ratingWord({ r: 'slow', release: false }), 'Slow');
 });
 

@@ -12,16 +12,18 @@
   var DAY = 86400000;
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  /* Reports through Oct 29, 2026. asOf is the date of the report each rating comes from. Pass of 2026-10-31: docs/research/2026-10-31-river-reports.md. */
+  /* Reports through Nov 14, 2026. asOf is the date of the report each rating comes from. Pass of 2026-11-17: docs/research/2026-11-17-river-reports.md. */
   var SITES = [
     { id: 'cowlitz', name: 'Cowlitz River', sub: 'Below the hatchery at Salkum', hl: true,
-      reports: { 'Coho Salmon': { r: 'prime', asOf: '2026-10-17', d: 'Tacoma Power recovered 3,094 adult coho and 1,876 jacks at the hatchery separator over six days.' },
+      reports: { 'Coho Salmon': { r: 'slow', asOf: '2026-11-14', phrase: 'coho slow', d: 'Fishing has slowed despite strong hatchery returns. Most of the catch is wild coho, which must be released.',
+        src: { label: 'The Guide\u2019s Forecast, Nov 14', url: 'https://www.theguidesforecast.com/free/kalama-river-coho-fishing/287424/' } },
       'Chinook Salmon': { r: 'fair', release: true, asOf: '2026-10-03', d: 'Chinook are being caught here but must be released.' } } },
     { id: 'columbia', name: 'Lower Columbia River', sub: 'Tongue Point to Bonneville Dam', hl: true,
       reports: { 'Coho Salmon': { r: 'prime', asOf: '2026-10-11', d: 'Coho fishing was excellent in the flight count: 157 salmonid boats and 22 Washington bank rods on this stretch.' },
       'Chinook Salmon': { r: 'fair', release: true, asOf: null, d: 'The mainstem is closed for Chinook retention. Plenty are still caught and released.' } } },
     { id: 'lewis', name: 'Lewis River', sub: 'Mouth to Merwin Dam', hl: true,
-      reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-13', d: '138 bank anglers kept 14 coho and 2 jacks and released 10 coho in the creel.' },
+      reports: { 'Coho Salmon': { r: 'fair', asOf: '2026-11-14', d: 'Fishing is rated fair and slowing some, though there are still quality fish around.',
+        src: { label: 'The Guide\u2019s Forecast, Nov 14', url: 'https://www.theguidesforecast.com/free/kalama-river-coho-fishing/287424/' } },
       'Chinook Salmon': { r: 'fair', asOf: '2026-10-13', d: 'Same creel: 3 Chinook and 1 jack kept.' },
       'Fall Chinook': { r: 'good', asOf: '2026-09-26', d: 'Fall Chinook reported in good numbers, though the report says the run may be past its peak.',
         src: { label: 'The Guide\u2019s Forecast, Sep 26', url: 'https://www.theguidesforecast.com/free/salmon-and-coho-retention-reopens/286727/' } } }, extra: 'nws' },
@@ -31,8 +33,9 @@
         src: { label: 'The Guide’s Forecast, Oct 29', url: 'https://www.theguidesforecast.com/sw-washington-fishing/sw-washington-fishing-50/287167/' } },
       'Chinook Salmon': { r: 'fair', release: true, asOf: '2026-10-03', d: 'Chinook were still biting on the Wind River and Drano Lake.' } } },
     { id: 'klickitat', name: 'Klickitat River', sub: 'Lower river near Lyle', hl: true,
-      reports: { 'Coho Salmon': { r: 'good', asOf: '2026-10-15', d: 'Coho rated good.',
-        src: { label: 'The Guide’s Forecast, Oct 15', url: 'https://www.theguidesforecast.com/sw-washington-fishing/sw-washington-fishing-49/286992/' } },
+      /* Fair is the lower end of the source's "fair to good". */
+      reports: { 'Coho Salmon': { r: 'fair', asOf: '2026-11-07', d: 'Coho fishing is fair to good in the lower river, and strong numbers of coho are still staging at the mouth.',
+        src: { label: 'The Guide\u2019s Forecast, Nov 7', url: 'https://www.theguidesforecast.com/free/coho-are-biting-2/287311/' } },
       'Chinook Salmon': { r: 'good', asOf: '2026-10-15', d: 'Chinook rated good.',
         src: { label: 'The Guide’s Forecast, Oct 15', url: 'https://www.theguidesforecast.com/sw-washington-fishing/sw-washington-fishing-49/286992/' } } } },
     { id: 'drano', name: 'Drano Lake', sub: 'Mouth of the Little White Salmon River', hl: false,
@@ -42,12 +45,12 @@
         src: { label: 'The Guide’s Forecast, Oct 15', url: 'https://www.theguidesforecast.com/sw-washington-fishing/sw-washington-fishing-49/286992/' } } } },
     /* Slow is only ever the source's own word (slow or poor), kept in phrase. Never worked out from a number. */
     { id: 'kalama', name: 'Kalama River', sub: 'Lower river near Kalama', hl: true,
-      reports: { 'Coho Salmon': { r: 'slow', asOf: '2026-10-17', phrase: 'Fishing remains poor', d: 'Fishing is poor in low water. Four bank anglers kept one coho, and the weir is still in place. It is expected out this week.',
-        src: { label: 'The Guide\u2019s Forecast, Oct 17', url: 'https://www.theguidesforecast.com/free/coho-run-heats-up/287017/' } } } },
-    /* Added 2026-10-26 (docs/research/2026-10-26-puget-river-reports.md): Fair is an editorial reading of "plenty of coho around ... a little dour at times"; the source is 16 days old, so it shows stale. */
+      reports: { 'Coho Salmon': { r: 'good', asOf: '2026-11-14', d: 'Coho are spread through the whole river now that the weir is out, and bank angling is strong.',
+        src: { label: 'The Guide\u2019s Forecast, Nov 14', url: 'https://www.theguidesforecast.com/free/kalama-river-coho-fishing/287424/' } } } },
+    /* Added 2026-10-26 (docs/research/2026-10-26-puget-river-reports.md). No rating since 2026-11-17: WDFW lists no Skagit salmon season after Nov 15
+       (docs/research/2026-11-16-river-rules.md), and no report since the Confluence Fly Shop's of Oct 10 rates it. A gray No report pin, like Washougal. */
     { id: 'skagit', name: 'Skagit River', sub: 'Mouth to Marblemount Bridge', hl: true, tap: 'skagit-river', ll: [48.4902, -122.2209], added: '2026-10-26',
-      reports: { 'Coho Salmon': { r: 'fair', asOf: '2026-10-10', d: 'Plenty of coho are around the Skagit, though they have been a little dour at times in the current water conditions.',
-        src: { label: 'The Confluence Fly Shop, Oct 10', url: 'https://theconfluenceflyshop.com/blogs/fishing-reports/fly-fishing-report-october-2026' } } } },
+      reports: {} },
     /* No rating: the Oct 17 Guide's Forecast calls Washougal fishing slow but names no species, and this page rates by exact species, so the word cannot be carried onto one. A gray No report pin; its sheet shows the WDFW creel figures. */
     { id: 'washougal', name: 'Washougal River', sub: 'Lower river near Camas', hl: true, reports: {} }
   ];
