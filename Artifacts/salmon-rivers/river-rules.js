@@ -55,29 +55,11 @@
     {
       "id": "columbia",
       "species": "Coho Salmon",
-      "stretch": "Tongue Point line to the west end of Puget Island",
-      "text": "Through Oct 31: 6 salmon a day, up to 3 adults (coho 20 in or longer). Only hatchery coho, which have a clipped adipose fin, may be kept. (Set by WDFW's Sept 24 emergency rule.)",
-      "release": false,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
-    },
-    {
-      "id": "columbia",
-      "species": "Coho Salmon",
-      "stretch": "Puget Island line to Beacon Rock",
-      "text": "Through Oct 31: 6 salmon a day, up to 2 adults. Only hatchery coho may be kept.",
-      "release": false,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
-    },
-    {
-      "id": "columbia",
-      "species": "Coho Salmon",
       "stretch": "Tongue Point line to Bonneville Dam, except the closed reach below",
-      "text": "Nov 1 to Dec 31: release all salmon other than hatchery coho.",
+      "text": "Nov 1 to Dec 31: 6 salmon a day, with no more than 2 adult salmon or 2 hatchery steelhead, or 1 of each (salmon 12 in or longer). Only hatchery coho may be kept.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-17"
     },
     {
       "id": "columbia",
@@ -86,7 +68,7 @@
       "text": "Release all Chinook through Dec 31.",
       "release": true,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-17"
     },
     {
       "id": "columbia",
@@ -95,7 +77,7 @@
       "text": "Closed waters Nov 1 to Dec 31.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-17"
     },
     {
       "id": "columbia",
@@ -104,7 +86,7 @@
       "text": "Night closure. Barbless hooks required.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-17"
     },
     {
       "id": "columbia",
@@ -113,7 +95,7 @@
       "text": "Closed waters from 600 ft below the powerhouse fish ladder to the upstream line of the dam, and inside the south navigation lock.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-17"
     },
     {
       "id": "columbia",
@@ -122,7 +104,7 @@
       "text": "Anglers 15 and older need the Columbia River Salmon and Steelhead Endorsement.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-17"
     },
     {
       "id": "lewis",
@@ -245,28 +227,19 @@
       "id": "drano",
       "species": "All salmon",
       "stretch": null,
-      "text": "Aug 1 to Dec 31: 6 salmon a day, with no more than 1 adult in total, not 1 per species (coho 20 in or longer, Chinook 24 in or longer).",
+      "text": "Nov 1 to Dec 31: 6 salmon a day (12 in or longer), with no more than 1 adult salmon or hatchery steelhead in total.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-17"
     },
     {
       "id": "drano",
       "species": "All salmon",
       "stretch": null,
-      "text": "Closed from 6 p.m. Tuesdays to 6 p.m. Wednesdays during October.",
-      "release": false,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
-    },
-    {
-      "id": "drano",
-      "species": "All salmon",
-      "stretch": null,
-      "text": "Night closure through Oct 31. Anti-snagging rule through Dec 31.",
+      "text": "Anti-snagging rule through Dec 31.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-17"
     },
     {
       "id": "drano",
@@ -275,7 +248,7 @@
       "text": "Anglers 15 and older need the Columbia River Salmon and Steelhead Endorsement.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-17"
     },
     {
       "id": "kalama",
@@ -284,7 +257,7 @@
       "text": "Aug 1 to Dec 31: 6 salmon a day, up to 3 adults (coho 20 in or longer). Only hatchery coho, which have a clipped adipose fin, may be kept.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-17"
     },
     {
       "id": "kalama",
@@ -293,25 +266,7 @@
       "text": "Aug 1 to Dec 31: hatchery Chinook may be kept within the same limit. Release wild Chinook.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
-    },
-    {
-      "id": "kalama",
-      "species": "All salmon",
-      "stretch": "Railroad bridge below I-5 to the Fallert Creek Hatchery intake",
-      "text": "Night closure and anti-snagging rule through Oct 31.",
-      "release": false,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
-    },
-    {
-      "id": "kalama",
-      "species": "All salmon",
-      "stretch": "Gas pipeline crossing to the Fallert Creek Hatchery intake",
-      "text": "Fly fishing only from Sept 1 to Oct 31. Barbed hooks are allowed.",
-      "release": false,
-      "through": "2026-10-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-17"
     },
     {
       "id": "kalama",
@@ -320,7 +275,7 @@
       "text": "Closed waters.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-17"
     },
     {
       "id": "kalama",
@@ -329,7 +284,7 @@
       "text": "Closed waters while the rack is in the river.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-17"
     },
     {
       "id": "kalama",
@@ -338,7 +293,7 @@
       "text": "Anglers 15 and older need the Columbia River Salmon and Steelhead Endorsement.",
       "release": false,
       "through": "2026-12-31",
-      "checked": "2026-10-29"
+      "checked": "2026-11-17"
     },
     {
       "id": "skagit",

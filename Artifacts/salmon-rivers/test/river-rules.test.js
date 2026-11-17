@@ -58,10 +58,11 @@ test('the generator would write exactly this file (--check)', t => {
 });
 
 test('forWater drops a row after its through day and keeps it on that day', () => {
-  const row = RR.ROWS.find(r => r.id === 'drano' && r.through === '2026-10-31');
+  // A Drano row that ends with the year (its October rows were removed on 2026-11-17 once they had ended).
+  const row = RR.ROWS.find(r => r.id === 'drano' && r.through === '2026-12-31');
   assert.ok(row);
-  assert.ok(RR.forWater('drano', '2026-10-31').includes(row));
-  assert.ok(!RR.forWater('drano', '2026-11-01').includes(row));
+  assert.ok(RR.forWater('drano', '2026-12-31').includes(row));
+  assert.ok(!RR.forWater('drano', '2027-01-01').includes(row));
   assert.deepEqual(RR.forWater('drano', '2027-02-01'), []);
   assert.deepEqual(RR.forWater('nowhere', '2026-10-29'), []);
 });
