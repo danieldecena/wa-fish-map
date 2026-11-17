@@ -136,7 +136,7 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
-### 2026-11-17 (page check failures fixed)
+### 2026-11-17 (page check failures fixed, version 60)
 - `check-week.mjs` failed three checks on main. Two were the checks: the Port Angeles tide sheet asked for 3 extremes, but NOAA 9444090 has only a low and a high on Nov 17 (now 2 or more); and the reduced-transparency shading read opacity during the layer's 240 ms fade-in (0.9999), so the shading reads now wait for that animation to finish.
 - One was the page: a season tag was placed before the guide pins, which never step aside, so at Nov 25 and Nov 28 the "Chum · ends Nov 30" tag sat on two guide pins near Tacoma. Guide pins are now grouped first and tags step around their boxes; tags still go ahead of the mode's markers, as before. A tag or ring name with both sides taken now tries above and below the ring before it is left out. Compared with main at 10 dates, two widths and two layer sets: no name sits on a pin, no tag is lost but one, and more rings carry their names (Apr 20 on a phone: main named 1 of 4 rings plus a tag on a guide pin; now all 4 are named). The one: at Apr 20 on a phone, "Stocked trout · opens Apr 24" has no clear place near Seattle's guide pins, so that ring shows its plain name.
 - The page check's "ring has its name beside it" now counts a name within 24px above the ring, as it already did below.
