@@ -128,7 +128,7 @@
 
 ## Next Up
 
-- Lapsed river rows: Lower Columbia, Drano Lake and Kalama rows ended Oct 31 and are hidden. Re-read them from the pamphlet (TASKS).
+- River rules: most rows on the report rivers end Dec 31. Re-read them from the pamphlet before then.
 - Water focus for lakes needs lake outlines (NHD or WDFW) before any work starts.
 
 Everything else open lives in `TASKS.md`; run `~/bin/tasks-box.sh` for the
@@ -136,6 +136,10 @@ current counts rather than trusting a number written here.; run `~/bin/tasks-box
 current counts rather than trusting a number written here.
 
 ## Decision log
+
+### 2026-11-17 (lapsed river rules re-read; not yet published)
+- Re-read the Lower Columbia, Drano Lake and Kalama rows that ended Oct 31, from the pamphlet (pages dated Oct 5) and WDFW's emergency list (`docs/research/2026-11-17-river-rules.md`). Lower Columbia: the Nov 1 to Dec 31 coho row now gives the limit (6 a day, up to 2 adult salmon or 2 hatchery steelhead or 1 of each, only hatchery coho kept); the two October coho rows are removed. Drano: the limit row is the Nov 1 to Dec 31 one (1 adult salmon or hatchery steelhead), the October Tuesday closure is removed and the night closure (ended Oct 31) is dropped from the anti-snagging row. Kalama: nothing new from Nov 1; the two October rows are removed.
+- `test/river-rules.test.js` tested the end-of-row boundary on Drano's October row; it now uses a Drano row that ends Dec 31.
 
 ### 2026-11-17 (catch reports refreshed again, version 58)
 - Reports pass recorded in `docs/research/2026-11-17-river-reports.md`, from The Guide's Forecast's free SW Washington issues of Nov 7 and Nov 14: Cowlitz coho Slow ("coho slow"), Lewis coho Fair, Kalama coho Good ("coho still good"), Klickitat coho Fair (the lower end of "fair to good"). Newest report moves from Oct 29 to Nov 14.
