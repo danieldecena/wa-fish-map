@@ -137,7 +137,7 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
-### 2026-11-17 (lapsed river rules re-read; not yet published)
+### 2026-11-17 (lapsed river rules re-read, version 59)
 - Re-read the Lower Columbia, Drano Lake and Kalama rows that ended Oct 31, from the pamphlet (pages dated Oct 5) and WDFW's emergency list (`docs/research/2026-11-17-river-rules.md`). Lower Columbia: the Nov 1 to Dec 31 coho row now gives the limit (6 a day, up to 2 adult salmon or 2 hatchery steelhead or 1 of each, only hatchery coho kept); the two October coho rows are removed. Drano: the limit row is the Nov 1 to Dec 31 one (1 adult salmon or hatchery steelhead), the October Tuesday closure is removed and the night closure (ended Oct 31) is dropped from the anti-snagging row. Kalama: nothing new from Nov 1; the two October rows are removed.
 - `test/river-rules.test.js` tested the end-of-row boundary on Drano's October row; it now uses a Drano row that ends Dec 31.
 
