@@ -137,7 +137,7 @@ current counts rather than trusting a number written here.
 
 ## Decision log
 
-### 2026-11-17 (catch reports refreshed again; not yet published)
+### 2026-11-17 (catch reports refreshed again, version 58)
 - Reports pass recorded in `docs/research/2026-11-17-river-reports.md`, from The Guide's Forecast's free SW Washington issues of Nov 7 and Nov 14: Cowlitz coho Slow ("coho slow"), Lewis coho Fair, Kalama coho Good ("coho still good"), Klickitat coho Fair (the lower end of "fair to good"). Newest report moves from Oct 29 to Nov 14.
 - Dropped: the Skagit coho rating. WDFW lists no Skagit salmon season after Nov 15 (rule note of Nov 16) and no report since Oct 10 rates it. The site stays with no rating; `test/reports.test.js` now allows an unrated site whose sheet has counts or a current WDFW notice.
 - Not rated: "Fishing has slowed" at Drano and Wind (a trend, not the source saying slow), "fair to slow" on the Washougal (no species), the Klickitat mouth lines (no species). Columbia creel summaries pause until February.
